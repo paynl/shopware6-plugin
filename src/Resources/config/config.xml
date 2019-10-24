@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Basic Configuration</title>
+        <title lang="de-DE">Grundeinstellungen</title>
+
+        <input-field>
+            <name>tokenCode</name>
+            <label>Token-Code (AT-xxxx-xxxx)</label>
+            <label lang="de-DE">Token-Code (AT-xxxx-xxxx)</label>
+            <placeholder>AT-xxxx-xxxx</placeholder>
+            <placeholder lang="de-DE">AT-xxxx-xxxx</placeholder>
+            <helpText>Please fill in your token code</helpText>
+            <helpText lang="de-DE">Please fill in your token code</helpText>
+        </input-field>
+
+        <input-field>
+            <name>apiToken</name>
+            <label>API-token</label>
+            <label lang="de-DE">API-token</label>
+            <helpText>Please fill in your API-token</helpText>
+            <helpText lang="de-DE">Please fill in your API-token</helpText>
+        </input-field>
+
+        <input-field>
+            <name>serviceId</name>
+            <label>Service-ID</label>
+            <label lang="de-DE">Service-ID</label>
+            <placeholder>SL-xxxx-xxxx</placeholder>
+            <placeholder lang="de-DE">SL-xxxx-xxxx</placeholder>
+            <helpText>Please fill in your Service-ID</helpText>
+            <helpText lang="de-DE">Please fill in your Service-ID</helpText>
+        </input-field>
+    </card>
+</config>

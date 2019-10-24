@@ -1,0 +1,33 @@
+{
+    "name": "swag/plugin-paynl-payment",
+    "description": "Plugin paynl payment plugin",
+    "version": "v1.0.0",
+    "type": "shopware-platform-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andy Pieters",
+            "email": "andy@pay.nl"
+        }
+    ],
+    "require": {
+        "shopware/core": "*",
+        "paynl/sdk": "^1.5"
+    },
+    "extra": {
+        "shopware-plugin-class": "Swag\\PaynlPayment\\PaynlPayment",
+        "label": {
+            "de-DE": "PaynlPayment",
+            "en-GB": "PaynlPayment"
+        },
+        "description": {
+            "de-DE": "PaynlPayment",
+            "en-GB": "PaynlPayment"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Swag\\PaynlPayment\\": "src/"
+        }
+    }
+}
