@@ -11,8 +11,7 @@
         }
     ],
     "require": {
-        "shopware/core": "*",
-        "paynl/sdk": "^1.5"
+        "shopware/core": "*"
     },
     "extra": {
         "shopware-plugin-class": "Swag\\PaynlPayment\\PaynlPayment",

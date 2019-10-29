@@ -9,5 +9,9 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <tag name="shopware.payment.method.async" />
         </service>
+
+        <service id="Swag\PaynlPayment\Helper\PaynlSDKHelper" >
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
     </services>
 </container>
