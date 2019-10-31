@@ -1,0 +1,34 @@
+{
+    "name": "paynl/shopware-plugin",
+    "description": "Pay.nl Shopware Plugin",
+    "version": "v1.0.0",
+    "type": "shopware-platform-plugin",
+    "extra": {
+        "shopware-plugin-class": "Swag\\PluginQuickStart\\PaynlPayment",
+        "plugin-icon": "src/Resources/public/plugin.png",
+        "label": {
+            "de-DE": "Pay.nl payment",
+            "en-GB": "Pay.nl payment"
+        },
+        "description": {
+            "de-DE": "Pay.nl Payment Shopware Plugin",
+            "en-GB": "Pay.nl Payment Shopware Plugin"
+        }
+    },
+    "require": {
+        "shopware/core": "*",
+        "paynl/sdk": "^1.5"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+              "name": "Pay.nl dev team",
+              "email": "support@pay.nl"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Swag\\PluginQuickStart\\": "src/"
+        }
+    }
+}
