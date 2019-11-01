@@ -16,7 +16,6 @@
         }
     },
     "require": {
-        "shopware/core": "*",
         "paynl/sdk": "^1.5"
     },
     "license": "MIT",
@@ -28,7 +27,8 @@
     ],
     "autoload": {
         "psr-4": {
-            "PaynlPayment\\": "src/"
+            "PaynlPayment\\": "src/",
+            "Paynl\\": "vendor/paynl/sdk/src/"
         }
     }
 }
