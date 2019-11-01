@@ -4,7 +4,7 @@
     "version": "v1.0.0",
     "type": "shopware-platform-plugin",
     "extra": {
-        "shopware-plugin-class": "Swag\\PluginQuickStart\\PaynlPayment",
+        "shopware-plugin-class": "PaynlPayment\\PaynlPayment",
         "plugin-icon": "src/Resources/public/plugin.png",
         "label": {
             "de-DE": "Pay.nl payment",
@@ -28,7 +28,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Swag\\PluginQuickStart\\": "src/"
+            "PaynlPayment\\": "src/"
         }
     }
 }
