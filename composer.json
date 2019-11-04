@@ -28,7 +28,8 @@
     "autoload": {
         "psr-4": {
             "PaynlPayment\\": "src/",
-            "Paynl\\": "vendor/paynl/sdk/src/"
+            "Paynl\\": "vendor/paynl/sdk/src/",
+            "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
     }
 }

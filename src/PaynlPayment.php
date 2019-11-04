@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment;
 
-/**
- * The plugin can be installed via composer or via the package file.
- * When installed via composer, the sdk is automaticly loaded in the vendor directory.
- * In the package file this is included, but need to be loaded
- */
-if(!class_exists('\Paynl\Config') && file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once (__DIR__ . '/../vendor/autoload.php');
-}
+require_once (__DIR__ . '/../vendor/autoload.php');
 
 use Doctrine\DBAL\Connection;
 use Paynl\Paymentmethods;
@@ -46,6 +39,7 @@ class PaynlPayment extends Plugin
 
     public function uninstall(UninstallContext $uninstallContext): void
     {
+        $this->deactivatePaymentMethods($uninstallContext->getContext());
     }
 
     public function update(UpdateContext $updateContext): void
@@ -54,10 +48,12 @@ class PaynlPayment extends Plugin
 
     public function activate(ActivateContext $activateContext): void
     {
+        $this->activatePaymentMethods($activateContext->getContext());
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void
     {
+        $this->deactivatePaymentMethods($deactivateContext->getContext());
         $this->dropTable(self::TABLE_PAYNL_TRANSACTIONS);
     }
 
@@ -72,7 +68,7 @@ class PaynlPayment extends Plugin
     {
         $paynlPaymentMethods = $this->getPaynlPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            if (!$this->paymentMethodIsAdded($paymentMethod[self::PAYMENT_METHOD_ID])) {
+            if (empty($this->getAppPaymentMethodId($paymentMethod[self::PAYMENT_METHOD_ID]))) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
         }
@@ -96,7 +92,7 @@ class PaynlPayment extends Plugin
         return Paymentmethods::getList();
     }
 
-    private function paymentMethodIsAdded(string $paymentMethodId): bool
+    private function getAppPaymentMethodId(string $paymentMethodId): ?string
     {
         /** @var EntityRepositoryInterface $paymentRepository */
         $paymentRepository = $this->container->get('payment_method.repository');
@@ -113,11 +109,11 @@ class PaynlPayment extends Plugin
         foreach ($paymentMethods as $paymentMethod) {
             $paymentMethodActiveId = $paymentMethod->getCustomFields()['id'] ?? '';
             if ($paymentMethodId === $paymentMethodActiveId) {
-                return true;
+                return $paymentMethod->getId();
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -139,5 +135,48 @@ class PaynlPayment extends Plugin
         /** @var EntityRepositoryInterface $paymentRepository */
         $paymentRepository = $this->container->get('payment_method.repository');
         $paymentRepository->create([$paymentData], $context);
+    }
+
+    private function deactivatePaymentMethods(Context $context): void
+    {
+        $this->changePaymentMethodsStatuses($context, false);
+    }
+
+    private function activatePaymentMethods(Context $context): void
+    {
+        $this->changePaymentMethodsStatuses($context, true);
+    }
+
+    private function changePaymentMethodsStatuses(Context $context, bool $active): void
+    {
+        $paynlPaymentMethods = $this->getPaynlPaymentMethods();
+        foreach ($paynlPaymentMethods as $paymentMethod) {
+            if (empty($this->getAppPaymentMethodId($paymentMethod[self::PAYMENT_METHOD_ID]))) {
+                $this->addPaymentMethod($context, $paymentMethod);
+            }
+            $this->changePaymentMethodStatus($context, $paymentMethod, $active);
+        }
+    }
+
+    /**
+     * @param Context $context
+     * @param mixed[] $paymentMethod
+     * @param bool $active
+     */
+    private function changePaymentMethodStatus(Context $context, array $paymentMethod, bool $active): void
+    {
+        /** @var EntityRepositoryInterface $paymentRepository */
+        $paymentRepository = $this->container->get('payment_method.repository');
+        $appPaymentMethodId = $this->getAppPaymentMethodId($paymentMethod[self::PAYMENT_METHOD_ID]);
+        // nothing to update, payment method not found
+        if (empty($appPaymentMethodId)) {
+            return;
+        }
+
+        $paymentMethod = [
+            'id' => $appPaymentMethodId,
+            'active' => $active,
+        ];
+        $paymentRepository->update([$paymentMethod], $context);
     }
 }
