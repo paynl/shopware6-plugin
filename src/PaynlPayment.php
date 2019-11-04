@@ -9,8 +9,10 @@ require_once (__DIR__ . '/../vendor/autoload.php');
 use Doctrine\DBAL\Connection;
 use Paynl\Paymentmethods;
 use PaynlPayment\Components\Config;
+use PaynlPayment\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin;
@@ -32,6 +34,10 @@ class PaynlPayment extends Plugin
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
 
+    const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
+    const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
+    const PAYMENT_METHOD_PAYNL = 'paynl_payment';
+
     public function install(InstallContext $installContext): void
     {
         $this->addPaymentMethods($installContext->getContext());
@@ -44,11 +50,11 @@ class PaynlPayment extends Plugin
 
     public function update(UpdateContext $updateContext): void
     {
+        $this->addPaymentMethods($updateContext->getContext());
     }
 
     public function activate(ActivateContext $activateContext): void
     {
-        $this->activatePaymentMethods($activateContext->getContext());
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void
@@ -57,7 +63,7 @@ class PaynlPayment extends Plugin
         $this->dropTable(self::TABLE_PAYNL_TRANSACTIONS);
     }
 
-    private function dropTable(string $tableName)
+    private function dropTable(string $tableName): void
     {
         /** @var Connection $connection */
         $connection = $this->container->get(Connection::class);
@@ -68,7 +74,8 @@ class PaynlPayment extends Plugin
     {
         $paynlPaymentMethods = $this->getPaynlPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            if (empty($this->getAppPaymentMethodId($paymentMethod[self::PAYMENT_METHOD_ID]))) {
+            $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+            if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
         }
@@ -85,6 +92,11 @@ class PaynlPayment extends Plugin
         /** @var Config $config */
         $config = new Config($pluginConfig);
 
+        // plugin doesn't configured, nothing to do
+        if (empty($config->getTokenCode()) || empty($config->getApiToken()) || empty($config->getServiceId())) {
+            return [];
+        }
+
         SDKConfig::setTokenCode($config->getTokenCode());
         SDKConfig::setApiToken($config->getApiToken());
         SDKConfig::setServiceId($config->getServiceId());
@@ -92,49 +104,60 @@ class PaynlPayment extends Plugin
         return Paymentmethods::getList();
     }
 
-    private function getAppPaymentMethodId(string $paymentMethodId): ?string
+    private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
     {
         /** @var EntityRepositoryInterface $paymentRepository */
-        $paymentRepository = $this->container->get('payment_method.repository');
-
+        $paymentRepository = $this->container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
         // Fetch ID for update
         $paymentCriteria = (new Criteria())
-            ->addFilter(new EqualsFilter('handlerIdentifier', ExamplePayment::class));
+            ->addFilter(new EqualsFilter('id', $shopwarePaymentMethodId));
         $paymentMethods = $paymentRepository->search($paymentCriteria, Context::createDefaultContext());
 
-        if ($paymentMethods->getTotal() === 0) {
-            return false;
-        }
-
-        foreach ($paymentMethods as $paymentMethod) {
-            $paymentMethodActiveId = $paymentMethod->getCustomFields()['id'] ?? '';
-            if ($paymentMethodId === $paymentMethodActiveId) {
-                return $paymentMethod->getId();
-            }
-        }
-
-        return null;
+        return $paymentMethods->getTotal() !== 0;
     }
 
     /**
+     * @param Context $context
      * @param mixed[] $paymentMethod
+     * @throws InconsistentCriteriaIdsException
      */
     private function addPaymentMethod(Context $context, array $paymentMethod): void
     {
         /** @var PluginIdProvider $pluginIdProvider */
         $pluginIdProvider = $this->container->get(PluginIdProvider::class);
-        $pluginId = $pluginIdProvider->getPluginIdByBaseClass($this->getClassName(), $context);
+        $paymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+        $paymentMethodName = $paymentMethod[self::PAYMENT_METHOD_NAME];
+        $paymentMethodDescription =
+            sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[self::PAYMENT_METHOD_VISIBLE_NAME]);
+        $pluginId = $pluginIdProvider->getPluginIdByBaseClass(PaynlPayment::class, $context);
         $paymentData = [
+            'id' => $paymentMethodId,
             // payment handler will be selected by the identifier
-            'handlerIdentifier' => ExamplePayment::class,
-            'name' => $paymentMethod[self::PAYMENT_METHOD_NAME],
-            'description' => 'Paynl payment method: ' . $paymentMethod[self::PAYMENT_METHOD_VISIBLE_NAME],
+            'handlerIdentifier' => PaynlPaymentHandler::class,
+            'name' => $paymentMethodName,
+            'description' => $paymentMethodDescription,
             'pluginId' => $pluginId,
-            'customFields' => $paymentMethod,
+            'customFields' => [
+                self::PAYMENT_METHOD_PAYNL => 1
+            ]
         ];
-        /** @var EntityRepositoryInterface $paymentRepository */
-        $paymentRepository = $this->container->get('payment_method.repository');
-        $paymentRepository->create([$paymentData], $context);
+        /** @var EntityRepositoryInterface $paymentMethodRepository */
+        $paymentMethodRepository = $this->container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
+        $paymentMethodRepository->upsert([$paymentData], $context);
+
+        /** @var EntityRepositoryInterface $salesChannelRepository */
+        $salesChannelRepository = $this->container->get('sales_channel.repository');
+        /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
+        $paymentMethodSalesChannelRepository = $this->container->get('sales_channel_payment_method.repository');
+        $channels = $salesChannelRepository->searchIds(new Criteria(), $context);
+        foreach ($channels->getIds() as $channelId) {
+            $data = [
+                'salesChannelId'  => $channelId,
+                'paymentMethodId' => $paymentMethodId,
+            ];
+
+            $paymentMethodSalesChannelRepository->upsert([$data], $context);
+        }
     }
 
     private function deactivatePaymentMethods(Context $context): void
@@ -142,16 +165,12 @@ class PaynlPayment extends Plugin
         $this->changePaymentMethodsStatuses($context, false);
     }
 
-    private function activatePaymentMethods(Context $context): void
-    {
-        $this->changePaymentMethodsStatuses($context, true);
-    }
-
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
         $paynlPaymentMethods = $this->getPaynlPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            if (empty($this->getAppPaymentMethodId($paymentMethod[self::PAYMENT_METHOD_ID]))) {
+            $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+            if ($active && !$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
             $this->changePaymentMethodStatus($context, $paymentMethod, $active);
@@ -167,16 +186,16 @@ class PaynlPayment extends Plugin
     {
         /** @var EntityRepositoryInterface $paymentRepository */
         $paymentRepository = $this->container->get('payment_method.repository');
-        $appPaymentMethodId = $this->getAppPaymentMethodId($paymentMethod[self::PAYMENT_METHOD_ID]);
-        // nothing to update, payment method not found
-        if (empty($appPaymentMethodId)) {
+        $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+
+        if(!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
             return;
         }
 
-        $paymentMethod = [
-            'id' => $appPaymentMethodId,
+        $data = [
+            'id' => $shopwarePaymentMethodId,
             'active' => $active,
         ];
-        $paymentRepository->update([$paymentMethod], $context);
+        $paymentRepository->update([$data], $context);
     }
 }

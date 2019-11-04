@@ -15,7 +15,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
     public function update(Connection $connection): void
     {
         $query = '            
-            CREATE TABLE `paynl_transactions` (
+            CREATE TABLE IF NOT EXISTS `paynl_transactions` (
                 `id` BINARY(16) NOT NULL,
                 
                 `customer_id` BINARY(16) NOT NULL,

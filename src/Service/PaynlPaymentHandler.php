@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment;
+namespace PaynlPayment\Service;
 
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -12,7 +12,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class ExamplePayment implements AsynchronousPaymentHandlerInterface
+class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
     /**
      * @var OrderTransactionStateHandler
