@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PaynlPayment;
 
-use Doctrine\DBAL\Connection;
+require_once (__DIR__ . '/../vendor/autoload.php');
+
+use PaynlPayment\Helper\InstallHelper;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
@@ -12,34 +16,29 @@ use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 
 class PaynlPayment extends Plugin
 {
-    const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
-    const TABLE_PAYNL_TRANSACTIONS = 'paynl_transactions';
-
     public function install(InstallContext $installContext): void
     {
-    }
-
-    public function update(UpdateContext $updateContext): void
-    {
+        (new InstallHelper($this->container))->addPaymentMethods($installContext->getContext());
     }
 
     public function uninstall(UninstallContext $uninstallContext): void
     {
+        (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
+    }
+
+    public function update(UpdateContext $updateContext): void
+    {
+        (new InstallHelper($this->container))->addPaymentMethods($updateContext->getContext());
     }
 
     public function activate(ActivateContext $activateContext): void
     {
+        // TODO: do activate payment methods?
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void
     {
-        $this->dropTable(self::TABLE_PAYNL_TRANSACTIONS);
-    }
-
-    private function dropTable(string $tableName)
-    {
-        /** @var Connection $connection */
-        $connection = $this->container->get(Connection::class);
-        $connection->exec(sprintf(self::MYSQL_DROP_TABLE, $tableName));
+        (new InstallHelper($this->container))->deactivatePaymentMethods($deactivateContext->getContext());
+        (new InstallHelper($this->container))->dropTables();
     }
 }

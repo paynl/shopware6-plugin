@@ -15,7 +15,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
     public function update(Connection $connection): void
     {
         $query = '            
-            CREATE TABLE `paynl_transactions` (
+            CREATE TABLE IF NOT EXISTS `paynl_transactions` (
                 `id` BINARY(16) NOT NULL,
                 
                 `customer_id` BINARY(16) NOT NULL,
@@ -32,20 +32,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 `created_at` DATETIME(3) NOT NULL,
                 `updated_at` DATETIME(3) NULL,
                 
-                PRIMARY KEY (`id`),
-                
-                KEY `fk.paynl_transaction.customer_id` (`customer_id`),
-                KEY `fk.paynl_transaction.order_id` (`order_id`),
-               
-                CONSTRAINT `fk.paynl_transaction.customer_id` 
-                    FOREIGN KEY (`customer_id`) 
-                    REFERENCES `customer` (`id`) 
-                    ON DELETE RESTRICT ON UPDATE CASCADE,
-               
-                CONSTRAINT `fk.paynl_transaction.order_id` 
-                    FOREIGN KEY (`order_id`) 
-                    REFERENCES `order` (`id`) 
-                    ON DELETE RESTRICT ON UPDATE CASCADE
+                PRIMARY KEY (`id`)
                     
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ';
