@@ -33,7 +33,7 @@ class PaynlPayment extends Plugin
 
     public function activate(ActivateContext $activateContext): void
     {
-        // TODO: do activate payment methods?
+        (new InstallHelper($this->container))->addPaymentMethods($activateContext->getContext());
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void
