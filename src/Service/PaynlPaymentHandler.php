@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Service;
 
+use Exception;
+use PaynlPayment\Components\Api;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
@@ -16,14 +18,15 @@ use Symfony\Component\HttpFoundation\Request;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
-    /**
-     * @var OrderTransactionStateHandler
-     */
+    /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
+    /** @var Api */
+    private $paynlApi;
 
-    public function __construct(OrderTransactionStateHandler $transactionStateHandler)
+    public function __construct(OrderTransactionStateHandler $transactionStateHandler, Api $api)
     {
         $this->transactionStateHandler = $transactionStateHandler;
+        $this->paynlApi = $api;
     }
 
     /**
@@ -34,10 +37,10 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): RedirectResponse {
-        // Method that sends the return URL to the external gateway and gets a redirect URL back
         try {
-            $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction->getReturnUrl());
-        } catch (\Exception $e) {
+            $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
+            $redirectUrl = $this->sendReturnUrlToExternalGateway($shopwarePaymentMethodId, $transaction);
+        } catch (Exception $e) {
             throw new AsyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
@@ -78,15 +81,17 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
     }
 
-    private function sendReturnUrlToExternalGateway(string $returnUrl): string
-    {
-        $paymentProviderUrl = '';
-        $requestData = [
-            'returnUrl' => $returnUrl,
-        ];
-
-        // Do some API Call to your payment provider
-
-        return $paymentProviderUrl;
+    private function sendReturnUrlToExternalGateway(
+        string $shopwarePaymentMethodId,
+        AsyncPaymentTransactionStruct $transaction
+    ): string {
+        try {
+            $result = $this->paynlApi->startPayment($shopwarePaymentMethodId, $transaction);
+            if (!empty($result->getRedirectUrl())) {
+                return $result->getRedirectUrl();
+            }
+        } catch (Exception $e) {
+            // todo error handling
+        }
     }
 }

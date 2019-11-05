@@ -23,10 +23,6 @@ class InstallHelper
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
     const TABLE_PAYNL_TRANSACTIONS = 'paynl_transactions';
 
-    const PAYMENT_METHOD_ID = 'id';
-    const PAYMENT_METHOD_NAME = 'name';
-    const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
-
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
     const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
@@ -63,7 +59,7 @@ class InstallHelper
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
             if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
@@ -87,10 +83,10 @@ class InstallHelper
      */
     private function addPaymentMethod(Context $context, array $paymentMethod): void
     {
-        $paymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
-        $paymentMethodName = $paymentMethod[self::PAYMENT_METHOD_NAME];
+        $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+        $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $paymentMethodDescription =
-            sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[self::PAYMENT_METHOD_VISIBLE_NAME]);
+            sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]);
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPayment::class, $context);
         $paymentData = [
             'id' => $paymentMethodId,
@@ -125,7 +121,7 @@ class InstallHelper
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
             if ($active && !$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
@@ -140,7 +136,7 @@ class InstallHelper
      */
     private function changePaymentMethodStatus(Context $context, array $paymentMethod, bool $active): void
     {
-        $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+        $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
         if(!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
             return;
         }
