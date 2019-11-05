@@ -6,6 +6,9 @@
         <service id="PaynlPayment\Components\Config">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
         </service>
+        <service id="PaynlPayment\Components\Api">
+            <argument type="service" id="PaynlPayment\Components\Config"/>
+        </service>
 
         <service id="PaynlPayment\Service\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
