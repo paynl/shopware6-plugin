@@ -7,6 +7,7 @@ namespace PaynlPayment\Helper;
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
+use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -90,7 +91,7 @@ class InstallHelper
         $paymentMethodName = $paymentMethod[self::PAYMENT_METHOD_NAME];
         $paymentMethodDescription =
             sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[self::PAYMENT_METHOD_VISIBLE_NAME]);
-        $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentHandler::class, $context);
+        $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPayment::class, $context);
         $paymentData = [
             'id' => $paymentMethodId,
             // payment handler will be selected by the identifier
