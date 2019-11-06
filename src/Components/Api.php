@@ -8,7 +8,11 @@ use Exception;
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
 use Paynl\Transaction;
+use PaynlPayment\Exceptions\PaynlPaymentException;
+use PaynlPayment\Helper\CustomerHelper;
+use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class Api
 {
@@ -16,9 +20,15 @@ class Api
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
 
-    public function __construct(Config $config)
+    /** @var Config */
+    private $config;
+    /** @var CustomerHelper */
+    private $customerHelper;
+
+    public function __construct(Config $config, CustomerHelper $customerHelper)
     {
         $this->config = $config;
+        $this->customerHelper = $customerHelper;
     }
 
     /**
@@ -33,56 +43,29 @@ class Api
             return [];
         }
 
-        $this->loginSDK();
+        $this->setAccessData();
 
         return Paymentmethods::getList();
     }
 
-    private function loginSDK()
+    private function setAccessData()
     {
         SDKConfig::setTokenCode($this->config->getTokenCode());
         SDKConfig::setApiToken($this->config->getApiToken());
         SDKConfig::setServiceId($this->config->getServiceId());
     }
 
-    public function startPayment(string $shopwarePaymentMethodId, AsyncPaymentTransactionStruct $transaction)
+    public function startPayment(AsyncPaymentTransactionStruct $transaction, SalesChannelContext $salesChannelContext)
     {
         // TODO: create custom transaction
         // TODO: set initial data to custom transaction
-
-        $paymentMethod = $this->findPaymentMethod($shopwarePaymentMethodId);
-        file_put_contents('debug.txt', json_encode($paymentMethod) . PHP_EOL, FILE_APPEND);
-        $paymentMethodId = $paymentMethod[self::PAYMENT_METHOD_ID];
-        file_put_contents('debug.txt', json_encode($paymentMethodId) . PHP_EOL, FILE_APPEND);
-        // TODO: throw exception if $paymentMethodId is null
-
-        // TODO: implement payment id increment
-        $paymentId = time();
-
-        file_put_contents('debug.txt', $transaction->getOrder()->getAmountTotal() . PHP_EOL, FILE_APPEND);
-        file_put_contents('debug.txt', $paymentMethodId . PHP_EOL, FILE_APPEND);
-        file_put_contents('debug.txt', $transaction->getOrder()->getCurrencyId() . PHP_EOL, FILE_APPEND);
-        file_put_contents('debug.txt', $paymentId . PHP_EOL, FILE_APPEND);
-        file_put_contents('debug.txt', $transaction->getReturnUrl() . PHP_EOL, FILE_APPEND);
-
-        $transactionInitialData = $this->getTransactionInitialData(
-            (string)$transaction->getOrder()->getAmountTotal(),
-            (string)$paymentMethodId,
-            '978', // TODO: get currency
-            (string)$paymentId,
-            $transaction->getReturnUrl()
-        );
-        file_put_contents('debug.txt', json_encode($transactionInitialData) . PHP_EOL, FILE_APPEND);
-
+        $transactionInitialData = $this->getTransactionInitialData($transaction, $salesChannelContext);
         try {
-            $this->loginSDK();
+            $this->setAccessData();
             // TODO: store transaction ID to custom transaction
-            $result = Transaction::start($transactionInitialData);
-            file_put_contents('debug.txt', json_encode($result) . PHP_EOL, FILE_APPEND);
-            return $result;
+            return Transaction::start($transactionInitialData);
         } catch (Exception $exception) {
             // TODO: store exception to custom transaction
-            file_put_contents('debug.txt', json_encode($exception) . PHP_EOL, FILE_APPEND);
             throw $exception;
         }
     }
@@ -104,32 +87,57 @@ class Api
     }
 
     private function getTransactionInitialData(
-        string $amount,
-        string $paymentMethodId,
-        string $currency,
-        string $paymentId,
-        string $returnUrl
+        AsyncPaymentTransactionStruct $transaction,
+        SalesChannelContext $salesChannelContext
     ) {
+        $paymentMethodId = $this->getPaymentMethodFromContext($salesChannelContext);
+        $amount = (string)$transaction->getOrder()->getAmountTotal();
+        $currency = $salesChannelContext->getCurrency()->getIsoCode();
+        // TODO: implement payment id increment
+        $paymentId = time();
+        $testMode = $this->config->getTestMode();
+        $exchangeUrl = '';
+        $returnUrl = $transaction->getReturnUrl();
         $transactionInitialData = [
             // Basic data
+            'paymentMethod' => $paymentMethodId,
             'amount' => $amount,
-            //'paymentMethod' => $paymentMethodId,
-            //'currency' => $currency,
-            //'description' => $paymentId,
-            //'orderNumber' => $paymentId,
+            'currency' => $currency,
+            'description' => $paymentId,
+            'orderNumber' => $paymentId,
             // TODO: store 'extra1'
-            // TODO: store 'testmode'
+            'testmode' => $testMode,
 
             // Urls
             'returnUrl' => $returnUrl,
-            //'exchangeUrl' => '',
+            'exchangeUrl' => $exchangeUrl,
 
             // Products
             // TODO: store 'products'
         ];
 
-        // TODO: add user formatted address to data
+        $customer = $salesChannelContext->getCustomer();
+        if ($customer instanceof CustomerEntity) {
+            $addresses = $this->customerHelper->formatAddresses($customer);
+            $transactionInitialData = array_merge($transactionInitialData, $addresses);
+        }
+
+        file_put_contents('debug.txt', json_encode($transactionInitialData) . PHP_EOL, FILE_APPEND);
 
         return $transactionInitialData;
+    }
+
+    private function getPaymentMethodFromContext(SalesChannelContext $salesChannelContext): string
+    {
+        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
+        $paymentMethod = $this->findPaymentMethod($shopwarePaymentMethodId);
+        if (is_null($paymentMethod)) {
+            throw new PaynlPaymentException('Could not detect payment method.');
+        }
+        if (empty($paymentMethod) || !is_array($paymentMethod)) {
+            throw new PaynlPaymentException('Wrong payment method data.');
+        }
+
+        return $paymentMethod[self::PAYMENT_METHOD_ID];
     }
 }

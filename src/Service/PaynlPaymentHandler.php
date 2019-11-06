@@ -38,8 +38,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         SalesChannelContext $salesChannelContext
     ): RedirectResponse {
         try {
-            $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-            $redirectUrl = $this->sendReturnUrlToExternalGateway($shopwarePaymentMethodId, $transaction);
+            $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
         } catch (Exception $e) {
             throw new AsyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
@@ -59,6 +58,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
+
         $transactionId = $transaction->getOrderTransaction()->getId();
 
         // Cancelled payment?
@@ -82,16 +82,16 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     }
 
     private function sendReturnUrlToExternalGateway(
-        string $shopwarePaymentMethodId,
-        AsyncPaymentTransactionStruct $transaction
+        AsyncPaymentTransactionStruct $transaction,
+        SalesChannelContext $salesChannelContext
     ): string {
         try {
-            $result = $this->paynlApi->startPayment($shopwarePaymentMethodId, $transaction);
+            $result = $this->paynlApi->startPayment($transaction, $salesChannelContext);
             if (!empty($result->getRedirectUrl())) {
                 return $result->getRedirectUrl();
             }
-        } catch (Exception $e) {
-            // todo error handling
+        } catch (Exception $exception) {
+            // TODO: error handling
         }
     }
 }

@@ -9,6 +9,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 class Config
 {
     const CONFIG_TEMPLATE = 'PaynlPayment.config.%s';
+    const FEMALE_SALUTATIONS = 'mrs, ms, miss, ma\'am, frau, mevrouw, mevr';
 
     private $config;
 
@@ -45,5 +46,23 @@ class Config
     public function getServiceId(): string
     {
         return (string)$this->get('serviceId');
+    }
+
+    public function getTestMode(): int
+    {
+        return (int)$this->get('testMode');
+    }
+
+    public function getFemaleSalutations(): array
+    {
+        $salutations = $this->get('femaleSalutations', self::FEMALE_SALUTATIONS);
+        $arrSalutations = explode(',', $salutations);
+
+        return array_map('trim', $arrSalutations);
+    }
+
+    public function getUseAdditionalAddressFields(): int
+    {
+        return (int)$this->get('additionalAddressFields');
     }
 }
