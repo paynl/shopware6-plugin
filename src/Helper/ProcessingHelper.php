@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Helper;
 
-use Paynl\Result\Transaction\Status;
 use Paynl\Result\Transaction\Transaction;
 use PaynlPayment\Components\Api;
-use PaynlPayment\Exceptions\PaynlPaymentException;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
+use PaynlPayment\Entity\PaynlTransactionEntity;
+use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class ProcessingHelper
 {
@@ -22,10 +25,13 @@ class ProcessingHelper
 
     /** @var Api */
     private $paynlApi;
+    /** @var EntityRepositoryInterface */
+    private $paynlTransactionRepository;
 
-    public function __construct(Api $api)
+    public function __construct(Api $api, EntityRepositoryInterface $paynlTransactionRepository)
     {
         $this->paynlApi = $api;
+        $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
     public function processPayment($transactionId, $isExchange = false): ?bool
@@ -42,5 +48,33 @@ class ProcessingHelper
         }
 
         return $apiTransaction->isAuthorized();
+    }
+
+    public function createPaynlTransactionInfo(
+        AsyncPaymentTransactionStruct $transaction,
+        SalesChannelContext $salesChannelContext
+    ) {
+        $transactionData = [
+            'customerId' => $salesChannelContext->getCustomer()->getId(),
+            'orderId' => $transaction->getOrder()->getId(),
+            'paymentId' => $this->paynlApi->getPaynlPaymentMethodFromContext($salesChannelContext),
+            'amount' => $transaction->getOrder()->getAmountTotal(),
+            'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+        ];
+        $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
+    }
+
+    public function setPaynlTransactionId(
+        string $orderId,
+        string $paynlTransactionId,
+        SalesChannelContext $salesChannelContext
+    ) {
+        /** @var PaynlTransactionEntity $paynlTransaction */
+        $paynlTransaction = $this->paynlTransactionRepository->search(
+            (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId)),
+            $salesChannelContext->getContext()
+        );
+        $paynlTransaction->paynlTransactionId = $paynlTransactionId;
+        $paynlTransaction->setId();
     }
 }

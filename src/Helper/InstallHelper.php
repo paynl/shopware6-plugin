@@ -7,6 +7,7 @@ namespace PaynlPayment\Helper;
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
+use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
@@ -21,7 +22,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class InstallHelper
 {
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
-    const TABLE_PAYNL_TRANSACTIONS = 'paynl_transactions';
 
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
     const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
@@ -152,6 +152,6 @@ class InstallHelper
 
     public function dropTables(): void
     {
-        $this->connection->exec(sprintf(self::MYSQL_DROP_TABLE, self::TABLE_PAYNL_TRANSACTIONS));
+        $this->connection->exec(sprintf(self::MYSQL_DROP_TABLE, PaynlTransactionEntityDefinition::ENTITY_NAME));
     }
 }

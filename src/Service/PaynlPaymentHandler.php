@@ -16,11 +16,15 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
     /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
+    /** @var RouterInterface */
+    private $router;
     /** @var Api */
     private $paynlApi;
     /** @var ProcessingHelper */
@@ -28,10 +32,12 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
+        RouterInterface $router,
         Api $api,
         ProcessingHelper $processingHelper
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
+        $this->router = $router;
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
     }
@@ -82,13 +88,19 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext
     ): string {
-        try {
-            $result = $this->paynlApi->startPayment($transaction, $salesChannelContext);
-            if (!empty($result->getRedirectUrl())) {
-                return $result->getRedirectUrl();
-            }
-        } catch (Exception $exception) {
-            // TODO: error handling
+        $this->processingHelper->createPaynlTransactionInfo($transaction, $salesChannelContext);
+        $exchangeUrl = 'http://37.230.97.50:8000/PaynlPayment/notify';
+        //$exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
+        $this->processingHelper->setPaynlTransactionId(
+            $transaction->getOrder()->getId(),
+            $paynlTransaction->getTransactionId(),
+            $salesChannelContext
+        );
+        if (!empty($paynlTransaction->getRedirectUrl())) {
+            return $paynlTransaction->getRedirectUrl();
         }
+
+        return '';
     }
 }

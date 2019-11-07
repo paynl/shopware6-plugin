@@ -9,6 +9,7 @@
         </service>
         <service id="PaynlPayment\Helper\ProcessingHelper">
             <argument type="service" id="PaynlPayment\Components\Api"/>
+            <argument type="service" id="paynl_transactions.repository"/>
         </service>
 
         <!--Components-->
@@ -18,12 +19,12 @@
         <service id="PaynlPayment\Components\Api">
             <argument type="service" id="PaynlPayment\Components\Config"/>
             <argument type="service" id="PaynlPayment\Helper\CustomerHelper"/>
-            <argument type="service" id="router.default"/>
         </service>
 
         <!--Services-->
         <service id="PaynlPayment\Service\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="router.default"/>
             <argument type="service" id="PaynlPayment\Components\Api"/>
             <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
             <tag name="shopware.payment.method.async" />
@@ -35,6 +36,11 @@
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
+        </service>
+
+        <!--Entities-->
+        <service id="PaynlPayment\Entity\PaynlTransactionEntityDefinition">
+            <tag name="shopware.entity.definition" entity="paynl_transactions" />
         </service>
     </services>
 </container>
