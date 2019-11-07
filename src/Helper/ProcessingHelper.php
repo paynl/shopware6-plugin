@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Helper;
 
+use Exception;
 use Paynl\Result\Transaction\Transaction;
+use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
+use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -34,47 +39,32 @@ class ProcessingHelper
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    public function processPayment($transactionId, $isExchange = false): ?bool
-    {
-        /** @var Transaction $apiTransaction */
-        $apiTransaction = $this->paynlApi->getTransaction($transactionId);
-        $apiTransaction->getStatus();
-
-        if (!$isExchange && $apiTransaction->isCanceled()) {
-            throw new CustomerCanceledAsyncPaymentException(
-                $transactionId,
-                'Customer canceled the payment on the PayPal page'
-            );
-        }
-
-        return $apiTransaction->isAuthorized();
-    }
-
-    public function createPaynlTransactionInfo(
+    public function storePaynlTransactionData(
         AsyncPaymentTransactionStruct $transaction,
-        SalesChannelContext $salesChannelContext
+        SalesChannelContext $salesChannelContext,
+        string $paynlTransactionId,
+        ?Exception $exception
     ) {
         $transactionData = [
+            'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $salesChannelContext->getCustomer()->getId(),
             'orderId' => $transaction->getOrder()->getId(),
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodFromContext($salesChannelContext),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            'exception' => json_encode($exception)
         ];
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
     }
 
-    public function setPaynlTransactionId(
-        string $orderId,
-        string $paynlTransactionId,
-        SalesChannelContext $salesChannelContext
-    ) {
-        /** @var PaynlTransactionEntity $paynlTransaction */
-        $paynlTransaction = $this->paynlTransactionRepository->search(
-            (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId)),
-            $salesChannelContext->getContext()
-        );
-        $paynlTransaction->paynlTransactionId = $paynlTransactionId;
-        $paynlTransaction->setId();
+    public function findTransactionByOrderId(string $orderId, Context $context)
+    {
+        $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
+        return $this->paynlTransactionRepository->search($criteria, $context)->first();
+    }
+
+    public function getApiTransaction(string $transactionId): ResultTransaction
+    {
+        return $this->paynlApi->getTransaction($transactionId);
     }
 }

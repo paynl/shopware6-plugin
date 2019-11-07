@@ -5,6 +5,7 @@ namespace PaynlPayment\Components;
 use Exception;
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
+use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Exceptions\PaynlPaymentException;
@@ -60,7 +61,7 @@ class Api
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $exchangeUrl
-    ) {
+    ): Start {
         // TODO: create custom transaction
         // TODO: set initial data to custom transaction
         $transactionInitialData = $this->getTransactionInitialData($transaction, $salesChannelContext, $exchangeUrl);
@@ -129,8 +130,6 @@ class Api
             $addresses = $this->customerHelper->formatAddresses($customer);
             $transactionInitialData = array_merge($transactionInitialData, $addresses);
         }
-
-        file_put_contents('debug.txt', json_encode($transactionInitialData) . PHP_EOL, FILE_APPEND);
 
         return $transactionInitialData;
     }

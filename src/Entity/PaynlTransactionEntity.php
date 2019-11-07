@@ -23,4 +23,9 @@ class PaynlTransactionEntity extends Entity
     {
         $this->technicalName = $technicalName;
     }
+
+    public function getPaynlTransactionId(): string
+    {
+        return $this->paynlTransactionId;
+    }
 }

@@ -1,11 +1,11 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment\Service;
 
 use Exception;
+use Paynl\Result\Transaction\Start;
 use PaynlPayment\Components\Api;
+use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Helper\ProcessingHelper;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Throwable;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
@@ -71,33 +72,47 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
-        $transactionId = $transaction->getOrderTransaction()->getId();
-        $paymentIsCompleted = $this->processingHelper->processPayment($transactionId, false);
         $context = $salesChannelContext->getContext();
-        if ($paymentIsCompleted === true) {
-            // Payment completed, set transaction status to "paid"
-            $this->transactionStateHandler->pay($transaction->getOrderTransaction()->getId(), $context);
-        } else {
-            // Payment not completed, set transaction status to "open"
-            // TODO: clarify using reopen method
-            $this->transactionStateHandler->reopen($transaction->getOrderTransaction()->getId(), $context);
+        $orderId = $transaction->getOrder()->getId();
+        $orderTransactionId = $transaction->getOrderTransaction()->getId();
+
+        /** @var PaynlTransactionEntity $paynlTransaction */
+        $paynlTransaction = $this->processingHelper->findTransactionByOrderId($orderId, $context);
+        $apiTransaction = $this->processingHelper->getApiTransaction($paynlTransaction->getPaynlTransactionId());
+
+        if ($apiTransaction->isCanceled()) {
+            $this->transactionStateHandler->cancel($orderTransactionId, $context);
+            throw new CustomerCanceledAsyncPaymentException(
+                $orderId,
+                'Customer canceled the payment on the PayPal page'
+            );
         }
+
+        // TODO: check other transaction statuses
     }
 
     private function sendReturnUrlToExternalGateway(
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext
     ): string {
-        $this->processingHelper->createPaynlTransactionInfo($transaction, $salesChannelContext);
-        $exchangeUrl = 'http://37.230.97.50:8000/PaynlPayment/notify';
-        //$exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
-        $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
-        $this->processingHelper->setPaynlTransactionId(
-            $transaction->getOrder()->getId(),
-            $paynlTransaction->getTransactionId(),
-            $salesChannelContext
+        $startTransactionException = null;
+        $exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        try {
+            $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
+        } catch (Throwable $exception) {
+            $startTransactionException = $exception;
+            throw $exception;
+        }
+
+        $paynlTransactionId = $paynlTransaction instanceof Start ? $paynlTransaction->getTransactionId() : '';
+        $this->processingHelper->storePaynlTransactionData(
+            $transaction,
+            $salesChannelContext,
+            $paynlTransactionId,
+            $startTransactionException
         );
-        if (!empty($paynlTransaction->getRedirectUrl())) {
+
+        if ($paynlTransaction instanceof Start && !empty($paynlTransaction->getRedirectUrl())) {
             return $paynlTransaction->getRedirectUrl();
         }
 
