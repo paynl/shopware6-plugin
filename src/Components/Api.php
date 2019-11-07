@@ -8,11 +8,14 @@ use Exception;
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
 use Paynl\Transaction;
+use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 class Api
 {
@@ -20,15 +23,20 @@ class Api
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
 
+    const ACTION_PENDING = 'pending';
+
     /** @var Config */
     private $config;
     /** @var CustomerHelper */
     private $customerHelper;
+    /** @var RouterInterface */
+    private $router;
 
-    public function __construct(Config $config, CustomerHelper $customerHelper)
+    public function __construct(Config $config, CustomerHelper $customerHelper, RouterInterface $router)
     {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
+        $this->router = $router;
     }
 
     /**
@@ -43,12 +51,12 @@ class Api
             return [];
         }
 
-        $this->setAccessData();
+        $this->setCredentials();
 
         return Paymentmethods::getList();
     }
 
-    private function setAccessData()
+    private function setCredentials()
     {
         SDKConfig::setTokenCode($this->config->getTokenCode());
         SDKConfig::setApiToken($this->config->getApiToken());
@@ -61,13 +69,21 @@ class Api
         // TODO: set initial data to custom transaction
         $transactionInitialData = $this->getTransactionInitialData($transaction, $salesChannelContext);
         try {
-            $this->setAccessData();
+            $this->setCredentials();
             // TODO: store transaction ID to custom transaction
             return Transaction::start($transactionInitialData);
         } catch (Exception $exception) {
             // TODO: store exception to custom transaction
             throw $exception;
         }
+    }
+
+    public function getTransaction(string $transactionId): ResultTransaction
+    {
+        file_put_contents('debug.txt', json_encode($transactionId) . PHP_EOL, FILE_APPEND);
+        $this->setCredentials();
+
+        return Transaction::get($transactionId);
     }
 
     /**
@@ -91,12 +107,14 @@ class Api
         SalesChannelContext $salesChannelContext
     ) {
         $paymentMethodId = $this->getPaymentMethodFromContext($salesChannelContext);
-        $amount = (string)$transaction->getOrder()->getAmountTotal();
+        $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         // TODO: implement payment id increment
         $paymentId = time();
+        $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
-        $exchangeUrl = '';
+        $exchangeUrl = 'http://37.230.97.50:8000/PaynlPayment/notify';
+        //$exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $returnUrl = $transaction->getReturnUrl();
         $transactionInitialData = [
             // Basic data
@@ -105,7 +123,7 @@ class Api
             'currency' => $currency,
             'description' => $paymentId,
             'orderNumber' => $paymentId,
-            // TODO: store 'extra1'
+            'extra1' => $extra1,
             'testmode' => $testMode,
 
             // Urls

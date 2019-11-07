@@ -49,10 +49,12 @@ class InstallHelper
         $this->salesChannelRepository = $container->get('sales_channel.repository');
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
         $this->connection = $container->get(Connection::class);
+        // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
         // may be use setter injection?
         $this->config = new Config($container->get(SystemConfigService::class));
-        $this->paynlApi = new Api($this->config);
+        $customerHelper = new CustomerHelper($this->config);
+        $this->paynlApi = new Api($this->config, $customerHelper);
     }
 
     public function addPaymentMethods(Context $context): void
