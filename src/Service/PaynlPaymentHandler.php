@@ -112,24 +112,24 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext
     ): string {
-        $paynlTransaction = null;
-        $startTransactionException = null;
+        $paynlTransactionId = '';
         $exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         try {
             $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
+            $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
-            $startTransactionException = $exception;
+            $this->processingHelper->storePaynlTransactionData(
+                $transaction,
+                $salesChannelContext,
+                $paynlTransactionId,
+                $exception
+            );
+            throw $exception;
         }
 
-        $paynlTransactionId = $paynlTransaction instanceof Start ? $paynlTransaction->getTransactionId() : '';
-        $this->processingHelper->storePaynlTransactionData(
-            $transaction,
-            $salesChannelContext,
-            $paynlTransactionId,
-            $startTransactionException
-        );
+        $this->processingHelper->storePaynlTransactionData($transaction, $salesChannelContext, $paynlTransactionId);
 
-        if ($paynlTransaction instanceof Start && !empty($paynlTransaction->getRedirectUrl())) {
+        if (!empty($paynlTransaction->getRedirectUrl())) {
             return $paynlTransaction->getRedirectUrl();
         }
 

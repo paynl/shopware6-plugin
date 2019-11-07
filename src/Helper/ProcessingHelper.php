@@ -30,7 +30,7 @@ class ProcessingHelper
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $paynlTransactionId,
-        ?Exception $exception
+        ?Exception $exception = null
     ): void {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         /** @var CustomerEntity $customer */
@@ -42,7 +42,7 @@ class ProcessingHelper
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
-            'exception' => json_encode($exception)
+            'exception' => (string)$exception,
         ];
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
     }

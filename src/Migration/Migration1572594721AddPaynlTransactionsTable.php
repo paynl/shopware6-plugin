@@ -25,7 +25,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 `payment_id` INT(11) NOT NULL,
                 `amount` FLOAT NOT NULL,
                 `currency` VARCHAR(3) NOT NULL,
-                `exceptions` TEXT,
+                `exception` TEXT,
                 `comment` VARCHAR(255),
                 `dispatch` VARCHAR(255),
                 

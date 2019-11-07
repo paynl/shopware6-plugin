@@ -47,7 +47,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new IntField('payment_id', 'paymentId')),
             (new FloatField('amount', 'amount'))->setFlags(new Required()),
             (new StringField('currency', 'currency', 3))->setFlags(new Required()),
-            (new LongTextField('exceptions', 'exceptions')),
+            (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
 
