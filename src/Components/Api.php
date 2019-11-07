@@ -2,7 +2,6 @@
 
 namespace PaynlPayment\Components;
 
-use Exception;
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
@@ -50,7 +49,7 @@ class Api
         return Paymentmethods::getList();
     }
 
-    private function setCredentials()
+    private function setCredentials(): void
     {
         SDKConfig::setTokenCode($this->config->getTokenCode());
         SDKConfig::setApiToken($this->config->getApiToken());
@@ -62,11 +61,8 @@ class Api
         SalesChannelContext $salesChannelContext,
         string $exchangeUrl
     ): Start {
-        // TODO: create custom transaction
-        // TODO: set initial data to custom transaction
         $transactionInitialData = $this->getTransactionInitialData($transaction, $salesChannelContext, $exchangeUrl);
         $this->setCredentials();
-        // TODO: store transaction ID to custom transaction
 
         return Transaction::start($transactionInitialData);
     }
@@ -79,27 +75,19 @@ class Api
     }
 
     /**
-     * @param string $shopwarePaymentMethodId
-     * @return mixed[]|null
+     * @param AsyncPaymentTransactionStruct $transaction
+     * @param SalesChannelContext $salesChannelContext
+     * @param string $exchangeUrl
+     * @return mixed[]
+     * @throws PaynlPaymentException
      */
-    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId): ?array
-    {
-        $paymentMethods = $this->getPaymentMethods();
-        foreach ($paymentMethods as $paymentMethod) {
-            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) {
-                return $paymentMethod;
-            }
-        }
-
-        return null;
-    }
-
     private function getTransactionInitialData(
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $exchangeUrl
-    ) {
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodFromContext($salesChannelContext);
+    ): array {
+        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         // TODO: implement payment id increment
@@ -134,10 +122,8 @@ class Api
         return $transactionInitialData;
     }
 
-    // TODO: think about move this method to a helper
-    public function getPaynlPaymentMethodFromContext(SalesChannelContext $salesChannelContext): int
+    public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId): int
     {
-        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId);
         if (is_null($paynlPaymentMethod)) {
             throw new PaynlPaymentException('Could not detect payment method.');
@@ -147,5 +133,21 @@ class Api
         }
 
         return (int)$paynlPaymentMethod[self::PAYMENT_METHOD_ID];
+    }
+
+    /**
+     * @param string $shopwarePaymentMethodId
+     * @return mixed[]|null
+     */
+    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId): ?array
+    {
+        $paymentMethods = $this->getPaymentMethods();
+        foreach ($paymentMethods as $paymentMethod) {
+            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) {
+                return $paymentMethod;
+            }
+        }
+
+        return null;
     }
 }

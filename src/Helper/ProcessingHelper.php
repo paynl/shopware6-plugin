@@ -1,18 +1,12 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment\Helper;
 
 use Exception;
-use Paynl\Result\Transaction\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
-use PaynlPayment\Entity\PaynlTransactionEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
-use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
-use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -21,13 +15,6 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class ProcessingHelper
 {
-    const STATUS_PENDING = 17;
-    const STATUS_CANCEL = 35;
-    const STATUS_PAID = 12;
-    const STATUS_NEEDS_REVIEW = 21;
-    const STATUS_REFUND = 20;
-    const STATUS_AUTHORIZED = 18;
-
     /** @var Api */
     private $paynlApi;
     /** @var EntityRepositoryInterface */
@@ -44,12 +31,15 @@ class ProcessingHelper
         SalesChannelContext $salesChannelContext,
         string $paynlTransactionId,
         ?Exception $exception
-    ) {
+    ): void {
+        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
+        /** @var CustomerEntity $customer */
+        $customer = $salesChannelContext->getCustomer();
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
-            'customerId' => $salesChannelContext->getCustomer()->getId(),
+            'customerId' => $customer->getId(),
             'orderId' => $transaction->getOrder()->getId(),
-            'paymentId' => $this->paynlApi->getPaynlPaymentMethodFromContext($salesChannelContext),
+            'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
             'exception' => json_encode($exception)

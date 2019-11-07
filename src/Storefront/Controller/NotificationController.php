@@ -4,7 +4,6 @@ namespace PaynlPayment\Storefront\Controller;
 
 use PaynlPayment\Components\Api;
 use PaynlPayment\Helper\ProcessingHelper;
-use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,10 +36,7 @@ class NotificationController extends StorefrontController
             $apiTransaction = $this->processingHelper->getApiTransaction($transactionId);
         }
 
-        if ($apiTransaction->isCanceled()) {
-            // TODO: cancel transaction
-        }
-        // TODO: check other transaction statuses
+        // TODO: change transaction status according $apiTransaction status
 
         $response = new Response();
         return $response->setContent('OK');

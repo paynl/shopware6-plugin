@@ -1,12 +1,13 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment\Helper;
 
 use Paynl\Helper;
 use PaynlPayment\Components\Config;
+use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\System\Country\CountryEntity;
+use Shopware\Core\System\Salutation\SalutationEntity;
 
 class CustomerHelper
 {
@@ -26,7 +27,9 @@ class CustomerHelper
     {
         $gender = 'M';
         $femaleSalutations = $this->config->getFemaleSalutations();
-        if (in_array(trim($customer->getSalutation()->getSalutationKey()), $femaleSalutations)) {
+        /** @var SalutationEntity $salutation */
+        $salutation = $customer->getSalutation();
+        if (in_array(trim($salutation->getSalutationKey()), $femaleSalutations)) {
             $gender = 'F';
         }
 
@@ -43,17 +46,25 @@ class CustomerHelper
         ];
     }
 
-    private function getShippingAddress(CustomerEntity $customer)
+    /**
+     * @param CustomerEntity $customer
+     * @return mixed[]
+     */
+    private function getShippingAddress(CustomerEntity $customer): array
     {
         $houseNumberExtension = '';
-        $street = $customer->getDefaultShippingAddress()->getStreet();
+        /** @var CustomerAddressEntity $customerShippingAddress */
+        $customerShippingAddress = $customer->getDefaultShippingAddress();
+        /** @var CountryEntity $country */
+        $country = $customerShippingAddress->getCountry();
+        $street = $customerShippingAddress->getStreet();
         if (!$this->config->getUseAdditionalAddressFields()){
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
         } else {
-            $houseNumber = $customer->getDefaultShippingAddress()->getAdditionalAddressLine1();
-            $houseNumberExtension = $customer->getDefaultShippingAddress()->getAdditionalAddressLine2();
+            $houseNumber = $customerShippingAddress->getAdditionalAddressLine1();
+            $houseNumberExtension = $customerShippingAddress->getAdditionalAddressLine2();
         }
 
 
@@ -61,34 +72,43 @@ class CustomerHelper
             'streetName' => $street,
             'houseNumber' => $houseNumber,
             'houseNumberExtension' => $houseNumberExtension,
-            'zipCode' => $customer->getDefaultShippingAddress()->getZipcode(),
-            'city' => $customer->getDefaultShippingAddress()->getCity(),
-            'country' => $customer->getDefaultShippingAddress()->getCountry()->getIso()
+            'zipCode' => $customerShippingAddress->getZipcode(),
+            'city' => $customerShippingAddress->getCity(),
+            'country' => $country->getIso()
         ];
     }
 
-    private function getInvoiceAddress(CustomerEntity $customer, string $gender)
+    /**
+     * @param CustomerEntity $customer
+     * @param string $gender
+     * @return mixed[]
+     */
+    private function getInvoiceAddress(CustomerEntity $customer, string $gender): array
     {
         $houseNumberExtension = '';
-        $street = $customer->getDefaultBillingAddress()->getStreet();
+        /** @var CustomerAddressEntity $customerBillingAddress */
+        $customerBillingAddress = $customer->getDefaultBillingAddress();
+        /** @var CountryEntity $country */
+        $country = $customerBillingAddress->getCountry();
+        $street = $customerBillingAddress->getStreet();
         if(!$this->config->getUseAdditionalAddressFields()){
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
         } else {
-            $houseNumber = $customer->getDefaultBillingAddress()->getAdditionalAddressLine1();
-            $houseNumberExtension = $customer->getDefaultBillingAddress()->getAdditionalAddressLine2();
+            $houseNumber = $customerBillingAddress->getAdditionalAddressLine1();
+            $houseNumberExtension = $customerBillingAddress->getAdditionalAddressLine2();
         }
 
         return  [
-            'initials' => $customer->getDefaultBillingAddress()->getFirstName(),
-            'lastName' => $customer->getDefaultBillingAddress()->getLastName(),
+            'initials' => $customerBillingAddress->getFirstName(),
+            'lastName' => $customerBillingAddress->getLastName(),
             'streetName' => $street,
             'houseNumber' => $houseNumber,
             'houseNumberExtension' => $houseNumberExtension,
-            'zipCode' => $customer->getDefaultBillingAddress()->getZipcode(),
-            'city' => $customer->getDefaultBillingAddress()->getCity(),
-            'country' => $customer->getDefaultBillingAddress()->getCountry()->getIso(),
+            'zipCode' => $customerBillingAddress->getZipcode(),
+            'city' => $customerBillingAddress->getCity(),
+            'country' => $country->getIso(),
             'gender' => $gender
         ];
     }

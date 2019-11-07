@@ -12,8 +12,13 @@ use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
+use Shopware\Core\System\StateMachine\Exception\StateMachineInvalidEntityIdException;
+use Shopware\Core\System\StateMachine\Exception\StateMachineInvalidStateFieldException;
+use Shopware\Core\System\StateMachine\Exception\StateMachineNotFoundException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -44,6 +49,10 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     }
 
     /**
+     * @param AsyncPaymentTransactionStruct $transaction
+     * @param RequestDataBag $dataBag
+     * @param SalesChannelContext $salesChannelContext
+     * @return RedirectResponse
      * @throws AsyncPaymentProcessException
      */
     public function pay(
@@ -65,7 +74,15 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     }
 
     /**
+     * @param AsyncPaymentTransactionStruct $transaction
+     * @param Request $request
+     * @param SalesChannelContext $salesChannelContext
      * @throws CustomerCanceledAsyncPaymentException
+     * @throws InconsistentCriteriaIdsException
+     * @throws IllegalTransitionException
+     * @throws StateMachineInvalidEntityIdException
+     * @throws StateMachineInvalidStateFieldException
+     * @throws StateMachineNotFoundException
      */
     public function finalize(
         AsyncPaymentTransactionStruct $transaction,
@@ -95,13 +112,13 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext
     ): string {
+        $paynlTransaction = null;
         $startTransactionException = null;
         $exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         try {
             $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
         } catch (Throwable $exception) {
             $startTransactionException = $exception;
-            throw $exception;
         }
 
         $paynlTransactionId = $paynlTransaction instanceof Start ? $paynlTransaction->getTransactionId() : '';

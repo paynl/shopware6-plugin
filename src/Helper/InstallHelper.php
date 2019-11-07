@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment\Helper;
 
@@ -39,8 +37,6 @@ class InstallHelper
     private $connection;
     /** @var Api */
     private $paynlApi;
-    /** @var Config */
-    private $config;
 
     public function __construct(ContainerInterface $container)
     {
@@ -52,9 +48,11 @@ class InstallHelper
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
         // may be use setter injection?
-        $this->config = new Config($container->get(SystemConfigService::class));
-        $customerHelper = new CustomerHelper($this->config);
-        $this->paynlApi = new Api($this->config, $customerHelper);
+        /** @var SystemConfigService $configReader */
+        $configReader = $container->get(SystemConfigService::class);
+        $config = new Config($configReader);
+        $customerHelper = new CustomerHelper($config);
+        $this->paynlApi = new Api($config, $customerHelper);
     }
 
     public function addPaymentMethods(Context $context): void
@@ -92,7 +90,6 @@ class InstallHelper
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPayment::class, $context);
         $paymentData = [
             'id' => $paymentMethodId,
-            // payment handler will be selected by the identifier
             'handlerIdentifier' => PaynlPaymentHandler::class,
             'name' => $paymentMethodName,
             'description' => $paymentMethodDescription,
