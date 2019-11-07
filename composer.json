@@ -16,7 +16,9 @@
         }
     },
     "require": {
-        "paynl/sdk": "^1.5"
+        "paynl/sdk": "^1.5",
+        "shopware/core": "*",
+        "shopware/administration": "*"
     },
     "license": "MIT",
     "authors": [

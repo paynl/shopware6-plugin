@@ -41,4 +41,9 @@ class PaynlPayment extends Plugin
         (new InstallHelper($this->container))->deactivatePaymentMethods($deactivateContext->getContext());
         (new InstallHelper($this->container))->dropTables();
     }
+
+    public function getAdministrationEntryPath(): string
+    {
+        return '/Resources/administration';
+    }
 }
