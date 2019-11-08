@@ -1,12 +1,11 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment\Helper;
 
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
+use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
@@ -21,11 +20,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class InstallHelper
 {
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
-    const TABLE_PAYNL_TRANSACTIONS = 'paynl_transactions';
-
-    const PAYMENT_METHOD_ID = 'id';
-    const PAYMENT_METHOD_NAME = 'name';
-    const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
 
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
     const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
@@ -43,8 +37,6 @@ class InstallHelper
     private $connection;
     /** @var Api */
     private $paynlApi;
-    /** @var Config */
-    private $config;
 
     public function __construct(ContainerInterface $container)
     {
@@ -53,17 +45,21 @@ class InstallHelper
         $this->salesChannelRepository = $container->get('sales_channel.repository');
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
         $this->connection = $container->get(Connection::class);
+        // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
         // may be use setter injection?
-        $this->config = new Config($container->get(SystemConfigService::class));
-        $this->paynlApi = new Api($this->config);
+        /** @var SystemConfigService $configReader */
+        $configReader = $container->get(SystemConfigService::class);
+        $config = new Config($configReader);
+        $customerHelper = new CustomerHelper($config);
+        $this->paynlApi = new Api($config, $customerHelper);
     }
 
     public function addPaymentMethods(Context $context): void
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
             if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
@@ -87,14 +83,13 @@ class InstallHelper
      */
     private function addPaymentMethod(Context $context, array $paymentMethod): void
     {
-        $paymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
-        $paymentMethodName = $paymentMethod[self::PAYMENT_METHOD_NAME];
+        $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+        $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $paymentMethodDescription =
-            sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[self::PAYMENT_METHOD_VISIBLE_NAME]);
+            sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]);
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPayment::class, $context);
         $paymentData = [
             'id' => $paymentMethodId,
-            // payment handler will be selected by the identifier
             'handlerIdentifier' => PaynlPaymentHandler::class,
             'name' => $paymentMethodName,
             'description' => $paymentMethodDescription,
@@ -125,7 +120,7 @@ class InstallHelper
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
             if ($active && !$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
                 $this->addPaymentMethod($context, $paymentMethod);
             }
@@ -140,7 +135,7 @@ class InstallHelper
      */
     private function changePaymentMethodStatus(Context $context, array $paymentMethod, bool $active): void
     {
-        $shopwarePaymentMethodId = md5($paymentMethod[self::PAYMENT_METHOD_ID]);
+        $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
         if(!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
             return;
         }
@@ -154,6 +149,6 @@ class InstallHelper
 
     public function dropTables(): void
     {
-        $this->connection->exec(sprintf(self::MYSQL_DROP_TABLE, self::TABLE_PAYNL_TRANSACTIONS));
+        $this->connection->exec(sprintf(self::MYSQL_DROP_TABLE, PaynlTransactionEntityDefinition::ENTITY_NAME));
     }
 }

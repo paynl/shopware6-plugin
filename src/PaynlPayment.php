@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment;
 
@@ -24,6 +22,7 @@ class PaynlPayment extends Plugin
     public function uninstall(UninstallContext $uninstallContext): void
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
+        (new InstallHelper($this->container))->dropTables();
     }
 
     public function update(UpdateContext $updateContext): void
@@ -39,6 +38,5 @@ class PaynlPayment extends Plugin
     public function deactivate(DeactivateContext $deactivateContext): void
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($deactivateContext->getContext());
-        (new InstallHelper($this->container))->dropTables();
     }
 }
