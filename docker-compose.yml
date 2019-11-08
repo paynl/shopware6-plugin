@@ -1,0 +1,6 @@
+version: "3.2"
+services:
+  php-cli-container:
+    image: thecodingmachine/php:7.2-v2-cli
+    volumes:
+      - ./../../../:/usr/src/app
