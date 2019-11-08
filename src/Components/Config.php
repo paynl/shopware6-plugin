@@ -51,6 +51,9 @@ class Config
         return (int)$this->get('testMode');
     }
 
+    /**
+     * @return string[]
+     */
     public function getFemaleSalutations(): array
     {
         $salutations = $this->get('femaleSalutations', self::FEMALE_SALUTATIONS);
