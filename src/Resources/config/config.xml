@@ -34,7 +34,7 @@
             <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op: https://admin.pay.nl/programs/programs</helpText>
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
-        <input-field>
+        <input-field type="bool">
             <name>testMode</name>
             <label>Test mode</label>
             <label lang="nl-NL">Test mode</label>
@@ -43,7 +43,7 @@
             <helpText lang="nl-NL">Schakel dit in als u alle transacties in de testmodus wilt starten</helpText>
             <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie alle Transaktionen im Testmodus starten möchten</helpText>
         </input-field>
-        <input-field>
+        <input-field type="bool">
             <name>allowRefunds</name>
             <label>Allow refunds</label>
             <label lang="nl-NL">Restituties toestaan</label>
@@ -52,7 +52,7 @@
             <helpText lang="nl-NL">Schakel dit in om toe te staan dat restituties worden verwerkt vanuit de bestellijst</helpText>
             <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet werden können</helpText>
         </input-field>
-        <input-field>
+        <input-field type="bool">
             <name>statusMail</name>
             <label>Send status mails</label>
             <label lang="nl-NL">Status mails versturen</label>
@@ -61,17 +61,7 @@
             <helpText lang="nl-NL">Schakel dit in als u een email naar de klant wilt sturen, elke keer dat de status van een tranactie wijzigt</helpText>
             <helpText lang="de-DE">Aktivieren Sie diese Option, wenn Sie bei jeder Änderung des Status einer Transaktion eine E-Mail an den Kunden senden möchten</helpText>
         </input-field>
-        <input-field>
-            <name>femaleSalutations</name>
-            <label>Female salutations</label>
-            <label lang="de-DE">Weibliche Anrede</label>
-            <label lang="nl-NL">Vrouwelijke begroetingen</label>
-            <value>mrs, ms, miss, ma'am, frau, mevrouw, mevr</value>
-            <helpText>Female salutations, used to determine the gender of the customer</helpText>
-            <helpText lang="de-DE">Weibliche Anreden, verwendet, um das Geschlecht des Kunden zu bestimmen</helpText>
-            <helpText lang="nl-NL">Vrouwelijke begroetingen, gebruikt om het geslacht van de klant te bepalen</helpText>
-        </input-field>
-        <input-field>
+        <input-field type="bool">
             <name>additionalAddressFields</name>
             <label>Use additional address fields</label>
             <label lang="nl-NL">Extra adres velden gebruiken</label>
@@ -79,6 +69,16 @@
             <helpText>Enable this when you are using additional address field 1 and 2 for house number and house number addition</helpText>
             <helpText lang="nl-NL">Schakel dit in wanneer u extra adresveld 1 en 2 gebruikt voor huisnummer en huisnummertoevoeging </helpText>
             <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie das zusätzliche Adressfeld 1 und 2 für das Hinzufügen von Hausnummer und Hausnummer verwenden</helpText>
+        </input-field>
+        <input-field>
+            <name>femaleSalutations</name>
+            <label>Female salutations</label>
+            <label lang="de-DE">Weibliche Anrede</label>
+            <label lang="nl-NL">Vrouwelijke begroetingen</label>
+            <placeholder>mrs, ms, miss, ma'am, frau, mevrouw, mevr</placeholder>
+            <helpText>Female salutations, used to determine the gender of the customer</helpText>
+            <helpText lang="de-DE">Weibliche Anreden, verwendet, um das Geschlecht des Kunden zu bestimmen</helpText>
+            <helpText lang="nl-NL">Vrouwelijke begroetingen, gebruikt om het geslacht van de klant te bepalen</helpText>
         </input-field>
     </card>
 </config>
