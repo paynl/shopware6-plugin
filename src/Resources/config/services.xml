@@ -3,16 +3,44 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
+        <!--Helpers-->
+        <service id="PaynlPayment\Helper\CustomerHelper">
+            <argument type="service" id="PaynlPayment\Components\Config"/>
+        </service>
+        <service id="PaynlPayment\Helper\ProcessingHelper">
+            <argument type="service" id="PaynlPayment\Components\Api"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+        </service>
+
+        <!--Components-->
         <service id="PaynlPayment\Components\Config">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
         </service>
         <service id="PaynlPayment\Components\Api">
             <argument type="service" id="PaynlPayment\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Helper\CustomerHelper"/>
         </service>
 
+        <!--Services-->
         <service id="PaynlPayment\Service\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="router.default"/>
+            <argument type="service" id="PaynlPayment\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
             <tag name="shopware.payment.method.async" />
+        </service>
+
+        <!--Controllers-->
+        <service id="PaynlPayment\Storefront\Controller\NotificationController" public="true">
+            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <!--Entities-->
+        <service id="PaynlPayment\Entity\PaynlTransactionEntityDefinition">
+            <tag name="shopware.entity.definition" entity="paynl_transactions" />
         </service>
     </services>
 </container>

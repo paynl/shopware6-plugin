@@ -1,32 +1,58 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace PaynlPayment\Service;
 
+use Exception;
+use Paynl\Result\Transaction\Start;
+use PaynlPayment\Components\Api;
+use PaynlPayment\Entity\PaynlTransactionEntity;
+use PaynlPayment\Helper\ProcessingHelper;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
+use Shopware\Core\System\StateMachine\Exception\StateMachineInvalidEntityIdException;
+use Shopware\Core\System\StateMachine\Exception\StateMachineInvalidStateFieldException;
+use Shopware\Core\System\StateMachine\Exception\StateMachineNotFoundException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Throwable;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
-    /**
-     * @var OrderTransactionStateHandler
-     */
+    /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
+    /** @var RouterInterface */
+    private $router;
+    /** @var Api */
+    private $paynlApi;
+    /** @var ProcessingHelper */
+    private $processingHelper;
 
-    public function __construct(OrderTransactionStateHandler $transactionStateHandler)
-    {
+    public function __construct(
+        OrderTransactionStateHandler $transactionStateHandler,
+        RouterInterface $router,
+        Api $api,
+        ProcessingHelper $processingHelper
+    ) {
         $this->transactionStateHandler = $transactionStateHandler;
+        $this->router = $router;
+        $this->paynlApi = $api;
+        $this->processingHelper = $processingHelper;
     }
 
     /**
+     * @param AsyncPaymentTransactionStruct $transaction
+     * @param RequestDataBag $dataBag
+     * @param SalesChannelContext $salesChannelContext
+     * @return RedirectResponse
      * @throws AsyncPaymentProcessException
      */
     public function pay(
@@ -34,10 +60,9 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): RedirectResponse {
-        // Method that sends the return URL to the external gateway and gets a redirect URL back
         try {
-            $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction->getReturnUrl());
-        } catch (\Exception $e) {
+            $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
+        } catch (Exception $e) {
             throw new AsyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
@@ -49,44 +74,65 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     }
 
     /**
+     * @param AsyncPaymentTransactionStruct $transaction
+     * @param Request $request
+     * @param SalesChannelContext $salesChannelContext
      * @throws CustomerCanceledAsyncPaymentException
+     * @throws InconsistentCriteriaIdsException
+     * @throws IllegalTransitionException
+     * @throws StateMachineInvalidEntityIdException
+     * @throws StateMachineInvalidStateFieldException
+     * @throws StateMachineNotFoundException
      */
     public function finalize(
         AsyncPaymentTransactionStruct $transaction,
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
-        $transactionId = $transaction->getOrderTransaction()->getId();
+        $context = $salesChannelContext->getContext();
+        $orderId = $transaction->getOrder()->getId();
+        $orderTransactionId = $transaction->getOrderTransaction()->getId();
 
-        // Cancelled payment?
-        if ($request->query->getBoolean('cancel')) {
+        /** @var PaynlTransactionEntity $paynlTransaction */
+        $paynlTransaction = $this->processingHelper->findTransactionByOrderId($orderId, $context);
+        $apiTransaction = $this->processingHelper->getApiTransaction($paynlTransaction->getPaynlTransactionId());
+
+        if ($apiTransaction->isCanceled()) {
+            $this->transactionStateHandler->cancel($orderTransactionId, $context);
             throw new CustomerCanceledAsyncPaymentException(
-                $transactionId,
+                $orderId,
                 'Customer canceled the payment on the PayPal page'
             );
         }
 
-        $paymentState = $request->query->getAlpha('status');
-
-        $context = $salesChannelContext->getContext();
-        if ($paymentState === 'completed') {
-            // Payment completed, set transaction status to "paid"
-            $this->transactionStateHandler->pay($transaction->getOrderTransaction()->getId(), $context);
-        } else {
-            // Payment not completed, set transaction status to "open"
-            $this->transactionStateHandler->open($transaction->getOrderTransaction()->getId(), $context);
-        }
+        // TODO: check other transaction statuses
     }
 
-    private function sendReturnUrlToExternalGateway(string $returnUrl): string
-    {
-        $paymentProviderUrl = '';
-        $requestData = [
-            'returnUrl' => $returnUrl,
-        ];
+    private function sendReturnUrlToExternalGateway(
+        AsyncPaymentTransactionStruct $transaction,
+        SalesChannelContext $salesChannelContext
+    ): string {
+        $paynlTransactionId = '';
+        $exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        try {
+            $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
+            $paynlTransactionId = $paynlTransaction->getTransactionId();
+        } catch (Throwable $exception) {
+            $this->processingHelper->storePaynlTransactionData(
+                $transaction,
+                $salesChannelContext,
+                $paynlTransactionId,
+                $exception
+            );
+            throw $exception;
+        }
 
-        // Do some API Call to your payment provider
+        $this->processingHelper->storePaynlTransactionData($transaction, $salesChannelContext, $paynlTransactionId);
 
-        return $paymentProviderUrl;
+        if (!empty($paynlTransaction->getRedirectUrl())) {
+            return $paynlTransaction->getRedirectUrl();
+        }
+
+        return '';
     }
 }

@@ -21,18 +21,31 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 `customer_id` BINARY(16) NOT NULL,
                 `order_id` BINARY(16) NULL,
 
-                `paynl_payment_id` INT NOT NULL,
-                `signature` VARCHAR(70) NOT NULL,
+                `paynl_transaction_id` VARCHAR(16),
+                `payment_id` INT(11) NOT NULL,
                 `amount` FLOAT NOT NULL,
                 `currency` VARCHAR(3) NOT NULL,
-                `exceptions` TEXT,
+                `exception` TEXT,
                 `comment` VARCHAR(255),
                 `dispatch` VARCHAR(255),
                 
                 `created_at` DATETIME(3) NOT NULL,
                 `updated_at` DATETIME(3) NULL,
                 
-                PRIMARY KEY (`id`)
+                PRIMARY KEY (`id`),
+                    
+                KEY `fk.paynl_transaction.customer_id` (`customer_id`),
+                KEY `fk.paynl_transaction.order_id` (`order_id`),
+               
+                CONSTRAINT `fk.paynl_transaction.customer_id` 
+                    FOREIGN KEY (`customer_id`) 
+                    REFERENCES `customer` (`id`) 
+                    ON DELETE RESTRICT ON UPDATE CASCADE,
+               
+                CONSTRAINT `fk.paynl_transaction.order_id` 
+                    FOREIGN KEY (`order_id`) 
+                    REFERENCES `order` (`id`) 
+                    ON DELETE RESTRICT ON UPDATE CASCADE
                     
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ';
