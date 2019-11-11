@@ -4,3 +4,5 @@ services:
     image: thecodingmachine/php:7.2-v2-cli
     volumes:
       - ./../../../:/usr/src/app
+    environment:
+      PHP_EXTENSION_XDEBUG: 1

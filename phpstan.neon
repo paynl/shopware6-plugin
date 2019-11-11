@@ -1,6 +1,3 @@
-parameters:
-  autoload_directories:
-    - /usr/src/app/vendor/shopware
 services:
   -
     class: TheCodingMachine\PHPStan\Rules\TypeHints\MissingTypeHintInFunctionRule

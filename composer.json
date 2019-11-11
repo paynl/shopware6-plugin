@@ -50,6 +50,8 @@
       "fix": "docker-compose run php-cli-container bash -c \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/phpcbf \"$p\"/src --standard=PSR2\"",
       "post-install-cmd": "cghooks add --ignore-lock",
       "post-update-cmd": "cghooks update",
-      "cghooks": "cghooks"
+      "cghooks": "cghooks",
+      "tests": "docker-compose run php-cli-container bash -c  \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/phpunit -c \"$p\"/phpunit.xml.dist --no-coverage\"",
+      "tests-coverage": "docker-compose run php-cli-container bash -c  \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/phpunit -c \"$p\"/phpunit.xml.dist \""
     }
 }
