@@ -42,6 +42,7 @@ class ProcessingHelper
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
             'exception' => (string)$exception,
         ];
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());

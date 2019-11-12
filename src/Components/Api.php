@@ -11,6 +11,11 @@ use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class Api
@@ -25,11 +30,17 @@ class Api
     private $config;
     /** @var CustomerHelper */
     private $customerHelper;
+    /** @var EntityRepositoryInterface */
+    private $productRepository;
 
-    public function __construct(Config $config, CustomerHelper $customerHelper)
-    {
+    public function __construct(
+        Config $config,
+        CustomerHelper $customerHelper,
+        EntityRepositoryInterface $productRepository
+    ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -80,6 +91,7 @@ class Api
      * @param string $exchangeUrl
      * @return mixed[]
      * @throws PaynlPaymentException
+     * @throws InconsistentCriteriaIdsException
      */
     private function getTransactionInitialData(
         AsyncPaymentTransactionStruct $transaction,
@@ -90,7 +102,7 @@ class Api
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        // TODO: implement payment id increment
+        // TODO: check if need this value
         $paymentId = time();
         $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
@@ -110,7 +122,7 @@ class Api
             'exchangeUrl' => $exchangeUrl,
 
             // Products
-            // TODO: store 'products'
+            'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
         ];
 
         $customer = $salesChannelContext->getCustomer();
@@ -149,5 +161,48 @@ class Api
         }
 
         return null;
+    }
+
+    /**
+     * @param AsyncPaymentTransactionStruct $transaction
+     * @param Context $context
+     * @return array
+     * @throws InconsistentCriteriaIdsException
+     */
+    private function getOrderProducts(AsyncPaymentTransactionStruct $transaction, Context $context): array
+    {
+        $productsItems = $transaction->getOrder()->getLineItems()->filterByProperty('type', 'product');
+        $productsIds = [];
+
+        foreach ($productsItems as $product) {
+            $productsIds[] = $product->getReferencedId();
+        }
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsAnyFilter('product.id', $productsIds));
+        $entities = $this->productRepository->search($criteria, $context);
+        $elements = $entities->getElements();
+
+        foreach ($productsItems as $item) {
+            $products[] = [
+                'id' => $elements[$item->getReferencedId()]->get('autoIncrement'),
+                'name' => $item->getLabel(),
+                'price' => $item->getTotalPrice(),
+                'vatPercentage' => $item->getPrice()->getCalculatedTaxes()->getAmount(),
+                'qty' => $item->getPrice()->getQuantity(),
+                'type' =>  Transaction::PRODUCT_TYPE_ARTICLE,
+            ];
+        }
+
+        $products[] = [
+            'id' => 'shipping',
+            'name' => 'Shipping',
+            'price' => $transaction->getOrder()->getShippingTotal(),
+            'vatPercentage' => $transaction->getOrder()->getShippingCosts()->getCalculatedTaxes()->getAmount(),
+            'qty' => 1,
+            'type' => Transaction::PRODUCT_TYPE_SHIPPING,
+        ];
+
+        return $products;
     }
 }

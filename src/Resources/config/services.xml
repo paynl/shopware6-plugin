@@ -19,6 +19,7 @@
         <service id="PaynlPayment\Components\Api">
             <argument type="service" id="PaynlPayment\Components\Config"/>
             <argument type="service" id="PaynlPayment\Helper\CustomerHelper"/>
+            <argument type="service" id="product.repository"/>
         </service>
 
         <!--Services-->
