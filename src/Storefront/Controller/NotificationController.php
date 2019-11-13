@@ -4,11 +4,9 @@ namespace PaynlPayment\Storefront\Controller;
 
 use PaynlPayment\Components\Api;
 use PaynlPayment\Helper\ProcessingHelper;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @RouteScope(scopes={"storefront"})
