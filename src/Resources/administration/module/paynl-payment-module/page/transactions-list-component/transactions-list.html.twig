@@ -5,11 +5,9 @@
             <transactions-list
                 v-if="transactions"
                 :items="transactions"
-                :dataSource="test"
                 :repository="repository"
                 :showSelection="false"
-                :columns="columns"
-                detailRoute="swag.bundle.detail">
+                :columns="columns">
             </transactions-list>
             {% endblock %}
         </template>

@@ -14,8 +14,7 @@ Component.register('transactions-list-component', {
     data() {
         return {
             repository: null,
-            transactions: null,
-            test: null
+            transactions: null
         };
     },
 
@@ -78,6 +77,7 @@ Component.register('transactions-list-component', {
 
     created() {
         this.repository = this.repositoryFactory.create('paynl_transactions');
+
         this.repository
             .search(new Criteria(), this.context)
             .then((result) => {
