@@ -102,8 +102,6 @@ class Api
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        // TODO: check if need this value
-        $paymentId = time();
         $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
@@ -112,8 +110,6 @@ class Api
             'paymentMethod' => $paynlPaymentMethodId,
             'amount' => $amount,
             'currency' => $currency,
-            'description' => $paymentId,
-            'orderNumber' => $paymentId,
             'extra1' => $extra1,
             'testmode' => $testMode,
 

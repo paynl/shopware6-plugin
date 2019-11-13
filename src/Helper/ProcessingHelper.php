@@ -42,6 +42,7 @@ class ProcessingHelper
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            // TODO: check sComment from shopware5 plugin
             'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
             'exception' => (string)$exception,
         ];
