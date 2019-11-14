@@ -58,7 +58,7 @@ class CustomerHelper
         /** @var CountryEntity $country */
         $country = $customerShippingAddress->getCountry();
         $street = $customerShippingAddress->getStreet();
-        if (!$this->config->getUseAdditionalAddressFields()){
+        if (!$this->config->getUseAdditionalAddressFields()) {
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
@@ -91,7 +91,7 @@ class CustomerHelper
         /** @var CountryEntity $country */
         $country = $customerBillingAddress->getCountry();
         $street = $customerBillingAddress->getStreet();
-        if(!$this->config->getUseAdditionalAddressFields()){
+        if (!$this->config->getUseAdditionalAddressFields()) {
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';

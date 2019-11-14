@@ -2,7 +2,9 @@
 
 namespace PaynlPayment;
 
-require_once (__DIR__ . '/../vendor/autoload.php');
+// phpcs:disable
+require_once(__DIR__ . '/../vendor/autoload.php');
+// phpcs:enable
 
 use PaynlPayment\Helper\InstallHelper;
 use Shopware\Core\Framework\Plugin;
