@@ -46,12 +46,12 @@
         "brainmaestro/composer-git-hooks": "^2.8"
     },
     "scripts": {
-      "lint": "docker-compose run php-cli-container bash -c \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/parallel-lint \"$p\"/src && \"$p\"/vendor/bin/phpcs -p \"$p\"/src --standard=PSR2 && \"$p\"/vendor/bin/phpstan analyse -c \"$p\"/phpstan.neon -l max \"$p\"/src\"",
-      "fix": "docker-compose run php-cli-container bash -c \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/phpcbf \"$p\"/src --standard=PSR2\"",
+      "lint": "docker-compose run php-cli-container bash -c \"./custom/plugins/PaynlPayment/vendor/bin/parallel-lint ./custom/plugins/PaynlPayment/src && ./custom/plugins/PaynlPayment/vendor/bin/phpcs --extensions=php -p ./custom/plugins/PaynlPayment/src --standard=PSR2 && ./custom/plugins/PaynlPayment/vendor/bin/phpstan analyse -c ./custom/plugins/PaynlPayment/phpstan.neon -l max ./custom/plugins/PaynlPayment/src\"",
+      "fix": "docker-compose run php-cli-container bash -c \"./custom/plugins/PaynlPayment/vendor/bin/phpcbf ./custom/plugins/PaynlPayment/src --standard=PSR2\"",
       "post-install-cmd": "cghooks add --ignore-lock",
       "post-update-cmd": "cghooks update",
       "cghooks": "cghooks",
-      "tests": "docker-compose run php-cli-container bash -c  \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/phpunit -c \"$p\"/phpunit.xml.dist --no-coverage\"",
-      "tests-coverage": "docker-compose run php-cli-container bash -c  \"p=./custom/plugins/PaynlPayment && \"$p\"/vendor/bin/phpunit -c \"$p\"/phpunit.xml.dist \""
+      "tests": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPayment/vendor/bin/phpunit -c ./custom/plugins/PaynlPayment/phpunit.xml.dist --no-coverage\"",
+      "tests-coverage": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPayment/vendor/bin/phpunit -c ./custom/plugins/PaynlPayment/phpunit.xml.dist \""
     }
 }
