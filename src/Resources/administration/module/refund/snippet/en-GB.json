@@ -1,0 +1,15 @@
+{
+    "order-list-override": {
+        "refund": "Refund"
+    },
+    "sw-order": {
+        "detail": {
+            "textHeadlineNew": "textHeadlineNew",
+            "buttonCancel": "buttonCancel",
+            "buttonEdit": "buttonEdit",
+            "buttonSave": "buttonSave",
+            "tabGeneral": "tabGeneral",
+            "textHeadline": "textHeadline"
+        }
+    }
+}
