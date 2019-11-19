@@ -3,7 +3,6 @@
 namespace PaynlPayment\Service;
 
 use Exception;
-use Paynl\Result\Transaction\Start;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Helper\ProcessingHelper;
@@ -91,21 +90,10 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     ): void {
         $context = $salesChannelContext->getContext();
         $orderId = $transaction->getOrder()->getId();
-        $orderTransactionId = $transaction->getOrderTransaction()->getId();
 
         /** @var PaynlTransactionEntity $paynlTransaction */
         $paynlTransaction = $this->processingHelper->findTransactionByOrderId($orderId, $context);
-        $apiTransaction = $this->processingHelper->getApiTransaction($paynlTransaction->getPaynlTransactionId());
-
-        if ($apiTransaction->isCanceled()) {
-            $this->transactionStateHandler->cancel($orderTransactionId, $context);
-            throw new CustomerCanceledAsyncPaymentException(
-                $orderId,
-                'Customer canceled the payment on the PayPal page'
-            );
-        }
-
-        // TODO: check other transaction statuses
+        $this->processingHelper->updateTransaction($paynlTransaction, $context);
     }
 
     private function sendReturnUrlToExternalGateway(
