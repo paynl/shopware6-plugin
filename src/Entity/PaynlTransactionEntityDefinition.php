@@ -60,8 +60,20 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new StringField('dispatch', 'dispatch')),
             (new IntField('state_id', 'stateId')),
 
-            new ManyToOneAssociationField('customer', 'customer_id', PaynlTransactionEntityDefinition::class, 'id', false),
-            new ManyToOneAssociationField('order', 'order_id', PaynlTransactionEntityDefinition::class, 'id', false),
+            new ManyToOneAssociationField(
+                'customer',
+                'customer_id',
+                PaynlTransactionEntityDefinition::class,
+                'id',
+                false
+            ),
+            new ManyToOneAssociationField(
+                'order',
+                'order_id',
+                PaynlTransactionEntityDefinition::class,
+                'id',
+                false
+            ),
 
             new CreatedAtField(),
             new UpdatedAtField(),

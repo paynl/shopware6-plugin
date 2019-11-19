@@ -41,7 +41,7 @@ class ProcessingHelper
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $paynlTransactionId,
-        ?Exception $exception = null
+        ?\Throwable $exception = null
     ): void {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         /** @var CustomerEntity $customer */
@@ -61,6 +61,9 @@ class ProcessingHelper
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
     }
 
+    /**
+     * @return mixed
+     */
     public function findTransactionByOrderId(string $orderId, Context $context)
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));

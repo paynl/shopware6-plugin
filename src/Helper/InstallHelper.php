@@ -25,25 +25,26 @@ class InstallHelper
     const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
 
-    /** @var PluginIdProvider */
+
     private $pluginIdProvider;
-    /** @var EntityRepositoryInterface */
     private $paymentMethodRepository;
-    /** @var EntityRepositoryInterface */
     private $salesChannelRepository;
-    /** @var EntityRepositoryInterface */
     private $paymentMethodSalesChannelRepository;
-    /** @var Connection $connection */
     private $connection;
     /** @var Api */
     private $paynlApi;
 
     public function __construct(ContainerInterface $container)
     {
+        /** @var PluginIdProvider $this->pluginIdProvider  */
         $this->pluginIdProvider = $container->get(PluginIdProvider::class);
+        /** @var EntityRepositoryInterface $this->paymentMethodRepository */
         $this->paymentMethodRepository = $container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
+        /** @var EntityRepositoryInterface $this->salesChannelRepository */
         $this->salesChannelRepository = $container->get('sales_channel.repository');
+        /** @var EntityRepositoryInterface $this->paymentMethodSalesChannelRepository */
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
+        /** @var Connection $this->connection */
         $this->connection = $container->get(Connection::class);
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
@@ -138,7 +139,7 @@ class InstallHelper
     private function changePaymentMethodStatus(Context $context, array $paymentMethod, bool $active): void
     {
         $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-        if(!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
+        if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
             return;
         }
 

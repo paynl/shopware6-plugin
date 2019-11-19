@@ -13,6 +13,8 @@ class PaynlTransactionEntity extends Entity
      * @var string
      */
     protected $technicalName;
+    
+    protected $paynlTransactionId;
 
     public function getTechnicalName(): string
     {
