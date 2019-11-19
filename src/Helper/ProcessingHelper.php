@@ -5,11 +5,16 @@ namespace PaynlPayment\Helper;
 use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
+use PaynlPayment\Entity\PaynlTransactionEntity;
+use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
+use phpDocumentor\Reflection\Types\Mixed;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
@@ -19,11 +24,17 @@ class ProcessingHelper
     private $paynlApi;
     /** @var EntityRepositoryInterface */
     private $paynlTransactionRepository;
+    /** @var OrderTransactionStateHandler */
+    private $transactionStateHandler;
 
-    public function __construct(Api $api, EntityRepositoryInterface $paynlTransactionRepository)
-    {
+    public function __construct(
+        Api $api,
+        EntityRepositoryInterface $paynlTransactionRepository,
+        OrderTransactionStateHandler $transactionStateHandler
+    ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->transactionStateHandler = $transactionStateHandler;
     }
 
     public function storePaynlTransactionData(
@@ -39,9 +50,12 @@ class ProcessingHelper
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),
             'orderId' => $transaction->getOrder()->getId(),
+            'orderTransactionId' => $transaction->getOrderTransaction()->getId(),
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            // TODO: check sComment from shopware5 plugin
+            'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
             'exception' => (string)$exception,
         ];
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
@@ -59,5 +73,68 @@ class ProcessingHelper
     public function getApiTransaction(string $transactionId): ResultTransaction
     {
         return $this->paynlApi->getTransaction($transactionId);
+    }
+
+    /**
+     * @param PaynlTransactionEntity $paynlTransaction
+     * @param Context $context
+     * @return void
+     */
+    public function updateTransaction(PaynlTransactionEntity $paynlTransaction, Context $context): void
+    {
+        $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
+        $paynlTransactionId = $paynlTransaction->getId();
+        $status = 0;
+        if ($apiTransaction->isBeingVerified()) {
+            $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
+        } elseif ($apiTransaction->isPending()) {
+            $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
+        } elseif ($apiTransaction->isRefunded()) {
+            $status = PaynlTransactionEntityDefinition::STATUS_REFUND;
+        } elseif ($apiTransaction->isAuthorized()) {
+            $status = PaynlTransactionEntityDefinition::STATUS_AUTHORIZED;
+        } elseif ($apiTransaction->isPaid()) {
+            $status = PaynlTransactionEntityDefinition::STATUS_PAID;
+            $this->transactionStateHandler->pay($paynlTransaction->get('orderTransactionId'), $context);
+        } elseif ($apiTransaction->isCanceled()) {
+            $status = $status = PaynlTransactionEntityDefinition::STATUS_CANCEL;
+            $this->transactionStateHandler->cancel($paynlTransaction->get('orderTransactionId'), $context);
+        }
+
+        $this->setPaynlStatus($paynlTransactionId, $context, $status);
+    }
+
+    /**
+     * @param string $paynlTransactionId
+     * @param Context $context
+     * @param int $status
+     */
+    public function setPaynlStatus(string $paynlTransactionId, Context $context, int $status): void
+    {
+        $this->paynlTransactionRepository->update(
+            [
+                [
+                    'id' =>$paynlTransactionId,
+                    'stateId' =>$status,
+                ]
+            ],
+            $context
+        );
+    }
+
+    /**
+     * @param string $paynlTransactionId
+     */
+    public function processNotify(string $paynlTransactionId): void
+    {
+        $apiTransaction = $this->getApiTransaction($paynlTransactionId);
+        if ($apiTransaction->isPending()) {
+            return;
+        }
+        $criteria = (new Criteria());
+        $context = Context::createDefaultContext();
+        $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
+        $entity = $this->paynlTransactionRepository->search($criteria, $context)->first();
+        $this->updateTransaction($entity, $context);
     }
 }

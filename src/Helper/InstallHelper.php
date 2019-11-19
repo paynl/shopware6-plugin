@@ -53,7 +53,9 @@ class InstallHelper
         $configReader = $container->get(SystemConfigService::class);
         $config = new Config($configReader);
         $customerHelper = new CustomerHelper($config);
-        $this->paynlApi = new Api($config, $customerHelper);
+        /** @var EntityRepositoryInterface $productRepository */
+        $productRepository = $container->get('product.repository');
+        $this->paynlApi = new Api($config, $customerHelper, $productRepository);
     }
 
     public function addPaymentMethods(Context $context): void
