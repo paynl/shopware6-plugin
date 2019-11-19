@@ -1,5 +1,4 @@
 import template from './refund-page-view.html.twig';
-import './refund-page-view.scss';
 
 const { Component, Mixin } = Shopware;
 

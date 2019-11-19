@@ -1,6 +1,6 @@
 import './page/refund-page-view';
-import './page/refund-page-view-base';
-import './page/refund-card';
+import './page/components/refund-page-view-base';
+import './page/components/refund-card';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';

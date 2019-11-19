@@ -1,5 +1,4 @@
 import template from './refund-card.html.twig';
-import './refund-card.scss';
 
 const { Component, Mixin } = Shopware;
 const { Criteria } = Shopware.Data;

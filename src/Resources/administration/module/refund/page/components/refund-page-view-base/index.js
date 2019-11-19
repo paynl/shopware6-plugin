@@ -69,10 +69,14 @@ Component.register('refund-page-view-base', {
         shippingCostsDetail() {
             const calcTaxes = this.sortByTaxRate(this.order.shippingCosts.calculatedTaxes);
             const formattedTaxes = `${calcTaxes.map(
-                calcTax => `${this.$tc('sw-order.detailBase.shippingCostsTax', 0, {
-                    taxRate: calcTax.taxRate,
-                    tax: format.currency(calcTax.tax, this.order.currency.shortName)
-                })}`
+                calcTax => `${this.$tc(
+                    'sw-order.detailBase.shippingCostsTax',
+                    0,
+                    {
+                        taxRate: calcTax.taxRate,
+                        tax: format.currency(calcTax.tax, this.order.currency.shortName)
+                    }
+                )}`
             ).join('<br>')}`;
 
             return `${this.$tc('sw-order.detailBase.tax')}<br>${formattedTaxes}`;
@@ -83,7 +87,9 @@ Component.register('refund-page-view-base', {
         },
 
         transactionOptionPlaceholder() {
-            if (this.isLoading) return null;
+            if (this.isLoading) {
+                return null;
+            }
 
             return `${this.$tc('sw-order.stateCard.headlineTransactionState')}: \
             ${this.order.transactions[0].stateMachineState.translated.name}`;
@@ -94,8 +100,10 @@ Component.register('refund-page-view-base', {
                 return null;
             }
 
-            return this.stateStyleDataProviderService.getStyle('order_transaction.state',
-                this.order.transactions[0].stateMachineState.technicalName).selectBackgroundStyle;
+            return this.stateStyleDataProviderService.getStyle(
+                'order_transaction.state',
+                this.order.transactions[0].stateMachineState.technicalName
+            ).selectBackgroundStyle;
         },
 
         orderOptionPlaceholder() {
@@ -112,8 +120,10 @@ Component.register('refund-page-view-base', {
                 return null;
             }
 
-            return this.stateStyleDataProviderService.getStyle('order.state',
-                this.order.stateMachineState.technicalName).selectBackgroundStyle;
+            return this.stateStyleDataProviderService.getStyle(
+                'order.state',
+                this.order.stateMachineState.technicalName
+            ).selectBackgroundStyle;
         },
 
         orderCriteria() {

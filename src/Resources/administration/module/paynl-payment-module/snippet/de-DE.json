@@ -1,3 +1,10 @@
 {
-    "demoSnippet": "Ich bin eine Demo."
+    "transactions-list": {
+        "paynl_transaction_id": "Transaction id",
+        "payment_id": "Payment id",
+        "amount": "Amount",
+        "currency": "Currency",
+        "created_at": "Created at",
+        "links": "Links"
+    }
 }
