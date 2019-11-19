@@ -7,6 +7,7 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
+use phpDocumentor\Reflection\Types\Mixed;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -30,8 +31,7 @@ class ProcessingHelper
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
         OrderTransactionStateHandler $transactionStateHandler
-    )
-    {
+    ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->transactionStateHandler = $transactionStateHandler;
@@ -75,11 +75,16 @@ class ProcessingHelper
         return $this->paynlApi->getTransaction($transactionId);
     }
 
-    public function updateTransaction($paynlTransaction, $context)
+    /**
+     * @param PaynlTransactionEntity $paynlTransaction
+     * @param Context $context
+     * @return void
+     */
+    public function updateTransaction(PaynlTransactionEntity $paynlTransaction, Context $context): void
     {
         $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
         $paynlTransactionId = $paynlTransaction->getId();
-        $status = '';
+        $status = 0;
         if ($apiTransaction->isBeingVerified()) {
             $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
         } elseif ($apiTransaction->isPending()) {
@@ -99,6 +104,11 @@ class ProcessingHelper
         $this->setPaynlStatus($paynlTransactionId, $context, $status);
     }
 
+    /**
+     * @param string $paynlTransactionId
+     * @param Context $context
+     * @param int $status
+     */
     public function setPaynlStatus(string $paynlTransactionId, Context $context, int $status): void
     {
         $this->paynlTransactionRepository->update(
@@ -112,7 +122,10 @@ class ProcessingHelper
         );
     }
 
-    public function processNotify($paynlTransactionId): void
+    /**
+     * @param string $paynlTransactionId
+     */
+    public function processNotify(string $paynlTransactionId): void
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
         if ($apiTransaction->isPending()) {
@@ -123,6 +136,5 @@ class ProcessingHelper
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
         $entity = $this->paynlTransactionRepository->search($criteria, $context)->first();
         $this->updateTransaction($entity, $context);
-
     }
 }

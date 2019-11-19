@@ -10,6 +10,8 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
+use Shopware\Core\Checkout\Order\OrderCollection;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -162,12 +164,14 @@ class Api
     /**
      * @param AsyncPaymentTransactionStruct $transaction
      * @param Context $context
-     * @return array
+     * @return mixed[]
      * @throws InconsistentCriteriaIdsException
      */
     private function getOrderProducts(AsyncPaymentTransactionStruct $transaction, Context $context): array
     {
-        $productsItems = $transaction->getOrder()->getLineItems()->filterByProperty('type', 'product');
+        /** @var OrderLineItemCollection*/
+        $orderLineItems = $transaction->getOrder()->getLineItems();
+        $productsItems = $orderLineItems->filterByProperty('type', 'product');
         $productsIds = [];
 
         foreach ($productsItems as $product) {

@@ -47,9 +47,12 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
         return new FieldCollection([
             (new IdField('id', 'id'))->addFlags(new PrimaryKey(), new Required()),
 
-            (new FkField('customer_id', 'customerId', PaynlTransactionEntityDefinition::class))->addFlags(new Required()),
-            (new FkField('order_id', 'orderId', PaynlTransactionEntityDefinition::class))->addFlags(new Required()),
-            (new FkField('order_transaction_id', 'orderTransactionId', PaynlTransactionEntityDefinition::class))->addFlags(new Required()),
+            (new FkField('customer_id', 'customerId', PaynlTransactionEntityDefinition::class))
+                ->addFlags(new Required()),
+            (new FkField('order_id', 'orderId', PaynlTransactionEntityDefinition::class))
+                ->addFlags(new Required()),
+            (new FkField('order_transaction_id', 'orderTransactionId', PaynlTransactionEntityDefinition::class))
+                ->addFlags(new Required()),
 
             (new StringField('paynl_transaction_id', 'paynlTransactionId', 16)),
             (new IntField('payment_id', 'paymentId')),
