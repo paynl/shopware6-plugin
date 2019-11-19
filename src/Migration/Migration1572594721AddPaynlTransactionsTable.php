@@ -20,6 +20,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 
                 `customer_id` BINARY(16) NOT NULL,
                 `order_id` BINARY(16) NULL,
+                `order_transaction_id` BINARY(16) NULL,
 
                 `paynl_transaction_id` VARCHAR(16),
                 `payment_id` INT(11) NOT NULL,
@@ -28,7 +29,8 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 `exception` TEXT,
                 `comment` VARCHAR(255),
                 `dispatch` VARCHAR(255),
-                
+                `state_id` INT(11) NULL,
+
                 `created_at` DATETIME(3) NOT NULL,
                 `updated_at` DATETIME(3) NULL,
                 

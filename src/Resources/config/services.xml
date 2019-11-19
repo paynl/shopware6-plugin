@@ -10,6 +10,7 @@
         <service id="PaynlPayment\Helper\ProcessingHelper">
             <argument type="service" id="PaynlPayment\Components\Api"/>
             <argument type="service" id="paynl_transactions.repository"/>
+            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
         </service>
 
         <!--Components-->
