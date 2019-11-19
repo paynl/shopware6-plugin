@@ -1,4 +1,7 @@
-import './page/refund-view/';
+import './page/refund-page-view';
+import './page/refund-page-view-base';
+import './page/refund-card';
+
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
 
@@ -15,8 +18,20 @@ Module.register('refund-page', {
     },
     routes: {
         view: {
-            component: 'refund-view',
-            path: 'view/:id'
+            component: 'refund-page-view',
+            path: 'view/:id',
+            redirect: {
+                name: 'refund.page.view.base'
+            },
+            children: {
+                base: {
+                    component: 'refund-page-view-base',
+                    path: 'base',
+                    meta: {
+                        parentPath: 'sw.order.index'
+                    }
+                }
+            }
         }
     }
 });

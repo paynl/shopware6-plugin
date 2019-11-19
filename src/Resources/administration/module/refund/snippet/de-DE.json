@@ -2,14 +2,17 @@
     "order-list-override": {
         "refund": "Refund"
     },
-    "sw-order": {
-        "detail": {
-            "textHeadlineNew": "textHeadlineNew",
-            "buttonCancel": "buttonCancel",
-            "buttonEdit": "buttonEdit",
-            "buttonSave": "buttonSave",
-            "tabGeneral": "tabGeneral",
-            "textHeadline": "textHeadline"
+    "refund": {
+        "detailBase": {
+            "cardTitleRefund": "Refund",
+            "headlineOrderNumber": "Order number",
+            "headlineTransaction": "Transaction",
+            "headlineDescriptionInput": "Description",
+            "headlineAmountInput": "Amount",
+            "paynlTransactionId": "Pay.nl transaction Id",
+            "paidAmount": "Paid amount",
+            "availableForRefund": "Available for refund",
+            "refundedAmount": "Refunded amount"
         }
     }
 }

@@ -1,0 +1,40 @@
+{% block refund_detail_base %}
+    <div class="sw-order-detail-base" v-if="!isLoading">
+        {% block refund_detail_base__user_card %}
+            <refund-card :key="isEditing"
+                                :currentOrder="order"
+                                :versionContext="versionContext"
+                                :isLoading = "isLoading"
+                                :isEditing = "isEditing"
+                                @order-change="saveAndReload"
+                                @order-reset="recalculateAndReload"
+                                @error="$emit('error',$event)">
+            </refund-card>
+        {% endblock %}
+
+        {% block refund_detail_base_line_items_card %}
+            <sw-card :title="$tc('sw-order.detailBase.cardTitleLineItems')"
+                     :isLoading="isLoading"
+                     class="sw-order-detail-base__line-item-grid-card">
+                {% block refund_detail_base_line_items_card_rows %}
+                    <sw-container :isLoading="isLoading"
+                                  slot="grid"
+                                  type="row">
+                        {% block refund_detail_base_line_items_grid %}
+                            <sw-order-line-items-grid :order="order"
+                                                      :context="versionContext"
+                                                      :editable="isEditing"
+                                                      ref="sw-order-line-item-grid"
+                                                      @item-delete="saveAndRecalculate"
+                                                      @item-edit="recalculateAndReload"
+                                                      @existing-item-edit="saveAndRecalculate"
+                                                      @item-added="recalculateAndReload"
+                                                      @item-cancel="recalculateAndReload">
+                            </sw-order-line-items-grid>
+                        {% endblock %}
+                    </sw-container>
+                {% endblock %}
+            </sw-card>
+        {% endblock %}
+    </div>
+{% endblock %}

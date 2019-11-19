@@ -1,0 +1,48 @@
+{% block sw_order_detail %}
+    <sw-page class="sw-order-detail" v-if="orderId">
+
+        {% block sw_order_detail_header %}
+            <template slot="smart-bar-header">
+                {% block sw_order_detail_header_title %}
+                    <h2 v-if="identifier">{{ $tc('sw-order.detail.textHeadline') }} {{ identifier }}</h2>
+                {% endblock %}
+
+                {% block sw_order_detail_header_title_new %}
+                    <h2 v-else>{{ $tc('sw-order.detail.textHeadlineNew') }}</h2>
+                {% endblock %}
+            </template>
+        {% endblock %}
+
+        {% block sw_order_detail_content %}
+            <sw-card-view slot="content">
+
+                {% block sw_order_detail_content_tabs %}
+                    <sw-tabs v-if="showTabs" class="sw-order-detail__tabs">
+                        {% block sw_order_detail_content_tabs_general %}
+                            <sw-tabs-item :route="{ name: 'sw.order.detail.base', params: { id: $route.params.id } }"
+                                          :title="$tc('sw-order.detail.tabGeneral')">
+                                {{ $tc('sw-order.detail.tabGeneral') }}
+                            </sw-tabs-item>
+                        {% endblock %}
+                    </sw-tabs>
+                {% endblock %}
+
+                {% block sw_order_detail_content_view %}
+                    <router-view
+                            :orderId="orderId"
+                            ref="baseComponent"
+                            :isEditing="isEditing"
+                            :isLoading="isLoading"
+                            :isSaveSuccessful="isSaveSuccessful"
+                            @identifier-change="updateIdentifier"
+                            @loading-change="onUpdateLoading"
+                            @editing-change="onUpdateEditing"
+                            @error="onError">
+                    </router-view>
+                {% endblock %}
+
+            </sw-card-view>
+        {% endblock %}
+
+    </sw-page>
+{% endblock %}

@@ -7,7 +7,7 @@
         {% endblock %}
 
         {% block sw_customer_list_grid_columns_actions_refund %}
-            <sw-context-menu-item :routerLink="{ name: 'refund.page.view', params: { id: 'd0dea2170f8f4d59bfc18a60837bba7e' } }">
+            <sw-context-menu-item :routerLink="{ name: 'refund.page.view', params: { id: item.id } }">
                 {{ $tc('order-list-override.refund') }}
             </sw-context-menu-item>
         {% endblock %}
