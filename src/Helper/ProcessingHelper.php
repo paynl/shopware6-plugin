@@ -117,7 +117,7 @@ class ProcessingHelper
                 $apiTransactionData['paymentDetails']['orderNumber']
             );
         } catch (Exception $e) {
-            if ($isExchange && $e->getCode() == 999) {
+            if ($isExchange) {
                 return $e->getMessage();
             }
         }
