@@ -6,6 +6,7 @@ use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
+use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
 use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use phpDocumentor\Reflection\Types\Mixed;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
@@ -80,7 +81,7 @@ class ProcessingHelper
      * @param bool $isExchange
      * @return string
      */
-    public function updateTransaction(PaynlTransactionEntity $paynlTransaction, Context $context, bool $isExchange = false): string
+    public function updateTransaction(PaynlTransaction $paynlTransaction, Context $context, bool $isExchange): string
     {
         try {
             $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
@@ -109,7 +110,8 @@ class ProcessingHelper
             $this->setPaynlStatus($paynlTransactionId, $context, $status);
             $apiTransactionData = $apiTransaction->getData();
 
-            return sprintf("Status updated to: %s (%s) orderNumber: %s",
+            return sprintf(
+                "Status updated to: %s (%s) orderNumber: %s",
                 $apiTransactionData['paymentDetails']['stateName'],
                 $apiTransactionData['paymentDetails']['state'],
                 $apiTransactionData['paymentDetails']['orderNumber']

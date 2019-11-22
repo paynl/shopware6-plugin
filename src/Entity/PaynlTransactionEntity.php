@@ -39,6 +39,8 @@ class PaynlTransactionEntity extends Entity
      */
     protected $exception;
 
+    protected $createAt;
+
     public function getTechnicalName(): string
     {
         return $this->technicalName;
@@ -99,6 +101,9 @@ class PaynlTransactionEntity extends Entity
         $this->exception = $exception;
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getFieldsSet(): array
     {
         return [
