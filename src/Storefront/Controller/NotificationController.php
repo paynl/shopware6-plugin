@@ -30,14 +30,13 @@ class NotificationController extends StorefrontController
     public function notify(Request $request): JsonResponse
     {
         $action = $request->get('action', '');
+        $responseText = '';
         if (strtolower($action) !== Api::ACTION_PENDING) {
             $transactionId = $request->get('order_id', '');
-            $this->processingHelper->processNotify($transactionId);
+            $responseText = $this->processingHelper->processNotify($transactionId);
         }
-
-        // TODO: change transaction status according $apiTransaction status
-
         $response = new JsonResponse();
-        return $response->setContent('OK');
+
+        return $response->setContent('TRUE| '. $responseText);
     }
 }

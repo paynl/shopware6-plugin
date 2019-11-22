@@ -93,7 +93,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 
         /** @var PaynlTransactionEntity $paynlTransaction */
         $paynlTransaction = $this->processingHelper->findTransactionByOrderId($orderId, $context);
-        $this->processingHelper->updateTransaction($paynlTransaction, $context);
+        $this->processingHelper->updateTransaction($paynlTransaction, $context, false);
     }
 
     private function sendReturnUrlToExternalGateway(
