@@ -171,7 +171,6 @@ class ProcessingHelper
         try {
             $this->transactionStateHandler->pay($orderTransactionId, $context);
         } catch (IllegalTransitionException $exception) {
-            file_put_contents('response.txt', "Pay: >>" . $exception->getMessage());
             return $exception->getMessage();
         }
     }
@@ -186,8 +185,6 @@ class ProcessingHelper
         try {
             $this->transactionStateHandler->cancel($orderTransactionId, $context);
         } catch (IllegalTransitionException $exception) {
-            file_put_contents('response.txt', "Cancel: >>" . $exception->getMessage());
-
             return $exception->getMessage();
         }
     }
