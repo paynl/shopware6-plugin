@@ -1,6 +1,8 @@
 import template from './refund-page-view.html.twig';
+import './refund-card.scss';
 
 const { Component, Mixin } = Shopware;
+const { Criteria } = Shopware.Data;
 
 Component.register('refund-page-view', {
     template,
@@ -14,13 +16,29 @@ Component.register('refund-page-view', {
         'context'
     ],
 
+    props: {
+        orderId: {
+            type: String,
+            required: false,
+            default: null
+        }
+    },
+
     data() {
         return {
+            orderRepository: null,
+            order: null,
+            refundData: null,
+            paynlTransaction: null,
+            products: null,
             identifier: '',
-            orderId: null,
             isEditing: false,
             isLoading: true,
-            isSaveSuccessful: false
+            isSaveSuccessful: false,
+            amountToRefund: 0,
+            description: '',
+            productsQuantity: {},
+            withShipping: false
         };
     },
 
@@ -30,73 +48,101 @@ Component.register('refund-page-view', {
         };
     },
 
-    computed: {
-        showTabs() {
-            return this.$route.meta.$module.routes.view.children.length > 1;
-        }
-    },
+    mounted() {
+        let criteria = new Criteria();
+        criteria
+            .addAssociation('paynlTransactions')
+            .addAssociation('currency')
+            .addAssociation('lineItems');
 
-    watch: {
-        '$route.params.id'() {
-            this.createdComponent();
-        }
+        this.orderRepository = this.repositoryFactory.create('order');
+        this.orderRepository.get(this.orderId, this.context, criteria)
+            .then((response) => {
+                this.order = response;
+                // TODO: modify to use one to one relation
+                this.paynlTransaction = response.extensions.paynlTransactions[0];
+                this.products = this.order.lineItems;
+
+                let url = '/paynl-payment/get-refund-data?transactionId=' + this.paynlTransaction.paynlTransactionId;
+                fetch(url)
+                    .then((result) => {
+                        return result.json();
+                    }).then((data) => {
+                    this.refundData = data;
+                });
+            });
     },
 
     created() {
-        this.createdComponent();
+        this.isLoading = false;
+    },
+
+    computed: {
+        fullName() {
+            return this.order.orderCustomer.firstName + ' ' + this.order.orderCustomer.lastName;
+        },
     },
 
     methods: {
-        createdComponent() {
-            this.orderId = this.$route.params.id;
-        },
-
         updateIdentifier(identifier) {
             this.identifier = identifier;
         },
 
-        onChangeLanguage() {
-            this.$root.$emit('language-change');
+        updateShippingState(value) {
+            if (value) {
+                this.amountToRefund += this.order.shippingTotal;
+            } else {
+                this.amountToRefund -= this.order.shippingTotal;
+            }
         },
 
-        saveEditsFinish() {
-            this.isSaveSuccessful = false;
-            this.isEditing = false;
+        changeRefundAmount(amount) {
+            if (this.withShipping) {
+                amount += this.order.shippingTotal;
+            }
+            this.amountToRefund = amount;
         },
 
-        onStartEditing() {
-            this.$root.$emit('order-edit-start');
-        },
+        onRefundClick() {
+            let url = '/paynl-payment/refund';
+            let data = {
+                transactionId: this.paynlTransaction.paynlTransactionId,
+                amount: this.amountToRefund,
+                description: this.description,
+                products: this.products,
+            };
+            let opts = {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            };
 
-        onSaveEdits() {
-            this.$root.$emit('order-edit-save');
-        },
-
-        onCancelEditing() {
-            this.$root.$emit('order-edit-cancel');
+            fetch(url, opts)
+                .then((result) => {
+                    return result.json();
+                }).then((responseData) => {
+                    if (responseData[0].type === 'danger') {
+                        this.createNotificationError({
+                            title: this.$tc('refund.notifications.danger'),
+                            message: responseData[0].content
+                        });
+                    } else if (responseData[0].type === 'success') {
+                        this.createNotificationSuccess({
+                            title: this.$tc('refund.notifications.success'),
+                            message: responseData[0].content
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
         },
 
         onUpdateLoading(loadingValue) {
             this.isLoading = loadingValue;
-        },
-
-        onUpdateEditing(editingValue) {
-            this.isEditing = editingValue;
-        },
-
-        onError(error) {
-            let errorDetails = null;
-
-            try {
-                errorDetails = error.response.data.errors[0].detail;
-            } catch (e) {
-                errorDetails = '';
-            }
-
-            this.createNotificationError({
-                title: this.$tc('sw-order.detail.titleRecalculationError'),
-                message: this.$tc('sw-order.detail.messageRecalculationError') + errorDetails
-            });
         }
     }
 });

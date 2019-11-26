@@ -205,4 +205,25 @@ class Api
 
         return $products;
     }
+
+    /**
+     * @param string $transactionID
+     * @param string $amount
+     * @param string $description
+     * @return \Paynl\Result\Transaction\Refund
+     * @throws \Exception
+     */
+    public function refund(string $transactionID, string $amount, string $description = '')
+    {
+        if (!$this->config->isRefundAllowed()) {
+            throw new \Exception('Cannot refund, because refund is disabled');
+        }
+        $this->setCredentials();
+
+        try {
+            return \Paynl\Transaction::refund($transactionID, $amount, $description);
+        } catch (\Throwable $e) {
+            throw new \Exception($e->getMessage());
+        }
+    }
 }

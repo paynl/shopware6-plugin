@@ -1,6 +1,6 @@
 import './page/refund-page-view';
-import './page/components/refund-page-view-base';
-import './page/components/refund-card';
+import './page/components/paynl-refund-products-list';
+import './page/components/paynl-refund-single-order-product';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
@@ -8,9 +8,10 @@ import enGB from './snippet/en-GB.json';
 const { Module } = Shopware;
 
 Module.register('refund-page', {
-    type: 'plugin',
-    name: 'Refund payment',
-    title: 'Refund payment module',
+    type: "plugin",
+    name: "module.name",
+    title: "module.title",
+    description: "module.description",
     color: '#62ff80',
     snippets: {
         'de-DE': deDE,
@@ -20,17 +21,8 @@ Module.register('refund-page', {
         view: {
             component: 'refund-page-view',
             path: 'view/:id',
-            redirect: {
-                name: 'refund.page.view.base'
-            },
-            children: {
-                base: {
-                    component: 'refund-page-view-base',
-                    path: 'base',
-                    meta: {
-                        parentPath: 'sw.order.index'
-                    }
-                }
+            props: {
+                default: (route) => ({ orderId: route.params.id })
             }
         }
     }
