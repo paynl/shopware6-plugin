@@ -17,6 +17,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
 
 class ProcessingHelper
 {
@@ -101,27 +102,27 @@ class ProcessingHelper
                 $status = PaynlTransactionEntityDefinition::STATUS_AUTHORIZED;
             } elseif ($apiTransaction->isPaid()) {
                 $status = PaynlTransactionEntityDefinition::STATUS_PAID;
-                $this->transactionStateHandler->pay($paynlTransaction->get('orderTransactionId'), $context);
+                $this->pay($paynlTransaction->get('orderTransactionId'), $context);
             } elseif ($apiTransaction->isCanceled()) {
                 $status = $status = PaynlTransactionEntityDefinition::STATUS_CANCEL;
-                $this->transactionStateHandler->cancel($paynlTransaction->get('orderTransactionId'), $context);
+                $this->cancel($paynlTransaction->get('orderTransactionId'), $context);
             }
 
             $this->setPaynlStatus($paynlTransactionId, $context, $status);
             $apiTransactionData = $apiTransaction->getData();
 
             return sprintf(
-                "Status updated to: %s (%s) orderNumber: %s",
+                "TRUE| Status updated to: %s (%s) orderNumber: %s",
                 $apiTransactionData['paymentDetails']['stateName'],
                 $apiTransactionData['paymentDetails']['state'],
                 $apiTransactionData['paymentDetails']['orderNumber']
             );
         } catch (Exception $e) {
             if ($isExchange) {
-                return $e->getMessage();
+                return "FALSE| " . $e->getMessage() . $e->getFile();
             }
         }
-        return "No action, order was not created";
+        return "FALSE| No action, order was not created";
     }
 
     /**
@@ -158,5 +159,36 @@ class ProcessingHelper
         $entity = $this->paynlTransactionRepository->search($criteria, $context)->first();
 
         return $this->updateTransaction($entity, $context, true);
+    }
+
+    /**
+     * @param string $orderTransactionId
+     * @param Context $context
+     * @return string
+     */
+    public function pay(string $orderTransactionId, Context $context): string
+    {
+        try {
+            $this->transactionStateHandler->pay($orderTransactionId, $context);
+        } catch (IllegalTransitionException $exception) {
+            file_put_contents('response.txt', "Pay: >>" . $exception->getMessage());
+            return $exception->getMessage();
+        }
+    }
+
+    /**
+     * @param string $orderTransactionId
+     * @param Context $context
+     * @return string
+     */
+    public function cancel(string $orderTransactionId, Context $context): string
+    {
+        try {
+            $this->transactionStateHandler->cancel($orderTransactionId, $context);
+        } catch (IllegalTransitionException $exception) {
+            file_put_contents('response.txt', "Cancel: >>" . $exception->getMessage());
+
+            return $exception->getMessage();
+        }
     }
 }
