@@ -7,10 +7,8 @@ use PaynlPayment\Components\Config;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,6 +74,7 @@ class RefundController extends StorefrontController
             // TODO: need newer version of PAYNL/SDK
             $refundResult = $this->paynlApi->refund($paynlPaymentId, $amount, $description);
             $this->restock($products);
+            // TODO: Change order status if refunded
             $messages[] = [
                 'type' => 'success',
                 'content' => 'Refund successful (' . $refundResult->getData()['description'] . ')'
@@ -94,11 +93,10 @@ class RefundController extends StorefrontController
     private function restock(array $products = []): void
     {
         $data = [];
-        $criteria = new Criteria();
         $context = Context::createDefaultContext();
-
         foreach ($products as $product) {
             if (isset($product['rstk']) && $product['rstk'] == true) {
+                $criteria = new Criteria();
                 $criteria->addFilter(new EqualsFilter('product.id', $product['identifier']));
                 /** @var ProductEntity $productEntity */
                 $productEntity = $this->productRepository->search($criteria, $context)->first();
