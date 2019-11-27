@@ -51,6 +51,11 @@ class Config
         return (int)$this->get('testMode');
     }
 
+    public function isRefundAllowed(): bool
+    {
+        return (bool)$this->get('allowRefunds', false);
+    }
+
     /**
      * @return string[]
      */

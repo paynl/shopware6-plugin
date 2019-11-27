@@ -1,0 +1,68 @@
+{% block paynl_refund_page %}
+    <sw-page class="paynl-refund-page">
+        <template slot="content">
+            {% block paynl_refund_page__detail %}
+                <sw-card-view v-if="order">
+                    <sw-card :title="$tc('refund.detailBase.cardTitleRefund')" :isLoading="isLoading" class="sw-order-user-card">
+                        <sw-card-section divider="bottom">
+                            <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="30px 30px">
+                                <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
+                                    <dt>{{ $tc('refund.detailBase.customer') }}</dt>
+                                    <dd>{{ fullName }}</dd>
+                                    <dt>{{ $tc('refund.detailBase.amount') }}</dt>
+                                    <dd>{{ order.amountTotal|currency(order.currency.translated.shortName) }}</dd>
+                                    <dt>{{ $tc('refund.detailBase.orderNumber') }}</dt>
+                                    <dd>{{ order.orderNumber }}</dd>
+                                </sw-description-list>
+                                <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
+                                    <dt>{{ $tc('refund.detailBase.amountToRefund') }}</dt>
+                                    <dd>
+                                        <sw-number-field v-if="refundData" v-model="amountToRefund" :min="0" :max="refundData.availableForRefund + order.shippingTotal" :value="0">
+                                        </sw-number-field>
+                                        <sw-number-field v-else v-model="amountToRefund" :min="0" :max="order.shippingTotal" :value="0">
+                                        </sw-number-field>
+                                    </dd>
+                                    <dt>{{ $tc('refund.detailBase.description') }}</dt>
+                                    <dd><sw-text-field v-model="description"></sw-text-field></dd>
+                                </sw-description-list>
+                            </sw-container>
+                        </sw-card-section>
+
+                        <sw-card-section secondary slim>
+                            <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="30px 30px">
+                                <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
+                                    <dt>{{ $tc('refund.detailBase.paynlTransactionId') }}</dt>
+                                    <dd>{{ paynlTransaction.paynlTransactionId }}</dd>
+                                    <dt>{{ $tc('refund.detailBase.paidAmount') }}</dt>
+                                    <dd>{{ paynlTransaction.amount|currency(order.currency.translated.shortName) }}</dd>
+                                </sw-description-list>
+                                <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
+                                    <dt>{{ $tc('refund.detailBase.refundedAmount') }}</dt>
+                                    <dd><span v-if="refundData">{{ refundData.refundedAmount|currency(order.currency.translated.shortName) }}</span><span v-else>{{ 0|currency(order.currency.translated.shortName) }}</span></dd>
+                                    <dt>{{ $tc('refund.detailBase.availableForRefund') }}</dt>
+                                    <dd><span v-if="refundData">{{ refundData.availableForRefund|currency(order.currency.translated.shortName) }}</span><span v-else>{{ 0|currency(order.currency.translated.shortName) }}</span></dd>
+                                </sw-description-list>
+                            </sw-container>
+                        </sw-card-section>
+                        <sw-card-section>
+                            <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="30px 30px">
+                                <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical text-right">
+                                    <sw-button variant="primary" @click="onRefundClick()">{{ $tc('refund.products.refund') }}</sw-button>
+                                </sw-description-list>
+                            </sw-container>
+                        </sw-card-section>
+                    </sw-card>
+                    <paynl-refund-products-list :products="products" @change-refund-amount="changeRefundAmount"></paynl-refund-products-list>
+                    <sw-card :title="$tc('refund.detailBase.shipping')" :isLoading="isLoading" class="sw-order-user-card">
+                        <sw-card-section>
+                            <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="0 30px">
+                                {{ $tc('refund.detailBase.shipping') }}: {{ order.shippingTotal|currency(order.currency.translated.shortName) }}
+                                <sw-checkbox-field v-model="withShipping" :label="$tc('refund.detailBase.allowShippingRefund')" @change="updateShippingState"></sw-checkbox-field>
+                            </sw-container>
+                        </sw-card-section>
+                    </sw-card>
+                </sw-card-view>
+            {% endblock %}
+        </template>
+    </sw-page>
+{% endblock %}

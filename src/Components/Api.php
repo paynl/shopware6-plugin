@@ -11,7 +11,6 @@ use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
-use Shopware\Core\Checkout\Order\OrderCollection;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -19,6 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaI
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Paynl\Result\Transaction as Result;
 
 class Api
 {
@@ -204,5 +204,26 @@ class Api
         ];
 
         return $products;
+    }
+
+    /**
+     * @param string $transactionID
+     * @param int|float|null $amount
+     * @param string $description
+     * @return Result\Refund
+     * @throws \Exception
+     */
+    public function refund(string $transactionID, $amount, string $description = ''): Result\Refund
+    {
+        if (!$this->config->isRefundAllowed()) {
+            throw new \Exception('Cannot refund, because refund is disabled');
+        }
+        $this->setCredentials();
+
+        try {
+            return \Paynl\Transaction::refund($transactionID, $amount, $description);
+        } catch (\Throwable $e) {
+            throw new \Exception($e->getMessage());
+        }
     }
 }

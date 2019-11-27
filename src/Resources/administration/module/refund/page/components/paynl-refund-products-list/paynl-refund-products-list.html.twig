@@ -1,0 +1,30 @@
+<sw-card :title="$tc('refund.detailBase.products')">
+    <div class="sw-data-grid">
+        <div class="sw-data-grid__wrapper">
+            <table class="sw-data-grid__table">
+                <thead class="sw-data-grid__header">
+                    <tr class="sw-data-grid__row">
+                        <th class="sw-data-grid__cell sw-data-grid__cell--header sw-data-grid__cell--property">
+                            <div class="sw-data-grid__cell-content">{{ $tc('refund.products.product') }}</div>
+                        </th>
+                        <th class="sw-data-grid__cell sw-data-grid__cell--header sw-data-grid__cell--property">
+                            <div class="sw-data-grid__cell-content">{{ $tc('refund.products.price') }}</div>
+                        </th>
+                        <th class="sw-data-grid__cell sw-data-grid__cell--header sw-data-grid__cell--property">
+                            <div class="sw-data-grid__cell-content">{{ $tc('refund.products.quantity') }}</div>
+                        </th>
+                        <th class="sw-data-grid__cell sw-data-grid__cell--header sw-data-grid__cell--property">
+                            <div class="sw-data-grid__cell-content">{{ $tc('refund.products.refund') }}</div>
+                        </th>
+                        <th class="sw-data-grid__cell sw-data-grid__cell--header sw-data-grid__cell--property">
+                            <div class="sw-data-grid__cell-content">{{ $tc('refund.products.restock') }}</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="sw-data-grid__body">
+                <paynl-refund-single-order-product v-for="product in products" :product="product" :key="product.id" @refund-quantity-changed="refundQuantityChanged"></paynl-refund-single-order-product>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</sw-card>
