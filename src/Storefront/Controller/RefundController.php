@@ -40,9 +40,14 @@ class RefundController extends StorefrontController
     }
 
     /**
-     * @Route("/paynl-payment/get-refund-data", name="frontend.PaynlPayment.getRefundData", options={"seo"="false"}, methods={"GET"})
+     * @Route(
+     *     "/paynl-payment/get-refund-data",
+     *     name="frontend.PaynlPayment.getRefundData",
+     *     options={"seo"="false"},
+     *     methods={"GET"}
+     *     )
      */
-    public function getRefundData(Request $request)
+    public function getRefundData(Request $request): JsonResponse
     {
         $paynlTransactionId = $request->get('transactionId');
         $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
@@ -56,9 +61,9 @@ class RefundController extends StorefrontController
     }
 
     /**
-     * @Route("/paynl-payment/refund", name="frontend.PaynlPayment.refund", defaults={"csrf_protected"=true}, options={"seo"="false"}, methods={"POST"})
+     * @Route("/paynl-payment/refund", name="frontend.PaynlPayment.refund", options={"seo"="false"}, methods={"POST"})
      */
-    public function refund(Request $request)
+    public function refund(Request $request): JsonResponse
     {
         $post = $request->request->all();
         $paynlPaymentId = $post['transactionId'];
@@ -71,7 +76,10 @@ class RefundController extends StorefrontController
             // TODO: need newer version of PAYNL/SDK
             $refundResult = $this->paynlApi->refund($paynlPaymentId, $amount, $description);
             $this->restock($products);
-            $messages[] = ['type' => 'success', 'content' => 'Refund successful (' . $refundResult->getData()['description'] . ')'];
+            $messages[] = [
+                'type' => 'success',
+                'content' => 'Refund successful (' . $refundResult->getData()['description'] . ')'
+            ];
         } catch (\Throwable $e) {
             $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
         }
@@ -79,7 +87,11 @@ class RefundController extends StorefrontController
         return new JsonResponse($messages);
     }
 
-    private function restock(array $products = [])
+    /**
+     * @param mixed[] $products
+     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
+     */
+    private function restock(array $products = []): void
     {
         $data = [];
         $criteria = new Criteria();
