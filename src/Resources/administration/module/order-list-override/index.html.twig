@@ -7,7 +7,7 @@
         {% endblock %}
 
         {% block sw_customer_list_grid_columns_actions_refund %}
-            <sw-context-menu-item :routerLink="{ name: 'refund.page.view', params: { id: item.id } }">
+            <sw-context-menu-item v-if="isPaynlOrderTransaction(item)" :disabled="isPaynlTransactionAllowedForRefund(item.transactions[0].stateMachineState.technicalName)" :routerLink="{ name: 'refund.page.view', params: { id: item.id } }">
                 {{ $tc('order-list-override.refund') }}
             </sw-context-menu-item>
         {% endblock %}
