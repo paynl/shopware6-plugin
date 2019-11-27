@@ -107,12 +107,12 @@ class PaynlTransactionEntity extends Entity
     public function getFieldsSet(): array
     {
         return [
-            'paynlTransactionId' => $this->paynlTransactionId,
-            'paymentId' => $this->paymentId,
-            'amount' => $this->amount,
-            'currency' => $this->currency,
-            'exception' => $this->exception,
-            'createdAt' => $this->createAt,
+            'paynlTransactionId' => $this->getPaynlTransactionId(),
+            'paymentId' => $this->getPaymentId(),
+            'amount' => $this->getAmount(),
+            'currency' => $this->getCurrency(),
+            'exception' => $this->getException(),
+            'createdAt' => $this->getCreatedAt(),
         ];
     }
 }

@@ -1,4 +1,12 @@
 {
+    "module": {
+        "name": "Refund payment module",
+        "title": "Refund payment module",
+        "description": "Refund payment module",
+        "navigation": {
+            "label": "Paynl transactions"
+        }
+    },
     "transactions-list": {
         "paynl_transaction_id": "Transaction id",
         "payment_id": "Payment id",

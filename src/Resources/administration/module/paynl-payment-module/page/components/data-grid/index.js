@@ -1,5 +1,4 @@
 import template from './data-grid.html.twig';
-import './data-grid.scss';
 
 const { Component } = Shopware;
 const utils = Shopware.Utils;

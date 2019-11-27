@@ -69,6 +69,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'id',
                 false
             ),
+            // TODO: modify to use one to one relation
             new ManyToOneAssociationField(
                 'order',
                 'order_id',
