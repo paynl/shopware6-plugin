@@ -10,14 +10,17 @@ use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
 use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use phpDocumentor\Reflection\Types\Mixed;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
+use Shopware\Core\System\StateMachine\StateMachineRegistry;
+use Shopware\Core\System\StateMachine\Transition;
 
 class ProcessingHelper
 {
@@ -25,17 +28,17 @@ class ProcessingHelper
     private $paynlApi;
     /** @var EntityRepositoryInterface */
     private $paynlTransactionRepository;
-    /** @var OrderTransactionStateHandler */
-    private $transactionStateHandler;
+    /** @var StateMachineRegistry */
+    private $stateMachineRegistry;
 
     public function __construct(
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
-        OrderTransactionStateHandler $transactionStateHandler
+        StateMachineRegistry $stateMachineRegistry
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
-        $this->transactionStateHandler = $transactionStateHandler;
+        $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
     public function storePaynlTransactionData(
@@ -88,27 +91,34 @@ class ProcessingHelper
             $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
             $paynlTransactionId = $paynlTransaction->getId();
             $status = 0;
+            $orderActionName = '';
             if ($apiTransaction->isBeingVerified()) {
                 $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
             } elseif ($apiTransaction->isPending()) {
                 $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
+            } elseif ($apiTransaction->isPartiallyRefunded()) {
+                $status = PaynlTransactionEntityDefinition::STATUS_PARTIAL_REFUND;
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
             } elseif ($apiTransaction->isRefunded()) {
                 $status = PaynlTransactionEntityDefinition::STATUS_REFUND;
-                $this->transactionStateHandler->refund($paynlTransaction->get('orderTransactionId'), $context);
-            } elseif ($apiTransaction->isPartiallyRefunded()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_REFUND;
-                $this->transactionStateHandler->refundPartially($paynlTransaction->get('orderTransactionId'), $context);
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
             } elseif ($apiTransaction->isAuthorized()) {
                 $status = PaynlTransactionEntityDefinition::STATUS_AUTHORIZED;
             } elseif ($apiTransaction->isPaid()) {
                 $status = PaynlTransactionEntityDefinition::STATUS_PAID;
-                $this->pay($paynlTransaction->get('orderTransactionId'), $context);
+                $orderActionName = StateMachineTransitionActions::ACTION_PAY;
             } elseif ($apiTransaction->isCanceled()) {
                 $status = $status = PaynlTransactionEntityDefinition::STATUS_CANCEL;
-                $this->cancel($paynlTransaction->get('orderTransactionId'), $context);
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
             }
 
             $this->setPaynlStatus($paynlTransactionId, $context, $status);
+
+            if (!empty($orderActionName)) {
+                $orderTransactionId = $paynlTransaction->get('orderTransactionId');
+                $this->manageOrderStateTransition($orderTransactionId, $orderActionName, $context);
+            }
+
             $apiTransactionData = $apiTransaction->getData();
 
             return sprintf(
@@ -163,27 +173,22 @@ class ProcessingHelper
 
     /**
      * @param string $orderTransactionId
+     * @param string $actionName
      * @param Context $context
-     * @return string
+     * @return string|void
      */
-    public function pay(string $orderTransactionId, Context $context): string
+    public function manageOrderStateTransition(string $orderTransactionId, string $actionName, Context $context)
     {
         try {
-            $this->transactionStateHandler->pay($orderTransactionId, $context);
-        } catch (IllegalTransitionException $exception) {
-            return $exception->getMessage();
-        }
-    }
-
-    /**
-     * @param string $orderTransactionId
-     * @param Context $context
-     * @return string
-     */
-    public function cancel(string $orderTransactionId, Context $context): string
-    {
-        try {
-            $this->transactionStateHandler->cancel($orderTransactionId, $context);
+            $this->stateMachineRegistry->transition(
+                new Transition(
+                    OrderTransactionDefinition::ENTITY_NAME,
+                    $orderTransactionId,
+                    $actionName,
+                    'stateId'
+                ),
+                $context
+            );
         } catch (IllegalTransitionException $exception) {
             return $exception->getMessage();
         }

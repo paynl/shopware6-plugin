@@ -4,6 +4,8 @@ namespace PaynlPayment\Storefront\Controller;
 
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
+use PaynlPayment\Entity\PaynlTransactionEntity;
+use PaynlPayment\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -25,16 +27,21 @@ class RefundController extends StorefrontController
     private $transactionRepository;
     private $productRepository;
 
+    /** @var ProcessingHelper */
+    private $processingHelper;
+
     public function __construct(
         Api $paynlApi,
         Config $paynlConfig,
         EntityRepositoryInterface $transactionRepository,
-        EntityRepositoryInterface $productRepository
+        EntityRepositoryInterface $productRepository,
+        ProcessingHelper $processingHelper
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
         $this->transactionRepository = $transactionRepository;
         $this->productRepository = $productRepository;
+        $this->processingHelper = $processingHelper;
     }
 
     /**
@@ -74,7 +81,14 @@ class RefundController extends StorefrontController
             // TODO: need newer version of PAYNL/SDK
             $refundResult = $this->paynlApi->refund($paynlPaymentId, $amount, $description);
             $this->restock($products);
-            // TODO: Change order status if refunded
+
+            $criteria = new Criteria();
+            $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlPaymentId));
+            $context = Context::createDefaultContext();
+            /** @var PaynlTransactionEntity $transactionEntity */
+            $transactionEntity = $this->transactionRepository->search($criteria, $context)->first();
+            $this->processingHelper->updateTransaction($transactionEntity, $context, false);
+
             $messages[] = [
                 'type' => 'success',
                 'content' => 'Refund successful (' . $refundResult->getData()['description'] . ')'

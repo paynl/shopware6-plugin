@@ -24,6 +24,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
     public const STATUS_PAID = 12;
     public const STATUS_NEEDS_REVIEW = 21;
     public const STATUS_REFUND = 20;
+    public const STATUS_PARTIAL_REFUND = -82;
     public const STATUS_AUTHORIZED = 18;
 
     public function getEntityName(): string
