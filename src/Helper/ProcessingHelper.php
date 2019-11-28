@@ -112,7 +112,7 @@ class ProcessingHelper
                 $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
             }
 
-            $this->setPaynlStatus($paynlTransactionId, $context, $status);
+            $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderActionName);
 
             if (!empty($orderActionName)) {
                 $orderTransactionId = $paynlTransaction->get('orderTransactionId');
@@ -139,14 +139,16 @@ class ProcessingHelper
      * @param string $paynlTransactionId
      * @param Context $context
      * @param int $status
+     * @param string $orderStatus
      */
-    public function setPaynlStatus(string $paynlTransactionId, Context $context, int $status): void
+    public function setPaynlStatus(string $paynlTransactionId, Context $context, int $status, string $orderStatus): void
     {
         $this->paynlTransactionRepository->update(
             [
                 [
                     'id' => $paynlTransactionId,
                     'stateId' => $status,
+                    'orderStateName' => $orderStatus,
                 ]
             ],
             $context

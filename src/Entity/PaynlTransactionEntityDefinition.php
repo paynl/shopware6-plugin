@@ -54,6 +54,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
+            (new StringField('order_state_name', 'orderStateName')),
             (new IntField('state_id', 'stateId')),
 
             new ManyToOneAssociationField(
