@@ -98,16 +98,4 @@ class PaynlTransactionEntity extends Entity
     {
         $this->exception = $exception;
     }
-
-    public function getFieldsSet(): array
-    {
-        return [
-            'paynlTransactionId' => $this->paynlTransactionId,
-            'paymentId' => $this->paymentId,
-            'amount' => $this->amount,
-            'currency' => $this->currency,
-            'exception' => $this->exception,
-            'createdAt' => $this->createAt,
-        ];
-    }
 }
