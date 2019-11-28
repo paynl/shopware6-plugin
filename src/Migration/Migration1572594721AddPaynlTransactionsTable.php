@@ -30,6 +30,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 `comment` VARCHAR(255),
                 `dispatch` VARCHAR(255),
                 `state_id` INT(11) NULL,
+                `order_state_name` VARCHAR(16),
 
                 `created_at` DATETIME(3) NOT NULL,
                 `updated_at` DATETIME(3) NULL,
