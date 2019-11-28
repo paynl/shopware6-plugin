@@ -3,7 +3,7 @@ import template from './transactions-list.html.twig';
 const { Component } = Shopware;
 const { Criteria } = Shopware.Data;
 
-Component.extend('transactions-list', 'data-grid', {
+Component.extend('transactions-list', 'sw-data-grid', {
     template,
 
     props: {
@@ -87,53 +87,9 @@ Component.extend('transactions-list', 'data-grid', {
             this.$emit('update-records', result);
         },
 
-        deleteItem(id) {
-            this.deleteId = null;
-
-            // send delete request to the server, immediately
-            return this.repository.delete(id, this.items.context).then(() => {
-                this.resetSelection();
-                return this.doSearch();
-            });
-        },
-
-        deleteItems() {
-            this.isBulkLoading = true;
-            const promises = [];
-
-            Object.values(this.selection).forEach((selectedProxy) => {
-                promises.push(this.repository.delete(selectedProxy.id, this.items.context));
-            });
-
-            return Promise.all(promises).then(() => {
-                return this.deleteItemsFinish();
-            }).catch(() => {
-                return this.deleteItemsFinish();
-            });
-        },
-
-        deleteItemsFinish() {
-            this.resetSelection();
-            this.isBulkLoading = false;
-            this.showBulkDeleteModal = false;
-            this.$emit('items-delete-finish');
-
-            return this.doSearch();
-        },
-
         doSearch() {
             this.loading = true;
             return this.repository.search(this.items.criteria, this.items.context).then(this.applyResult);
-        },
-
-        save(record) {
-            // send save request to the server, immediately
-            const promise = this.repository.save(record, this.items.context).then(() => {
-                return this.doSearch();
-            });
-            this.$emit('inline-edit-save', promise, record);
-
-            return promise;
         },
 
         revert() {
@@ -177,14 +133,6 @@ Component.extend('transactions-list', 'data-grid', {
             this.items.criteria.setLimit(limit);
 
             return this.doSearch();
-        },
-
-        showDelete(id) {
-            this.deleteId = id;
-        },
-
-        closeModal() {
-            this.deleteId = null;
         }
     }
 });

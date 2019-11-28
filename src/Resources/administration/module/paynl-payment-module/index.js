@@ -1,4 +1,3 @@
-import './page/components/data-grid';
 import './page/components/transactions-list';
 import './page/transactions-list-component';
 import deDE from './snippet/de-DE.json';

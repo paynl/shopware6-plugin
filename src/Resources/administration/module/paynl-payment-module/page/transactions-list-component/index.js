@@ -26,7 +26,15 @@ Component.register('transactions-list-component', {
 
     computed: {
         columns() {
-            return [{
+            return [
+            {
+                property: 'createdAt',
+                dataIndex: 'createdAt',
+                label: this.$t('transactions-list.created_at'),
+                sortIsAllowed: true,
+                allowResize: true,
+            },
+            {
                 property: 'paynlTransactionId',
                 dataIndex: 'paynlTransactionId',
                 label: this.$t('transactions-list.paynl_transaction_id'),
@@ -58,13 +66,6 @@ Component.register('transactions-list-component', {
                 primary: true
             },
             {
-                property: 'createdAt',
-                dataIndex: 'createdAt',
-                label: this.$t('transactions-list.created_at'),
-                sortIsAllowed: true,
-                allowResize: true,
-            },
-            {
                 property: 'links',
                 dataIndex: 'links',
                 label: this.$t('transactions-list.links'),
@@ -77,10 +78,13 @@ Component.register('transactions-list-component', {
 
     created() {
         this.repository = this.repositoryFactory.create('paynl_transactions');
+        let criteria = new Criteria();
+        criteria.addAssociation('order');
 
         this.repository
-            .search(new Criteria(), this.context)
+            .search(criteria, this.context)
             .then((result) => {
+                console.log(result);
                 this.transactions = result;
             });
     }
