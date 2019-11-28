@@ -39,8 +39,6 @@ class PaynlTransactionEntity extends Entity
      */
     protected $exception;
 
-    protected $createAt;
-
     public function getTechnicalName(): string
     {
         return $this->technicalName;
