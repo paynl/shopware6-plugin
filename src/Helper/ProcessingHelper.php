@@ -7,7 +7,6 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
-use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use phpDocumentor\Reflection\Types\Mixed;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
@@ -21,6 +20,7 @@ use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMa
 use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Shopware\Core\System\StateMachine\Transition;
+use PaynlPayment\Enums\PaynlTransactionStatusesEnum;
 
 class ProcessingHelper
 {
@@ -93,22 +93,22 @@ class ProcessingHelper
             $status = 0;
             $orderActionName = '';
             if ($apiTransaction->isBeingVerified()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
+                $status = PaynlTransactionStatusesEnum::STATUS_PENDING;
             } elseif ($apiTransaction->isPending()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_PENDING;
+                $status = PaynlTransactionStatusesEnum::STATUS_PENDING;
             } elseif ($apiTransaction->isPartiallyRefunded()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_PARTIAL_REFUND;
+                $status = PaynlTransactionStatusesEnum::STATUS_PARTIAL_REFUND;
                 $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
             } elseif ($apiTransaction->isRefunded()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_REFUND;
+                $status = PaynlTransactionStatusesEnum::STATUS_REFUND;
                 $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
             } elseif ($apiTransaction->isAuthorized()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_AUTHORIZED;
+                $status = PaynlTransactionStatusesEnum::STATUS_AUTHORIZED;
             } elseif ($apiTransaction->isPaid()) {
-                $status = PaynlTransactionEntityDefinition::STATUS_PAID;
+                $status = PaynlTransactionStatusesEnum::STATUS_PAID;
                 $orderActionName = StateMachineTransitionActions::ACTION_PAY;
             } elseif ($apiTransaction->isCanceled()) {
-                $status = $status = PaynlTransactionEntityDefinition::STATUS_CANCEL;
+                $status = $status = PaynlTransactionStatusesEnum::STATUS_CANCEL;
                 $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
             }
 
