@@ -24,6 +24,10 @@
         </service>
 
         <!--Services-->
+        <service id="PaynlPayment\Core\Checkout\Order\OrderExtension">
+            <tag name="shopware.entity.extension"/>
+        </service>
+
         <service id="PaynlPayment\Service\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
@@ -35,6 +39,16 @@
         <!--Controllers-->
         <service id="PaynlPayment\Storefront\Controller\NotificationController" public="true">
             <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+        <!--Controllers-->
+        <service id="PaynlPayment\Storefront\Controller\RefundController" public="true">
+            <argument type="service" id="PaynlPayment\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Components\Config"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+            <argument type="service" id="product.repository"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>

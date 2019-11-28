@@ -27,6 +27,17 @@
                         </router-link>
                     </template>
 
+                    <template slot="column-customer.lastName" slot-scope="{item}">
+                        {{ item.customer.lastName }} {{ item.customer.firstName }}
+                    </template>
+
+                    <template slot="column-status" slot-scope="{ item }">
+                        <sw-label :variant="getVariantFromPaymentState(item)" appearance="pill">
+                            {#{{ item.transactions[0].stateMachineState.name }}#}
+                            test
+                        </sw-label>
+                    </template>
+
                 </transactions-list>
             {% endblock %}
         </template>

@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7e0e25725a568d1d23408ef74d55f892",
+    "content-hash": "b1bd8cd37b02443b4865fd7782bd2f1d",
     "packages": [
         {
             "name": "paynl/sdk",
@@ -52,16 +52,16 @@
         },
         {
             "name": "php-curl-class/php-curl-class",
-            "version": "8.6.1",
+            "version": "8.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-curl-class/php-curl-class.git",
-                "reference": "a418962c4385aba6b97d2d57d65a0d405b514cf7"
+                "reference": "54be433a7299c15b024ba808e10a96c5d5791d99"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/a418962c4385aba6b97d2d57d65a0d405b514cf7",
-                "reference": "a418962c4385aba6b97d2d57d65a0d405b514cf7",
+                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/54be433a7299c15b024ba808e10a96c5d5791d99",
+                "reference": "54be433a7299c15b024ba808e10a96c5d5791d99",
                 "shasum": ""
             },
             "require": {
@@ -115,7 +115,7 @@
                 "web-service",
                 "xml"
             ],
-            "time": "2019-08-05T04:18:26+00:00"
+            "time": "2019-11-17T08:37:31+00:00"
         }
     ],
     "packages-dev": [

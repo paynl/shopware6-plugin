@@ -114,8 +114,8 @@ class ProcessingHelper
         $this->paynlTransactionRepository->update(
             [
                 [
-                    'id' =>$paynlTransactionId,
-                    'stateId' =>$status,
+                    'id' => $paynlTransactionId,
+                    'stateId' => $status,
                 ]
             ],
             $context

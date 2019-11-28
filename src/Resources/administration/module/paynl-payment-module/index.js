@@ -6,12 +6,12 @@ import enGB from './snippet/en-GB.json';
 const { Module } = Shopware;
 
 Module.register('paynl-payment-module', {
-    type: 'plugin',
-    name: 'Paynl payment',
-    title: 'Paynl payment module',
-    description: 'Paynl payment description',
+    type: "plugin",
+    name: "module.name",
+    title: "module.title",
+    description: "module.description",
     color: '#62ff80',
-    icon: 'default-object-lab-flask',
+    icon: 'default-money-card',
     snippets: {
         'de-DE': deDE,
         'en-GB': enGB
@@ -23,9 +23,9 @@ Module.register('paynl-payment-module', {
         }
     },
     navigation: [{
-        label: 'Paynl transactions',
+        label: "module.navigation.label",
         color: '#62ff80',
         path: 'paynl.payment.module.list',
-        icon: 'default-object-lab-flask'
+        icon: 'default-money-card'
     }]
 });
