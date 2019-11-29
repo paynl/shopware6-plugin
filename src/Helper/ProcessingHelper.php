@@ -16,6 +16,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateEntity;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
@@ -50,6 +51,7 @@ class ProcessingHelper
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
+
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),
@@ -58,6 +60,7 @@ class ProcessingHelper
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            'orderStateId' => $transaction->getOrder()->getStateId(),
             // TODO: check sComment from shopware5 plugin
             'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
             'exception' => (string)$exception,
@@ -112,12 +115,14 @@ class ProcessingHelper
                 $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
             }
 
-            $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderActionName);
-
+            $orderStateId = '';
             if (!empty($orderActionName)) {
                 $orderTransactionId = $paynlTransaction->get('orderTransactionId');
-                $this->manageOrderStateTransition($orderTransactionId, $orderActionName, $context);
+
+                $stateMachine = $this->manageOrderStateTransition($orderTransactionId, $orderActionName, $context);
+                $orderStateId = $stateMachine->getId();
             }
+            $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
 
             $apiTransactionData = $apiTransaction->getData();
 
@@ -139,20 +144,21 @@ class ProcessingHelper
      * @param string $paynlTransactionId
      * @param Context $context
      * @param int $status
-     * @param string $orderStatus
+     * @param string $stateMachineStateId
      */
-    public function setPaynlStatus(string $paynlTransactionId, Context $context, int $status, string $orderStatus): void
-    {
-        $this->paynlTransactionRepository->update(
-            [
-                [
-                    'id' => $paynlTransactionId,
-                    'stateId' => $status,
-                    'orderStateName' => $orderStatus,
-                ]
-            ],
-            $context
-        );
+    public function setPaynlStatus(
+        string $paynlTransactionId,
+        Context $context,
+        int $status,
+        string $stateMachineStateId
+    ): void {
+        $updateData['id'] = $paynlTransactionId;
+        $updateData['stateId'] = $status;
+        if (!empty($stateMachineStateId)) {
+            $updateData['orderStateId'] = $stateMachineStateId;
+        }
+
+        $this->paynlTransactionRepository->update([$updateData], $context);
     }
 
     /**
@@ -177,12 +183,15 @@ class ProcessingHelper
      * @param string $orderTransactionId
      * @param string $actionName
      * @param Context $context
-     * @return string|void
+     * @return mixed
      */
-    public function manageOrderStateTransition(string $orderTransactionId, string $actionName, Context $context)
-    {
+    public function manageOrderStateTransition(
+        string $orderTransactionId,
+        string $actionName,
+        Context $context
+    ) {
         try {
-            $this->stateMachineRegistry->transition(
+            return $this->stateMachineRegistry->transition(
                 new Transition(
                     OrderTransactionDefinition::ENTITY_NAME,
                     $orderTransactionId,

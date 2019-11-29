@@ -15,6 +15,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToOneAssociationField
 use Shopware\Core\Framework\DataAbstractionLayer\Field\StringField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\UpdatedAtField;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateDefinition;
 
 class PaynlTransactionEntityDefinition extends EntityDefinition
 {
@@ -54,7 +55,8 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
-            (new StringField('order_state_name', 'orderStateName')),
+            (new FkField('order_state_id', 'orderStateId', StateMachineStateDefinition::class))
+                ->addFlags(new Required()),
             (new IntField('state_id', 'stateId')),
 
             new ManyToOneAssociationField(
