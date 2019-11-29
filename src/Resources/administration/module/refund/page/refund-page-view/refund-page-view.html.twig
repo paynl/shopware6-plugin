@@ -1,6 +1,6 @@
 {% block paynl_refund_page %}
     <sw-page class="paynl-refund-page">
-        <template slot="content">
+        <template slot="content" v-if="!isLoading">
             {% block paynl_refund_page__detail %}
                 <sw-card-view v-if="order">
                     <sw-card :title="$tc('refund.detailBase.cardTitleRefund')" :isLoading="isLoading" class="sw-order-user-card">

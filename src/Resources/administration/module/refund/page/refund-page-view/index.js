@@ -70,12 +70,9 @@ Component.register('refund-page-view', {
                     }).then((data) => {
                     this.refundData = data;
                     this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
+                    this.isLoading = false;
                 });
             });
-    },
-
-    created() {
-        this.isLoading = false;
     },
 
     computed: {
