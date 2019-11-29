@@ -10,7 +10,7 @@
         <service id="PaynlPayment\Helper\ProcessingHelper">
             <argument type="service" id="PaynlPayment\Components\Api"/>
             <argument type="service" id="paynl_transactions.repository"/>
-            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
         </service>
 
         <!--Components-->
@@ -49,6 +49,7 @@
             <argument type="service" id="PaynlPayment\Components\Config"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <argument type="service" id="product.repository"/>
+            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
