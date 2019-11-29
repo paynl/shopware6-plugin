@@ -114,6 +114,7 @@ class Api
             'currency' => $currency,
             'extra1' => $extra1,
             'testmode' => $testMode,
+            'orderNumber' => $transaction->getOrder()->getOrderNumber(),
 
             // Urls
             'returnUrl' => $returnUrl,

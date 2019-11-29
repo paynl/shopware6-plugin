@@ -2,8 +2,6 @@
 
 namespace PaynlPayment\Entity;
 
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
-use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\CreatedAtField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\FkField;
@@ -14,20 +12,14 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\IdField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\IntField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\LongTextField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToOneAssociationField;
-use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToOneAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\StringField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\UpdatedAtField;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateDefinition;
 
 class PaynlTransactionEntityDefinition extends EntityDefinition
 {
     public const ENTITY_NAME = 'paynl_transactions';
-    public const STATUS_PENDING = 17;
-    public const STATUS_CANCEL = 35;
-    public const STATUS_PAID = 12;
-    public const STATUS_NEEDS_REVIEW = 21;
-    public const STATUS_REFUND = 20;
-    public const STATUS_AUTHORIZED = 18;
 
     public function getEntityName(): string
     {
@@ -63,6 +55,8 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
+            (new FkField('order_state_id', 'orderStateId', StateMachineStateDefinition::class))
+                ->addFlags(new Required()),
             (new IntField('state_id', 'stateId')),
 
             new ManyToOneAssociationField(
