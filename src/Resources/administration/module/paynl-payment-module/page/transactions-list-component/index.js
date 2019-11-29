@@ -3,13 +3,6 @@ import template from './transactions-list.html.twig';
 const { Component } = Shopware;
 const { Criteria } = Shopware.Data;
 
-const STATUS_PENDING = 17;
-const STATUS_CANCEL = 35;
-const STATUS_PAID = 12;
-const STATUS_NEEDS_REVIEW = 21;
-const STATUS_REFUND = 20;
-const STATUS_AUTHORIZED = 18;
-
 Component.register('transactions-list-component', {
     template,
 
@@ -22,15 +15,7 @@ Component.register('transactions-list-component', {
     data() {
         return {
             repository: null,
-            transactions: null,
-            statuses: {
-                17: 'pending',
-                35: 'cancel',
-                12: 'paid',
-                21: 'needs_review',
-                20: 'refund',
-                18: 'authorized'
-            }
+            transactions: null
         };
     },
 
@@ -112,21 +97,41 @@ Component.register('transactions-list-component', {
         let criteria = new Criteria();
         criteria.addAssociation('order');
         criteria.addAssociation('customer');
-        // criteria.addAssociation('transactions');
+        criteria.addAssociation('orderStateMachine');
 
         this.repository
             .search(criteria, this.context)
             .then((result) => {
-                console.log(result);
                 this.transactions = result;
             });
     },
 
     methods: {
-        getVariantFromPaymentState(item) {
+        getVariantFromPaymentState(technicalName) {
             return this.stateStyleDataProviderService.getStyle(
-                'order_transaction.state', this.statuses[item.stateId]
+                'order_transaction.state', technicalName
             ).variant;
+        },
+
+        getData(date) {
+            let dateObj = new Date(date);
+
+            let year = dateObj.getFullYear();
+            if (year < 10) { year = '0' + year; }
+
+            let month = dateObj.getMonth();
+            if (month < 10) { month = '0' + month; }
+
+            let day = dateObj.getDay();
+            if (day < 10) { day = '0' + day; }
+
+            let hours = dateObj.getHours();
+            if (hours < 10) { hours = '0' + hours; }
+
+            let minutes = dateObj.getMinutes();
+            if (minutes < 10) { minutes = '0' + minutes; }
+
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
         }
     }
 });

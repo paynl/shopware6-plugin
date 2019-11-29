@@ -11,8 +11,11 @@
         "paynl_transaction_id": "Transaction id",
         "payment_id": "Payment id",
         "amount": "Amount",
-        "currency": "Currency",
         "created_at": "Created at",
+        "updated_at": "Updated at",
+        "order_number": "Order number",
+        "customer": "Customer",
+        "status": "Transaction status",
         "links": "Links"
     }
 }

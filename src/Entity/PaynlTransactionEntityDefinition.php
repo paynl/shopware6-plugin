@@ -75,6 +75,13 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'id',
                 false
             ),
+            new ManyToOneAssociationField(
+                'orderStateMachine',
+                'order_state_id',
+                StateMachineStateDefinition::class,
+                'id',
+                false
+            ),
 
             new CreatedAtField(),
             new UpdatedAtField(),

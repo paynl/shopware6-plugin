@@ -32,10 +32,17 @@
                     </template>
 
                     <template slot="column-status" slot-scope="{ item }">
-                        <sw-label :variant="getVariantFromPaymentState(item)" appearance="pill">
-                            {#{{ item.transactions[0].stateMachineState.name }}#}
-                            test
+                        <sw-label :variant="getVariantFromPaymentState(item.orderStateMachine.technicalName)" appearance="pill">
+                            {{ item.orderStateMachine.name }}
                         </sw-label>
+                    </template>
+
+                    <template slot="column-updatedAt" slot-scope="{ item }">
+                        {{ getData(item.updatedAt) }}
+                    </template>
+
+                    <template slot="column-createdAt" slot-scope="{ item }">
+                        {{ getData(item.createdAt) }}
                     </template>
 
                 </transactions-list>

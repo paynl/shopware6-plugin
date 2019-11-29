@@ -69,7 +69,10 @@ class ProcessingHelper
     }
 
     /**
+     * @param string $orderId
+     * @param Context $context
      * @return mixed
+     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
     public function findTransactionByOrderId(string $orderId, Context $context)
     {
@@ -146,7 +149,7 @@ class ProcessingHelper
      * @param int $status
      * @param string $stateMachineStateId
      */
-    public function setPaynlStatus(
+    private function setPaynlStatus(
         string $paynlTransactionId,
         Context $context,
         int $status,
@@ -163,7 +166,8 @@ class ProcessingHelper
 
     /**
      * @param string $paynlTransactionId
-     * @return mixed
+     * @return string|void
+     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
     public function processNotify(string $paynlTransactionId)
     {
@@ -183,13 +187,19 @@ class ProcessingHelper
      * @param string $orderTransactionId
      * @param string $actionName
      * @param Context $context
-     * @return mixed
+     * @return StateMachineStateEntity
+     * @throws Exception
+     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\DefinitionNotFoundException
+     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
+     * @throws \Shopware\Core\System\StateMachine\Exception\StateMachineInvalidEntityIdException
+     * @throws \Shopware\Core\System\StateMachine\Exception\StateMachineInvalidStateFieldException
+     * @throws \Shopware\Core\System\StateMachine\Exception\StateMachineNotFoundException
      */
-    public function manageOrderStateTransition(
+    private function manageOrderStateTransition(
         string $orderTransactionId,
         string $actionName,
         Context $context
-    ) {
+    ): StateMachineStateEntity {
         try {
             return $this->stateMachineRegistry->transition(
                 new Transition(
@@ -201,7 +211,7 @@ class ProcessingHelper
                 $context
             );
         } catch (IllegalTransitionException $exception) {
-            return $exception->getMessage();
+            throw new Exception($exception->getMessage());
         }
     }
 }
