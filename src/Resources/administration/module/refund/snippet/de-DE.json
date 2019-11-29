@@ -34,6 +34,10 @@
             "quantity": "Quantity",
             "refund": "Refund",
             "restock": "Restock"
+        },
+        "notifications": {
+            "danger": "Error",
+            "success": "Success"
         }
     }
 }
