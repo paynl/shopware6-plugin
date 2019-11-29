@@ -2,6 +2,8 @@
 
 namespace PaynlPayment\Entity;
 
+use Shopware\Core\Checkout\Customer\CustomerDefinition;
+use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\CreatedAtField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\FkField;
@@ -60,17 +62,23 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new IntField('state_id', 'stateId')),
 
             new ManyToOneAssociationField(
-                'customer',
-                'customer_id',
-                PaynlTransactionEntityDefinition::class,
+                'order',
+                'order_id',
+                OrderDefinition::class,
                 'id',
                 false
             ),
-            // TODO: modify to use one to one relation
             new ManyToOneAssociationField(
-                'order',
-                'order_id',
-                PaynlTransactionEntityDefinition::class,
+                'customer',
+                'customer_id',
+                CustomerDefinition::class,
+                'id',
+                false
+            ),
+            new ManyToOneAssociationField(
+                'orderStateMachine',
+                'order_state_id',
+                StateMachineStateDefinition::class,
                 'id',
                 false
             ),

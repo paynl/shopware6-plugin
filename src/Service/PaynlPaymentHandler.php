@@ -53,6 +53,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
      * @param SalesChannelContext $salesChannelContext
      * @return RedirectResponse
      * @throws AsyncPaymentProcessException
+     * @throws Throwable
      */
     public function pay(
         AsyncPaymentTransactionStruct $transaction,
@@ -76,12 +77,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
      * @param AsyncPaymentTransactionStruct $transaction
      * @param Request $request
      * @param SalesChannelContext $salesChannelContext
-     * @throws CustomerCanceledAsyncPaymentException
      * @throws InconsistentCriteriaIdsException
-     * @throws IllegalTransitionException
-     * @throws StateMachineInvalidEntityIdException
-     * @throws StateMachineInvalidStateFieldException
-     * @throws StateMachineNotFoundException
      */
     public function finalize(
         AsyncPaymentTransactionStruct $transaction,

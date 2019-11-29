@@ -1,4 +1,3 @@
-import './page/components/data-grid';
 import './page/components/transactions-list';
 import './page/transactions-list-component';
 import deDE from './snippet/de-DE.json';
@@ -12,7 +11,7 @@ Module.register('paynl-payment-module', {
     title: "module.title",
     description: "module.description",
     color: '#62ff80',
-    icon: 'default-object-lab-flask',
+    icon: 'default-money-card',
     snippets: {
         'de-DE': deDE,
         'en-GB': enGB
@@ -27,6 +26,6 @@ Module.register('paynl-payment-module', {
         label: "module.navigation.label",
         color: '#62ff80',
         path: 'paynl.payment.module.list',
-        icon: 'default-object-lab-flask'
+        icon: 'default-money-card'
     }]
 });
