@@ -10,7 +10,7 @@
     </td>
     <td class="sw-data-grid__cell sw-data-grid__cell--paynlTransactionId sw-data-grid__cell--align-left">
         <div class="sw-data-grid__cell-content">
-            <sw-select-field value="0" :options="getProductQuantitySelect()" @change="onProductRefundQuantityChange"></sw-select-field>
+            <sw-select-field :value="productQuantity" :options="getProductQuantitySelect()" @change="onProductRefundQuantityChange"></sw-select-field>
         </div>
     </td>
     <td class="sw-data-grid__cell sw-data-grid__cell--selection">

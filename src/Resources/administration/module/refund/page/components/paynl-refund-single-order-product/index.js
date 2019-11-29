@@ -13,6 +13,16 @@ Component.register('paynl-refund-single-order-product', {
         }
     },
 
+    computed: {
+        productQuantity() {
+            return this.product.price.quantity + '';
+        }
+    },
+
+    mounted() {
+        this.product.qnt = this.product.price.quantity;
+    },
+
     methods: {
         getProductQuantitySelect() {
             let options = [];

@@ -78,7 +78,7 @@ class RefundController extends StorefrontController
         $messages = [];
         try {
             // TODO: need newer version of PAYNL/SDK
-            $refundResult = $this->paynlApi->refund($paynlPaymentId, $amount, $description);
+            $this->paynlApi->refund($paynlPaymentId, $amount, $description);
             $this->restock($products);
 
             $criteria = new Criteria();
@@ -87,10 +87,9 @@ class RefundController extends StorefrontController
             /** @var PaynlTransactionEntity $transactionEntity */
             $transactionEntity = $this->transactionRepository->search($criteria, $context)->first();
             $this->processingHelper->updateTransaction($transactionEntity, $context, false);
-            $refundResultData = $refundResult->getData();
             $messages[] = [
                 'type' => 'success',
-                'content' => 'Refund successful (' . ($refundResultData['description'] ?? '') . ')'
+                'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
             ];
         } catch (\Throwable $e) {
             $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
