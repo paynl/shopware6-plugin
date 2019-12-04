@@ -169,7 +169,7 @@ class ProcessingHelper
      * @return string
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
-    public function processNotify(string $paynlTransactionId)
+    public function processNotify(string $paynlTransactionId): string
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
         if ($apiTransaction->isPending()) {
