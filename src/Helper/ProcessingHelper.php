@@ -80,7 +80,7 @@ class ProcessingHelper
         return $this->paynlTransactionRepository->search($criteria, $context)->first();
     }
 
-    public function getApiTransaction(string $transactionId): ResultTransaction
+    private function getApiTransaction(string $transactionId): ResultTransaction
     {
         return $this->paynlApi->getTransaction($transactionId);
     }
@@ -166,14 +166,14 @@ class ProcessingHelper
 
     /**
      * @param string $paynlTransactionId
-     * @return string|void
+     * @return string
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
     public function processNotify(string $paynlTransactionId)
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
         if ($apiTransaction->isPending()) {
-            return;
+            return '';
         }
         $criteria = (new Criteria());
         $context = Context::createDefaultContext();
