@@ -1,10 +1,10 @@
 {
     "module": {
-        "name": "Refund payment module",
-        "title": "Refund payment module",
-        "description": "Refund payment module",
+        "name": "Pay. transactions list",
+        "title": "Pay. transactions list",
+        "description": "Pay. transactions list",
         "navigation": {
-            "label": "Paynl transactions"
+            "label": "Pay. transactions"
         }
     },
     "transactions-list": {
