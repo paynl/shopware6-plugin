@@ -188,10 +188,10 @@ class Api
             $products[] = [
                 'id' => $elements[$item->getReferencedId()]->get('autoIncrement'),
                 'name' => $item->getLabel(),
-                'price' => $item->getTotalPrice(),
-                'vatPercentage' => $item->getPrice()->getCalculatedTaxes()->getAmount(),
+                'price' => $item->getUnitPrice(),
+                'vatPercentage' => $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate(),
                 'qty' => $item->getPrice()->getQuantity(),
-                'type' =>  Transaction::PRODUCT_TYPE_ARTICLE,
+                'type' => Transaction::PRODUCT_TYPE_ARTICLE,
             ];
         }
 
