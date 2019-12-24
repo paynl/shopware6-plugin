@@ -16,11 +16,6 @@ use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 
 class PaynlPayment extends Plugin
 {
-    public function install(InstallContext $installContext): void
-    {
-        (new InstallHelper($this->container))->addPaymentMethods($installContext->getContext());
-    }
-
     public function uninstall(UninstallContext $uninstallContext): void
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
