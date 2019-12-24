@@ -25,7 +25,6 @@ class InstallHelper
     const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
 
-
     private $pluginIdProvider;
     private $paymentMethodRepository;
     private $salesChannelRepository;
