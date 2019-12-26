@@ -33,6 +33,7 @@ class ConfigController extends AbstractController
     {
         try {
             $this->installHelper->addPaymentMethods($context);
+            $this->installHelper->activatePaymentMethods($context);
 
             return $this->json(['message' => "Payment methods were successfully added."]);
         } catch (\Exception $e) {

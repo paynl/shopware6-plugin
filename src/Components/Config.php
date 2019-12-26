@@ -11,9 +11,9 @@ class Config
 
     private $config;
 
-    public function __construct(SystemConfigService $configReader)
+    public function __construct(SystemConfigService $systemConfigService)
     {
-        $this->config = $configReader;
+        $this->config = $systemConfigService;
     }
 
     /**
