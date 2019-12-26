@@ -13,10 +13,15 @@
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
         </service>
 
+        <service id="PaynlPayment\Helper\InstallHelper" public="true">
+            <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Components\Config">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
         </service>
+
         <service id="PaynlPayment\Components\Api">
             <argument type="service" id="PaynlPayment\Components\Config"/>
             <argument type="service" id="PaynlPayment\Helper\CustomerHelper"/>
@@ -43,7 +48,11 @@
                 <argument type="service" id="service_container"/>
             </call>
         </service>
-        <!--Controllers-->
+
+        <service id="PaynlPayment\Storefront\Controller\ConfigController" public="true">
+            <argument type="service" id="PaynlPayment\Helper\InstallHelper"/>
+        </service>
+
         <service id="PaynlPayment\Storefront\Controller\RefundController" public="true">
             <argument type="service" id="PaynlPayment\Components\Api"/>
             <argument type="service" id="PaynlPayment\Components\Config"/>
