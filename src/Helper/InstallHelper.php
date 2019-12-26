@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
 use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
+use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
@@ -60,6 +61,10 @@ class InstallHelper
     public function addPaymentMethods(Context $context): void
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (empty($paynlPaymentMethods)) {
+            throw new PaynlPaymentException("Cannot get any payment method.");
+        }
+
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
             if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {

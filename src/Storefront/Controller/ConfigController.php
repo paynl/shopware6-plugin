@@ -32,7 +32,7 @@ class ConfigController extends AbstractController
     public function installPaymentMethods(Request $request, Context $context): JsonResponse
     {
         try {
-            $this->installHelper->addPaymentMethods(Context::createDefaultContext());
+            $this->installHelper->addPaymentMethods($context);
 
             return $this->json(['message' => "Payment methods were successfully added."]);
         } catch (\Exception $e) {
