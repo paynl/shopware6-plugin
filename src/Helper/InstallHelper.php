@@ -51,8 +51,11 @@ class InstallHelper
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
         // may be use setter injection?
-        $this->configService = $container->get(SystemConfigService::class);
-        $config = new Config($this->configService);
+        /** @var SystemConfigService $configService */
+        $configService = $container->get(SystemConfigService::class);
+        $this->configService = $configService;
+        /** @var Config $config */
+        $config = new Config($configService);
         $customerHelper = new CustomerHelper($config);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
