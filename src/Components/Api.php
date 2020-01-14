@@ -222,7 +222,7 @@ class Api
 <a target="_blank" href="https://docs.pay.nl/plugins?language=en#shopware-six-instructions">
 docs.pay.nl/shopware6/instructions</a>
 EXCEPTIONERROR
-);
+            );
         }
         $this->setCredentials();
 
