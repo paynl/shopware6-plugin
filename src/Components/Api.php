@@ -217,7 +217,12 @@ class Api
     public function refund(string $transactionID, $amount, string $description = ''): Result\Refund
     {
         if (!$this->config->isRefundAllowed()) {
-            throw new \Exception('Cannot refund, because refund is disabled');
+            throw new \Exception(<<<EXCEPTIONERROR
+                PAY-PLUGIN-001: Your did not activate refund op tion in plugin, check 
+<a target="_blank" href="https://docs.pay.nl/plugins?language=en#shopware-six-instructions">
+docs.pay.nl/shopware6/instructions</a>
+EXCEPTIONERROR
+);
         }
         $this->setCredentials();
 
