@@ -7,7 +7,6 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
-use phpDocumentor\Reflection\Types\Mixed;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -16,6 +15,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateCollection;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateEntity;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
@@ -120,10 +120,13 @@ class ProcessingHelper
 
             $orderStateId = '';
             if (!empty($orderActionName)) {
-                $orderTransactionId = $paynlTransaction->get('orderTransactionId');
+                $orderTransactionId = $paynlTransaction->get('orderTransactionId') ?: '';
 
                 $stateMachine = $this->manageOrderStateTransition($orderTransactionId, $orderActionName, $context);
-                $orderStateId = $stateMachine->getId();
+                $toPlace = $stateMachine->get('toPlace');
+                if ($toPlace instanceof StateMachineStateEntity) {
+                    $orderStateId = $toPlace->getUniqueIdentifier();
+                }
             }
             $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
 
@@ -187,7 +190,7 @@ class ProcessingHelper
      * @param string $orderTransactionId
      * @param string $actionName
      * @param Context $context
-     * @return StateMachineStateEntity
+     * @return StateMachineStateCollection
      * @throws Exception
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\DefinitionNotFoundException
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
@@ -199,7 +202,7 @@ class ProcessingHelper
         string $orderTransactionId,
         string $actionName,
         Context $context
-    ): StateMachineStateEntity {
+    ): StateMachineStateCollection {
         try {
             return $this->stateMachineRegistry->transition(
                 new Transition(

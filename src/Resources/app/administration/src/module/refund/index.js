@@ -9,9 +9,9 @@ const { Module } = Shopware;
 
 Module.register('refund-page', {
     type: "plugin",
-    name: "module.name",
-    title: "module.title",
-    description: "module.description",
+    name: "refundModule.name",
+    title: "refundModule.title",
+    description: "refundModule.description",
     color: '#62ff80',
     snippets: {
         'de-DE': deDE,

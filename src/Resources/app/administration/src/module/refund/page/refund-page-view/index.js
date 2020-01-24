@@ -1,8 +1,8 @@
 import template from './refund-page-view.html.twig';
 import './refund-card.scss';
 
-const { Component, Mixin } = Shopware;
-const { Criteria } = Shopware.Data;
+const {Component, Mixin} = Shopware;
+const {Criteria} = Shopware.Data;
 
 Component.register('refund-page-view', {
     template,
@@ -12,8 +12,7 @@ Component.register('refund-page-view', {
     ],
 
     inject: [
-        'repositoryFactory',
-        'context'
+        'repositoryFactory'
     ],
 
     props: {
@@ -56,7 +55,7 @@ Component.register('refund-page-view', {
             .addAssociation('lineItems');
 
         this.orderRepository = this.repositoryFactory.create('order');
-        this.orderRepository.get(this.orderId, this.context, criteria)
+        this.orderRepository.get(this.orderId, Shopware.Context.api, criteria)
             .then((response) => {
                 this.order = response;
                 // TODO: modify to use one to one relation
@@ -68,9 +67,16 @@ Component.register('refund-page-view', {
                     .then((result) => {
                         return result.json();
                     }).then((data) => {
-                    this.refundData = data;
-                    this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
-                    this.isLoading = false;
+                        if (data.errorMessage) {
+                            this.createNotificationError({
+                                title: this.$tc('refund.notifications.danger'),
+                                message: data.errorMessage
+                            });
+                        } else {
+                            this.refundData = data;
+                            this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
+                            this.isLoading = false;
+                        }
                 });
             });
     },
@@ -107,8 +113,9 @@ Component.register('refund-page-view', {
                 transactionId: this.paynlTransaction.paynlTransactionId,
                 amount: this.amountToRefund,
                 description: this.description,
-                products: this.products,
+                products: this.products
             };
+
             let opts = {
                 method: 'POST',
                 headers: {
@@ -122,18 +129,18 @@ Component.register('refund-page-view', {
                 .then((result) => {
                     return result.json();
                 }).then((responseData) => {
-                    if (responseData[0].type === 'danger') {
-                        this.createNotificationError({
-                            title: this.$tc('refund.notifications.danger'),
-                            message: responseData[0].content
-                        });
-                    } else if (responseData[0].type === 'success') {
-                        this.createNotificationSuccess({
-                            title: this.$tc('refund.notifications.success'),
-                            message: responseData[0].content
-                        });
-                    }
-                })
+                if (responseData[0].type === 'danger') {
+                    this.createNotificationError({
+                        title: this.$tc('refund.notifications.danger'),
+                        message: responseData[0].content
+                    });
+                } else if (responseData[0].type === 'success') {
+                    this.createNotificationSuccess({
+                        title: this.$tc('refund.notifications.success'),
+                        message: responseData[0].content
+                    });
+                }
+            })
                 .catch((error) => {
                     console.log(error);
                 });
