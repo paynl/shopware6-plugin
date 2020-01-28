@@ -114,7 +114,7 @@ class ProcessingHelper
                 $status = PaynlTransactionStatusesEnum::STATUS_PAID;
                 $orderActionName = StateMachineTransitionActions::ACTION_PAY;
             } elseif ($apiTransaction->isCanceled()) {
-                $status = $status = PaynlTransactionStatusesEnum::STATUS_CANCEL;
+                $status = PaynlTransactionStatusesEnum::STATUS_CANCEL;
                 $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
             }
 
