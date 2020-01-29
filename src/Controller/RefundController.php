@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Storefront\Controller;
+namespace PaynlPayment\Controller;
 
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
@@ -11,7 +11,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
-use Shopware\Storefront\Controller\StorefrontController;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -19,9 +19,9 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Paynl\Error;
 
 /**
- * @RouteScope(scopes={"storefront"})
+ * @RouteScope(scopes={"api"})
  */
-class RefundController extends StorefrontController
+class RefundController extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
@@ -46,12 +46,7 @@ class RefundController extends StorefrontController
     }
 
     /**
-     * @Route(
-     *     "/paynl-payment/get-refund-data",
-     *     name="frontend.PaynlPayment.getRefundData",
-     *     options={"seo"="false"},
-     *     methods={"GET"}
-     *     )
+     * @Route("/api/v1/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
      */
     public function getRefundData(Request $request): JsonResponse
     {
@@ -73,7 +68,7 @@ class RefundController extends StorefrontController
     }
 
     /**
-     * @Route("/paynl-payment/refund", name="frontend.PaynlPayment.refund", options={"seo"="false"}, methods={"POST"})
+     * @Route("/api/v{version}/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
      */
     public function refund(Request $request): JsonResponse
     {

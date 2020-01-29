@@ -12,7 +12,8 @@ Component.register('refund-page-view', {
     ],
 
     inject: [
-        'repositoryFactory'
+        'repositoryFactory',
+        'PaynlPaymentService'
     ],
 
     props: {
@@ -62,22 +63,7 @@ Component.register('refund-page-view', {
                 this.paynlTransaction = response.extensions.paynlTransactions[0];
                 this.products = this.order.lineItems;
 
-                let url = '/paynl-payment/get-refund-data?transactionId=' + this.paynlTransaction.paynlTransactionId;
-                fetch(url)
-                    .then((result) => {
-                        return result.json();
-                    }).then((data) => {
-                        if (data.errorMessage) {
-                            this.createNotificationError({
-                                title: this.$tc('refund.notifications.danger'),
-                                message: data.errorMessage
-                            });
-                        } else {
-                            this.refundData = data;
-                            this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
-                            this.isLoading = false;
-                        }
-                });
+                this.getDataForRefund();
             });
     },
 
@@ -88,6 +74,25 @@ Component.register('refund-page-view', {
     },
 
     methods: {
+        getDataForRefund() {
+            this.PaynlPaymentService.getRefundData(this.paynlTransaction.paynlTransactionId)
+                .then((data) => {
+                    if (data.errorMessage) {
+                        this.createNotificationError({
+                            title: this.$tc('refund.notifications.danger'),
+                            message: data.errorMessage
+                        });
+                    } else {
+                        this.refundData = data;
+                        this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
+                        this.isLoading = false;
+                    }
+                })
+                .catch((errorResponse) => {
+
+                });
+        },
+
         updateIdentifier(identifier) {
             this.identifier = identifier;
         },
@@ -108,7 +113,6 @@ Component.register('refund-page-view', {
         },
 
         onRefundClick() {
-            let url = '/paynl-payment/refund';
             let data = {
                 transactionId: this.paynlTransaction.paynlTransactionId,
                 amount: this.amountToRefund,
@@ -116,33 +120,22 @@ Component.register('refund-page-view', {
                 products: this.products
             };
 
-            let opts = {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            };
+            this.PaynlPaymentService.refundTransaction(data)
+                .then((responseData) => {
+                    if (responseData[0].type === 'danger') {
+                        this.createNotificationError({
+                            title: this.$tc('refund.notifications.danger'),
+                            message: responseData[0].content
+                        });
+                    } else if (responseData[0].type === 'success') {
+                        this.createNotificationSuccess({
+                            title: this.$tc('refund.notifications.success'),
+                            message: responseData[0].content
+                        });
+                    }
+                })
+                .catch((errorResponse) => {
 
-            fetch(url, opts)
-                .then((result) => {
-                    return result.json();
-                }).then((responseData) => {
-                if (responseData[0].type === 'danger') {
-                    this.createNotificationError({
-                        title: this.$tc('refund.notifications.danger'),
-                        message: responseData[0].content
-                    });
-                } else if (responseData[0].type === 'success') {
-                    this.createNotificationSuccess({
-                        title: this.$tc('refund.notifications.success'),
-                        message: responseData[0].content
-                    });
-                }
-            })
-                .catch((error) => {
-                    console.log(error);
                 });
         },
 
