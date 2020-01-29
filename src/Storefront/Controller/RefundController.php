@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Paynl\Error;
 
 /**
  * @RouteScope(scopes={"storefront"})
@@ -55,14 +56,20 @@ class RefundController extends StorefrontController
     public function getRefundData(Request $request): JsonResponse
     {
         $paynlTransactionId = $request->get('transactionId');
-        $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
-        $refundedAmount = $apiTransaction->getRefundedAmount();
-        $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+        try {
+            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
+            $refundedAmount = $apiTransaction->getRefundedAmount();
+            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
 
-        return new JsonResponse([
-            'refundedAmount' => $refundedAmount,
-            'availableForRefund' => $availableForRefund
-        ]);
+            return new JsonResponse([
+                'refundedAmount' => $refundedAmount,
+                'availableForRefund' => $availableForRefund
+            ]);
+        } catch (Error\Api $exception) {
+            return new JsonResponse([
+                'errorMessage' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     /**

@@ -2,10 +2,10 @@
     "order-list-override": {
         "refund": "Refund"
     },
-    "module": {
-        "name": "Refund payment module",
-        "title": "Refund payment module",
-        "description": "Refund payment module"
+    "refundModule": {
+        "name": "Refund payment page",
+        "title": "Refund payment page",
+        "description": "Refund payment page"
     },
     "refund": {
         "detailBase": {

@@ -1,0 +1,8 @@
+{
+    "checkout": {
+        "statuses": {
+            "cancelled": "Payment cancelled",
+            "denied": "Payment denied"
+        }
+    }
+}

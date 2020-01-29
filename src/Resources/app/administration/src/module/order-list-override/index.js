@@ -29,7 +29,6 @@ Component.override('sw-order-list', {
     methods: {
         isPaynlOrderTransaction(item) {
             if (item.extensions.paynlTransactions.length > 0) {
-                // console.log(item.transactions[0].stateMachineState.technicalName);
                 return true;
             }
 

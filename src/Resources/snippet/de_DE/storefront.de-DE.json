@@ -1,0 +1,8 @@
+{
+    "checkout": {
+        "statuses": {
+            "cancelled": "Zahlung storniert",
+            "denied": "Zahlung abgelehnt"
+        }
+    }
+}

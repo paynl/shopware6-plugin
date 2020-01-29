@@ -8,7 +8,6 @@ Component.register('transactions-list-component', {
 
     inject: [
         'repositoryFactory',
-        'context',
         'stateStyleDataProviderService'
     ],
 
@@ -100,7 +99,7 @@ Component.register('transactions-list-component', {
         criteria.addAssociation('orderStateMachine');
 
         this.repository
-            .search(criteria, this.context)
+            .search(criteria, Shopware.Context.api)
             .then((result) => {
                 this.transactions = result;
             });
@@ -114,24 +113,14 @@ Component.register('transactions-list-component', {
         },
 
         getData(date) {
-            let dateObj = new Date(date);
+            if (date <= 0) {
+                return '';
+            }
 
-            let year = dateObj.getFullYear();
-            if (year < 10) { year = '0' + year; }
+            let regex = /(?<year>\d{4}).(?<month>\d{2}).(?<day>\d{2}).(?<hours>\d{2}).(?<minutes>\d{2})/gm;
+            let dateGroup = regex.exec(date)['groups'];
 
-            let month = dateObj.getMonth();
-            if (month < 10) { month = '0' + month; }
-
-            let day = dateObj.getDay();
-            if (day < 10) { day = '0' + day; }
-
-            let hours = dateObj.getHours();
-            if (hours < 10) { hours = '0' + hours; }
-
-            let minutes = dateObj.getMinutes();
-            if (minutes < 10) { minutes = '0' + minutes; }
-
-            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+            return dateGroup['year'] + '-' + dateGroup['month'] + '-' + dateGroup['day'] + ' ' + dateGroup['hours'] + ':' + dateGroup['minutes'];
         }
     }
 });

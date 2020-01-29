@@ -68,5 +68,14 @@
         <service id="PaynlPayment\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />
         </service>
+
+        <!--Snippets-->
+        <service id="PaynlPayment\Resources\snippet\en_GB\SnippetFileEn" public="true">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
+        <service id="PaynlPayment\Resources\snippet\de_DE\SnippetFileDe" public="true">
+            <tag name="shopware.snippet.file"/>
+        </service>
     </services>
 </container>

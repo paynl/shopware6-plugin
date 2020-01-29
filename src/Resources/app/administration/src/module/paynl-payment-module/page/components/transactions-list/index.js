@@ -70,7 +70,7 @@ Component.extend('transactions-list', 'sw-data-grid', {
 
     methods: {
         createdComponent() {
-            this.$super.createdComponent();
+            this.initGridColumns();
 
             if (this.items) {
                 this.applyResult(this.items);
