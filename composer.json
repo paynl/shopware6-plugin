@@ -21,6 +21,7 @@
         }
     },
     "require": {
+        "shopware/core": "*",
         "paynl/sdk": "dev-master"
     },
     "license": "MIT",
