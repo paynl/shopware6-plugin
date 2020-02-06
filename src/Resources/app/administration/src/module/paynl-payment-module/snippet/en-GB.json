@@ -1,0 +1,21 @@
+{
+    "module": {
+        "name": "Pay. transactions list",
+        "title": "Pay. transactions list",
+        "description": "Pay. transactions list",
+        "navigation": {
+            "label": "Pay. transactions"
+        }
+    },
+    "transactions-list": {
+        "paynl_transaction_id": "Transaction id",
+        "payment_id": "Payment id",
+        "amount": "Amount",
+        "created_at": "Created at",
+        "updated_at": "Updated at",
+        "order_number": "Order number",
+        "customer": "Customer",
+        "status": "Transaction status",
+        "links": "Links"
+    }
+}

@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
 use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
+use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
@@ -25,7 +26,8 @@ class InstallHelper
     const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
 
-
+    /** @var SystemConfigService $configService */
+    private $configService;
     private $pluginIdProvider;
     private $paymentMethodRepository;
     private $salesChannelRepository;
@@ -49,9 +51,11 @@ class InstallHelper
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
         // may be use setter injection?
-        /** @var SystemConfigService $configReader */
-        $configReader = $container->get(SystemConfigService::class);
-        $config = new Config($configReader);
+        /** @var SystemConfigService $configService */
+        $configService = $container->get(SystemConfigService::class);
+        $this->configService = $configService;
+        /** @var Config $config */
+        $config = new Config($configService);
         $customerHelper = new CustomerHelper($config);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
@@ -61,6 +65,10 @@ class InstallHelper
     public function addPaymentMethods(Context $context): void
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (empty($paynlPaymentMethods)) {
+            throw new PaynlPaymentException("Cannot get any payment method.");
+        }
+
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
             if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
@@ -119,35 +127,35 @@ class InstallHelper
         $this->changePaymentMethodsStatuses($context, false);
     }
 
-    private function changePaymentMethodsStatuses(Context $context, bool $active): void
+    public function activatePaymentMethods(Context $context): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
-        foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-            if ($active && !$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
-                $this->addPaymentMethod($context, $paymentMethod);
+        $this->changePaymentMethodsStatuses($context, true);
+    }
+
+    public function removeConfigurationData(Context $context): void
+    {
+        $paynlPaymentConfigs = $this->configService->get('PaynlPayment');
+        if (isset($paynlPaymentConfigs['config'])) {
+            foreach ($paynlPaymentConfigs['config'] as $configKey => $configName) {
+                $this->configService->delete(sprintf('PaynlPayment.config.%s', $configKey));
             }
-            $this->changePaymentMethodStatus($context, $paymentMethod, $active);
         }
     }
 
-    /**
-     * @param Context $context
-     * @param mixed[] $paymentMethod
-     * @param bool $active
-     */
-    private function changePaymentMethodStatus(Context $context, array $paymentMethod, bool $active): void
+    private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
-        $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-        if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
-            return;
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        $upsertData = [];
+        foreach ($paynlPaymentMethods as $paymentMethod) {
+            $upsertData[] = [
+                'id' => md5($paymentMethod[Api::PAYMENT_METHOD_ID]),
+                'active' => $active,
+            ];
         }
 
-        $data = [
-            'id' => $shopwarePaymentMethodId,
-            'active' => $active,
-        ];
-        $this->paymentMethodRepository->update([$data], $context);
+        if (!empty($upsertData)) {
+            $this->paymentMethodRepository->upsert($upsertData, $context);
+        }
     }
 
     public function dropTables(): void

@@ -1,0 +1,43 @@
+{
+    "order-list-override": {
+        "refund": "Refund"
+    },
+    "refundModule": {
+        "name": "Refund payment page",
+        "title": "Refund payment page",
+        "description": "Refund payment page"
+    },
+    "refund": {
+        "detailBase": {
+            "refund": "Customer:",
+            "customer": "Customer:",
+            "amount": "Amount:",
+            "orderNumber": "Order Number:",
+            "amountToRefund": "Amount to refund:",
+            "description": "Description:",
+            "cardTitleRefund": "Refund",
+            "headlineOrderNumber": "Order number",
+            "headlineTransaction": "Transaction",
+            "headlineDescriptionInput": "Description",
+            "headlineAmountInput": "Amount",
+            "paynlTransactionId": "Pay.nl transaction Id:",
+            "paidAmount": "Paid amount:",
+            "availableForRefund": "Available for refund:",
+            "refundedAmount": "Refunded amount:",
+            "shipping": "Shipping",
+            "allowShippingRefund": "Allow shipping refund",
+            "products": "Products list"
+        },
+        "products": {
+            "product": "Product",
+            "price": "Price",
+            "quantity": "Quantity",
+            "refund": "Refund",
+            "restock": "Restock"
+        },
+        "notifications": {
+            "danger": "Error",
+            "success": "Success"
+        }
+    }
+}
