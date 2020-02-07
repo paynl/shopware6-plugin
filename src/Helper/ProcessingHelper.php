@@ -77,6 +77,7 @@ class ProcessingHelper
     public function findTransactionByOrderId(string $orderId, Context $context)
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
+
         return $this->paynlTransactionRepository->search($criteria, $context)->first();
     }
 
