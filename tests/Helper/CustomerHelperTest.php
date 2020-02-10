@@ -31,13 +31,13 @@ class CustomerHelperTest extends TestCase
      */
     public function formatAddresses()
     {
-        $configMock = $this->getConfigMock();
-        $countryEntityMock = $this->getCountryEntityMock();
-        $customerAddressEntityMock = $this->getCustomerAddressEntityMock($countryEntityMock);
-        $salutationEntityMock = $this->getSalutationEntityMock();
-        $customerEntityMock = $this->getCustomerEntityMock($salutationEntityMock, $customerAddressEntityMock);
+        $customerAddressEntityMock = $this->getCustomerAddressEntityMock($this->getCountryEntityMock());
+        $customerEntityMock = $this->getCustomerEntityMock(
+            $this->getSalutationEntityMock(),
+            $customerAddressEntityMock
+        );
 
-        $customerHelper = new CustomerHelper($configMock);
+        $customerHelper = new CustomerHelper($this->getConfigMock());
         $customerHelper->formatAddresses($customerEntityMock);
 
         // assert

@@ -63,35 +63,41 @@ class ProcessingHelperTest extends TestCase
      */
     public function storePaynlTransactionData()
     {
-        $transactionMock = $this->getResultTransactionMock();
-        $apiMock = $this->getApiMock($transactionMock);
-        $entityWrittenContainerEventMock = $this->getEntityWrittenContainerEventMock();
-        $paynlTransactionMock = $this->getPaynlTransactionMock();
-        $entitySearchResultMock = $this->getEntitySearchResultMock($paynlTransactionMock);
+        $entitySearchResultMock = $this->getEntitySearchResultMock(
+            $this->getPaynlTransactionMock()
+        );
+
         $entityRepositoryInterfaceMock = $this->getEntityRepositoryInterfaceMock(
-            $entityWrittenContainerEventMock,
+            $this->getEntityWrittenContainerEventMock(),
             $entitySearchResultMock
         );
-        $stateMachineRegistryMock = $this->getStateMachineRegistryMock();
 
-        $paymentMethodEntityMock = $this->getPaymentMethodEntityMock();
-        $customerEntityMock = $this->getCustomerEntityMock();
-        $orderEntityMock = $this->getOrderEntityMock();
-        $shippingMethodEntityMock = $this->getShippingMethodEntityMock();
-        $currencyEntityMock = $this->getCurrencyEntityMock();
-        $orderTransactionEntityMock = $this->getOrderTransactionEntityMock();
-        $transactionMock = $this->getAsyncPaymentTransactionStructMock($orderEntityMock, $orderTransactionEntityMock);
-        $contextMock = $this->getContextMock();
-        $salesChannelContextMock = $this->getSalesChannelContextMock(
-            $currencyEntityMock,
-            $shippingMethodEntityMock,
-            $paymentMethodEntityMock,
-            $customerEntityMock,
-            $contextMock
+        $transactionMock = $this->getAsyncPaymentTransactionStructMock(
+            $this->getOrderEntityMock(),
+            $this->getOrderTransactionEntityMock()
         );
 
-        $processingHelper = new ProcessingHelper($apiMock, $entityRepositoryInterfaceMock, $stateMachineRegistryMock);
-        $processingHelper->storePaynlTransactionData($transactionMock, $salesChannelContextMock, $this->paynlTransactionId, $this->exception);
+        $salesChannelContextMock = $this->getSalesChannelContextMock(
+            $this->getCurrencyEntityMock(),
+            $this->getShippingMethodEntityMock(),
+            $this->getPaymentMethodEntityMock(),
+            $this->getCustomerEntityMock(),
+            $this->getContextMock()
+        );
+
+        $processingHelper = new ProcessingHelper(
+            $this->getApiMock($this->getResultTransactionMock()),
+            $entityRepositoryInterfaceMock,
+            $this->getStateMachineRegistryMock()
+        );
+
+        $processingHelper->storePaynlTransactionData(
+            $transactionMock,
+            $salesChannelContextMock,
+            $this->paynlTransactionId,
+            $this->exception
+        );
+
         $this->assertTrue(true);
     }
 
@@ -100,18 +106,19 @@ class ProcessingHelperTest extends TestCase
      */
     public function processNotify()
     {
-        $transactionMock = $this->getResultTransactionMock();
-        $apiMock = $this->getApiMock($transactionMock);
-        $entityWrittenContainerEventMock = $this->getEntityWrittenContainerEventMock();
-        $paynlTransactionMock = $this->getPaynlTransactionMock();
-        $entitySearchResultMock = $this->getEntitySearchResultMock($paynlTransactionMock);
+        $apiMock = $this->getApiMock($this->getResultTransactionMock());
+        $entitySearchResultMock = $this->getEntitySearchResultMock($this->getPaynlTransactionMock());
         $entityRepositoryInterfaceMock = $this->getEntityRepositoryInterfaceMock(
-            $entityWrittenContainerEventMock,
+            $this->getEntityWrittenContainerEventMock(),
             $entitySearchResultMock
         );
-        $stateMachineRegistryMock = $this->getStateMachineRegistryMock();
 
-        $processingHelper = new ProcessingHelper($apiMock, $entityRepositoryInterfaceMock, $stateMachineRegistryMock);
+        $processingHelper = new ProcessingHelper(
+            $apiMock,
+            $entityRepositoryInterfaceMock,
+            $this->getStateMachineRegistryMock()
+        );
+
         $processingHelper->processNotify($this->paynlTransactionId);
 
         $this->assertTrue(true);
@@ -166,9 +173,7 @@ class ProcessingHelperTest extends TestCase
 
     private function getStateMachineRegistryMock()
     {
-        $stateMachineRegistryMock = \Mockery::mock(StateMachineRegistry::class);
-
-        return $stateMachineRegistryMock;
+        return \Mockery::mock(StateMachineRegistry::class);
     }
 
     private function getEntitySearchResultMock($paynlTransactionMock)
@@ -182,9 +187,7 @@ class ProcessingHelperTest extends TestCase
 
     private function getEntityWrittenContainerEventMock()
     {
-        $entityWrittenContainerEventMock = \Mockery::mock(EntityWrittenContainerEvent::class);
-
-        return $entityWrittenContainerEventMock;
+        return \Mockery::mock(EntityWrittenContainerEvent::class);
     }
 
     private function getPaynlTransactionMock()
@@ -202,9 +205,7 @@ class ProcessingHelperTest extends TestCase
 
     private function getContextMock()
     {
-        $contextMock = \Mockery::mock(Context::class);
-
-        return $contextMock;
+        return \Mockery::mock(Context::class);
     }
 
     private function getAsyncPaymentTransactionStructMock($orderEntityMock, $orderTransactionEntityMock)

@@ -83,16 +83,12 @@ class RefundControllerTest extends TestCase
 
     private function paynlConfigMock()
     {
-        $paynlConfigMock = \Mockery::mock(Config::class);
-
-        return $paynlConfigMock;
+        return \Mockery::mock(Config::class);
     }
 
     private function refundMock()
     {
-        $refundMock = \Mockery::mock(Result\Refund::class);
-
-        return $refundMock;
+        return \Mockery::mock(Result\Refund::class);
     }
 
     private function transactionRepositoryMock()
@@ -115,16 +111,12 @@ class RefundControllerTest extends TestCase
 
     private function productRepositoryMock()
     {
-        $productRepositoryMock = \Mockery::mock(EntityRepositoryInterface::class);
-
-        return $productRepositoryMock;
+        return \Mockery::mock(EntityRepositoryInterface::class);
     }
 
     private function paynlTransactionEntityMock()
     {
-        $paynlTransactionEntityMock = \Mockery::mock(PaynlTransactionEntity::class);
-
-        return $paynlTransactionEntityMock;
+        return \Mockery::mock(PaynlTransactionEntity::class);
     }
 
     private function processingHelperMock()

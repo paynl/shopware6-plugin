@@ -14,7 +14,6 @@ class NotificationControllerTest extends TestCase
      */
     public function checkNotifyMethod() {
         $notificationController = new NotificationController($this->getProcessingHelperMock());
-
         $notificationController->notify($this->getRequestMock());
 
         $this->assertTrue(true);

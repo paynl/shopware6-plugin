@@ -51,26 +51,22 @@ class PaynlPaymentHandlerTest extends TestCase
 
     private function getPaynlPaymentInstance()
     {
-        $orderTransactionStateHandlerMock = $this->getOrderTransactionStateHandlerMock();
-        $routerMock = $this->getRouterInterfaceMock();
-        $apiMock = $this->getApiMock();
-        $processingHelperMock = $this->getProcessingHelperMock();
-
-        return new PaynlPaymentHandler($orderTransactionStateHandlerMock, $routerMock, $apiMock, $processingHelperMock);
+        return new PaynlPaymentHandler(
+            $this->getOrderTransactionStateHandlerMock(),
+            $this->getRouterInterfaceMock(),
+            $this->getApiMock(),
+            $this->getProcessingHelperMock()
+        );
     }
 
     private function getOrderTransactionStateHandlerMock()
     {
-        $orderTransactionStateHandlerMock = \Mockery::mock(OrderTransactionStateHandler::class);
-
-        return $orderTransactionStateHandlerMock;
+        return \Mockery::mock(OrderTransactionStateHandler::class);
     }
 
     private function getRequestMock()
     {
-        $requestMock = \Mockery::mock(Request::class);
-
-        return $requestMock;
+        return \Mockery::mock(Request::class);
     }
 
     private function getApiMock()
@@ -117,16 +113,12 @@ class PaynlPaymentHandlerTest extends TestCase
 
     private function paynlTransactionEntityMock()
     {
-        $paynlTransactionEntityMock = \Mockery::mock(PaynlTransactionEntity::class);
-
-        return $paynlTransactionEntityMock;
+        return \Mockery::mock(PaynlTransactionEntity::class);
     }
 
     private function getDataBagMock()
     {
-        $dataBag = \Mockery::mock(RequestDataBag::class);
-
-        return $dataBag;
+        return \Mockery::mock(RequestDataBag::class);
     }
 
     private function getAsyncPaymentTransactionStructMock()
@@ -169,8 +161,6 @@ class PaynlPaymentHandlerTest extends TestCase
 
     private function getContextMock()
     {
-        $contextMock = \Mockery::mock(Context::class);
-
-        return $contextMock;
+        return \Mockery::mock(Context::class);
     }
 }
