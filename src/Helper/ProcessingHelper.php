@@ -77,11 +77,10 @@ class ProcessingHelper
     public function findTransactionByOrderId(string $orderId, Context $context)
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
-
         return $this->paynlTransactionRepository->search($criteria, $context)->first();
     }
 
-    private function getApiTransaction(string $transactionId): ResultTransaction
+    public function getApiTransaction(string $transactionId): ResultTransaction
     {
         return $this->paynlApi->getTransaction($transactionId);
     }
@@ -170,14 +169,14 @@ class ProcessingHelper
 
     /**
      * @param string $paynlTransactionId
-     * @return string
+     * @return string|void
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
-    public function processNotify(string $paynlTransactionId): string
+    public function processNotify(string $paynlTransactionId)
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
         if ($apiTransaction->isPending()) {
-            return '';
+            return;
         }
         $criteria = (new Criteria());
         $context = Context::createDefaultContext();
