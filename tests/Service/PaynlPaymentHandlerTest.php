@@ -20,10 +20,7 @@ use Shopware\Core\Framework\Context;
 
 class PaynlPaymentHandlerTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function checkPayMethod() {
+    public function testCheckPayMethod() {
         $paynlPaymentHandler = $this->getPaynlPaymentInstance();
 
         $paynlPaymentHandler->pay(
@@ -34,10 +31,8 @@ class PaynlPaymentHandlerTest extends TestCase
 
         $this->assertTrue(true);
     }
-    /**
-     * @test
-     */
-    public function checkFinalizeMethod() {
+
+    public function testCheckFinalizeMethod() {
         $paynlPaymentHandler = $this->getPaynlPaymentInstance();
 
         $paynlPaymentHandler->finalize(

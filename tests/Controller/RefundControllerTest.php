@@ -16,19 +16,14 @@ use Paynl\Result\Transaction as Result;
 
 class RefundControllerTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function checkGetRefundDataMethod() {
+    public function testCheckGetRefundDataMethod() {
         $notificationController = $this->getRefundControllerInstance();
         $notificationController->getRefundData($this->getRequestMock());
 
         $this->assertTrue(true);
     }
-    /**
-     * @test
-     */
-    public function checkRefundMethod() {
+
+    public function testCheckRefundMethod() {
         $notificationController = $this->getRefundControllerInstance();
         $notificationController->refund($this->getRequestMock());
 
@@ -62,64 +57,64 @@ class RefundControllerTest extends TestCase
     private function getRefundControllerInstance()
     {
         return new RefundController(
-            $this->paynlApiMock(),
-            $this->paynlConfigMock(),
-            $this->transactionRepositoryMock(),
-            $this->productRepositoryMock(),
-            $this->processingHelperMock()
+            $this->getPaynlApiMock(),
+            $this->getPaynlConfigMock(),
+            $this->getTransactionRepositoryMock(),
+            $this->getProductRepositoryMock(),
+            $this->getProcessingHelperMock()
         );
     }
 
-    private function paynlApiMock()
+    private function getPaynlApiMock()
     {
         $paynlApiMock = \Mockery::mock(Api::class);
         $paynlApiMock->shouldReceive('getTransaction')
-            ->andReturn($this->resultTransactionMock());
+            ->andReturn($this->getResultTransactionMock());
         $paynlApiMock->shouldReceive('refund')
-            ->andReturn($this->refundMock());
+            ->andReturn($this->getRefundMock());
 
         return $paynlApiMock;
     }
 
-    private function paynlConfigMock()
+    private function getPaynlConfigMock()
     {
         return \Mockery::mock(Config::class);
     }
 
-    private function refundMock()
+    private function getRefundMock()
     {
         return \Mockery::mock(Result\Refund::class);
     }
 
-    private function transactionRepositoryMock()
+    private function getTransactionRepositoryMock()
     {
         $transactionRepositoryMock = \Mockery::mock(EntityRepositoryInterface::class);
         $transactionRepositoryMock->shouldReceive('search')
-            ->andReturn($this->entitySearchResultMock());
+            ->andReturn($this->getEntitySearchResultMock());
 
         return $transactionRepositoryMock;
     }
 
-    private function entitySearchResultMock()
+    private function getEntitySearchResultMock()
     {
         $entitySearchResultMock = \Mockery::mock(EntitySearchResult::class);
         $entitySearchResultMock->shouldReceive('first')
-            ->andReturn($this->paynlTransactionEntityMock());
+            ->andReturn($this->getPaynlTransactionEntityMock());
 
         return $entitySearchResultMock;
     }
 
-    private function productRepositoryMock()
+    private function getProductRepositoryMock()
     {
         return \Mockery::mock(EntityRepositoryInterface::class);
     }
 
-    private function paynlTransactionEntityMock()
+    private function getPaynlTransactionEntityMock()
     {
         return \Mockery::mock(PaynlTransactionEntity::class);
     }
 
-    private function processingHelperMock()
+    private function getProcessingHelperMock()
     {
         $processingHelperMock = \Mockery::mock(ProcessingHelper::class);
         $processingHelperMock->shouldReceive('updateTransaction')
@@ -128,7 +123,7 @@ class RefundControllerTest extends TestCase
         return $processingHelperMock;
     }
 
-    private function resultTransactionMock()
+    private function getResultTransactionMock()
     {
         $resultTransactionMock = \Mockery::mock(ResultTransaction::class);
         $resultTransactionMock->shouldReceive('getAmount')

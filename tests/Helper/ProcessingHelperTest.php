@@ -34,10 +34,7 @@ class ProcessingHelperTest extends TestCase
     private $shippingMethodId = '22b7cfd3aff04368a1f661f4e644f0a0';
     private $customerId = '22b7cfd3aff04368a1f661f4e644f0a0';
 
-    /**
-     * @test
-     */
-    public function updateTransaction()
+    public function testUpdateTransaction()
     {
         $isExchange = false;
         $transactionMock = $this->getResultTransactionMock();
@@ -58,10 +55,7 @@ class ProcessingHelperTest extends TestCase
         $this->assertTrue(true);
     }
 
-    /**
-     * @test
-     */
-    public function storePaynlTransactionData()
+    public function testStorePaynlTransactionData()
     {
         $entitySearchResultMock = $this->getEntitySearchResultMock(
             $this->getPaynlTransactionMock()
@@ -101,10 +95,7 @@ class ProcessingHelperTest extends TestCase
         $this->assertTrue(true);
     }
 
-    /**
-     * @test
-     */
-    public function processNotify()
+    public function testProcessNotify()
     {
         $apiMock = $this->getApiMock($this->getResultTransactionMock());
         $entitySearchResultMock = $this->getEntitySearchResultMock($this->getPaynlTransactionMock());

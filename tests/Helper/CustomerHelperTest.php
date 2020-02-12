@@ -26,10 +26,7 @@ class CustomerHelperTest extends TestCase
     private $email = 'Email';
     private $customerNumber = 'CustomerNumber';
 
-    /**
-     * @test
-     */
-    public function formatAddresses()
+    public function testFormatAddresses()
     {
         $customerAddressEntityMock = $this->getCustomerAddressEntityMock($this->getCountryEntityMock());
         $customerEntityMock = $this->getCustomerEntityMock(

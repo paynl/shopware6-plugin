@@ -9,10 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 class NotificationControllerTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function checkNotifyMethod() {
+    public function testCheckNotifyMethod() {
         $notificationController = new NotificationController($this->getProcessingHelperMock());
         $notificationController->notify($this->getRequestMock());
 
