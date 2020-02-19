@@ -10,6 +10,7 @@ use PaynlPayment\Helper\ProcessingHelper;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use Paynl\Result\Transaction as Result;
@@ -18,9 +19,8 @@ class RefundControllerTest extends TestCase
 {
     public function testCheckGetRefundDataMethod() {
         $notificationController = $this->getRefundControllerInstance();
-        $notificationController->getRefundData($this->getRequestMock());
-
-        $this->assertTrue(true);
+        $responseInstance = $notificationController->getRefundData($this->getRequestMock());
+        $this->assertInstanceOf(JsonResponse::class, $responseInstance);
     }
 
     public function testCheckRefundMethod() {

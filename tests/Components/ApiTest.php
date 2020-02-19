@@ -37,10 +37,18 @@ class ApiTest extends TestCase
 
     private $paymentMethodId = 'SomePaymentMethodId';
 
-    private $paymentMethodsList = [];
+    private $paymentMethodsList = [
+        'PaymentMethod1'
+    ];
+
     private $transactionId = 'transactionId';
     private $amount = 1;
     private $description = 'description';
+    private $entityRepositoryInterfaceMock;
+    private $customerHelperMock;
+    private $currencyEntityMock;
+    private $asyncPaymentTransactionStructMock;
+    private $salesChannelContextMock;
 
     public function setUp(): void
     {
@@ -48,37 +56,71 @@ class ApiTest extends TestCase
             ->shouldReceive('getList')
             ->andReturn($this->paymentMethodsList);
 
-        $SDKConfig = \Mockery::mock('SDKConfig');
-        $SDKConfig->shouldReceive('setTokenCode');
-        $SDKConfig->shouldReceive('setApiToken');
-        $SDKConfig->shouldReceive('setServiceId');
+        \Mockery::mock('SDKConfig')->shouldReceive([
+            'setTokenCode' => null,
+            'setApiToken' => null,
+            'setServiceId' => null
+        ]);
 
-        $result = \Mockery::mock('alias:Paynl\Transaction');
-        $result->shouldReceive('start')
-            ->andReturn($this->getStartMock());
+        $startTransactionMock = \Mockery::mock(Start::class);
+        \Mockery::mock('alias:Paynl\Transaction')
+            ->shouldReceive('start')
+            ->andReturn($startTransactionMock);
+
+        $this->entityRepositoryInterfaceMock = \Mockery::mock(EntityRepositoryInterface::class);
+        $this->customerHelperMock = \Mockery::mock(CustomerHelper::class);
+        $this->currencyEntityMock = \Mockery::mock(PaymentMethodEntity::class)
+            ->shouldReceive([
+                'getIsoCode' => $this->isoCode
+            ]);
+
+        $this->asyncPaymentTransactionStructMock = \Mockery::mock(AsyncPaymentTransactionStruct::class)
+            ->shouldReceive([
+                'getOrder' => $this->getOrderEntityMock(),
+                'getReturnUrl' => $this->returnUrl
+            ]);
+
+        $paymentMethodEntityMock = \Mockery::mock(PaymentMethodEntity::class)
+            ->shouldReceive([
+                'getId' => $this->paymentMethodId
+            ]);
+        $currencyEntityMock = \Mockery::mock(PaymentMethodEntity::class)
+            ->shouldReceive([
+                'getIsoCode' => $this->isoCode
+            ]);
+        $contextMock = \Mockery::mock(Context::class);
+        $customerEntityMock = \Mockery::mock(CustomerEntity::class);
+
+        $this->salesChannelContextMock = \Mockery::mock(SalesChannelContext::class)
+            ->shouldReceive([
+                'getPaymentMethod' => $paymentMethodEntityMock,
+                'getCurrency' => $currencyEntityMock,
+                'getContext' => $contextMock,
+                'getCustomer' => $customerEntityMock,
+            ]);
     }
 
-    public function testExpectEmptyArrayFromGetPaymentMethods() {
+    public function testExpectEmptyArrayIfWrongCredsFromGetPaymentMethods() {
         $this->apiInstance = new Api(
             $this->getConfigMock($this->tokenCode, $this->serviceId, $this->apiToken),
-            $this->getCustomerHelperMock(),
-            $this->getEntityRepositoryInterfaceMock()
+            $this->customerHelperMock,
+            $this->entityRepositoryInterfaceMock
         );
 
         $result = $this->apiInstance->getPaymentMethods();
-        $this->assertTrue(empty($result), 'There aren\'t any of payment methods.');
+        $this->assertTrue(empty($result), 'There are any of payment methods.');
     }
 
     public function testExpectPaynlPaymentExceptionInStartTransaction() {
         $this->apiInstance = new Api(
             $this->getConfigMock('', $this->serviceId, $this->apiToken),
-            $this->getCustomerHelperMock(),
-            $this->getEntityRepositoryInterfaceMock()
+            $this->customerHelperMock,
+            $this->entityRepositoryInterfaceMock
         );
         $this->expectException(\PaynlPayment\Exceptions\PaynlPaymentException::class);
         $this->apiInstance->startTransaction(
-            $this->getAsyncPaymentTransactionStructMock(),
-            $this->getSalesChannelContextMock(),
+            $this->asyncPaymentTransactionStructMock,
+            $this->salesChannelContextMock,
             '/'
         );
         $this->assertFalse(false, 'Got an exception PaynlPaymentException.');
@@ -87,8 +129,8 @@ class ApiTest extends TestCase
     public function testExpectRefundNotAllowedInRefund() {
         $this->apiInstance = new Api(
             $this->getConfigMock('', $this->serviceId, $this->apiToken),
-            $this->getCustomerHelperMock(),
-            $this->getEntityRepositoryInterfaceMock()
+            $this->customerHelperMock,
+            $this->entityRepositoryInterfaceMock
         );
         $this->expectException(\Exception::class);
         $this->apiInstance->refund(
@@ -98,41 +140,6 @@ class ApiTest extends TestCase
         );
 
         $this->assertFalse(false, 'Refund is not allowed.');
-    }
-
-    private function getAsyncPaymentTransactionStructMock()
-    {
-        $asyncPaymentTransactionStructMock = \Mockery::mock(AsyncPaymentTransactionStruct::class);
-        $asyncPaymentTransactionStructMock->shouldReceive('getOrder')
-            ->andReturn($this->getOrderEntityMock());
-        $asyncPaymentTransactionStructMock->shouldReceive('getReturnUrl')
-            ->andReturn($this->returnUrl);
-
-        return $asyncPaymentTransactionStructMock;
-    }
-
-    private function getStartMock()
-    {
-        return \Mockery::mock(Start::class);
-    }
-
-    private function getSalesChannelContextMock()
-    {
-        $salesChannelContextMock = \Mockery::mock(SalesChannelContext::class);
-        $salesChannelContextMock->shouldReceive('getPaymentMethod')->andReturn($this->getPaymentMethodEntityMock());
-        $salesChannelContextMock->shouldReceive('getCurrency')->andReturn($this->getCurrencyEntityMock());
-        $salesChannelContextMock->shouldReceive('getContext')->andReturn($this->getContextMock());
-        $salesChannelContextMock->shouldReceive('getCustomer')->andReturn($this->getCustomerEntityMock());
-
-        return $salesChannelContextMock;
-    }
-
-    private function getPaymentMethodEntityMock()
-    {
-        $paymentMethodEntityMock = \Mockery::mock(PaymentMethodEntity::class);
-        $paymentMethodEntityMock->shouldReceive('getId')->andReturn($this->paymentMethodId);
-
-        return $paymentMethodEntityMock;
     }
 
     private function getOrderEntityMock()
@@ -145,50 +152,13 @@ class ApiTest extends TestCase
         return $orderEntityMock;
     }
 
-    private function getContextMock()
-    {
-        $contextMock = \Mockery::mock(Context::class);
-
-        return $contextMock;
-    }
-
-    private function getCustomerEntityMock()
-    {
-        $customerEntityMock = \Mockery::mock(CustomerEntity::class);
-
-        return $customerEntityMock;
-    }
-
-    private function getCurrencyEntityMock()
-    {
-        $currencyEntityMock = \Mockery::mock(PaymentMethodEntity::class);
-        $currencyEntityMock->shouldReceive('getIsoCode')->andReturn($this->isoCode);
-
-        return $currencyEntityMock;
-    }
-
     private function getConfigMock(string $tokenCode, string $apiToken, string $serviceId)
     {
-        $configMock = \Mockery::mock(Config::class);
-        $configMock->shouldReceive('getTokenCode')->andReturn($tokenCode);
-        $configMock->shouldReceive('getApiToken')->andReturn($apiToken);
-        $configMock->shouldReceive('getServiceId')->andReturn($serviceId);
-
-        return $configMock;
-    }
-
-    private function getCustomerHelperMock()
-    {
-        $customerHelperMock = \Mockery::mock(CustomerHelper::class);
-
-        return $customerHelperMock;
-    }
-
-    private function getEntityRepositoryInterfaceMock()
-    {
-        $entityRepositoryInterfaceMock = \Mockery::mock(EntityRepositoryInterface::class);
-
-        return $entityRepositoryInterfaceMock;
+        return \Mockery::mock(Config::class)->shouldReceive([
+            'getTokenCode' => $tokenCode,
+            'getApiToken' => $apiToken,
+            'getServiceId' => $serviceId
+        ]);
     }
 
     public function tearDown(): void
