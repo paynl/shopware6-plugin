@@ -72,8 +72,11 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
         // implement update destructive
     }
 
-
-    private function addStateMachineState($connection)
+    /**
+     * @param Connection $connection
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private function addStateMachineState(Connection $connection): void
     {
         $date = date(self::DATE_FORMAT);
 
@@ -81,18 +84,40 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
         $uuidForVerifyStateMachineState = UUID::generate();
         $sql = <<<SQL
             INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForVerifyStateMachineState}'), 'verify', (SELECT id FROM shopware.state_machine where technical_name = 'order_transaction.state' limit 1), '{$date}', NULL);
+            VALUES (
+                UUID_TO_BIN('{$uuidForVerifyStateMachineState}'), 
+                'verify', 
+                (SELECT id FROM state_machine where technical_name = 'order_transaction.state' limit 1), 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
         $sql = <<<SQL
-            INSERT INTO state_machine_state_translation (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES ((SELECT `id` FROM `language` where `name` = 'English' limit 1), UUID_TO_BIN('{$uuidForVerifyStateMachineState}'), 'Verify', NULL, '{$date}', NULL);
+            INSERT INTO state_machine_state_translation 
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                (SELECT `id` FROM `language` where `name` = 'English' limit 1), 
+                UUID_TO_BIN('{$uuidForVerifyStateMachineState}'), 
+                'Verify', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
         $sql = <<<SQL
-            INSERT INTO state_machine_state_translation (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES ((SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1), UUID_TO_BIN('{$uuidForVerifyStateMachineState}'), 'Überprüfen', NULL, '{$date}', NULL);
+            INSERT INTO state_machine_state_translation 
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                (SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1), 
+                UUID_TO_BIN('{$uuidForVerifyStateMachineState}'), 
+                'Überprüfen', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
@@ -100,19 +125,41 @@ SQL;
         $uuidForAuthorizeStateMachineState = UUID::generate();
         $sql = <<<SQL
             INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForAuthorizeStateMachineState}'), 'authorize', (SELECT id FROM shopware.state_machine where technical_name = 'order_transaction.state' limit 1), '{$date}', NULL);
+            VALUES (
+                UUID_TO_BIN('{$uuidForAuthorizeStateMachineState}'), 
+                'authorize', 
+                (SELECT id FROM state_machine where technical_name = 'order_transaction.state' limit 1), 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
         $sql = <<<SQL
-            INSERT INTO state_machine_state_translation (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES ((SELECT `id` FROM `language` where `name` = 'English' limit 1), UUID_TO_BIN('{$uuidForAuthorizeStateMachineState}'), 'Authorize', NULL, '{$date}', NULL);
+            INSERT INTO state_machine_state_translation 
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                (SELECT `id` FROM `language` where `name` = 'English' limit 1), 
+                UUID_TO_BIN('{$uuidForAuthorizeStateMachineState}'), 
+                'Authorize', 
+                NULL, 
+                '{$date}',
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
         $sql = <<<SQL
-            INSERT INTO state_machine_state_translation (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES ((SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1), UUID_TO_BIN('{$uuidForAuthorizeStateMachineState}'), 'Autorisieren', NULL, '{$date}', NULL);
+            INSERT INTO state_machine_state_translation 
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                (SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1), 
+                UUID_TO_BIN('{$uuidForAuthorizeStateMachineState}'), 
+                'Autorisieren', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
@@ -120,24 +167,50 @@ SQL;
         $uuidForPartlyCapturedStateMachineState = UUID::generate();
         $sql = <<<SQL
             INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForPartlyCapturedStateMachineState}'), 'partly_captured', (SELECT id FROM shopware.state_machine where technical_name = 'order_transaction.state' limit 1), '{$date}', NULL);
+            VALUES (
+                UUID_TO_BIN('{$uuidForPartlyCapturedStateMachineState}'), 
+                'partly_captured', 
+                (SELECT id FROM state_machine where technical_name = 'order_transaction.state' limit 1), 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
         $sql = <<<SQL
-            INSERT INTO state_machine_state_translation (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES ((SELECT `id` FROM `language` where `name` = 'English' limit 1), UUID_TO_BIN('{$uuidForPartlyCapturedStateMachineState}'), 'Partly captured', NULL, '{$date}', NULL);
+            INSERT INTO state_machine_state_translation 
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                (SELECT `id` FROM `language` where `name` = 'English' limit 1), 
+                UUID_TO_BIN('{$uuidForPartlyCapturedStateMachineState}'), 
+                'Partly captured', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
 
         $sql = <<<SQL
-            INSERT INTO state_machine_state_translation (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES ((SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1), UUID_TO_BIN('{$uuidForPartlyCapturedStateMachineState}'), 'Partly captured', NULL, '{$date}', NULL);
+            INSERT INTO state_machine_state_translation 
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                (SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1), 
+                UUID_TO_BIN('{$uuidForPartlyCapturedStateMachineState}'), 
+                'Partly captured', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($sql);
     }
 
-    private function addStateMachineStateTransition($connection)
+    /**
+     * @param Connection $connection
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private function addStateMachineStateTransition(Connection $connection): void
     {
         $date = date(self::DATE_FORMAT);
         $stateMachineId = <<<SQL
@@ -145,39 +218,91 @@ SQL;
 SQL;
 
         $openStateMachineStateId = <<<SQL
-            SELECT id FROM shopware.state_machine_state WHERE state_machine_id = (SELECT id FROM shopware.state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) AND technical_name = 'open' LIMIT 1
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+                AND technical_name = 'open' 
+            LIMIT 1
 SQL;
 
         $authorizeStateMachineStateId = <<<SQL
-            SELECT id FROM state_machine_state WHERE technical_name = 'authorize' AND state_machine_id = (SELECT id FROM shopware.state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) LIMIT 1
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'authorize' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
 SQL;
 
         $uuidForOpenToAuthorizeStateMachineTransition = UUID::generate();
         $insertTransitionOpenToAuthorize = <<<SQL
-            INSERT INTO state_machine_transition (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForOpenToAuthorizeStateMachineTransition}'), 'authorize',  ({$stateMachineId}), ({$openStateMachineStateId}), ({$authorizeStateMachineStateId}), NULL, '{$date}', NULL);
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForOpenToAuthorizeStateMachineTransition}'), 
+                'authorize',  
+                ({$stateMachineId}), 
+                ({$openStateMachineStateId}), 
+                ({$authorizeStateMachineStateId}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertTransitionOpenToAuthorize);
 
         $verifyStateMachineStateId = <<<SQL
-            SELECT id FROM state_machine_state WHERE technical_name = 'verify' AND state_machine_id = (SELECT id FROM shopware.state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) LIMIT 1
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'verify' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
 SQL;
 
         $uuidForOpenToVerifyStateMachineTransition = UUID::generate();
         $insertTransitionOpenToVerify = <<<SQL
-            INSERT INTO state_machine_transition (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForOpenToVerifyStateMachineTransition}'), 'verify',  ({$stateMachineId}), ({$openStateMachineStateId}), ({$verifyStateMachineStateId}), NULL, '{$date}', NULL);
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForOpenToVerifyStateMachineTransition}'), 
+                'verify',  ({$stateMachineId}), 
+                ({$openStateMachineStateId}), 
+                ({$verifyStateMachineStateId}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertTransitionOpenToVerify);
 
         $partlyCapturedStateMachineStateId = <<<SQL
-            SELECT id FROM state_machine_state WHERE technical_name = 'partly_captured' AND state_machine_id = (SELECT id FROM shopware.state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) LIMIT 1
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'partly_captured' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
 SQL;
 
         $uuidForOpenToPartlyCapturedStateMachineTransition = UUID::generate();
         $insertTransitionOpenToPartlyCaptured = <<<SQL
-            INSERT INTO state_machine_transition (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForOpenToPartlyCapturedStateMachineTransition}'), 'partly_captured',  ({$stateMachineId}), ({$openStateMachineStateId}), ({$partlyCapturedStateMachineStateId}), NULL, '{$date}', NULL);
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForOpenToPartlyCapturedStateMachineTransition}'), 
+                'partly_captured',  ({$stateMachineId}), 
+                ({$openStateMachineStateId}), 
+                ({$partlyCapturedStateMachineStateId}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertTransitionOpenToPartlyCaptured);
 
@@ -187,23 +312,51 @@ SQL;
             SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1
 SQL;
         $paidStateMachineStateIdSQL = <<<SQL
-            SELECT id FROM state_machine_state WHERE state_machine_id = (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) AND technical_name = 'paid' LIMIT 1
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+                    AND technical_name = 'paid' 
+            LIMIT 1
 SQL;
         $authorizeStateMachineStateId = <<<SQL
-            SELECT id FROM state_machine_state WHERE technical_name = 'authorize' AND state_machine_id = (SELECT id FROM shopware.state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) LIMIT 1
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'authorize' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
 SQL;
 
         $insertTransitionAuthorizeToPaid = <<<SQL
-            INSERT INTO state_machine_transition (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForAuthorizeToPaidStateMachineTransition}'), 'pay',  ({$stateMachineId}), ({$authorizeStateMachineStateId}), ({$paidStateMachineStateIdSQL}), NULL, '{$date}', NULL);
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForAuthorizeToPaidStateMachineTransition}'), 
+                'pay',  
+                ({$stateMachineId}), 
+                ({$authorizeStateMachineStateId}), 
+                ({$paidStateMachineStateIdSQL}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertTransitionAuthorizeToPaid);
     }
 
-    private function addMailTemplateType($connection)
+    /**
+     * @param Connection $connection
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private function addMailTemplateType(Connection $connection): void
     {
         $date = date(self::DATE_FORMAT);
-        $availableEntries = '{"order":"order","previousState":"state_machine_state","newState":"state_machine_state","salesChannel":"sales_channel"}';
+        $availableEntries = <<<JSON
+{"order":"order","previousState":"state_machine_state","newState":"state_machine_state","salesChannel":"sales_channel"}
+JSON;
 
         $uuidForMailTempaleTypeAuthorize = UUID::generate();
         $englishLanguageId = <<<SQL
@@ -215,7 +368,13 @@ SQL;
 
         $insertMailTemplateType = <<<SQL
             INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForMailTempaleTypeAuthorize}'), 'order_transaction.state.authorize', '{$availableEntries}', '{$date}', NULL);
+            VALUES (
+                UUID_TO_BIN('{$uuidForMailTempaleTypeAuthorize}'), 
+                'order_transaction.state.authorize', 
+                '{$availableEntries}', 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
@@ -224,21 +383,43 @@ SQL;
 SQL;
 
         $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (({$mailTempaleTypeId}), ({$englishLanguageId}), 'Enter payment state: Authorize', NULL, '{$date}', NULL);
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                ({$mailTempaleTypeId}), 
+                ({$englishLanguageId}), 
+                'Enter payment state: Authorize', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
         $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (({$mailTempaleTypeId}), ({$deutschLanguageId}), 'Zahlungsstatus eingeben: Autorisieren', NULL, '{$date}', NULL);
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                ({$mailTempaleTypeId}), 
+                ({$deutschLanguageId}), 
+                'Zahlungsstatus eingeben: Autorisieren', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
         $uuidForMailTempaleTypeVerify = UUID::generate();
         $insertMailTemplateType = <<<SQL
             INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForMailTempaleTypeVerify}'), 'order_transaction.state.verify', '{$availableEntries}', '{$date}', NULL);
+            VALUES (
+                UUID_TO_BIN('{$uuidForMailTempaleTypeVerify}'), 
+                'order_transaction.state.verify', 
+                '{$availableEntries}', 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
@@ -247,37 +428,78 @@ SQL;
 SQL;
 
         $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (({$mailTempaleTypeId}), ({$englishLanguageId}), 'Enter payment state: Verify', NULL, '{$date}', NULL);
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                ({$mailTempaleTypeId}), 
+                ({$englishLanguageId}), 
+                'Enter payment state: Verify', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
         $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (({$mailTempaleTypeId}), ({$deutschLanguageId}), 'Zahlungsstatus eingeben: Verify', NULL, '{$date}', NULL);
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                ({$mailTempaleTypeId}), 
+                ({$deutschLanguageId}), 
+                'Zahlungsstatus eingeben: Verify', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
         $uuidForMailTempaleTypePartlyCaptured = UUID::generate();
         $insertMailTemplateType = <<<SQL
             INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
-            VALUES (UUID_TO_BIN('{$uuidForMailTempaleTypePartlyCaptured}'), 'order_transaction.state.partly_captured', '{$availableEntries}', '{$date}', NULL);
+            VALUES (
+                UUID_TO_BIN('{$uuidForMailTempaleTypePartlyCaptured}'), 
+                'order_transaction.state.partly_captured', 
+                '{$availableEntries}', 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
         $mailTempaleTypeId = <<<SQL
-            SELECT id FROM mail_template_type WHERE technical_name LIKE 'order_transaction.state.partly_captured' LIMIT 1
+            SELECT id 
+            FROM mail_template_type 
+            WHERE technical_name LIKE 'order_transaction.state.partly_captured' 
+            LIMIT 1
 SQL;
 
         $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (({$mailTempaleTypeId}), ({$englishLanguageId}), 'Enter payment state: Partly captured', NULL, '{$date}', NULL);
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                ({$mailTempaleTypeId}), 
+                ({$englishLanguageId}), 
+                'Enter payment state: Partly captured', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
 
         $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (({$mailTempaleTypeId}), ({$deutschLanguageId}), 'Zahlungsstatus eingeben: Partly captured', NULL, '{$date}', NULL);
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                ({$mailTempaleTypeId}), 
+                ({$deutschLanguageId}), 
+                'Zahlungsstatus eingeben: Partly captured', 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
 SQL;
         $connection->executeQuery($insertMailTemplateType);
     }
