@@ -216,6 +216,15 @@ SQL;
         $stateMachineId = <<<SQL
             SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1
 SQL;
+        $paidStateMachineStateIdSQL = <<<SQL
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+                    AND technical_name = 'paid' 
+            LIMIT 1
+SQL;
 
         $openStateMachineStateId = <<<SQL
             SELECT id 
@@ -232,6 +241,36 @@ SQL;
             FROM state_machine_state 
             WHERE 
                 technical_name = 'authorize' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
+SQL;
+
+        $verifyStateMachineStateId = <<<SQL
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'verify' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
+SQL;
+
+        $partlyCapturedStateMachineStateId = <<<SQL
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'partly_captured' 
+                AND state_machine_id = 
+                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
+            LIMIT 1
+SQL;
+
+        $cancelStateMachineStateIdSQL = <<<SQL
+            SELECT id 
+            FROM state_machine_state 
+            WHERE 
+                technical_name = 'cancelled' 
                 AND state_machine_id = 
                     (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
             LIMIT 1
@@ -254,16 +293,6 @@ SQL;
 SQL;
         $connection->executeQuery($insertTransitionOpenToAuthorize);
 
-        $verifyStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'verify' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
-
         $uuidForOpenToVerifyStateMachineTransition = UUID::generate();
         $insertTransitionOpenToVerify = <<<SQL
             INSERT INTO state_machine_transition 
@@ -279,16 +308,6 @@ SQL;
             );
 SQL;
         $connection->executeQuery($insertTransitionOpenToVerify);
-
-        $partlyCapturedStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'partly_captured' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
 
         $uuidForOpenToPartlyCapturedStateMachineTransition = UUID::generate();
         $insertTransitionOpenToPartlyCaptured = <<<SQL
@@ -307,29 +326,6 @@ SQL;
         $connection->executeQuery($insertTransitionOpenToPartlyCaptured);
 
         $uuidForAuthorizeToPaidStateMachineTransition = UUID::generate();
-
-        $stateMachineId = <<<SQL
-            SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1
-SQL;
-        $paidStateMachineStateIdSQL = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-                    AND technical_name = 'paid' 
-            LIMIT 1
-SQL;
-        $authorizeStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'authorize' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
-
         $insertTransitionAuthorizeToPaid = <<<SQL
             INSERT INTO state_machine_transition 
                 (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
@@ -345,6 +341,57 @@ SQL;
             );
 SQL;
         $connection->executeQuery($insertTransitionAuthorizeToPaid);
+
+        $uuidForAuthorizeToCancelStateMachineTransition = UUID::generate();
+        $insertTransitionAuthorizeToCancel = <<<SQL
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForAuthorizeToCancelStateMachineTransition}'), 
+                'cancel',  
+                ({$stateMachineId}), 
+                ({$authorizeStateMachineStateId}), 
+                ({$cancelStateMachineStateIdSQL}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
+SQL;
+        $connection->executeQuery($insertTransitionAuthorizeToCancel);
+
+        $uuidForVerifyToPaidStateMachineTransition = UUID::generate();
+        $insertTransitionVerifyToPaid = <<<SQL
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForVerifyToPaidStateMachineTransition}'), 
+                'pay',  
+                ({$stateMachineId}), 
+                ({$verifyStateMachineStateId}), 
+                ({$paidStateMachineStateIdSQL}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
+SQL;
+        $connection->executeQuery($insertTransitionVerifyToPaid);
+
+        $uuidForVerifyToCancelStateMachineTransition = UUID::generate();
+        $insertTransitionVerifyToCancel = <<<SQL
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                UUID_TO_BIN('{$uuidForVerifyToCancelStateMachineTransition}'), 
+                'cancel',  
+                ({$stateMachineId}), 
+                ({$verifyStateMachineStateId}), 
+                ({$cancelStateMachineStateIdSQL}), 
+                NULL, 
+                '{$date}', 
+                NULL
+            );
+SQL;
+        $connection->executeQuery($insertTransitionVerifyToCancel);
     }
 
     /**
