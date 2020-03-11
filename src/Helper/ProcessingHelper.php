@@ -7,6 +7,7 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
+use PaynlPayment\Enums\StateMachineStateEnum;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -77,6 +78,7 @@ class ProcessingHelper
     public function findTransactionByOrderId(string $orderId, Context $context)
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
+
         return $this->paynlTransactionRepository->search($criteria, $context)->first();
     }
 
@@ -96,28 +98,8 @@ class ProcessingHelper
         try {
             $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
             $paynlTransactionId = $paynlTransaction->getId();
-            $status = 0;
-            $orderActionName = '';
-            if ($apiTransaction->isBeingVerified()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PENDING;
-            } elseif ($apiTransaction->isPending()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PENDING;
-            } elseif ($apiTransaction->isPartiallyRefunded()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PARTIAL_REFUND;
-                $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
-            } elseif ($apiTransaction->isRefunded()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_REFUND;
-                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
-            } elseif ($apiTransaction->isAuthorized()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_AUTHORIZED;
-            } elseif ($apiTransaction->isPaid()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PAID;
-                $orderActionName = StateMachineTransitionActions::ACTION_PAY;
-            } elseif ($apiTransaction->isCanceled()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_CANCEL;
-                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
-            }
-
+            $status = (int)($apiTransaction->getStatus()->getData()['paymentDetails']['state'] ?? 0);
+            $orderActionName = $this->getOrderActionNameByStatus($status);
             $orderStateId = '';
             if (!empty($orderActionName)) {
                 $orderTransactionId = $paynlTransaction->get('orderTransactionId') ?: '';
@@ -216,5 +198,75 @@ class ProcessingHelper
         } catch (IllegalTransitionException $exception) {
             throw new Exception($exception->getMessage());
         }
+    }
+
+    /**
+     * @param int $status
+     * @return string
+     */
+    private function getOrderActionNameByStatus(int $status): string
+    {
+
+        switch ($status) {
+            case PaynlTransactionStatusesEnum::STATUS_CANCEL:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_EXPIRED:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_REFUNDING:
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_REFUND:
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_20:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_25:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_50:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_90:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_VERIFY:
+                $orderActionName = StateMachineStateEnum::ACTION_VERIFY;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_AUTHORIZE:
+                $orderActionName = StateMachineStateEnum::ACTION_AUTHORIZE;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PARTLY_CAPTURED:
+                $orderActionName = StateMachineStateEnum::ACTION_PARTLY_CAPTURED;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PAID:
+                $orderActionName = StateMachineTransitionActions::ACTION_PAY;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PAID_CHECKAMOUNT:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_FAILURE:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_DENIED_63:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_DENIED_64:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PARTIAL_REFUND:
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PARTIAL_PAYMENT:
+                $orderActionName = StateMachineTransitionActions::ACTION_PAY_PARTIALLY;
+                break;
+            default:
+                $orderActionName = '';
+                break;
+        }
+
+        return $orderActionName;
     }
 }
