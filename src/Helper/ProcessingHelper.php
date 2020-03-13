@@ -151,14 +151,17 @@ class ProcessingHelper
 
     /**
      * @param string $paynlTransactionId
-     * @return string|void
+     * @return string
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
-    public function processNotify(string $paynlTransactionId)
+    public function processNotify(string $paynlTransactionId): string
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
-        if ($apiTransaction->isPending()) {
-            return;
+        if (!$apiTransaction->isBeingVerified() && $apiTransaction->isPending()) {
+            return sprintf(
+                "TRUE| Transaction status code (%s)",
+                $apiTransaction->getStatus()->getData()['paymentDetails']['state']
+            );
         }
         $criteria = (new Criteria());
         $context = Context::createDefaultContext();

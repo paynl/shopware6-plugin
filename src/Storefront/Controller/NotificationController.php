@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Storefront\Controller;
 
+use function GuzzleHttp\Psr7\parse_query;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Helper\ProcessingHelper;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
@@ -24,18 +25,12 @@ class NotificationController extends StorefrontController
     }
 
     /**
-     * @Route("/PaynlPayment/notify", name="frontend.PaynlPayment.notify", options={"seo"="false"}, methods={"POST"})
+     * @Route("/PaynlPayment/notify", name="frontend.PaynlPayment.notify", defaults={"csrf_protected"=false}, options={"seo"="false"}, methods={"POST"})
      */
     public function notify(Request $request): JsonResponse
     {
-        $action = $request->get('action', '');
-        $responseText = 'FALSE|';
-        if (strtolower($action) !== Api::ACTION_PENDING) {
-            $transactionId = $request->get('order_id', '');
-            $responseText = $this->processingHelper->processNotify($transactionId);
-        }
-        $response = new JsonResponse();
-
-        return $response->setContent($responseText);
+        $transactionId = $request->get('order_id', '');
+        $responseText = $this->processingHelper->processNotify($transactionId);
+        die($responseText);
     }
 }
