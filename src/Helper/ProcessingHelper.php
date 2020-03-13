@@ -186,8 +186,7 @@ class ProcessingHelper
             $paynlTransaction->approve();
         }
 
-        if (
-            $paynlTransaction->isBeingVerified()
+        if ($paynlTransaction->isBeingVerified()
             && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL
         ) {
             $paynlTransaction->decline();

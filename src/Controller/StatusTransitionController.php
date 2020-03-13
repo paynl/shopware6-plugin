@@ -39,7 +39,10 @@ class StatusTransitionController extends AbstractController
     }
 
     /**
-     * @Route("/api/v1/paynl/change-transaction-status", name="api.PaynlPayment.changeTransactionStatus", methods={"POST"})
+     * @Route("/api/v1/paynl/change-transaction-status",
+     *     name="api.PaynlPayment.changeTransactionStatus",
+     *     methods={"POST"}
+     *     )
      */
     public function changeTransactionStatus(Request $request): JsonResponse
     {
