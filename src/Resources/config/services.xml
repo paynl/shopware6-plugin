@@ -67,6 +67,8 @@
         <service id="PaynlPayment\Controller\StatusTransitionController" public="true">
             <argument type="service" id="PaynlPayment\Components\Api"/>
             <argument type="service" id="PaynlPayment\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+            <argument type="service" id="paynl_transactions.repository"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>

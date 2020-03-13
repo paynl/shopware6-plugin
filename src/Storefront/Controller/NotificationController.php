@@ -25,7 +25,12 @@ class NotificationController extends StorefrontController
     }
 
     /**
-     * @Route("/PaynlPayment/notify", name="frontend.PaynlPayment.notify", defaults={"csrf_protected"=false}, options={"seo"="false"}, methods={"POST"})
+     * @Route("/PaynlPayment/notify",
+     *     name="frontend.PaynlPayment.notify",
+     *     defaults={"csrf_protected"=false},
+     *     options={"seo"="false"},
+     *     methods={"POST", "GET"}
+     *     )
      */
     public function notify(Request $request): JsonResponse
     {

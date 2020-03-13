@@ -4,6 +4,11 @@ namespace PaynlPayment\Controller;
 
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
+use PaynlPayment\Helper\ProcessingHelper;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,13 +23,19 @@ class StatusTransitionController extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
+    private $processingHelper;
+    private $paynlTransactionRepository;
 
     public function __construct(
         Api $paynlApi,
-        Config $paynlConfig
+        Config $paynlConfig,
+        ProcessingHelper $processingHelper,
+        EntityRepositoryInterface $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
+        $this->processingHelper = $processingHelper;
+        $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
     /**
@@ -32,11 +43,17 @@ class StatusTransitionController extends AbstractController
      */
     public function changeTransactionStatus(Request $request): JsonResponse
     {
-//        $paynlTransactionId = $request->get('transactionId');
+        $orderTransactionId = $request->get('transactionId', '');
+        $currentActionName = $request->get('currentActionName', '');
         try {
-//            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
-//            $refundedAmount = $apiTransaction->getRefundedAmount();
-//            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+            $paynlTransaction = $this->paynlTransactionRepository
+                ->search(
+                    (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId)),
+                    Context::createDefaultContext()
+                )
+                ->first();
+            $paynlTransactionId = $paynlTransaction->getPaynlTransactionId();
+            $this->processingHelper->processChangePaynlStatus($paynlTransactionId, $currentActionName);
 
             return new JsonResponse($request->request->all());
         } catch (Error\Api $exception) {

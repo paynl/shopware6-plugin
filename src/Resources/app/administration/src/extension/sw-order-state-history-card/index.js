@@ -6,6 +6,7 @@ Component.override('sw-order-state-history-card', {
     methods: {
         onLeaveModalConfirm(docIds) {
             this.showModal = false;
+            let currentActionName = this.currentActionName;
             if (this.currentStateType === 'orderTransactionState') {
                 this.orderStateMachineService.transitionOrderTransactionState(
                     this.transaction.id,
@@ -14,7 +15,7 @@ Component.override('sw-order-state-history-card', {
                 ).then(() => {
                     this.$emit('order-state-change');
                     this.loadHistory();
-                    this.paynlChangeTransactionStatus();
+                    this.paynlChangeTransactionStatus(this.transaction.id, currentActionName);
                 }).catch((error) => {
                     this.createStateChangeErrorNotification(error);
                 });
@@ -45,10 +46,7 @@ Component.override('sw-order-state-history-card', {
             this.currentStateType = null;
         },
 
-        paynlChangeTransactionStatus() {
-            let transactionId = this.transaction.id;
-            let currentActionName = this.currentActionName;
-
+        paynlChangeTransactionStatus(transactionId, currentActionName) {
             this.PaynlPaymentService.changeTransactionStatus({transactionId, currentActionName})
                 .then((response) => {})
                 .catch((errorResponse) => {

@@ -120,11 +120,14 @@ class ProcessingHelper
                 $apiTransactionData['paymentDetails']['state'],
                 $apiTransactionData['paymentDetails']['orderNumber']
             );
-        } catch (Exception $e) {
+        } catch (IllegalTransitionException $e) {
+            return "FALSE| Invalid transition";
+        } catch (\Throwable $e) {
             if ($isExchange) {
                 return "FALSE| " . $e->getMessage() . $e->getFile();
             }
         }
+
         return "FALSE| No action, order was not created";
     }
 
@@ -172,6 +175,34 @@ class ProcessingHelper
     }
 
     /**
+     * @param string $paynlTransactionId
+     * @param string $currentActionName
+     * @return void
+     */
+    public function processChangePaynlStatus(string $paynlTransactionId, string $currentActionName): void
+    {
+        $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
+        if ($paynlTransaction->isBeingVerified() && $currentActionName == StateMachineTransitionActions::ACTION_PAY) {
+            $paynlTransaction->approve();
+        }
+
+        if (
+            $paynlTransaction->isBeingVerified()
+            && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL
+        ) {
+            $paynlTransaction->decline();
+        }
+
+        if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_PAY) {
+            $paynlTransaction->capture();
+        }
+
+        if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL) {
+            $paynlTransaction->void();
+        }
+    }
+
+    /**
      * @param string $orderTransactionId
      * @param string $actionName
      * @param Context $context
@@ -188,19 +219,15 @@ class ProcessingHelper
         string $actionName,
         Context $context
     ): StateMachineStateCollection {
-        try {
-            return $this->stateMachineRegistry->transition(
-                new Transition(
-                    OrderTransactionDefinition::ENTITY_NAME,
-                    $orderTransactionId,
-                    $actionName,
-                    'stateId'
-                ),
-                $context
-            );
-        } catch (IllegalTransitionException $exception) {
-            throw new Exception($exception->getMessage());
-        }
+        return $this->stateMachineRegistry->transition(
+            new Transition(
+                OrderTransactionDefinition::ENTITY_NAME,
+                $orderTransactionId,
+                $actionName,
+                'stateId'
+            ),
+            $context
+        );
     }
 
     /**
@@ -209,7 +236,6 @@ class ProcessingHelper
      */
     private function getOrderActionNameByStatus(int $status): string
     {
-
         switch ($status) {
             case PaynlTransactionStatusesEnum::STATUS_CANCEL:
                 $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
