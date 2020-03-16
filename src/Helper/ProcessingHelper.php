@@ -30,16 +30,20 @@ class ProcessingHelper
     private $paynlApi;
     /** @var EntityRepositoryInterface */
     private $paynlTransactionRepository;
+    /** @var EntityRepositoryInterface  */
+    private $orderTransactionRepository;
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
     public function __construct(
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
+        EntityRepositoryInterface $orderTransactionRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
@@ -95,10 +99,11 @@ class ProcessingHelper
      */
     public function updateTransaction(PaynlTransaction $paynlTransaction, Context $context, bool $isExchange): string
     {
+        $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
+        $paynlTransactionId = $paynlTransaction->getId();
+        $status = (int)($apiTransaction->getStatus()->getData()['paymentDetails']['state'] ?? 0);
+
         try {
-            $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
-            $paynlTransactionId = $paynlTransaction->getId();
-            $status = (int)($apiTransaction->getStatus()->getData()['paymentDetails']['state'] ?? 0);
             $orderActionName = $this->getOrderActionNameByStatus($status);
             $orderStateId = '';
             if (!empty($orderActionName)) {
@@ -110,25 +115,27 @@ class ProcessingHelper
                     $orderStateId = $toPlace->getUniqueIdentifier();
                 }
             }
-            $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
-
-            $apiTransactionData = $apiTransaction->getData();
-
-            return sprintf(
-                "TRUE| Status updated to: %s (%s) orderNumber: %s",
-                $apiTransactionData['paymentDetails']['stateName'],
-                $apiTransactionData['paymentDetails']['state'],
-                $apiTransactionData['paymentDetails']['orderNumber']
-            );
         } catch (IllegalTransitionException $e) {
-            return "FALSE| Invalid transition";
-        } catch (\Throwable $e) {
-            if ($isExchange) {
-                return "FALSE| " . $e->getMessage() . $e->getFile();
+            if (empty($orderStateId)) {
+                $criteria = (new Criteria());
+                $context = Context::createDefaultContext();
+                $criteria->addFilter(new EqualsFilter('orderId', $paynlTransaction->getOrderId()));
+                $entity = $this->orderTransactionRepository->search($criteria, $context)->first();
+                $orderStateId = $entity->getStateId();
             }
+        } catch (\Throwable $e) {
+            return "FALSE| " . $e->getMessage() . $e->getFile();
         }
 
-        return "FALSE| No action, order was not created";
+        $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
+        $apiTransactionData = $apiTransaction->getData();
+
+        return sprintf(
+            "TRUE| Status updated to: %s (%s) orderNumber: %s",
+            $apiTransactionData['paymentDetails']['stateName'],
+            $apiTransactionData['paymentDetails']['state'],
+            $apiTransactionData['paymentDetails']['orderNumber']
+        );
     }
 
     /**
