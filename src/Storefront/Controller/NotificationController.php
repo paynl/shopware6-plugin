@@ -2,13 +2,12 @@
 
 namespace PaynlPayment\Storefront\Controller;
 
-use function GuzzleHttp\Psr7\parse_query;
-use PaynlPayment\Components\Api;
 use PaynlPayment\Helper\ProcessingHelper;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -36,6 +35,7 @@ class NotificationController extends StorefrontController
     {
         $transactionId = $request->get('order_id', '');
         $responseText = $this->processingHelper->processNotify($transactionId);
-        die($responseText);
+
+        return new Response($responseText);
     }
 }
