@@ -31,7 +31,7 @@ class NotificationController extends StorefrontController
      *     methods={"POST", "GET"}
      *     )
      */
-    public function notify(Request $request): JsonResponse
+    public function notify(Request $request): Response
     {
         $transactionId = $request->get('order_id', '');
         $responseText = $this->processingHelper->processNotify($transactionId);
