@@ -29,6 +29,14 @@ class PaynlPaymentService extends ApiService {
                 return ApiService.handleResponse(response);
             });
     }
+
+    changeTransactionStatus(data) {
+        return this.httpClient
+            .post(`${this.getApiBasePath()}/change-transaction-status`, data, {headers: this.getBasicHeaders()})
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
 }
 
 Application.addServiceProvider('PaynlPaymentService', (container) => {

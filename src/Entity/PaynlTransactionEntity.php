@@ -39,6 +39,16 @@ class PaynlTransactionEntity extends Entity
      */
     protected $exception;
 
+    /**
+     * @var string
+     */
+    protected $orderTransactionId;
+
+    /**
+     * @var string
+     */
+    protected $orderId;
+
     public function getTechnicalName(): string
     {
         return $this->technicalName;
@@ -57,6 +67,26 @@ class PaynlTransactionEntity extends Entity
     public function setPaynlTransactionId(string $paynlTransactionId): void
     {
         $this->paynlTransactionId = $paynlTransactionId;
+    }
+
+    public function getOrderTransactionId(): string
+    {
+        return $this->orderTransactionId;
+    }
+
+    public function setOrderTransactionId(string $orderTransactionId): void
+    {
+        $this->orderTransactionId = $orderTransactionId;
+    }
+
+    public function getOrderId(): ?string
+    {
+        return $this->orderId;
+    }
+
+    public function setOrderId(string $orderId): void
+    {
+        $this->orderId = $orderId;
     }
 
     public function getPaymentId(): ?string

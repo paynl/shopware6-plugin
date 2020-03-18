@@ -3,6 +3,7 @@
 namespace PaynlPayment\Entity;
 
 use Shopware\Core\Checkout\Customer\CustomerDefinition;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\CreatedAtField;
@@ -43,11 +44,13 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
         return new FieldCollection([
             (new IdField('id', 'id'))->addFlags(new PrimaryKey(), new Required()),
 
-            (new FkField('customer_id', 'customerId', PaynlTransactionEntityDefinition::class))
+            (new FkField('customer_id', 'customerId', CustomerDefinition::class))
                 ->addFlags(new Required()),
-            (new FkField('order_id', 'orderId', PaynlTransactionEntityDefinition::class))
+            (new FkField('order_id', 'orderId', OrderDefinition::class))
                 ->addFlags(new Required()),
-            (new FkField('order_transaction_id', 'orderTransactionId', PaynlTransactionEntityDefinition::class))
+            (new FkField('order_transaction_id', 'orderTransactionId', OrderTransactionDefinition::class))
+                ->addFlags(new Required()),
+            (new FkField('order_state_id', 'orderStateId', StateMachineStateDefinition::class))
                 ->addFlags(new Required()),
 
             (new StringField('paynl_transaction_id', 'paynlTransactionId', 16)),
@@ -57,8 +60,6 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
-            (new FkField('order_state_id', 'orderStateId', StateMachineStateDefinition::class))
-                ->addFlags(new Required()),
             (new IntField('state_id', 'stateId')),
 
             new ManyToOneAssociationField(
@@ -79,6 +80,13 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'orderStateMachine',
                 'order_state_id',
                 StateMachineStateDefinition::class,
+                'id',
+                false
+            ),
+            new ManyToOneAssociationField(
+                'orderTransaction',
+                'order_transaction_id',
+                OrderTransactionDefinition::class,
                 'id',
                 false
             ),

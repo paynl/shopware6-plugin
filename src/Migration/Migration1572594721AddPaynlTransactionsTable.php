@@ -55,7 +55,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                     FOREIGN KEY (`order_state_id`)
                     REFERENCES `state_machine_state` (`id`)
                     ON DELETE RESTRICT ON UPDATE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ';
 
         $connection->executeQuery($query);

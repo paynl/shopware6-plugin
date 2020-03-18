@@ -7,6 +7,7 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Entity\PaynlTransactionEntity;
 use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
+use PaynlPayment\Enums\StateMachineStateEnum;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -29,16 +30,20 @@ class ProcessingHelper
     private $paynlApi;
     /** @var EntityRepositoryInterface */
     private $paynlTransactionRepository;
+    /** @var EntityRepositoryInterface  */
+    private $orderTransactionRepository;
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
     public function __construct(
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
+        EntityRepositoryInterface $orderTransactionRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
@@ -77,6 +82,7 @@ class ProcessingHelper
     public function findTransactionByOrderId(string $orderId, Context $context)
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
+
         return $this->paynlTransactionRepository->search($criteria, $context)->first();
     }
 
@@ -93,31 +99,12 @@ class ProcessingHelper
      */
     public function updateTransaction(PaynlTransaction $paynlTransaction, Context $context, bool $isExchange): string
     {
-        try {
-            $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
-            $paynlTransactionId = $paynlTransaction->getId();
-            $status = 0;
-            $orderActionName = '';
-            if ($apiTransaction->isBeingVerified()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PENDING;
-            } elseif ($apiTransaction->isPending()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PENDING;
-            } elseif ($apiTransaction->isPartiallyRefunded()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PARTIAL_REFUND;
-                $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
-            } elseif ($apiTransaction->isRefunded()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_REFUND;
-                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
-            } elseif ($apiTransaction->isAuthorized()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_AUTHORIZED;
-            } elseif ($apiTransaction->isPaid()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_PAID;
-                $orderActionName = StateMachineTransitionActions::ACTION_PAY;
-            } elseif ($apiTransaction->isCanceled()) {
-                $status = PaynlTransactionStatusesEnum::STATUS_CANCEL;
-                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
-            }
+        $apiTransaction = $this->getApiTransaction($paynlTransaction->getPaynlTransactionId());
+        $paynlTransactionId = $paynlTransaction->getId();
+        $status = (int)($apiTransaction->getStatus()->getData()['paymentDetails']['state'] ?? 0);
 
+        try {
+            $orderActionName = $this->getOrderActionNameByStatus($status);
             $orderStateId = '';
             if (!empty($orderActionName)) {
                 $orderTransactionId = $paynlTransaction->get('orderTransactionId') ?: '';
@@ -128,22 +115,30 @@ class ProcessingHelper
                     $orderStateId = $toPlace->getUniqueIdentifier();
                 }
             }
-            $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
-
-            $apiTransactionData = $apiTransaction->getData();
-
-            return sprintf(
-                "TRUE| Status updated to: %s (%s) orderNumber: %s",
-                $apiTransactionData['paymentDetails']['stateName'],
-                $apiTransactionData['paymentDetails']['state'],
-                $apiTransactionData['paymentDetails']['orderNumber']
-            );
-        } catch (Exception $e) {
-            if ($isExchange) {
-                return "FALSE| " . $e->getMessage() . $e->getFile();
+        } catch (IllegalTransitionException $e) {
+            if (empty($orderStateId)) {
+                $criteria = (new Criteria());
+                $context = Context::createDefaultContext();
+                $criteria->addFilter(new EqualsFilter('orderId', $paynlTransaction->getOrderId()));
+                $entity = $this->orderTransactionRepository->search($criteria, $context)->first();
+                $orderStateId = $entity->getStateId();
             }
+        } catch (\Throwable $e) {
+            return sprintf(
+                'FALSE| Error "%s" in file %s',
+                $e->getMessage(),
+                $e->getFile()
+            );
         }
-        return "FALSE| No action, order was not created";
+
+        $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
+        $apiTransactionData = $apiTransaction->getData();
+
+        $stateName = $apiTransactionData['paymentDetails']['stateName'];
+        $state = $apiTransactionData['paymentDetails']['state'];
+        $orderNumber = $apiTransactionData['paymentDetails']['orderNumber'];
+
+        return sprintf('TRUE| Status updated to: %s (%s) orderNumber: %s', $stateName, $state, $orderNumber);
     }
 
     /**
@@ -169,14 +164,16 @@ class ProcessingHelper
 
     /**
      * @param string $paynlTransactionId
-     * @return string|void
+     * @return string
      * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
      */
-    public function processNotify(string $paynlTransactionId)
+    public function processNotify(string $paynlTransactionId): string
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
-        if ($apiTransaction->isPending()) {
-            return;
+        if (!$apiTransaction->isBeingVerified() && $apiTransaction->isPending()) {
+            $paymentDetailsState = $apiTransaction->getStatus()->getData()['paymentDetails']['state'];
+
+            return sprintf("TRUE| Transaction status code (%s)", $paymentDetailsState);
         }
         $criteria = (new Criteria());
         $context = Context::createDefaultContext();
@@ -184,6 +181,41 @@ class ProcessingHelper
         $entity = $this->paynlTransactionRepository->search($criteria, $context)->first();
 
         return $this->updateTransaction($entity, $context, true);
+    }
+
+    /**
+     * @param string $paynlTransactionId
+     * @param string $currentActionName
+     * @return void
+     */
+    public function processChangePaynlStatus(string $paynlTransactionId, string $currentActionName): void
+    {
+        $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
+        if ($paynlTransaction->isBeingVerified() && $currentActionName == StateMachineTransitionActions::ACTION_PAY) {
+            $paynlTransaction->approve();
+
+            return;
+        }
+
+        if ($paynlTransaction->isBeingVerified()
+            && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL
+        ) {
+            $paynlTransaction->decline();
+
+            return;
+        }
+
+        if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_PAY) {
+            $paynlTransaction->capture();
+
+            return;
+        }
+
+        if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL) {
+            $paynlTransaction->void();
+
+            return;
+        }
     }
 
     /**
@@ -203,18 +235,83 @@ class ProcessingHelper
         string $actionName,
         Context $context
     ): StateMachineStateCollection {
-        try {
-            return $this->stateMachineRegistry->transition(
-                new Transition(
-                    OrderTransactionDefinition::ENTITY_NAME,
-                    $orderTransactionId,
-                    $actionName,
-                    'stateId'
-                ),
-                $context
-            );
-        } catch (IllegalTransitionException $exception) {
-            throw new Exception($exception->getMessage());
+        return $this->stateMachineRegistry->transition(
+            new Transition(
+                OrderTransactionDefinition::ENTITY_NAME,
+                $orderTransactionId,
+                $actionName,
+                'stateId'
+            ),
+            $context
+        );
+    }
+
+    /**
+     * @param int $status
+     * @return string
+     */
+    private function getOrderActionNameByStatus(int $status): string
+    {
+        switch ($status) {
+            case PaynlTransactionStatusesEnum::STATUS_CANCEL:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_EXPIRED:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_REFUNDING:
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_REFUND:
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_20:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_25:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_50:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PENDING_90:
+                $orderActionName = StateMachineTransitionActions::ACTION_REOPEN;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_VERIFY:
+                $orderActionName = StateMachineStateEnum::ACTION_VERIFY;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_AUTHORIZE:
+                $orderActionName = StateMachineStateEnum::ACTION_AUTHORIZE;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PARTLY_CAPTURED:
+                $orderActionName = StateMachineStateEnum::ACTION_PARTLY_CAPTURED;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PAID:
+                $orderActionName = StateMachineTransitionActions::ACTION_PAY;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PAID_CHECKAMOUNT:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_FAILURE:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_DENIED_63:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_DENIED_64:
+                $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PARTIAL_REFUND:
+                $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
+                break;
+            case PaynlTransactionStatusesEnum::STATUS_PARTIAL_PAYMENT:
+                $orderActionName = StateMachineTransitionActions::ACTION_PAY_PARTIALLY;
+                break;
+            default:
+                $orderActionName = '';
+                break;
         }
+
+        return $orderActionName;
     }
 }
