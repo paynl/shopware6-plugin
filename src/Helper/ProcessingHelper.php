@@ -124,18 +124,21 @@ class ProcessingHelper
                 $orderStateId = $entity->getStateId();
             }
         } catch (\Throwable $e) {
-            return "FALSE| " . $e->getMessage() . $e->getFile();
+            return sprintf(
+                'FALSE| Error "%s" in file %s',
+                $e->getMessage(),
+                $e->getFile()
+            );
         }
 
         $this->setPaynlStatus($paynlTransactionId, $context, $status, $orderStateId);
         $apiTransactionData = $apiTransaction->getData();
 
-        return sprintf(
-            "TRUE| Status updated to: %s (%s) orderNumber: %s",
-            $apiTransactionData['paymentDetails']['stateName'],
-            $apiTransactionData['paymentDetails']['state'],
-            $apiTransactionData['paymentDetails']['orderNumber']
-        );
+        $stateName = $apiTransactionData['paymentDetails']['stateName'];
+        $state = $apiTransactionData['paymentDetails']['state'];
+        $orderNumber = $apiTransactionData['paymentDetails']['orderNumber'];
+
+        return sprintf('TRUE| Status updated to: %s (%s) orderNumber: %s', $stateName, $state, $orderNumber);
     }
 
     /**
@@ -168,10 +171,9 @@ class ProcessingHelper
     {
         $apiTransaction = $this->getApiTransaction($paynlTransactionId);
         if (!$apiTransaction->isBeingVerified() && $apiTransaction->isPending()) {
-            return sprintf(
-                "TRUE| Transaction status code (%s)",
-                $apiTransaction->getStatus()->getData()['paymentDetails']['state']
-            );
+            $paymentDetailsState = $apiTransaction->getStatus()->getData()['paymentDetails']['state'];
+
+            return sprintf("TRUE| Transaction status code (%s)", $paymentDetailsState);
         }
         $criteria = (new Criteria());
         $context = Context::createDefaultContext();
@@ -191,20 +193,28 @@ class ProcessingHelper
         $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
         if ($paynlTransaction->isBeingVerified() && $currentActionName == StateMachineTransitionActions::ACTION_PAY) {
             $paynlTransaction->approve();
+
+            return;
         }
 
         if ($paynlTransaction->isBeingVerified()
             && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL
         ) {
             $paynlTransaction->decline();
+
+            return;
         }
 
         if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_PAY) {
             $paynlTransaction->capture();
+
+            return;
         }
 
         if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL) {
             $paynlTransaction->void();
+
+            return;
         }
     }
 
