@@ -19,6 +19,7 @@ class PaynlPayment extends Plugin
         (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
         (new InstallHelper($this->container))->removeConfigurationData($uninstallContext->getContext());
         (new InstallHelper($this->container))->dropTables();
+        (new InstallHelper($this->container))->removeStates();
     }
 
     public function activate(ActivateContext $activateContext): void
