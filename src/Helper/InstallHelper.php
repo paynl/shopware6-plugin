@@ -264,7 +264,5 @@ SQL;
         $this->connection->executeQuery($removeMailTemplateTypeSQL, [
             'id' => $mailTemplateTypePartlyCapturedId
         ]);
-
-
     }
 }
