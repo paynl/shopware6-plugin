@@ -165,19 +165,28 @@ class InstallHelper
 
     public function removeStates(): void
     {
+        $mailTemplateTypeSQL = <<<SQL
+SELECT id FROM shopware.mail_template_type where technical_name = :technical_name LIMIT 1
+SQL;
         $stateMachineStateSQl = <<<SQL
-SELECT id FROM state_machine_state WHERE technical_name = :technical_name
+SELECT id FROM state_machine_state WHERE technical_name = :technical_name LIMIT 1
 SQL;
         $removeStateMachineTransitionSQL = <<<SQL
-DELETE FROM state_machine_transition WHERE to_state_id = :toStateId OR from_state_id = :fromStateId;
+DELETE FROM state_machine_transition WHERE to_state_id = :to_state_id OR from_state_id = :from_state_id;
 SQL;
         $removeStateMachineStateTranslationSQL = <<<SQL
 DELETE FROM state_machine_state_translation WHERE state_machine_state_id = :state_machine_state_id;
 SQL;
-        $removeStateMachineState = <<<SQL
+        $removeStateMachineStateSQL = <<<SQL
 DELETE FROM state_machine_state WHERE id = :id;
 SQL;
-        // Remove state_machine_state
+        $removeMailTemplateTypeTranslationSQL = <<<SQL
+DELETE FROM mail_template_type_translation WHERE mail_template_type_id = :mail_template_type_id;
+SQL;
+        $removeMailTemplateTypeSQL = <<<SQL
+DELETE FROM mail_template_type WHERE id = :id;
+SQL;
+        // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => 'verify'
         ])->fetchColumn();
@@ -188,21 +197,31 @@ SQL;
             'technical_name' => 'partly_captured'
         ])->fetchColumn();
 
-        // Remove state_machine_transition
+        $mailTemplateTypeVerifyId = $this->connection->executeQuery($mailTemplateTypeSQL, [
+            'technical_name' => 'order_transaction.state.verify'
+        ])->fetchColumn();
+        $mailTemplateTypeAuthorizeId = $this->connection->executeQuery($mailTemplateTypeSQL, [
+            'technical_name' => 'order_transaction.state.authorize'
+        ])->fetchColumn();
+        $mailTemplateTypePartlyCapturedId = $this->connection->executeQuery($mailTemplateTypeSQL, [
+            'technical_name' => 'order_transaction.state.partly_captured'
+        ])->fetchColumn();
+
+        // Remove state machine transition
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
-            'toStateId' => $stateMachineStateVerifyId,
-            'fromStateId' => $stateMachineStateVerifyId
+            'to_state_id' => $stateMachineStateVerifyId,
+            'from_state_id' => $stateMachineStateVerifyId
         ]);
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
-            'toStateId' => $stateMachineStateAuthorizeId,
-            'fromStateId' => $stateMachineStateAuthorizeId
+            'to_state_id' => $stateMachineStateAuthorizeId,
+            'from_state_id' => $stateMachineStateAuthorizeId
         ]);
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
-            'toStateId' => $stateMachineStatePartlyCapturedId,
-            'fromStateId' => $stateMachineStatePartlyCapturedId
+            'to_state_id' => $stateMachineStatePartlyCapturedId,
+            'from_state_id' => $stateMachineStatePartlyCapturedId
         ]);
 
-        // Remove state_machine_state_translation
+        // Remove state machine state translation
         $this->connection->executeUpdate($removeStateMachineStateTranslationSQL, [
             'state_machine_state_id' => $stateMachineStateVerifyId,
         ]);
@@ -213,14 +232,39 @@ SQL;
             'state_machine_state_id' => $stateMachineStatePartlyCapturedId,
         ]);
 
-        $this->connection->executeQuery($removeStateMachineState, [
+        // Remove state machine state
+        $this->connection->executeQuery($removeStateMachineStateSQL, [
             'id' => $stateMachineStateVerifyId
         ]);
-        $this->connection->executeQuery($removeStateMachineState, [
+        $this->connection->executeQuery($removeStateMachineStateSQL, [
             'id' => $stateMachineStateAuthorizeId
         ]);
-        $this->connection->executeQuery($removeStateMachineState, [
+        $this->connection->executeQuery($removeStateMachineStateSQL, [
             'id' => $stateMachineStatePartlyCapturedId
         ]);
+
+        // Remove mail template type translation
+        $this->connection->executeQuery($removeMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTemplateTypeVerifyId
+        ]);
+        $this->connection->executeQuery($removeMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTemplateTypeAuthorizeId
+        ]);
+        $this->connection->executeQuery($removeMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTemplateTypePartlyCapturedId
+        ]);
+
+        // Remove mail template type
+        $this->connection->executeQuery($removeMailTemplateTypeSQL, [
+            'id' => $mailTemplateTypeVerifyId
+        ]);
+        $this->connection->executeQuery($removeMailTemplateTypeSQL, [
+            'id' => $mailTemplateTypeAuthorizeId
+        ]);
+        $this->connection->executeQuery($removeMailTemplateTypeSQL, [
+            'id' => $mailTemplateTypePartlyCapturedId
+        ]);
+
+
     }
 }
