@@ -10,6 +10,99 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 {
     const DATE_FORMAT = 'Y-m-d H:i:s';
 
+    private $orderTransactionStateSQL = <<<SQL
+SELECT id FROM state_machine WHERE technical_name = :technical_name LIMIT 1
+SQL;
+    
+    private $stateMachineStateSQL = <<<SQL
+SELECT id FROM state_machine_state WHERE technical_name = :technical_name AND state_machine_id = :state_machine_id
+SQL;
+    
+    private $languageSQL = <<<SQL
+SELECT `id` FROM `language` where `name` = :name limit 1
+SQL;
+    
+    private $mailTempaleTypeId = <<<SQL
+SELECT id FROM mail_template_type WHERE technical_name LIKE :technical_name LIMIT 1
+SQL;
+    
+    private $sqlStateMachineState = <<<SQL
+            INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
+            VALUES (
+                :id, 
+                :technical_name, 
+                :state_machine_id, 
+                :created_at, 
+                NULL
+            )
+            ON DUPLICATE KEY
+                UPDATE `updated_at` = CURRENT_TIME();
+SQL;
+    
+    private $stateMachineStateTranslation = <<<SQL
+            INSERT INTO state_machine_state_translation
+                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
+            VALUES (
+                :language_id,
+                :state_machine_state_id,
+                :name,
+                NULL,
+                :created_at,
+                NULL
+            )
+            ON DUPLICATE KEY
+                UPDATE `updated_at` = CURRENT_TIME();
+SQL;
+    
+    private $insertTransitionSQL = <<<SQL
+            INSERT INTO state_machine_transition 
+                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
+            VALUES (
+                :id, 
+                :action_name, 
+                :state_machine_id,
+                :from_state_id,
+                :to_state_id, 
+                NULL, 
+                :created_at, 
+                NULL
+            )
+            ON DUPLICATE KEY
+                UPDATE `updated_at` = CURRENT_TIME();
+SQL;
+    
+    private $insertMailTemplateTypeSql = <<<SQL
+            INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
+            VALUES (
+                :id, 
+                :technical_name, 
+                :available_entities, 
+                :created_at, 
+                NULL
+            )
+            ON DUPLICATE KEY
+                UPDATE `updated_at` = CURRENT_TIME();
+SQL;
+    
+    private $insertMailTemplateTypeTranslationSQL = <<<SQL
+            INSERT INTO mail_template_type_translation 
+                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
+            VALUES (
+                :mail_template_type_id, 
+                :language_id, 
+                :name, 
+                NULL, 
+                :created_at, 
+                NULL
+            )
+            ON DUPLICATE KEY
+                UPDATE `updated_at` = CURRENT_TIME();
+SQL;
+    
+    private $availableEntries = <<<JSON
+{"order":"order","previousState":"state_machine_state","newState":"state_machine_state","salesChannel":"sales_channel"}
+JSON;
+    
     public function getCreationTimestamp(): int
     {
         return 1584438271;
@@ -17,582 +110,254 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
     public function update(Connection $connection): void
     {
-        $this->addStateMachineState($connection);
-        $this->addStateMachineStateTransition($connection);
-        $this->addMailTemplateType($connection);
+        $date = date(self::DATE_FORMAT);
+
+        $orderTransactionStateId = $connection->executeQuery($this->orderTransactionStateSQL, [
+            'technical_name' => 'order_transaction.state'
+        ])->fetchColumn();
+
+        $languageEnglishId = $connection->executeQuery($this->languageSQL, [
+            'name' => 'English'
+        ])->fetchColumn();
+
+        $languageDeutschId = $connection->executeQuery($this->languageSQL, [
+            'name' => 'Deutsch'
+        ])->fetchColumn();
+
+        $statusesArray = [
+            'verify' => [
+                'english' => [
+                    'id' => $languageEnglishId,
+                    'name' => 'Verify',
+                ],
+                'german' => [
+                    'id' => $languageDeutschId,
+                    'name' => 'Überprüfen',
+                ],
+            ],
+            'authorize' => [
+                'english' => [
+                    'id' => $languageEnglishId,
+                    'name' => 'Authorize',
+                ],
+                'german' => [
+                    'id' => $languageDeutschId,
+                    'name' => 'Autorisieren',
+                ],
+            ],
+            'partly_captured' => [
+                'english' => [
+                    'id' => $languageEnglishId,
+                    'name' => 'Partly captured',
+                ],
+                'german' => [
+                    'id' => $languageDeutschId,
+                    'name' => 'Teilweise erfasst',
+                ],
+            ]
+        ];
+
+        foreach ($statusesArray as $status => $translations) {
+            $connection->executeQuery($this->sqlStateMachineState, [
+                'id' => Uuid::randomBytes(),
+                'technical_name' => $status,
+                'state_machine_id' => $orderTransactionStateId,
+                'created_at' => $date,
+            ]);
+
+            $stateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+                'technical_name' => $status,
+                'state_machine_id' => $orderTransactionStateId
+            ])->fetchColumn();
+
+            $connection->executeQuery($this->stateMachineStateTranslation, [
+                'language_id' => $translations['english']['id'],
+                'state_machine_state_id' => $stateMachineStateId,
+                'name' => $translations['english']['name'],
+                'created_at' => $date
+            ]);
+
+            $connection->executeQuery($this->stateMachineStateTranslation, [
+                'language_id' => $translations['german']['id'],
+                'state_machine_state_id' => $stateMachineStateId,
+                'name' => $translations['german']['name'],
+                'created_at' => $date
+            ]);
+        }
+        
+        // Adding transitions
+        $paidStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+            'technical_name' => 'paid',
+            'state_machine_id' => $orderTransactionStateId,
+        ])->fetchColumn();
+        
+        $openStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+            'technical_name' => 'open',
+            'state_machine_id' => $orderTransactionStateId,
+        ])->fetchColumn();
+        
+        $authorizeStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+            'technical_name' => 'authorize',
+            'state_machine_id' => $orderTransactionStateId,
+        ])->fetchColumn();
+        
+        $verifyStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+            'technical_name' => 'verify',
+            'state_machine_id' => $orderTransactionStateId,
+        ])->fetchColumn();
+        
+        $partlyCapturedStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+            'technical_name' => 'partly_captured',
+            'state_machine_id' => $orderTransactionStateId,
+        ])->fetchColumn();
+        
+        $cancelledCapturedStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
+            'technical_name' => 'cancelled',
+            'state_machine_id' => $orderTransactionStateId,
+        ])->fetchColumn();
+
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'authorize',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $openStateMachineStateId,
+            'to_state_id' => $authorizeStateMachineStateId,
+            'created_at' => $date
+        ]);
+
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'verify',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $openStateMachineStateId,
+            'to_state_id' => $verifyStateMachineStateId,
+            'created_at' => $date
+        ]);
+
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'partly_captured',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $openStateMachineStateId,
+            'to_state_id' => $partlyCapturedStateMachineStateId,
+            'created_at' => $date
+        ]);
+
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'pay',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $authorizeStateMachineStateId,
+            'to_state_id' => $paidStateMachineStateId,
+            'created_at' => $date
+        ]);
+        
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'cancel',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $authorizeStateMachineStateId,
+            'to_state_id' => $cancelledCapturedStateMachineStateId,
+            'created_at' => $date
+        ]);
+        
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'pay',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $verifyStateMachineStateId,
+            'to_state_id' => $paidStateMachineStateId,
+            'created_at' => $date
+        ]);
+        
+        $connection->executeQuery($this->insertTransitionSQL, [
+            'id' => Uuid::randomBytes(),
+            'action_name' => 'cancel',
+            'state_machine_id' => $orderTransactionStateId,
+            'from_state_id' => $verifyStateMachineStateId,
+            'to_state_id' => $cancelledCapturedStateMachineStateId,
+            'created_at' => $date
+        ]);
+        
+        $connection->executeQuery($this->insertMailTemplateTypeSql, [
+            'id' => Uuid::randomBytes(),
+            'technical_name' => 'order_transaction.state.authorize',
+            'available_entities' => $this->availableEntries,
+            'created_at' => $date,
+        ]);
+
+        // Adding mail template types
+        $mailTempaleAuthorizeTypeId = $connection->executeQuery($this->mailTempaleTypeId, [
+            'technical_name' => 'order_transaction.state.authorize'
+        ])->fetchColumn();
+
+        $connection->executeQuery($this->insertMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
+            'language_id' => $languageEnglishId,
+            'name' => 'Enter payment state: Authorize',
+            'created_at' => $date,
+        ]);
+
+        $connection->executeQuery($this->insertMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
+            'language_id' => $languageDeutschId,
+            'name' => 'Zahlungsstatus eingeben: Autorisieren',
+            'created_at' => $date,
+        ]);
+
+        $connection->executeQuery($this->insertMailTemplateTypeSql, [
+            'id' => Uuid::randomBytes(),
+            'technical_name' => 'order_transaction.state.verify',
+            'available_entities' => $this->availableEntries,
+            'created_at' => $date,
+        ]);
+
+        $mailTempaleVerifyTypeId = $connection->executeQuery($this->mailTempaleTypeId, [
+            'technical_name' => 'order_transaction.state.verify'
+        ])->fetchColumn();
+
+        $connection->executeQuery($this->insertMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTempaleVerifyTypeId,
+            'language_id' => $languageEnglishId,
+            'name' => 'Enter payment state: Verify',
+            'created_at' => $date,
+        ]);
+
+        $connection->executeQuery($this->insertMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTempaleVerifyTypeId,
+            'language_id' => $languageDeutschId,
+            'name' => 'Zahlungsstatus eingeben: Verify',
+            'created_at' => $date,
+        ]);
+
+        $connection->executeQuery($this->insertMailTemplateTypeSql, [
+            'id' => Uuid::randomBytes(),
+            'technical_name' => 'order_transaction.state.partly_captured',
+            'available_entities' => $this->availableEntries,
+            'created_at' => $date,
+        ]);
+
+        $mailTempalePartlyCapturedTypeId = $connection->executeQuery($this->mailTempaleTypeId, [
+            'technical_name' => 'order_transaction.state.partly_captured'
+        ])->fetchColumn();
+
+        $connection->executeQuery($this->insertMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
+            'language_id' => $languageEnglishId,
+            'name' => 'Enter payment state: Partly captured',
+            'created_at' => $date,
+        ]);
+
+        $connection->executeQuery($this->insertMailTemplateTypeTranslationSQL, [
+            'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
+            'language_id' => $languageDeutschId,
+            'name' => 'Zahlungsstatus eingeben: Partly captured',
+            'created_at' => $date,
+        ]);
     }
 
     public function updateDestructive(Connection $connection): void
     {
         // implement update destructive
-    }
-
-    /**
-     * @param Connection $connection
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    private function addStateMachineState(Connection $connection): void
-    {
-        $date = date(self::DATE_FORMAT);
-        $orderTransactionStateSQL = <<<SQL
-SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1
-SQL;
-        $stateMachineStateVerifySQL = <<<SQL
-SELECT id FROM state_machine_state 
-                WHERE technical_name = 'verify' AND state_machine_id = ($orderTransactionStateSQL)
-SQL;
-        $stateMachineStateAuthorizeSQL = <<<SQL
-SELECT id FROM state_machine_state 
-                WHERE technical_name = 'authorize' AND state_machine_id = ($orderTransactionStateSQL)
-SQL;
-        $stateMachineStatePartlyCapturedSQL = <<<SQL
-SELECT id FROM state_machine_state 
-                WHERE technical_name = 'partly_captured' AND state_machine_id = ($orderTransactionStateSQL)
-SQL;
-        $languageEnglish = <<<SQL
-SELECT `id` FROM `language` where `name` = 'English' limit 1
-SQL;
-
-        $languageDeutsch = <<<SQL
-SELECT `id` FROM `language` where `name` = 'Deutsch' limit 1
-SQL;
-
-        // Adding verify state with translations
-        $sql = <<<SQL
-            INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
-            VALUES (
-                :id, 
-                :technical_name, 
-                ($orderTransactionStateSQL), 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql, [
-            'technical_name' => 'verify',
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $sql = <<<SQL
-            INSERT INTO state_machine_state_translation 
-                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES (
-                ($languageEnglish), 
-                ($stateMachineStateVerifySQL), 
-                :name, 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql, [
-            'name' => 'Verify'
-        ]);
-
-        $sql = <<<SQL
-            INSERT INTO state_machine_state_translation 
-                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES (
-                ($languageDeutsch), 
-                ($stateMachineStateVerifySQL), 
-                'Überprüfen', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql);
-
-        // Adding authorize state with translations
-        $sql = <<<SQL
-            INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
-            VALUES (
-                :id, 
-                'authorize', 
-                ($orderTransactionStateSQL), 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $sql = <<<SQL
-            INSERT INTO state_machine_state_translation 
-                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES (
-                ($languageEnglish), 
-                ($stateMachineStateAuthorizeSQL), 
-                'Authorize', 
-                NULL, 
-                '{$date}',
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql);
-
-        $sql = <<<SQL
-            INSERT INTO state_machine_state_translation 
-                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES (
-                ($languageDeutsch), 
-                ($stateMachineStateAuthorizeSQL), 
-                'Autorisieren', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql);
-
-        // Adding partly_captured state with translations
-        $sql = <<<SQL
-            INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
-            VALUES (
-                :id, 
-                'partly_captured', 
-                ($orderTransactionStateSQL), 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $sql = <<<SQL
-            INSERT INTO state_machine_state_translation 
-                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES (
-                ($languageEnglish), 
-                ($stateMachineStatePartlyCapturedSQL), 
-                'Partly captured', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql);
-
-        $sql = <<<SQL
-            INSERT INTO state_machine_state_translation 
-                (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
-            VALUES (
-                ($languageDeutsch), 
-                ($stateMachineStatePartlyCapturedSQL), 
-                'Partly captured', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($sql);
-    }
-
-    /**
-     * @param Connection $connection
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    private function addStateMachineStateTransition(Connection $connection): void
-    {
-        $date = date(self::DATE_FORMAT);
-        $stateMachineId = <<<SQL
-            SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1
-SQL;
-        $paidStateMachineStateIdSQL = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-                    AND technical_name = 'paid' 
-            LIMIT 1
-SQL;
-
-        $openStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-                AND technical_name = 'open' 
-            LIMIT 1
-SQL;
-
-        $authorizeStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'authorize' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
-
-        $verifyStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'verify' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
-
-        $partlyCapturedStateMachineStateId = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'partly_captured' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
-
-        $cancelStateMachineStateIdSQL = <<<SQL
-            SELECT id 
-            FROM state_machine_state 
-            WHERE 
-                technical_name = 'cancelled' 
-                AND state_machine_id = 
-                    (SELECT id FROM state_machine WHERE technical_name = 'order_transaction.state' LIMIT 1) 
-            LIMIT 1
-SQL;
-
-        $insertTransitionOpenToAuthorize = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'authorize',  
-                ({$stateMachineId}), 
-                ({$openStateMachineStateId}), 
-                ({$authorizeStateMachineStateId}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionOpenToAuthorize, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $insertTransitionOpenToVerify = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'verify',  ({$stateMachineId}), 
-                ({$openStateMachineStateId}), 
-                ({$verifyStateMachineStateId}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionOpenToVerify, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $insertTransitionOpenToPartlyCaptured = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'partly_captured',  ({$stateMachineId}), 
-                ({$openStateMachineStateId}), 
-                ({$partlyCapturedStateMachineStateId}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionOpenToPartlyCaptured, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $insertTransitionAuthorizeToPaid = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'pay',  
-                ({$stateMachineId}), 
-                ({$authorizeStateMachineStateId}), 
-                ({$paidStateMachineStateIdSQL}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionAuthorizeToPaid, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $insertTransitionAuthorizeToCancel = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'cancel',  
-                ({$stateMachineId}), 
-                ({$authorizeStateMachineStateId}), 
-                ({$cancelStateMachineStateIdSQL}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionAuthorizeToCancel, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $uuidForVerifyToPaidStateMachineTransition = Uuid::randomBytes();
-        $insertTransitionVerifyToPaid = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'pay',  
-                ({$stateMachineId}), 
-                ({$verifyStateMachineStateId}), 
-                ({$paidStateMachineStateIdSQL}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionVerifyToPaid, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $insertTransitionVerifyToCancel = <<<SQL
-            INSERT INTO state_machine_transition 
-                (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
-            VALUES (
-                :id, 
-                'cancel',  
-                ({$stateMachineId}), 
-                ({$verifyStateMachineStateId}), 
-                ({$cancelStateMachineStateIdSQL}), 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertTransitionVerifyToCancel, [
-            'id' => Uuid::randomBytes()
-        ]);
-    }
-
-    /**
-     * @param Connection $connection
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    private function addMailTemplateType(Connection $connection): void
-    {
-        $date = date(self::DATE_FORMAT);
-        $availableEntries = <<<JSON
-{"order":"order","previousState":"state_machine_state","newState":"state_machine_state","salesChannel":"sales_channel"}
-JSON;
-
-        $englishLanguageId = <<<SQL
-            SELECT id FROM language WHERE name = 'English' LIMIT 1
-SQL;
-        $deutschLanguageId = <<<SQL
-            SELECT id FROM language WHERE name = 'Deutsch' LIMIT 1
-SQL;
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
-            VALUES (
-                :id, 
-                'order_transaction.state.authorize', 
-                '{$availableEntries}', 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $mailTempaleTypeId = <<<SQL
-            SELECT id FROM mail_template_type WHERE technical_name LIKE 'order_transaction.state.authorize' LIMIT 1
-SQL;
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation 
-                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (
-                ({$mailTempaleTypeId}), 
-                ({$englishLanguageId}), 
-                'Enter payment state: Authorize', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType);
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation 
-                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (
-                ({$mailTempaleTypeId}), 
-                ({$deutschLanguageId}), 
-                'Zahlungsstatus eingeben: Autorisieren', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType);
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
-            VALUES (
-                :id, 
-                'order_transaction.state.verify', 
-                '{$availableEntries}', 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $mailTempaleTypeId = <<<SQL
-            SELECT id FROM mail_template_type WHERE technical_name LIKE 'order_transaction.state.verify' LIMIT 1
-SQL;
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation 
-                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (
-                ({$mailTempaleTypeId}), 
-                ({$englishLanguageId}), 
-                'Enter payment state: Verify', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType);
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation 
-                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (
-                ({$mailTempaleTypeId}), 
-                ({$deutschLanguageId}), 
-                'Zahlungsstatus eingeben: Verify', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType);
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
-            VALUES (
-                :id, 
-                'order_transaction.state.partly_captured', 
-                '{$availableEntries}', 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType, [
-            'id' => Uuid::randomBytes()
-        ]);
-
-        $mailTempaleTypeId = <<<SQL
-            SELECT id 
-            FROM mail_template_type 
-            WHERE technical_name LIKE 'order_transaction.state.partly_captured' 
-            LIMIT 1
-SQL;
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation 
-                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (
-                ({$mailTempaleTypeId}), 
-                ({$englishLanguageId}), 
-                'Enter payment state: Partly captured', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType);
-
-        $insertMailTemplateType = <<<SQL
-            INSERT INTO mail_template_type_translation 
-                (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
-            VALUES (
-                ({$mailTempaleTypeId}), 
-                ({$deutschLanguageId}), 
-                'Zahlungsstatus eingeben: Partly captured', 
-                NULL, 
-                '{$date}', 
-                NULL
-            )
-            ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
-SQL;
-        $connection->executeUpdate($insertMailTemplateType);
     }
 }
