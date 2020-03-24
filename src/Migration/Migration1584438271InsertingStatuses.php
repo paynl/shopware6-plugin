@@ -3,6 +3,7 @@
 namespace PaynlPayment\Migration;
 
 use Doctrine\DBAL\Connection;
+use PaynlPayment\Enums\StateMachineStateEnum;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
 
@@ -125,7 +126,7 @@ JSON;
         ])->fetchColumn();
 
         $statusesArray = [
-            'verify' => [
+            StateMachineStateEnum::ACTION_VERIFY => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Verify',
@@ -135,7 +136,7 @@ JSON;
                     'name' => 'Überprüfen',
                 ],
             ],
-            'authorize' => [
+            StateMachineStateEnum::ACTION_AUTHORIZE => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Authorize',
@@ -145,7 +146,7 @@ JSON;
                     'name' => 'Autorisieren',
                 ],
             ],
-            'partly_captured' => [
+            StateMachineStateEnum::ACTION_PARTLY_CAPTURED => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Partly captured',

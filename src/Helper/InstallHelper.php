@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Components\Api;
 use PaynlPayment\Components\Config;
 use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
+use PaynlPayment\Enums\StateMachineStateEnum;
 use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
@@ -173,13 +174,13 @@ DELETE FROM state_machine_transition WHERE to_state_id = :to_state_id OR from_st
 SQL;
         // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
-            'technical_name' => 'verify'
+            'technical_name' => StateMachineStateEnum::ACTION_VERIFY
         ])->fetchColumn();
         $stateMachineStateAuthorizeId = $this->connection->executeQuery($stateMachineStateSQl, [
-            'technical_name' => 'authorize'
+            'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE
         ])->fetchColumn();
         $stateMachineStatePartlyCapturedId = $this->connection->executeQuery($stateMachineStateSQl, [
-            'technical_name' => 'partly_captured'
+            'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED
         ])->fetchColumn();
 
         // Remove state machine transition
