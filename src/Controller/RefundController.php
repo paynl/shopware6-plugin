@@ -68,7 +68,7 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/v{version}/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
+     * @Route("/api/v{version}/paynl/refund", defaults={"csrf_protected"=false}, name="frontend.PaynlPayment.refund", methods={"POST"})
      */
     public function refund(Request $request): JsonResponse
     {

@@ -1,0 +1,1093 @@
+{% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
+
+    {% block component_payment_method_input %}
+        {% set pmName = payment.translated.name %}
+        <script>
+            function idealBanks(displayBanks) {
+                let getBanks = document.getElementById('banks')
+                if (displayBanks === 'block') {
+                    getBanks.style.display = displayBanks;
+                } else {
+                    getBanks.style.display = displayBanks;
+                }
+            }
+
+            let divState = {};
+
+            function showhide(id) {
+                if (document.getElementById) {
+                    let divid = document.getElementById(id);
+                    divState[id] = (!divState[id]);
+                    //close others
+                    for (let div in divState) {
+                        if (divState[div] && div !== id) {
+                            document.getElementById(div).style.display = 'none';
+                            divState[div] = false;
+                        }
+                    }
+                    divid.style.display = (divid.style.display === 'block' ? 'none' : 'block');
+                }
+            }
+        </script>
+        {% if (pmName == 'iDEAL') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('ideal');">
+            <div id="ideal" class="buttonTrickideal">
+                <div id="buttonPmiDeal" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Przelewy24') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('p24');">
+            <div id="p24" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Focum - Achteraf betalen') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('focumAb');">
+            <div id="focumAb" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Vriendenloterij waardecheque') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('vriendenLot');">
+            <div id="vriendenLot" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Postepay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('postepay');">
+            <div id="postepay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'PayConiq') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('payConiq');">
+            <div id="payConiq" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Mobile Content Billing') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('mcBilling');">
+            <div id="mcBilling" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Maestro') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('maestro');">
+            <div id="maestro" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Huis en Tuin cadeau') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('huisTc');">
+            <div id="huisTc" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Dankort') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('dankort');">
+            <div id="dankort" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Carte Bleue') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('carteBleue');">
+            <div id="carteBleue" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'AMEX') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('AMEX');">
+            <div id="AMEX" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Apple Pay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('applePay');">
+            <div id="applePay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'PayPal') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('payPal');">
+            <div id="payPal" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Cashly') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('cashly');">
+            <div id="cashly" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Mopay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('mopay');">
+            <div id="mopay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'YourGift') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('yourGift');">
+            <div id="yourGift" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'OK Payments') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('okPayments');">
+            <div id="okPayments" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Fashion Giftcard') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('fashionGiftcard');">
+            <div id="fashionGiftcard" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'SprayPay (tot 36 maanden)') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('sprayPay');">
+            <div id="sprayPay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Klarna - Achteraf betalen') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('klarnaAb');">
+            <div id="klarnaAb" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Sofortbanking AT eCommerce (fysieke producten)') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('sofortAt');">
+            <div id="sofortAt" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'AfterPay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('AfterPay');">
+            <div id="AfterPay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'PIN') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('PIN');">
+            <div id="PIN" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Tikkie') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Tikkie');">
+            <div id="Tikkie" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Afterpay EM') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('afterPayem');">
+            <div id="afterPayem" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Paysafecard') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Paysafecard');">
+            <div id="Paysafecard" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Creditclick') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Creditclick');">
+            <div id="Creditclick" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Mybank') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Mybank');">
+            <div id="Mybank" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'MultiBanco') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('MultiBanco');">
+            <div id="MultiBanco" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Sofortbanking NL eCommerce (fysieke producten)') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('sofortNl');">
+            <div id="sofortNl" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Capayable Achteraf Betalen') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('capAb');">
+            <div id="capAb" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'MisterCash / Bancontact') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('misterCash');">
+            <div id="misterCash" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Billink') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Billink');">
+            <div id="Billink" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'InStore payment') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('inStore');">
+            <div id="inStore" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'EPS uberweisung') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('eps');">
+            <div id="eps" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'SOFORT e-commerce') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('sofortEcomm');">
+            <div id="sofortEcomm" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'WeChat Pay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('wechatPay');">
+            <div id="wechatPay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Overboeking') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Overboeking');">
+            <div id="Overboeking" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'VVV Cadeaukaart') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('vvv');">
+            <div id="vvv" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Visa Mastercard') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('visaMaster');">
+            <div id="visaMaster" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Sofortbanking DE eCommerce (fysieke producten)') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('sofortDe');">
+            <div id="sofortDe" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Giropay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Giropay');">
+            <div id="Giropay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'GivaCard') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('GivaCard');">
+            <div id="GivaCard" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'AliPay') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('AliPay');">
+            <div id="AliPay" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Webshopgiftcard') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('Webshopgiftcard');">
+            <div id="Webshopgiftcard" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'fashioncheque') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('fashioncheque');">
+            <div id="fashioncheque" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'in3 (Gespreid betalen)') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('in3');">
+            <div id="in3" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Klarna KP') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('klarnaKp');">
+            <div id="klarnaKp" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% elseif (pmName == 'Telefonisch betalen') %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('telBetalen');">
+            <div id="telBetalen" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <input type="radio" id="paymentMethod{{ loop.index }}" name="paymentMethodId" value="{{ payment.id }}"
+                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                   class="custom-control-input payment-method-input"
+                   onclick="idealBanks('none'); showhide('paymentMethodId');">
+            <div id="paymentMethodId" class="buttonTrick">
+                <div id="buttonPm" class="saveOption">
+                    <button class="btn btn-primary" type="submit">
+                        {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                    </button>
+                    <button class="btn btn-light"
+                            type="button"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+
+    {% endblock %}
+
+    {% block component_payment_method_description %}
+        <div class="payment-method-description">
+            {% set pmName = payment.translated.name %}
+            {% if (pmName == 'iDEAL' and not payment.media) %}
+                <img src="https://cashmaster.sharepoint.com/sites/TESTING123/Gedeelde%20documenten/General/IMAGES/Betaalopties/LOGO/1.png"
+                     class="payment-method-image">
+            {% elseif (pmName == 'Focum - Achteraf betalen' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1702.png" class="payment-method-image">
+            {% elseif (pmName == 'Vriendenloterij waardecheque' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2342.png" class="payment-method-image">
+            {% elseif (pmName == 'Postepay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/707.png" class="payment-method-image">
+            {% elseif (pmName == 'PayConiq' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2379.png" class="payment-method-image">
+            {% elseif (pmName == 'Mobile Content Billing' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/829.png" class="payment-method-image">
+            {% elseif (pmName == 'Maestro' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/712.png" class="payment-method-image">
+            {% elseif (pmName == 'Huis en Tuin cadeau' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2283.png" class="payment-method-image">
+            {% elseif (pmName == 'Dankort' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1939.png" class="payment-method-image">
+            {% elseif (pmName == 'Carte Bleue' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/710.png" class="payment-method-image">
+            {% elseif (pmName == 'AMEX' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1705.png" class="payment-method-image">
+            {% elseif (pmName == 'Apple Pay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2277.png" class="payment-method-image">
+            {% elseif (pmName == 'PayPal' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/138.png" class="payment-method-image">
+            {% elseif (pmName == 'Cashly' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1981.png" class="payment-method-image">
+            {% elseif (pmName == 'Mopay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/999.png" class="payment-method-image">
+            {% elseif (pmName == 'YourGift' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1645.png" class="payment-method-image">
+            {% elseif (pmName == 'OK Payments' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2110.png" class="payment-method-image">
+            {% elseif (pmName == 'Fashion Giftcard' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1669.png" class="payment-method-image">
+            {% elseif (pmName == 'SprayPay (tot 36 maanden)' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1987.png" class="payment-method-image">
+            {% elseif (pmName == 'Klarna - Achteraf betalen' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1717.png" class="payment-method-image">
+            {% elseif (pmName == 'Sofortbanking AT eCommerce (fysieke producten)' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/568.png" class="payment-method-image">
+            {% elseif (pmName == 'AfterPay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/739.png" class="payment-method-image">
+            {% elseif (pmName == 'PIN' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1927.png" class="payment-method-image">
+            {% elseif (pmName == 'Tikkie' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2104.png" class="payment-method-image">
+            {% elseif (pmName == 'Afterpay EM' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/740.png" class="payment-method-image">
+            {% elseif (pmName == 'Paysafecard' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/553.png" class="payment-method-image">
+            {% elseif (pmName == 'Creditclick' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2107.png" class="payment-method-image">
+            {% elseif (pmName == 'Mybank' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1588.png" class="payment-method-image">
+            {% elseif (pmName == 'MultiBanco' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2271.png" class="payment-method-image">
+            {% elseif (pmName == 'Sofortbanking NL eCommerce (fysieke producten)' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/556.png" class="payment-method-image">
+            {% elseif (pmName == 'Capayable Achteraf Betalen' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1744.png" class="payment-method-image">
+            {% elseif (pmName == 'MisterCash / Bancontact' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/436.png" class="payment-method-image">
+            {% elseif (pmName == 'Billink' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1672.png" class="payment-method-image">
+            {% elseif (pmName == 'InStore payment' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/137.png" class="payment-method-image">
+            {% elseif (pmName == 'EPS uberweisung' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2062.png" class="payment-method-image">
+            {% elseif (pmName == 'SOFORT e-commerce' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/559.png" class="payment-method-image">
+            {% elseif (pmName == 'WeChat Pay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1978.png" class="payment-method-image">
+            {% elseif (pmName == 'Overboeking' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/136.png" class="payment-method-image">
+            {% elseif (pmName == 'VVV Cadeaukaart' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1714.png" class="payment-method-image">
+            {% elseif (pmName == 'Visa Mastercard' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/706.png" class="payment-method-image">
+            {% elseif (pmName == 'Sofortbanking DE eCommerce (fysieke producten)' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/562.png" class="payment-method-image">
+            {% elseif (pmName == 'Giropay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/694.png" class="payment-method-image">
+            {% elseif (pmName == 'GivaCard' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1657.png" class="payment-method-image">
+            {% elseif (pmName == 'AliPay' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2080.png" class="payment-method-image">
+            {% elseif (pmName == 'Klarna KP' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2265.png" class="payment-method-image">
+            {% elseif (pmName == 'Webshopgiftcard' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/811.png" class="payment-method-image">
+            {% elseif (pmName == 'Huis en Tuin cadeau' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2283.png" class="payment-method-image">
+            {% elseif (pmName == 'fashioncheque' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/815.png" class="payment-method-image">
+            {% elseif (pmName == 'in3 (Gespreid betalen)' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1813.png" class="payment-method-image">
+            {% elseif (pmName == 'Przelewy24' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/2151.png" class="payment-method-image">
+            {% elseif (pmName == 'Telefonisch betalen' and not payment.media) %}
+                <img src="https://static.pay.nl/payment_profiles/50x50/1600.png" class="payment-method-image">
+            {% endif %}
+
+            <strong>{{ payment.translated.name }}</strong>
+            {% if payment.translated.description %}
+                <p>{{ payment.translated.description|raw }}</p>
+            {% endif %}
+            {% if (pmName == 'iDEAL') %}
+                <form id="confirmPaymentForm"
+                      name="confirmPaymentForm"
+                      action="https://shopware6-1.webshop.dev.pay.nl/index.js?fc=module&module=paynlpaymentmethods&controller=startPayment"
+                      method="POST">
+                    <div id="paynl_payment"></div>
+                    <div id="banks" class="iDEALbanks">
+                        <label for="optionsub" id="pmLabel">Please choose your bank:</label>
+                        <select id="optionsub" class="form-control" name="banklist">
+                            <option value="1">ABN Amro</option>
+                            <option value="8">ASN Bank</option>
+                            <option value="5080">Bunq</option>
+                            <option value="4">ING</option>
+                            <option value="12">Knab</option>
+                            <option value="5081">Moneyou</option>
+                            <option value="2">Rabobank</option>
+                            <option value="9">RegioBank</option>
+                            <option value="5">SNS</option>
+                            <option value="5082">Svenska Handelsbanken</option>
+                            <option value="10">Triodos Bank</option>
+                            <option value="11">Van Lanschot</option>
+                        </select>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    {% endblock %}
+

@@ -1,0 +1,36 @@
+{% sw_extends '@Storefront/storefront/page/checkout/confirm/index.html.twig' %}
+
+{% block page_checkout_aside_actions %}
+    <div class="checkout-aside-action">
+        <form id="confirmOrderForm"
+              action="{{ path('frontend.checkout.finish.order') }}"
+              data-form-csrf-handler="true"
+              method="post">
+
+            {% block page_checkout_aside_actions_csrf %}
+                {{ sw_csrf('frontend.checkout.finish.order') }}
+            {% endblock %}
+
+            {% block page_checkout_confirm_form_submit %}
+                <script type="text/javascript"
+                        src="https://code.jquery.com/jquery-3.4.1.min.js"
+                        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+                        crossorigin="anonymous">
+                    function startTransaction() {
+                        console.log('I am a function that works!');
+                    }
+                </script>
+                <button id="confirmFormSubmit"
+                        class="btn btn-primary btn-block btn-lg"
+                        form="confirmOrderForm"
+                        {% if page.cart.errors|length > 0 %}
+                            disabled="disabled"
+                        {% endif %}
+                        type="submit"
+                        onclick="startTransaction()">
+                    {{ "checkout.confirmSubmit"|trans|sw_sanitize }}
+                </button>
+            {% endblock %}
+        </form>
+    </div>
+{% endblock %}

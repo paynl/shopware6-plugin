@@ -2,7 +2,13 @@
     "checkout": {
         "statuses": {
             "cancelled": "Payment cancelled",
-            "denied": "Payment denied"
+            "denied": "Payment denied",
+            "open": "Payment is being verified by administrator.",
+            "paid": "Payment successful!"
         }
+    },
+    "address": {
+    	"companyDepartmentLabel": "KVK/COC Number",
+    	"companyDepartmentPlaceholder": "Enter your chamber of commerce number"
     }
 }

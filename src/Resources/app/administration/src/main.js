@@ -1,4 +1,5 @@
 import './module/order-list-override';
+import './module/authorizeVerify';
 import './module/refund';
 import './module/paynl-payment-module';
 

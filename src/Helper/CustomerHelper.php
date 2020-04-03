@@ -37,12 +37,20 @@ class CustomerHelper
             'enduser' => [
                 'initials' => $customer->getFirstName(),
                 'lastName' => $customer->getLastName(),
+                'phoneNumber' => $customer->getDefaultBillingAddress()->getPhoneNumber(),
+                'birthDate' => $customer->getBirthday(),
                 'emailAddress' => $customer->getEmail(),
                 'customerReference' => $customer->getCustomerNumber(),
-                'gender' => $gender
+                'gender' => $gender,
+            ],
+            'company' => [
+                'name' => $customer->getDefaultBillingAddress()->getCompany(),
+                'cocNumber' => $customer->getDefaultBillingAddress()->getDepartment(),
+                'vatNumber' => $customer->getDefaultBillingAddress()->getVatId(),
+                //'countryCode' => $customer->getCountryId(),
             ],
             'address' => $this->getShippingAddress($customer),
-            'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
+            'invoiceAddress' => $this->getInvoiceAddress($customer, $gender),
         ];
     }
 

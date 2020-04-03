@@ -9,6 +9,8 @@ use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
+use Shopware\Core\Content\Media\MediaFile;
+use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -23,7 +25,7 @@ class InstallHelper
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
 
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
-    const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl payment method: %s';
+    const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl Payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
 
     /** @var SystemConfigService $configService */
@@ -33,6 +35,7 @@ class InstallHelper
     private $salesChannelRepository;
     private $paymentMethodSalesChannelRepository;
     private $connection;
+    private $mediaRepository;
     /** @var Api */
     private $paynlApi;
 

@@ -13,8 +13,8 @@
         {% endblock %}
 
         {% block sw_customer_list_grid_columns_actions_confirm_payment %}
-            <sw-context-menu-item disabled>
-                {{ $tc('sw-order.list.contextMenuConfirmPayment') }}
+            <sw-context-menu-item v-if="isPaynlOrderTransaction(item)" :disabled="isPaynlTransactionAllowedForRefund(item.transactions[0].stateMachineState.technicalName)" :routerLink="{ name: 'refund.page.view', params: { id: item.id } }">
+                {{ $tc('order-list-override.contextMenuConfirmPayment') }}
             </sw-context-menu-item>
         {% endblock %}
 
