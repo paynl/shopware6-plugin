@@ -9,8 +9,6 @@ use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Exceptions\PaynlPaymentException;
 use PaynlPayment\PaynlPayment;
 use PaynlPayment\Service\PaynlPaymentHandler;
-use Shopware\Core\Content\Media\MediaFile;
-use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -35,7 +33,6 @@ class InstallHelper
     private $salesChannelRepository;
     private $paymentMethodSalesChannelRepository;
     private $connection;
-    private $mediaRepository;
     /** @var Api */
     private $paynlApi;
 
