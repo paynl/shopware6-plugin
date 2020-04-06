@@ -25,21 +25,6 @@
                         </label>
                     {% endblock %}
 
-                    <script>
-                        function showCoc (sel) {
-                            let dropText = sel.options[sel.selectedIndex].text;
-                            let showField = document.getElementById('cocField');
-                            let nl = 'Netherlands';
-                            let be = 'Belgium';
-
-                            if (dropText === nl || dropText === be){
-                                showField.style.display = 'block';
-                            } else {
-                                showField.style.display = 'none';
-                            }
-                        }
-                    </script>
-
                     {% block component_address_form_country_select %}
                         <select class="country-select custom-select{% if violationPath %} is-invalid{% endif %}"
                                 id="{{ prefix }}AddressCountry"
