@@ -1,6 +1,6 @@
 <?php
 
-namespace PaynlPayment\Enums;
+namespace PaynlPayment\Shopware6\Enums;
 
 class PaynlTransactionStatusesEnum
 {

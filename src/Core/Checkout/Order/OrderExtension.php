@@ -1,8 +1,8 @@
 <?php
 
-namespace PaynlPayment\Core\Checkout\Order;
+namespace PaynlPayment\Shopware6\Core\Checkout\Order;
 
-use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityExtensionInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToManyAssociationField;

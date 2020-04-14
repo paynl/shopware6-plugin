@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Storefront\Controller;
+namespace PaynlPayment\Shopware6\Storefront\Controller;
 
-use PaynlPayment\Helper\InstallHelper;
+use PaynlPayment\Shopware6\Helper\InstallHelper;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Migration;
+namespace PaynlPayment\Shopware6\Migration;
 
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Migration\MigrationStep;
