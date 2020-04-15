@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Helper;
+namespace PaynlPayment\Shopware6\Helper;
 
 use Paynl\Helper;
-use PaynlPayment\Components\Config;
+use PaynlPayment\Shopware6\Components\Config;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\System\Country\CountryEntity;

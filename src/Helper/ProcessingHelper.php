@@ -1,13 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Helper;
+namespace PaynlPayment\Shopware6\Helper;
 
 use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
-use PaynlPayment\Components\Api;
-use PaynlPayment\Entity\PaynlTransactionEntity;
-use PaynlPayment\Entity\PaynlTransactionEntity as PaynlTransaction;
-use PaynlPayment\Enums\StateMachineStateEnum;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity as PaynlTransaction;
+use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -22,7 +22,7 @@ use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMa
 use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Shopware\Core\System\StateMachine\Transition;
-use PaynlPayment\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 
 class ProcessingHelper
 {

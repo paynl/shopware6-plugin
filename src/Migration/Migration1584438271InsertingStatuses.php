@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Migration;
+namespace PaynlPayment\Shopware6\Migration;
 
 use Doctrine\DBAL\Connection;
-use PaynlPayment\Enums\StateMachineStateEnum;
+use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
 

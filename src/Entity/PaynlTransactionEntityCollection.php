@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Entity;
+namespace PaynlPayment\Shopware6\Entity;
 
-use PaynlPayment\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
 
 /**

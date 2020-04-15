@@ -1,15 +1,15 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Helper;
+namespace PaynlPayment\Shopware6\Helper;
 
 use Doctrine\DBAL\Connection;
-use PaynlPayment\Components\Api;
-use PaynlPayment\Components\Config;
-use PaynlPayment\Entity\PaynlTransactionEntityDefinition;
-use PaynlPayment\Enums\StateMachineStateEnum;
-use PaynlPayment\Exceptions\PaynlPaymentException;
-use PaynlPayment\PaynlPayment;
-use PaynlPayment\Service\PaynlPaymentHandler;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
+use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\PaynlPaymentShopware6;
+use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -97,9 +97,11 @@ class InstallHelper
     {
         $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
         $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
-        $paymentMethodDescription =
-            sprintf(self::PAYMENT_METHOD_DESCRIPTION_TPL, $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]);
-        $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPayment::class, $context);
+        $paymentMethodDescription = sprintf(
+            self::PAYMENT_METHOD_DESCRIPTION_TPL,
+            $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]
+        );
+        $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
             'id' => $paymentMethodId,
             'handlerIdentifier' => PaynlPaymentHandler::class,
@@ -135,10 +137,10 @@ class InstallHelper
 
     public function removeConfigurationData(Context $context): void
     {
-        $paynlPaymentConfigs = $this->configService->get('PaynlPayment');
+        $paynlPaymentConfigs = $this->configService->get('PaynlPaymentShopware6');
         if (isset($paynlPaymentConfigs['config'])) {
             foreach ($paynlPaymentConfigs['config'] as $configKey => $configName) {
-                $this->configService->delete(sprintf('PaynlPayment.config.%s', $configKey));
+                $this->configService->delete(sprintf(Config::CONFIG_TEMPLATE, $configKey));
             }
         }
     }

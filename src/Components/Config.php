@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Components;
+namespace PaynlPayment\Shopware6\Components;
 
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class Config
 {
-    const CONFIG_TEMPLATE = 'PaynlPayment.config.%s';
+    const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.config.%s';
     const FEMALE_SALUTATIONS = 'mrs, ms, miss, ma\'am, frau, mevrouw, mevr';
 
     private $config;

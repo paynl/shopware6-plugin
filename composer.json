@@ -21,6 +21,8 @@
         }
     },
     "require": {
+        "shopware/core": "6.1.*",
+        "shopware/storefront": "^6.1",
         "paynl/sdk": "dev-master"
     },
     "license": "MIT",

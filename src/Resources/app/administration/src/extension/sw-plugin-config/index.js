@@ -21,7 +21,7 @@ Component.override('sw-plugin-config', {
     computed: {
         isPaynlPayment()
         {
-            return 'PaynlPayment' === this.$route.params.namespace;
+            return 'PaynlPaymentShopware6' === this.$route.params.namespace;
         }
     },
 
