@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Components;
+namespace PaynlPayment\Shopware6\Components;
 
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
-use PaynlPayment\Exceptions\PaynlPaymentException;
-use PaynlPayment\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;

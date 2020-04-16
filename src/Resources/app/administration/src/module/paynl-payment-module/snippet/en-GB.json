@@ -7,6 +7,12 @@
             "label": "Pay. transactions"
         }
     },
+    "order": {
+        "transaction": {
+            "paid": "Paid (Capture)",
+            "cancelled": "Cancelled (Void)"
+        }
+    },
     "transactions-list": {
         "paynl_transaction_id": "Transaction id",
         "payment_id": "Payment id",

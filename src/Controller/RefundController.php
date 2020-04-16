@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Controller;
+namespace PaynlPayment\Shopware6\Controller;
 
-use PaynlPayment\Components\Api;
-use PaynlPayment\Components\Config;
-use PaynlPayment\Entity\PaynlTransactionEntity;
-use PaynlPayment\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;

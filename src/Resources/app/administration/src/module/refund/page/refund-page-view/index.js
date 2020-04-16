@@ -106,10 +106,11 @@ Component.register('refund-page-view', {
         },
 
         changeRefundAmount(amount) {
+            let newAmount = amount;
             if (this.withShipping) {
-                amount += this.order.shippingTotal;
+                newAmount += this.order.shippingTotal;
             }
-            this.amountToRefund = amount;
+            this.amountToRefund = newAmount;
         },
 
         onRefundClick() {

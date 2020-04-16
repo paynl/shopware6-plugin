@@ -4,71 +4,71 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <!--Helpers-->
-        <service id="PaynlPayment\Helper\CustomerHelper">
-            <argument type="service" id="PaynlPayment\Components\Config"/>
+        <service id="PaynlPayment\Shopware6\Helper\CustomerHelper">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
         </service>
-        <service id="PaynlPayment\Helper\ProcessingHelper">
-            <argument type="service" id="PaynlPayment\Components\Api"/>
+        <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <argument type="service" id="order_transaction.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
         </service>
 
-        <service id="PaynlPayment\Helper\InstallHelper" public="true">
+        <service id="PaynlPayment\Shopware6\Helper\InstallHelper" public="true">
             <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
         </service>
 
         <!--Components-->
-        <service id="PaynlPayment\Components\Config">
+        <service id="PaynlPayment\Shopware6\Components\Config">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
         </service>
 
-        <service id="PaynlPayment\Components\Api">
-            <argument type="service" id="PaynlPayment\Components\Config"/>
-            <argument type="service" id="PaynlPayment\Helper\CustomerHelper"/>
+        <service id="PaynlPayment\Shopware6\Components\Api">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="product.repository"/>
         </service>
 
         <!--Services-->
-        <service id="PaynlPayment\Core\Checkout\Order\OrderExtension">
+        <service id="PaynlPayment\Shopware6\Core\Checkout\Order\OrderExtension">
             <tag name="shopware.entity.extension"/>
         </service>
 
-        <service id="PaynlPayment\Service\PaynlPaymentHandler">
+        <service id="PaynlPayment\Shopware6\Service\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
-            <argument type="service" id="PaynlPayment\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <tag name="shopware.payment.method.async" />
         </service>
 
         <!--Controllers-->
-        <service id="PaynlPayment\Storefront\Controller\NotificationController" public="true">
-            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+        <service id="PaynlPayment\Shopware6\Storefront\Controller\NotificationController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
         </service>
 
-        <service id="PaynlPayment\Storefront\Controller\ConfigController" public="true">
-            <argument type="service" id="PaynlPayment\Helper\InstallHelper"/>
+        <service id="PaynlPayment\Shopware6\Storefront\Controller\ConfigController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
         </service>
 
-        <service id="PaynlPayment\Controller\RefundController" public="true">
-            <argument type="service" id="PaynlPayment\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Components\Config"/>
+        <service id="PaynlPayment\Shopware6\Controller\RefundController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <argument type="service" id="product.repository"/>
-            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
         </service>
 
-        <service id="PaynlPayment\Controller\StatusTransitionController" public="true">
-            <argument type="service" id="PaynlPayment\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Components\Config"/>
-            <argument type="service" id="PaynlPayment\Helper\ProcessingHelper"/>
+        <service id="PaynlPayment\Shopware6\Controller\StatusTransitionController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
@@ -76,16 +76,16 @@
         </service>
 
         <!--Entities-->
-        <service id="PaynlPayment\Entity\PaynlTransactionEntityDefinition">
+        <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />
         </service>
 
         <!--Snippets-->
-        <service id="PaynlPayment\Resources\snippet\en_GB\SnippetFileEn" public="true">
+        <service id="PaynlPayment\Shopware6\Resources\snippet\en_GB\SnippetFileEn" public="true">
             <tag name="shopware.snippet.file"/>
         </service>
 
-        <service id="PaynlPayment\Resources\snippet\de_DE\SnippetFileDe" public="true">
+        <service id="PaynlPayment\Shopware6\Resources\snippet\de_DE\SnippetFileDe" public="true">
             <tag name="shopware.snippet.file"/>
         </service>
     </services>
