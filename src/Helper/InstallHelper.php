@@ -164,7 +164,10 @@ class InstallHelper
                 'name' => $paymentMethodName,
                 'description' => $paymentMethodDescription,
                 'pluginId' => $pluginId,
-                'active' => $active
+                'active' => $active,
+                'customFields' => [
+                    self::PAYMENT_METHOD_PAYNL => 1
+                ]
             ];
         }
 
