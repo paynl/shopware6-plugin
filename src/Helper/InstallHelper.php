@@ -148,11 +148,23 @@ class InstallHelper
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $upsertData = [];
         foreach ($paynlPaymentMethods as $paymentMethod) {
+            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+            $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
+            $paymentMethodDescription = sprintf(
+                self::PAYMENT_METHOD_DESCRIPTION_TPL,
+                $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]
+            );
+
             $upsertData[] = [
-                'id' => md5($paymentMethod[Api::PAYMENT_METHOD_ID]),
-                'active' => $active,
+                'id' => $paymentMethodId,
+                'handlerIdentifier' => PaynlPaymentHandler::class,
+                'name' => $paymentMethodName,
+                'description' => $paymentMethodDescription,
+                'pluginId' => $pluginId,
+                'active' => $active
             ];
         }
 
