@@ -15,13 +15,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class MediaHelper
 {
     const PAYNL_PAYMENT_MEDIA_TEMPLATE = 'paynlpayment_%s_%s';
+    const IMAGE_ROUTE = __DIR__ . '/../Resources/public/logos/%s.png';
 
     /** @var EntityRepositoryInterface */
     private $mediaRepository;
+
     /** @var FileSaver */
     private $fileSaver;
-
-    private $imageRoute = __DIR__ . '/../Resources/public/logos/%s.png';
 
     public function __construct(ContainerInterface $container)
     {
@@ -39,7 +39,7 @@ class MediaHelper
             return;
         }
 
-        $mediaName = sprintf($this->imageRoute, $paymentMethod['id']);
+        $mediaName = sprintf(self::IMAGE_ROUTE, $paymentMethod['id']);
         if (!file_exists($mediaName)) {
             return;
         }
