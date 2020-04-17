@@ -4,7 +4,7 @@
     "version": "v1.0.0",
     "type": "shopware-platform-plugin",
     "extra": {
-        "shopware-plugin-class": "PaynlPayment\\PaynlPayment",
+        "shopware-plugin-class": "PaynlPayment\\Shopware6\\PaynlPaymentShopware6",
         "plugin-icon": "src/Resources/public/plugin.png",
         "label": {
             "de-DE": "Pay.nl payment",
@@ -34,7 +34,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "PaynlPayment\\": "src/",
+            "PaynlPayment\\Shopware6\\": "src/",
             "Paynl\\": "vendor/paynl/sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
