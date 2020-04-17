@@ -75,6 +75,7 @@ class InstallHelper
             $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
 
             if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
+                $this->mediaHelper->addMedia($paymentMethod, $context);
                 $this->addPaymentMethod($context, $paymentMethod);
             }
         }
@@ -97,7 +98,6 @@ class InstallHelper
      */
     private function addPaymentMethod(Context $context, array $paymentMethod): void
     {
-        $this->mediaHelper->addMedia($paymentMethod, $context);
         $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
         $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $paymentMethodDescription = sprintf(

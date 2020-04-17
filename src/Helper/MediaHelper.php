@@ -21,7 +21,7 @@ class MediaHelper
     /** @var FileSaver */
     private $fileSaver;
 
-    private $imageRoute = '/../Resources/public/logos/%s.png';
+    private $imageRoute = __DIR__ . '/../Resources/public/logos/%s.png';
 
     public function __construct(ContainerInterface $container)
     {
@@ -40,6 +40,10 @@ class MediaHelper
         }
 
         $mediaName = sprintf($this->imageRoute, $paymentMethod['id']);
+        if (!file_exists($mediaName)) {
+            return;
+        }
+
         $mediaFile = $this->createMediaFile($mediaName);
         $mediaId = Uuid::randomHex();
         $mediaData = ['id' => $mediaId];
