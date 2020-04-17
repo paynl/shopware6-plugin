@@ -1,7 +1,7 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
 
 {% block page_checkout_finish_header %}
-    {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Service\\PaynlPaymentHandler") %}
+    {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
         {% set status = page.getOrder.getTransactions.first.getStateMachineState.getTechnicalName %}
         {% if (status == 'cancelled' or status == 'denied') %}
             <h1 class="finish-header text-danger">
