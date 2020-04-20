@@ -1,29 +1,25 @@
-.paynl-content {
-    width: auto !important;
-}
-
-.paynlpayment-method-image {
+.paynl-image {
 	max-height: 50px !important;
     margin-right: 15px;
     float: left;
 }
 
-.ideal-banks {
+.paynl-ideal-banks {
 	display: none;
 }
 
-.button-trick {
+.paynl-button-container {
   display: none;
   float: right;
 }
 
-.button-trick-ideal {
+.paynl-button-ideal {
   display: block;
   float: right;
 }
 
-.paynl-hidden-div {
-  display: none;
+.paynl-diguise {
+    display: none;
 }
 
 

@@ -1,16 +1,17 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
 
 {% block page_checkout_finish_header %}
-    {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Service\\PaynlPaymentHandler") %}
+    {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
         {% set status = page.getOrder.getTransactions.first.getStateMachineState.getTechnicalName %}
         {% if (status == 'cancelled' or status == 'denied') %}
+            <h1 class="testCase">Hello Dima</h1>
             <h1 class="finish-header text-danger">
                 {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
             </h1>
             {% elseif (status == 'open') %}
                 <h1 class="finish-header text-info">
                     {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
-                </h1>    
+                </h1>
             {% elseif (status == 'paid') %}
                 <h1 class="finish-header text-success">
                     {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}

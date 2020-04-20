@@ -1,8 +1,7 @@
-<div class="paynl-content">
-    modal-content{% sw_extends '@Storefront/storefront/page/checkout/confirm/confirm-payment.html.twig' %}
+{% sw_extends '@Storefront/storefront/page/checkout/confirm/confirm-payment.html.twig' %}
 
     {% block page_checkout_confirm_payment_form %}
-
+    <div class="paynl-content">
         <form id="confirmPaymentForm"
               name="confirmPaymentForm"
               action="{{ path('frontend.checkout.configure') }}"
@@ -24,7 +23,7 @@
             {% endblock %}
 
             {% block page_checkout_confirm_payment_form_submit %}
-                <div class="paynl-hidden-div">
+                <div class="paynl-diguise">
                     <button class="btn btn-primary" type="submit">
                         {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
                     </button>
@@ -32,7 +31,7 @@
             {% endblock %}
 
             {% block page_checkout_confirm_payment_cancel %}
-                <div class="superHacks">
+                <div class="paynl-diguise">
                     <button class="btn btn-light"
                             type="button"
                             data-dismiss="modal"
@@ -42,6 +41,5 @@
                 </div>
             {% endblock %}
         </form>
-
+    </div>
     {% endblock %}
-</div>
