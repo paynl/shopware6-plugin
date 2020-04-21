@@ -6,11 +6,9 @@
 
                {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
 
-               class="custom-control-input"
+               class="custom-control-input">
 
-               onclick="idealBanks('none'); showhide(pmName);">
-
-        <div id="{{ payment.translated.action_name }}" class="paynl-button-ideal">
+        <div id="{{ payment.translated.action_name }}" class="paynl-savebutton">
 
             <div id="paynl-button-container" class="saveOption">
 
@@ -36,6 +34,7 @@
 
         </div>
 
+        <template paynl-savebtn-plugin></template>
 
     {% endblock %}
 
@@ -43,7 +42,7 @@
         <div class="payment-method-description">
             {% set pmName = payment.translated.name %}
             {% set testName = pmName|file_excerpt(line, srcContext = 3) %}
-            <div class="paynl-container" for="payment_Method{{ payment.id }}">
+            <div class="paynl-image-container" for="payment_Method{{ payment.id }}">
                 <img src="http://static.pay.nl/payment_profile_brands/100x100/{{ loop.index }}.png" class="paynl-image" alt="paynl-pmimage"/>
             </div>
             <strong>{{ payment.translated.name }}</strong>

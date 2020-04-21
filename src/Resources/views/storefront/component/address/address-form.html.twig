@@ -1,7 +1,11 @@
 {% sw_extends '@Storefront/storefront/component/address/address-form.html.twig' %}
 
-{% block component_address_form %}
-    {{ parent() }}
-{% endblock %}
+    {% block component_address_form_company_department %}
+        <div class="form-row form-group col-md-6 paynl-content" id="paynl-cocfield">
+                {{ parent() }}
+        </div>
+        <template paynl-coc-plugin></template>
+    {% endblock %}
+
 
 
