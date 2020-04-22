@@ -71,10 +71,7 @@ class InstallHelper
         }
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-            if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
-                $this->addPaymentMethod($context, $paymentMethod);
-            }
+            $this->addPaymentMethod($context, $paymentMethod);
         }
     }
 
