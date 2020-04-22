@@ -1,5 +1,5 @@
-import './page/components/transactions-list';
-import './page/transactions-list-component';
+import './page/components/paynl-transactions-list';
+import './page/paynl-transactions-list-component';
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
 
@@ -18,7 +18,7 @@ Module.register('paynl-payment-module', {
     },
     routes: {
         list: {
-            component: 'transactions-list-component',
+            component: 'paynl-transactions-list-component',
             path: 'list'
         }
     },

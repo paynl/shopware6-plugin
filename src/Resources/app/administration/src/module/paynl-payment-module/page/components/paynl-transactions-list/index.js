@@ -3,7 +3,7 @@ import template from './transactions-list.html.twig';
 const { Component } = Shopware;
 const { Criteria } = Shopware.Data;
 
-Component.extend('transactions-list', 'sw-data-grid', {
+Component.extend('paynl-transactions-list', 'sw-data-grid', {
     template,
 
     props: {

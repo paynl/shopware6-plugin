@@ -1,5 +1,5 @@
 import './module/order-list-override';
-import './module/refund';
+import './module/paynl-refund';
 import './module/paynl-payment-module';
 
 import './api/paynl-payment.service';

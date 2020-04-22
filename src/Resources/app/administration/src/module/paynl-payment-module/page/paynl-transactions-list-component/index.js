@@ -3,7 +3,7 @@ import template from './transactions-list.html.twig';
 const { Component } = Shopware;
 const { Criteria } = Shopware.Data;
 
-Component.register('transactions-list-component', {
+Component.register('paynl-transactions-list-component', {
     template,
 
     inject: [
