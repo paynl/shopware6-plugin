@@ -5,7 +5,7 @@
         <h2>
             {{ $tc('sw-settings.index.title') }}
             <sw-icon name="small-arrow-medium-right" small></sw-icon>
-            {{ $tc('paynlSettings.title') }}
+            {{ $tc('paynlSettings.general.title') }}
         </h2>
     </template>
     {% endblock %}
@@ -17,21 +17,22 @@
                 class="sw-settings-login-registration__save-action"
                 :isLoading="isLoading"
                 :processSuccess="isSaveSuccessful"
-                :disabled="isLoading || isTesting"
+                :disabled="isLoading"
                 variant="primary"
                 @process-finish="saveFinish"
                 @click="onSave">
             {{ $tc('paynlSettings.settingsForm.save') }}
         </sw-button-process>
         {% endblock %}
+
         {% block paynl_payment_settings_actions_install_payment_methods %}
         <sw-button-process
                 class="sw-settings-login-registration__save-action"
-                :isLoading="isLoading"
-                :processSuccess="isSaveSuccessful"
-                :disabled="isLoading || isTesting"
+                :isLoading="isInstallLoading"
+                :processSuccess="isInstallSuccessful"
+                :disabled="isInstallLoading"
                 variant="primary"
-                @process-finish="saveFinish"
+                @process-finish="installFinish"
                 @click="onInstallPaymentMethods">
             {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
         </sw-button-process>
@@ -50,16 +51,6 @@
                     domain="PaynlPaymentShopware6.settings">
                 <template #card-element="{ element, config }">
                     <sw-form-field-renderer
-                            v-if="element.name.startsWith('PaynlPaymentShopware6.settings.paymentStatus')"
-                            :config="{
-                                        componentName: 'sw-single-select',
-                                        label: getInlineSnippet(element.config.label),
-                                        helpText: getInlineSnippet(element.config.helpText),
-                                        options: stateMachineTransitionActions,
-                                    }"
-                            v-model="config[element.name]"/>
-                    <sw-form-field-renderer
-                            v-else
                             v-bind="getBind(element, config)"
                             v-model="config[element.name]"/>
                 </template>

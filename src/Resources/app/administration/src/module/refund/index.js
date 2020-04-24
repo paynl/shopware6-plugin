@@ -12,7 +12,7 @@ Module.register('refund-page', {
     name: "refundModule.name",
     title: "refundModule.title",
     description: "refundModule.description",
-    color: '#62ff80',
+    color: '#23ac70',
     snippets: {
         'de-DE': deDE,
         'en-GB': enGB

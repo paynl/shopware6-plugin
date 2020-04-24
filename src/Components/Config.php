@@ -6,7 +6,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class Config
 {
-    const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.config.%s';
+    const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.settings.%s';
     const FEMALE_SALUTATIONS = 'mrs, ms, miss, ma\'am, frau, mevrouw, mevr';
 
     private $config;

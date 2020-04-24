@@ -7,10 +7,10 @@ const { Module } = Shopware;
 
 Module.register('paynl-settings', {
     type: "plugin",
-    name: "paynlConfig.name",
-    title: "paynlConfig.title",
-    description: "paynlConfig.description",
-    color: '#62ff80',
+    name: "paynlSettings.general.name",
+    title: "paynlSettings.general.title",
+    description: "paynlSettings.general.description",
+    color: '#23ac70',
     snippets: {
         'de-DE': deDE,
         'en-GB': enGB
@@ -23,7 +23,10 @@ Module.register('paynl-settings', {
     routes: {
         view: {
             component: 'paynl-plugin-settings',
-            path: 'index'
+            path: 'view',
+            meta: {
+                parentPath: 'sw.settings.index'
+            }
         }
     }
 });

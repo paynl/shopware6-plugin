@@ -1,7 +1,20 @@
 {
-    "paynlConfig": {
-        "name": "Paynl plugin config",
-        "title": "Paynl plugin config",
-        "description": "Paynl plugin config"
+    "paynlSettings": {
+        "general": {
+            "name": "Paynl plugin config",
+            "title": "Paynl plugin config",
+            "description": "Paynl plugin config",
+            "mainMenuItemGeneral": "Paynl Payment settings"
+        },
+        "settingsForm": {
+            "save": "Save",
+            "installPaymentMethods": "Install payment methods"
+        }
+    },
+    "paynlValidation": {
+        "error": {
+            "paymentMethodsInstallLabel": "Installation error!",
+            "paymentMethodsInstallMessage": "Could not install payment methods."
+        }
     }
 }

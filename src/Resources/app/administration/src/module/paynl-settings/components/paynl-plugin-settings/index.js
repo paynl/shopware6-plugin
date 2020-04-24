@@ -6,17 +6,18 @@ Component.register('paynl-plugin-settings', {
     template,
 
     mixins: [
-        Mixin.getByName('notification'),
-        Mixin.getByName('sw-inline-snippet')
+        Mixin.getByName('notification')
     ],
 
     inject: [ 'PaynlPaymentService' ],
 
     data() {
         return {
+            isInstallLoading: false,
             isLoading: false,
             isTesting: false,
             isSaveSuccessful: false,
+            isInstallSuccessful: false,
             isTestSuccessful: false,
             config: {},
             tokenCodeFilled: false,
@@ -27,16 +28,6 @@ Component.register('paynl-plugin-settings', {
             femaleSalutationsFilled: false,
             showValidationErrors: false
         };
-    },
-
-    created() {
-        this.createdComponent();
-    },
-
-    computed: {
-        credentialsMissing: function() {
-            return !this.tokenCodeFilled || !this.apiTokenFilled || !this.serviceIdFilled;
-        }
     },
 
     metaInfo() {
@@ -50,18 +41,12 @@ Component.register('paynl-plugin-settings', {
             this.isSaveSuccessful = false;
         },
 
-        onConfigChange(config) {
-            this.config = config;
-
-            this.checkCredentialsFilled();
-
-            this.showValidationErrors = false;
+        installFinish() {
+            this.isInstallSuccessful = false;
         },
 
-        checkCredentialsFilled() {
-            this.tokenCodeFilled = !!this.getConfigValue('tokenCode');
-            this.apiTokenFilled = !!this.getConfigValue('apiToken');
-            this.serviceIdFilled = !!this.getConfigValue('serviceId');
+        onConfigChange(config) {
+            this.config = config;
         },
 
         getConfigValue(field) {
@@ -71,41 +56,63 @@ Component.register('paynl-plugin-settings', {
             if (salesChannelId === null) {
                 return this.config[`PaynlPaymentShopware6.settings.${field}`];
             }
+
             return this.config[`PaynlPaymentShopware6.settings.${field}`]
                 || defaultConfig[`PaynlPaymentShopware6.settings.${field}`];
         },
 
         onSave() {
-            if (this.credentialsMissing) {
-                this.showValidationErrors = true;
-                return;
-            }
-
             this.isSaveSuccessful = false;
             this.isLoading = true;
             this.$refs.systemConfig.saveAll().then(() => {
                 this.isLoading = false;
                 this.isSaveSuccessful = true;
+                this.createNotificationSuccess({
+                    title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                    message: this.$tc('sw-plugin-config.messageSaveSuccess')
+                });
             }).catch(() => {
                 this.isLoading = false;
             });
         },
 
         onInstallPaymentMethods() {
-            this.onSave();
+            this.isInstallLoading = true;
+            this.$refs.systemConfig.saveAll().then(() => {
+                this.createNotificationSuccess({
+                    title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                    message: this.$tc('sw-plugin-config.messageSaveSuccess')
+                });
+
+                this.isInstallSuccessful = false;
+                this.PaynlPaymentService.installPaymentMethods()
+                    .then((response) => {
+                        this.createNotificationSuccess({
+                            title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                            message: response.message
+                        });
+
+                        this.isInstallSuccessful = true;
+                        this.isInstallLoading = false;
+                    })
+                    .catch(() => {
+                        this.createNotificationError({
+                            title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
+                            message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
+                        });
+
+                        this.isInstallSuccessful = true;
+                        this.isInstallLoading = false;
+                    });
+            }).catch(() => {
+                this.isInstallSuccessful = true;
+                this.isInstallLoading = false;
+            });
         },
 
         getBind(element, config) {
             if (config !== this.config) {
                 this.onConfigChange(config);
-            }
-            if (this.showValidationErrors) {
-                if (element.name === 'PaynlPaymentShopware6.settings.merchantId' && !this.merchantIdFilled) {
-                    element.config.error = {
-                        code: 1,
-                        detail: this.$tc('paynlSettings.messageNotBlank')
-                    };
-                }
             }
 
             return element;
