@@ -103,7 +103,7 @@ Component.register('paynl-plugin-settings', {
                 if (element.name === 'PaynlPaymentShopware6.settings.merchantId' && !this.merchantIdFilled) {
                     element.config.error = {
                         code: 1,
-                        detail: this.$tc('payone-payment.messageNotBlank')
+                        detail: this.$tc('paynlSettings.messageNotBlank')
                     };
                 }
             }
