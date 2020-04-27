@@ -74,8 +74,9 @@ class InstallHelper
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
 
+            $this->mediaHelper->addMedia($paymentMethod, $context);
+
             if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
-                $this->mediaHelper->addMedia($paymentMethod, $context);
                 $this->addPaymentMethod($context, $paymentMethod);
             }
         }
