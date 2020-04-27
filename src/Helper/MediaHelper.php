@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Helper;
 
+use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\File\MediaFile;
 use Shopware\Core\Content\Media\MediaEntity;
@@ -14,8 +15,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class MediaHelper
 {
-    const PAYNL_PAYMENT_MEDIA_TEMPLATE = 'paynlpayment_%s_%s';
-    const IMAGE_ROUTE = __DIR__ . '/../Resources/public/logos/%s.png';
+    const MEDIA_NAME_TEMPLATE = 'paynlpayment_%s';
+    const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
 
     /** @var EntityRepositoryInterface */
     private $mediaRepository;
@@ -30,117 +31,74 @@ class MediaHelper
     }
 
     /**
-     * @param array $paymentMethod
+     * @param string $paymentMethodName
      * @param Context $context
+     * @return string|null
      */
-    public function addMedia(array $paymentMethod, Context $context): void
+    public function getMediaId(string $paymentMethodName, Context $context): ?string
     {
-        if ($this->hasMediaAlreadyInstalled($paymentMethod, $context)) {
-            return;
-        }
-
-        $mediaName = sprintf(self::IMAGE_ROUTE, $paymentMethod['id']);
-        if (!file_exists($mediaName)) {
-            return;
-        }
-
-        $mediaFile = $this->createMediaFile($mediaName);
-        $mediaId = Uuid::randomHex();
-        $mediaData = ['id' => $mediaId];
-
-        $this->mediaRepository->create(
-            [$mediaData],
-            $context
+        $criteria = (new Criteria())->addFilter(
+            new EqualsFilter(
+                'fileName',
+                $this->getMediaName($paymentMethodName)
+            )
         );
 
-        $this->fileSaver->persistFileToMedia(
-            $mediaFile,
-            $this->getMediaName($paymentMethod),
-            $mediaId,
-            $context
-        );
+        /** @var MediaEntity $media */
+        $media = $this->mediaRepository->search($criteria, $context)->first();
+
+        if (empty($media)) {
+            return null;
+        }
+
+        return $media->getId();
     }
 
-    /**
-     * @param string $filePath
-     * @return MediaFile
-     */
-    private function createMediaFile(string $filePath): MediaFile
+    public function addImageToMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
     {
-        return new MediaFile(
+        if ($this->isAlreadyExist($paymentMethodValueObject->getName(), $context)) {
+            return;
+        }
+
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodValueObject->getId());
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $mediaFile = new MediaFile(
             $filePath,
             mime_content_type($filePath),
             pathinfo($filePath, PATHINFO_EXTENSION),
             filesize($filePath)
         );
+
+        $mediaId = Uuid::randomHex();
+        $mediaData = ['id' => $mediaId];
+        $this->mediaRepository->create([$mediaData], $context);
+
+        $this->fileSaver->persistFileToMedia(
+            $mediaFile,
+            $this->getMediaName($paymentMethodValueObject->getName()),
+            $mediaId,
+            $context
+        );
     }
 
-    /**
-     * @param array $paymentMethod
-     * @param Context $context
-     * @return bool
-     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
-     */
-    private function hasMediaAlreadyInstalled(array $paymentMethod, Context $context) : bool
+    private function isAlreadyExist(string $paymentMethodName, Context $context) : bool
     {
         $criteria = (new Criteria())->addFilter(
-            new EqualsFilter(
-                'fileName',
-                $this->getMediaName($paymentMethod)
-            )
+            new EqualsFilter('fileName', $this->getMediaName($paymentMethodName))
         );
 
-        /** @var MediaEntity $media */
         $media = $this->mediaRepository->search($criteria, $context)->first();
 
-        return $media ? true : false;
+        return !empty($media);
     }
 
-    /**
-     * @param array $paymentMethod
-     * @return string
-     */
-    private function getMediaName(array $paymentMethod): string
+    private function getMediaName(string $paymentMethodName): string
     {
-        $paymentMethodTechnicalName = $this->getPaymentMethodTechnicalName($paymentMethod['name']);
+        $paymentMethodName = strtolower(trim(preg_replace('/[\W]/', '_', $paymentMethodName), '_'));
 
-        return sprintf(self::PAYNL_PAYMENT_MEDIA_TEMPLATE, $paymentMethodTechnicalName, $paymentMethod['id']);
-    }
-
-    /**
-     * @param string $name
-     * @return string
-     */
-    private function getPaymentMethodTechnicalName(string $name): string
-    {
-        $technicalName = trim(preg_replace('/[\W]/', '_', $name), '_');
-        $technicalName = preg_replace('/(\_+)/', '_', $technicalName);
-
-        return strtolower($technicalName);
-    }
-
-    /**
-     * @param array $paymentMethod
-     * @param Context $context
-     * @return string|null
-     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
-     */
-    public function getMediaId(array $paymentMethod, Context $context): ?string
-    {
-        $criteria = (new Criteria())->addFilter(
-            new EqualsFilter(
-                'fileName',
-                $this->getMediaName($paymentMethod)
-            )
-        );
-
-        /** @var MediaEntity $media */
-        $media = $this->mediaRepository->search($criteria, $context)->first();
-
-        if (!$media) {
-            return null;
-        }
-
-        return $media->getId();
+        return sprintf(self::MEDIA_NAME_TEMPLATE, $paymentMethodName);
     }
 }

@@ -10,11 +10,10 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
+use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -72,47 +71,32 @@ class InstallHelper
         }
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-
-            $this->mediaHelper->addMedia($paymentMethod, $context);
-
-            if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
-                $this->addPaymentMethod($context, $paymentMethod);
-            }
+            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+            $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
+            $this->addPaymentMethod($context, $paymentMethodValueObject);
         }
-    }
-
-    private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
-    {
-        // Fetch ID for update
-        $paymentCriteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $shopwarePaymentMethodId));
-        $paymentMethods = $this->paymentMethodRepository->search($paymentCriteria, Context::createDefaultContext());
-
-        return $paymentMethods->getTotal() !== 0;
     }
 
     /**
      * @param Context $context
-     * @param mixed[] $paymentMethod
-     * @throws InconsistentCriteriaIdsException
+     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @internal param PaymentMethodValueObject $paymentMethod
      */
-    private function addPaymentMethod(Context $context, array $paymentMethod): void
+    private function addPaymentMethod(Context $context, PaymentMethodValueObject $paymentMethodValueObject): void
     {
-        $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-        $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $paymentMethodDescription = sprintf(
             self::PAYMENT_METHOD_DESCRIPTION_TPL,
-            $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]
+            $paymentMethodValueObject->getVisibleName()
         );
+
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
-            'id' => $paymentMethodId,
+            'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => PaynlPaymentHandler::class,
-            'name' => $paymentMethodName,
+            'name' => $paymentMethodValueObject->getName(),
             'description' => $paymentMethodDescription,
             'pluginId' => $pluginId,
-            'mediaId' => $this->mediaHelper->getMediaId($paymentMethod, $context),
+            'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1
             ]
@@ -123,7 +107,7 @@ class InstallHelper
         foreach ($channels->getIds() as $channelId) {
             $data = [
                 'salesChannelId'  => $channelId,
-                'paymentMethodId' => $paymentMethodId,
+                'paymentMethodId' => $paymentMethodValueObject->getHashedId(),
             ];
 
             $this->paymentMethodSalesChannelRepository->upsert([$data], $context);
