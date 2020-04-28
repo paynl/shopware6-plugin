@@ -1,4 +1,4 @@
-import './page/refund-page-view';
+import './page/paynl-refund-page-view';
 import './page/components/paynl-refund-products-list';
 import './page/components/paynl-refund-single-order-product';
 
@@ -7,7 +7,7 @@ import enGB from './snippet/en-GB.json';
 
 const { Module } = Shopware;
 
-Module.register('refund-page', {
+Module.register('paynl-refund-page', {
     type: "plugin",
     name: "refundModule.name",
     title: "refundModule.title",
@@ -19,7 +19,7 @@ Module.register('refund-page', {
     },
     routes: {
         view: {
-            component: 'refund-page-view',
+            component: 'paynl-refund-page-view',
             path: 'view/:id',
             props: {
                 default: (route) => ({ orderId: route.params.id })
