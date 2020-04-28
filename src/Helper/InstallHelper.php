@@ -92,7 +92,7 @@ class InstallHelper
      */
     private function addPaymentMethod(Context $context, array $paymentMethod): void
     {
-        $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+        $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]); //NOSONAR
         $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $paymentMethodDescription = sprintf(
             self::PAYMENT_METHOD_DESCRIPTION_TPL,
@@ -147,7 +147,7 @@ class InstallHelper
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         $upsertData = [];
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]); //NOSONAR
             if (!$this->isInstalledPaymentMethod($paymentMethodId)) {
                 continue;
             }
