@@ -1,9 +1,9 @@
 {
     "paynlSettings": {
         "general": {
-            "name": "Paynl Plugin Konfiguration",
-            "title": "Paynl Plugin Konfiguration",
-            "description": "Paynl Plugin Konfiguration",
+            "name": "Paynl Plugin",
+            "title": "Paynl Plugin",
+            "description": "Paynl Plugin",
             "mainMenuItemGeneral": "Paynl Zahlungseinstellungen"
         },
         "settingsForm": {
