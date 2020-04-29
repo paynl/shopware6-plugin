@@ -16,10 +16,11 @@
         }
     },
     "require": {
-        "shopware/core": "6.1.*",
+        "shopware/core": "^6.1",
         "shopware/storefront": "^6.1",
-        "paynl/sdk": "dev-master"
+        "paynl/sdk": "1.5.12"
     },
+    "minimum-stability": "RC",
     "license": "MIT",
     "authors": [
         {
