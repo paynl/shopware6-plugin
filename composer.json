@@ -36,20 +36,11 @@
         }
     },
     "require-dev": {
-        "jakub-onderka/php-parallel-lint": "^1.0",
-        "phpstan/phpstan": "0.10.3",
-        "thecodingmachine/phpstan-strict-rules": "^0.10.3",
-        "squizlabs/php_codesniffer": "^3.3",
-        "phpunit/phpunit": "^7",
-        "brainmaestro/composer-git-hooks": "^2.8"
+        "phpstan/phpstan": "0.11.19",
+        "phpunit/phpunit": "^7"
     },
     "scripts": {
-      "lint": "docker-compose run php-cli-container bash -c \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/parallel-lint ./custom/plugins/PaynlPaymentShopware6/src && ./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpcs --extensions=php -p ./custom/plugins/PaynlPaymentShopware6/src --standard=PSR2 && ./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpstan analyse -c ./custom/plugins/PaynlPaymentShopware6/phpstan.neon -l max ./custom/plugins/PaynlPaymentShopware6/src\"",
-      "fix": "docker-compose run php-cli-container bash -c \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpcbf ./custom/plugins/PaynlPaymentShopware6/src --standard=PSR2\"",
-      "post-install-cmd": "cghooks add --ignore-lock",
-      "post-update-cmd": "cghooks update",
-      "cghooks": "cghooks",
-      "tests": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist --no-coverage\"",
-      "tests-coverage": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist \""
+        "tests": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist --no-coverage\"",
+        "tests-coverage": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist \""
     }
 }
