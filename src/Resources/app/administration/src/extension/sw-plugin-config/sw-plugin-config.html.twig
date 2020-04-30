@@ -1,6 +1,0 @@
-{% block sw_plugin_config_actions_save %}
-    {% parent %}
-    <sw-button v-if="isPaynlPayment" variant="warning" class="sw-plugin-config__save-action" @click.prevent="installPaymentMethod">
-        Install payment methods
-    </sw-button>
-{% endblock %}
