@@ -9,6 +9,7 @@ use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -154,7 +155,8 @@ class Api
     {
         $paymentMethods = $this->getPaymentMethods();
         foreach ($paymentMethods as $paymentMethod) {
-            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) { //NOSONAR
+            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+            if ($shopwarePaymentMethodId === $paymentMethodValueObject->getHashedId()) {
                 return $paymentMethod;
             }
         }
