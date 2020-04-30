@@ -71,10 +71,7 @@ class InstallHelper
         }
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $shopwarePaymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-            if (!$this->isInstalledPaymentMethod($shopwarePaymentMethodId)) {
-                $this->addPaymentMethod($context, $paymentMethod);
-            }
+            $this->addPaymentMethod($context, $paymentMethod);
         }
     }
 
@@ -135,7 +132,7 @@ class InstallHelper
         $this->changePaymentMethodsStatuses($context, true);
     }
 
-    public function removeConfigurationData(Context $context): void
+    public function removeConfigurationData(): void
     {
         $paynlPaymentConfigs = $this->configService->get('PaynlPaymentShopware6');
         if (isset($paynlPaymentConfigs['config'])) {
@@ -150,8 +147,13 @@ class InstallHelper
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         $upsertData = [];
         foreach ($paynlPaymentMethods as $paymentMethod) {
+            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+            if (!$this->isInstalledPaymentMethod($paymentMethodId)) {
+                continue;
+            }
+
             $upsertData[] = [
-                'id' => md5($paymentMethod[Api::PAYMENT_METHOD_ID]),
+                'id' => $paymentMethodId,
                 'active' => $active,
             ];
         }
