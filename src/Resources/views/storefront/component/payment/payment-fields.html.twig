@@ -6,13 +6,11 @@
 
                {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
 
-               class="custom-control-input payment-method-input"
+               class="custom-control-input">
 
-               onclick="idealBanks('none'); showhide(pmName);">
+        <div id="{{ payment.translated.action_name }}" class="paynl-savebutton">
 
-        <div id="{{ payment.translated.action_name }}" class="button-trick-ideal">
-
-            <div id="buttonPmiDeal" class="saveOption">
+            <div id="paynl-button-container" class="saveOption">
 
                 <button class="btn btn-primary" type="submit">
 
@@ -20,7 +18,7 @@
 
                 </button>
 
-                <button class="btn btn-light"
+                <button class="btn btn-light paynl-diguise"
 
                         type="button"
 
@@ -36,23 +34,23 @@
 
         </div>
 
+        <template paynl-savebtn-plugin></template>
 
     {% endblock %}
 
     {% block component_payment_method_description %}
         <div class="payment-method-description">
             {% set pmName = payment.translated.name %}
-            {% if (pmName == 'iDEAL' and not payment.media) %}
-                <img src="https://cashmaster.sharepoint.com/sites/TESTING123/Gedeelde%20documenten/General/IMAGES/Betaalopties/LOGO/1.png"
-                     class="payment-method-image">
-            {% endif %}
-
+            {% set testName = pmName|file_excerpt(line, srcContext = 3) %}
+            <div class="paynl-image-container" for="payment_Method{{ payment.id }}">
+                <img src="http://static.pay.nl/payment_profile_brands/100x100/{{ loop.index }}.png" class="paynl-image" alt="paynl-pmimage"/>
+            </div>
             <strong>{{ payment.translated.name }}</strong>
             {% if payment.translated.description %}
                 <p>{{ payment.translated.description|raw }}</p>
             {% endif %}
             {% if (pmName == 'iDEAL') %}
-                    <div class="ideal-banks">
+                    <div class="paynl-ideal-banks">
                         <label for="optionsub" id="pmLabel">Please choose your bank:</label>
                         <select id="optionsub" class="form-control" name="banklist">
                             <option value="1">ABN Amro</option>
