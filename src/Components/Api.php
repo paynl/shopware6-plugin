@@ -154,7 +154,7 @@ class Api
     {
         $paymentMethods = $this->getPaymentMethods();
         foreach ($paymentMethods as $paymentMethod) {
-            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) {
+            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) { //NOSONAR
                 return $paymentMethod;
             }
         }

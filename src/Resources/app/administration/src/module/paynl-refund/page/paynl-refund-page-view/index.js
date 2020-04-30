@@ -1,10 +1,10 @@
-import template from './refund-page-view.html.twig';
-import './refund-card.scss';
+import template from './paynl-refund-page-view.html.twig';
+import './paynl-refund-card.scss';
 
 const {Component, Mixin} = Shopware;
 const {Criteria} = Shopware.Data;
 
-Component.register('refund-page-view', {
+Component.register('paynl-refund-page-view', {
     template,
 
     mixins: [

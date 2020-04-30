@@ -1,8 +1,8 @@
 {% block transaction_list %}
-    <sw-page class="transaction-list">
+    <sw-page class="paynl-transaction-list">
         <template slot="content">
             {% block transaction_list_content %}
-                <transactions-list
+                <paynl-transactions-list
                     v-if="transactions"
                     :items="transactions"
                     :repository="repository"
@@ -45,7 +45,7 @@
                         {{ getData(item.createdAt) }}
                     </template>
 
-                </transactions-list>
+                </paynl-transactions-list>
             {% endblock %}
         </template>
     </sw-page>

@@ -1,0 +1,11 @@
+{% block sw_settings_content_card_slot_plugins %}
+    {% parent %}
+
+    <sw-settings-item :label="$tc('paynlSettings.general.mainMenuItemGeneral')"
+                      :to="{ name: 'paynl.settings.view' }"
+                      :backgroundEnabled="false">
+        <template #icon>
+            <img class="sw-settings-index__paynl-icon" :src="'paynlpaymentshopware6/plugin.png' | asset">
+        </template>
+    </sw-settings-item>
+{% endblock %}
