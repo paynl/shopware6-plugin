@@ -14,6 +14,7 @@ use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -140,7 +141,7 @@ class InstallHelper
         $upsertData = [];
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-            if (!$this->isInstalledPaymentMethod($paymentMethodId)) {
+            if (!$this->isInstalledPaymentMethod($context, $paymentMethodId)) {
                 continue;
             }
 
@@ -153,6 +154,16 @@ class InstallHelper
         if (!empty($upsertData)) {
             $this->paymentMethodRepository->upsert($upsertData, $context);
         }
+    }
+
+    private function isInstalledPaymentMethod(Context $context, string $shopwarePaymentMethodId): bool
+    {
+        // Fetch ID for update
+        $paymentCriteria = (new Criteria())
+            ->addFilter(new EqualsFilter('id', $shopwarePaymentMethodId));
+        $paymentMethods = $this->paymentMethodRepository->search($paymentCriteria, $context);
+
+        return $paymentMethods->getTotal() !== 0;
     }
 
     public function dropTables(): void
