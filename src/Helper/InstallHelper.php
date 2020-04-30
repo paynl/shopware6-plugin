@@ -10,9 +10,9 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
+use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
@@ -61,6 +61,7 @@ class InstallHelper
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         $this->paynlApi = new Api($config, $customerHelper, $productRepository);
+        $this->mediaHelper = new MediaHelper($container);
     }
 
     public function addPaymentMethods(Context $context): void
@@ -71,40 +72,32 @@ class InstallHelper
         }
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $this->addPaymentMethod($context, $paymentMethod);
+            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+            $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
+            $this->addPaymentMethod($context, $paymentMethodValueObject);
         }
-    }
-
-    private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
-    {
-        // Fetch ID for update
-        $paymentCriteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $shopwarePaymentMethodId));
-        $paymentMethods = $this->paymentMethodRepository->search($paymentCriteria, Context::createDefaultContext());
-
-        return $paymentMethods->getTotal() !== 0;
     }
 
     /**
      * @param Context $context
-     * @param mixed[] $paymentMethod
-     * @throws InconsistentCriteriaIdsException
+     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @internal param PaymentMethodValueObject $paymentMethod
      */
-    private function addPaymentMethod(Context $context, array $paymentMethod): void
+    private function addPaymentMethod(Context $context, PaymentMethodValueObject $paymentMethodValueObject): void
     {
-        $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]); //NOSONAR
-        $paymentMethodName = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $paymentMethodDescription = sprintf(
             self::PAYMENT_METHOD_DESCRIPTION_TPL,
-            $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME]
+            $paymentMethodValueObject->getVisibleName()
         );
+
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
-            'id' => $paymentMethodId,
+            'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => PaynlPaymentHandler::class,
-            'name' => $paymentMethodName,
+            'name' => $paymentMethodValueObject->getName(),
             'description' => $paymentMethodDescription,
             'pluginId' => $pluginId,
+            'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1
             ]
@@ -115,7 +108,7 @@ class InstallHelper
         foreach ($channels->getIds() as $channelId) {
             $data = [
                 'salesChannelId'  => $channelId,
-                'paymentMethodId' => $paymentMethodId,
+                'paymentMethodId' => $paymentMethodValueObject->getHashedId(),
             ];
 
             $this->paymentMethodSalesChannelRepository->upsert([$data], $context);
@@ -147,8 +140,8 @@ class InstallHelper
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         $upsertData = [];
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]); //NOSONAR
-            if (!$this->isInstalledPaymentMethod($paymentMethodId)) {
+            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
+            if (!$this->isInstalledPaymentMethod($context, $paymentMethodId)) {
                 continue;
             }
 
@@ -161,6 +154,16 @@ class InstallHelper
         if (!empty($upsertData)) {
             $this->paymentMethodRepository->upsert($upsertData, $context);
         }
+    }
+
+    private function isInstalledPaymentMethod(Context $context, string $shopwarePaymentMethodId): bool
+    {
+        // Fetch ID for update
+        $paymentCriteria = (new Criteria())
+            ->addFilter(new EqualsFilter('id', $shopwarePaymentMethodId));
+        $paymentMethods = $this->paymentMethodRepository->search($paymentCriteria, $context);
+
+        return $paymentMethods->getTotal() !== 0;
     }
 
     public function dropTables(): void
