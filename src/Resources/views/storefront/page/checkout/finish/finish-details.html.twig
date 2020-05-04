@@ -4,7 +4,6 @@
     {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
         {% set status = page.getOrder.getTransactions.first.getStateMachineState.getTechnicalName %}
         {% if (status == 'cancelled' or status == 'denied') %}
-            <h1 class="testCase">Hello Dima</h1>
             <h1 class="finish-header text-danger">
                 {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
             </h1>
