@@ -26,6 +26,7 @@ class Api
     const PAYMENT_METHOD_ID = 'id';
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
+    const PAYMENT_METHOD_BANKS = 'banks';
 
     const ACTION_PENDING = 'pending';
 

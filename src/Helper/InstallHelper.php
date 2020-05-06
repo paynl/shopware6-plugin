@@ -39,15 +39,15 @@ class InstallHelper
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var PluginIdProvider $this->pluginIdProvider  */
+        /** @var PluginIdProvider $this ->pluginIdProvider */
         $this->pluginIdProvider = $container->get(PluginIdProvider::class);
-        /** @var EntityRepositoryInterface $this->paymentMethodRepository */
+        /** @var EntityRepositoryInterface $this ->paymentMethodRepository */
         $this->paymentMethodRepository = $container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
-        /** @var EntityRepositoryInterface $this->salesChannelRepository */
+        /** @var EntityRepositoryInterface $this ->salesChannelRepository */
         $this->salesChannelRepository = $container->get('sales_channel.repository');
-        /** @var EntityRepositoryInterface $this->paymentMethodSalesChannelRepository */
+        /** @var EntityRepositoryInterface $this ->paymentMethodSalesChannelRepository */
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
-        /** @var Connection $this->connection */
+        /** @var Connection $this ->connection */
         $this->connection = $container->get(Connection::class);
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
@@ -73,8 +73,29 @@ class InstallHelper
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+
             $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
             $this->addPaymentMethod($context, $paymentMethodValueObject);
+        }
+    }
+
+    public function deactivatePaymentMethods(Context $context): void
+    {
+        $this->changePaymentMethodsStatuses($context, false);
+    }
+
+    public function activatePaymentMethods(Context $context): void
+    {
+        $this->changePaymentMethodsStatuses($context, true);
+    }
+
+    public function removeConfigurationData(): void
+    {
+        $paynlPaymentConfigs = $this->configService->get('PaynlPaymentShopware6');
+        if (isset($paynlPaymentConfigs['settings'])) {
+            foreach ($paynlPaymentConfigs['settings'] as $configKey => $configName) {
+                $this->configService->delete(sprintf(Config::CONFIG_TEMPLATE, $configKey));
+            }
         }
     }
 
@@ -99,7 +120,8 @@ class InstallHelper
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'customFields' => [
-                self::PAYMENT_METHOD_PAYNL => 1
+                self::PAYMENT_METHOD_PAYNL => 1,
+                'banks' => $paymentMethodValueObject->getBanks()
             ]
         ];
         $this->paymentMethodRepository->upsert([$paymentData], $context);
@@ -107,31 +129,11 @@ class InstallHelper
         $channels = $this->salesChannelRepository->searchIds(new Criteria(), $context);
         foreach ($channels->getIds() as $channelId) {
             $data = [
-                'salesChannelId'  => $channelId,
+                'salesChannelId' => $channelId,
                 'paymentMethodId' => $paymentMethodValueObject->getHashedId(),
             ];
 
             $this->paymentMethodSalesChannelRepository->upsert([$data], $context);
-        }
-    }
-
-    public function deactivatePaymentMethods(Context $context): void
-    {
-        $this->changePaymentMethodsStatuses($context, false);
-    }
-
-    public function activatePaymentMethods(Context $context): void
-    {
-        $this->changePaymentMethodsStatuses($context, true);
-    }
-
-    public function removeConfigurationData(): void
-    {
-        $paynlPaymentConfigs = $this->configService->get('PaynlPaymentShopware6');
-        if (isset($paynlPaymentConfigs['config'])) {
-            foreach ($paynlPaymentConfigs['config'] as $configKey => $configName) {
-                $this->configService->delete(sprintf(Config::CONFIG_TEMPLATE, $configKey));
-            }
         }
     }
 

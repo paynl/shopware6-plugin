@@ -2,7 +2,6 @@
 
 namespace PaynlPayment\Shopware6\Entity;
 
-use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
 
 /**

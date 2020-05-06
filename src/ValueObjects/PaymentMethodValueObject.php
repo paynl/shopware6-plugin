@@ -2,7 +2,6 @@
 
 namespace PaynlPayment\Shopware6\ValueObjects;
 
-
 use PaynlPayment\Shopware6\Components\Api;
 
 class PaymentMethodValueObject
@@ -11,6 +10,7 @@ class PaymentMethodValueObject
     private $hashedId;
     private $name;
     private $visibleName;
+    private $banks;
 
     public function __construct(array $paymentMethod)
     {
@@ -18,25 +18,46 @@ class PaymentMethodValueObject
         $this->hashedId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
         $this->name = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $this->visibleName = $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME];
+        $this->banks = $paymentMethod[Api::PAYMENT_METHOD_BANKS] ?: [];
     }
 
-    public function getId()
+    /**
+     * @return int
+     */
+    public function getId(): int
     {
         return $this->id;
     }
 
-    public function getHashedId()
+    /**
+     * @return string
+     */
+    public function getHashedId(): string
     {
         return $this->hashedId;
     }
 
-    public function getName()
+    /**
+     * @return string
+     */
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getVisibleName()
+    /**
+     * @return string
+     */
+    public function getVisibleName(): string
     {
         return $this->visibleName;
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function getBanks(): array
+    {
+        return $this->banks;
     }
 }
