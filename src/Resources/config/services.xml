@@ -75,11 +75,6 @@
             </call>
         </service>
 
-        <!--Subscribers-->
-        <service id="PaynlPayment\Shopware6\Subscribers\CheckoutSubscriber">
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
         <!--Repositories-->
         <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />
