@@ -134,6 +134,7 @@ Component.register('paynl-refund-page-view', {
                             message: responseData[0].content
                         });
                     }
+                    location.reload();
                 })
                 .catch((errorResponse) => {
 
