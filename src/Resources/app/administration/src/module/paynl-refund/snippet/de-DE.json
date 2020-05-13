@@ -2,7 +2,7 @@
     "order-list-override": {
         "refund": "Refund"
     },
-    "module": {
+    "refundModule": {
         "name": "Refund payment module",
         "title": "Refund payment module",
         "description": "Refund payment module"
