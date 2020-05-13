@@ -83,34 +83,56 @@ Component.register('paynl-plugin-settings', {
                     title: this.$tc('sw-plugin-config.titleSaveSuccess'),
                     message: this.$tc('sw-plugin-config.messageSaveSuccess')
                 });
-
                 this.isInstallSuccessful = false;
-                this.PaynlPaymentService.installPaymentMethods()
-                    .then((response) => {
-                        this.createNotificationSuccess({
-                            title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                            message: response.message
-                        });
 
-                        this.isInstallSuccessful = true;
-                        this.isInstallLoading = false;
-                    })
-                    .catch(() => {
-                        this.createNotificationError({
-                            title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
-                            message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
-                        });
-
-                        this.isInstallSuccessful = true;
-                        this.isInstallLoading = false;
+                if (this.isCredentialsEmpty()) {
+                    this.createNotificationError({
+                        title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
+                        message: this.$tc('paynlValidation.error.wrongCredentials')
                     });
+
+                    this.isInstallSuccessful = true;
+                    this.isInstallLoading = false;
+                } else {
+                    this.PaynlPaymentService.installPaymentMethods()
+                        .then((response) => {
+                            this.createNotificationSuccess({
+                                title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                                message: response.message
+                            });
+
+                            this.isInstallSuccessful = true;
+                            this.isInstallLoading = false;
+                        })
+                        .catch(() => {
+                            this.createNotificationError({
+                                title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
+                                message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
+                            });
+
+                            this.isInstallSuccessful = true;
+                            this.isInstallLoading = false;
+                        });
+                }
             }).catch(() => {
                 this.isInstallSuccessful = true;
                 this.isInstallLoading = false;
             });
         },
 
+        isCredentialsEmpty() {
+            return !(this.tokenCodeFilled && this.apiTokenFilled && this.serviceIdFilled);
+        },
+
+        setCredentialsFilled() {
+            this.tokenCodeFilled = !!this.getConfigValue('tokenCode');
+            this.apiTokenFilled = !!this.getConfigValue('apiToken');
+            this.serviceIdFilled = !!this.getConfigValue('serviceId');
+        },
+
         getBind(element, config) {
+            this.setCredentialsFilled();
+
             if (config !== this.config) {
                 this.onConfigChange(config);
             }

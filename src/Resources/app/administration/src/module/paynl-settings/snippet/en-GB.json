@@ -14,7 +14,8 @@
     "paynlValidation": {
         "error": {
             "paymentMethodsInstallLabel": "Installation error!",
-            "paymentMethodsInstallMessage": "Could not install payment methods."
+            "paymentMethodsInstallMessage": "Could not install payment methods.",
+            "wrongCredentials": "Please insert credentials data."
         }
     }
 }
