@@ -10,8 +10,6 @@ Module.register('paynl-payment-module', {
     name: "module.name",
     title: "module.title",
     description: "module.description",
-    color: '#23ac70',
-    icon: 'default-money-card',
     snippets: {
         'de-DE': deDE,
         'en-GB': enGB
@@ -23,9 +21,8 @@ Module.register('paynl-payment-module', {
         }
     },
     navigation: [{
+        parent: 'sw-order',
         label: "module.navigation.label",
-        color: '#23ac70',
         path: 'paynl.payment.module.list',
-        icon: 'default-money-card'
     }]
 });
