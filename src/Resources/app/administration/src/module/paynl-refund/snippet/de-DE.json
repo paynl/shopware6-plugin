@@ -2,10 +2,10 @@
     "order-list-override": {
         "refund": "Rückerstattung"
     },
-    "refundModule": {
-        "name": "Rückerstattungs-Seite",
-        "title": "Rückerstattungs-Seite",
-        "description": "Rückerstattungs-Seite"
+    "module": {
+        "name": "Rückerstattungsmodul",
+        "title": "Rückerstattungsmodul",
+        "description": "Rückerstattungsmodul"
     },
     "refund": {
         "detailBase": {
@@ -20,7 +20,7 @@
             "headlineTransaction": "Transaktion",
             "headlineDescriptionInput": "Beschreibung",
             "headlineAmountInput": "Betrag",
-            "paynlTransactionId": "Pay.nl Transaktion ID:",
+            "paynlTransactionId": "PAY.nl Transaktion ID:",
             "paidAmount": "Bezahlter Betrag:",
             "availableForRefund": "Verfügbar für Rückerstattung:",
             "refundedAmount": "Rückerstattung Betrag:",

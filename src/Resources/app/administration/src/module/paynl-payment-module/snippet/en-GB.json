@@ -1,10 +1,10 @@
 {
     "module": {
-        "name": "Pay. transactions list",
-        "title": "Pay. transactions list",
-        "description": "Pay. transactions list",
+        "name": "PAY. transactions list",
+        "title": "PAY. transactions list",
+        "description": "PAY. transactions list",
         "navigation": {
-            "label": "Pay. transactions"
+            "label": "PAY. transactions"
         }
     },
     "order": {
@@ -14,8 +14,8 @@
         }
     },
     "transactions-list": {
-        "paynl_transaction_id": "Transaction id",
-        "payment_id": "Payment id",
+        "paynl_transaction_id": "Transaction ID",
+        "payment_id": "Payment ID",
         "amount": "Amount",
         "created_at": "Created at",
         "updated_at": "Updated at",
