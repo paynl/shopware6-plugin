@@ -114,7 +114,12 @@ Component.register('paynl-plugin-settings', {
                             this.isInstallLoading = false;
                         });
                 }
-            }).catch(() => {
+            }).catch((error) => {
+                this.createNotificationError({
+                    title: this.$tc('sw-plugin-config.titleSaveError'),
+                    message: error
+                });
+
                 this.isInstallSuccessful = true;
                 this.isInstallLoading = false;
             });
