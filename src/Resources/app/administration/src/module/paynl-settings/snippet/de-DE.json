@@ -1,20 +1,20 @@
 {
     "paynlSettings": {
         "general": {
-            "name": "Paynl Plugin",
-            "title": "Paynl Plugin",
-            "description": "Paynl Plugin",
-            "mainMenuItemGeneral": "Paynl Zahlungseinstellungen"
+            "name": "Paynl plugin",
+            "title": "Paynl plugin",
+            "description": "Paynl plugin",
+            "mainMenuItemGeneral": "Paynl Zahlung"
         },
         "settingsForm": {
             "save": "Speichern",
-            "installPaymentMethods": "Installieren Sie die Zahlungsmethoden"
+            "installPaymentMethods": "Zahlungsarten installieren"
         }
     },
     "paynlValidation": {
         "error": {
-            "paymentMethodsInstallLabel": "Installationsfehler!",
-            "paymentMethodsInstallMessage": "Zahlungsmethoden konnten nicht installiert werden.",
+            "paymentMethodsInstallLabel": "Fehler beim Installieren!",
+            "paymentMethodsInstallMessage": "Zahlungsarten konnten nicht installiert werden.",
             "wrongCredentials": "Bitte geben Sie die Anmeldeinformationen ein."
         }
     }
