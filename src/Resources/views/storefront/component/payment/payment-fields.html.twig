@@ -1,0 +1,103 @@
+{% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
+
+{% block component_payment_methods %}
+    <div class="payment-methods">
+        {% for payment in page.paymentMethods %}
+            {% block component_payment_method %}
+                <div class="payment-method">
+                    {% block component_payment_method_field %}
+                        <div class="payment-form-group form-group">
+                            {% block component_payment_method_control %}
+                                <div class="custom-control custom-radio payment-control">
+                                    {% block component_payment_method_input %}
+                                        {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+                                            <input type="radio"
+                                                   id="paymentMethod{{ loop.index }}"
+                                                   name="paymentMethodId"
+                                                   value="{{ payment.id }}"
+                                                   data-paynl-modal-btns-id="paynl-modal-buttons-{{ loop.index }}"
+                                                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
+                                                   class="custom-control-input paynl-payment-method-input payment-method-input">
+                                        {% else %}
+                                            {{ parent() }}
+                                        {% endif %}
+                                    {% endblock %}
+
+                                    {% block component_payment_method_label %}
+                                        {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+                                            <label class="custom-control-label paynl-payment-method-label payment-method-label"
+                                                   for="paymentMethod{{ loop.index }}">
+                                                {% block component_payment_method_image %}
+                                                    {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+                                                        {% if payment.media %}
+                                                            {% sw_thumbnails 'payment-method-image-thumbnails' with {
+                                                            media: payment.media,
+                                                            sizes: {
+                                                            'default': '100px'
+                                                            },
+                                                            attributes: {
+                                                            'class': 'payment-method-image paynl-payment-method-image',
+                                                            'alt': (payment.media.translated.alt ?: payment.translated.name),
+                                                            'title': (payment.media.translated.title ?: payment.translated.name)
+                                                            }
+                                                            } %}
+                                                        {% endif %}
+                                                    {% else %}
+                                                        {{ parent() }}
+                                                    {% endif %}
+                                                {% endblock %}
+                                            </label>
+                                            {% block component_payment_method_description %}
+                                                {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+                                                    <div class="paynl-payment-method-description payment-method-description">
+                                                        <strong>{{ payment.translated.name }}</strong>
+                                                    </div>
+                                                    {% if (payment.customFields.banks is not empty) %}
+                                                        <div class="paynl-ideal-banks">
+                                                            <select class="form-control" name="banklist">
+                                                                {% for bank in payment.customFields.banks %}
+                                                                    <option value="{{ bank.id }}">{{ bank.visibleName }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div
+                                                            id="paynl-modal-buttons-{{ loop.index }}"
+                                                            class="paynl-modal-buttons"
+                                                            {% if payment.id is same as(defaultPaymentMethodId) %}
+                                                        style="display: inline-block"
+                                                    {% else %}
+                                                        style="display: none"
+                                                            {% endif %}>
+                                                        <button class="btn btn-primary" type="submit">
+                                                            {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                                                        </button>
+                                                        <button class="btn btn-light"
+                                                                type="button"
+                                                                data-dismiss="modal"
+                                                                aria-label="Close">
+                                                            {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                                                        </button>
+                                                    </div>
+                                                    {% if payment.translated.description %}
+                                                        <p>{{ payment.translated.description|raw }}</p>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {{ parent() }}
+                                                {% endif %}
+                                            {% endblock %}
+                                        {% else %}
+                                            {{ parent() }}
+                                        {% endif %}
+                                    {% endblock %}
+                                </div>
+                            {% endblock %}
+                        </div>
+                    {% endblock %}
+                </div>
+            {% endblock %}
+        {% endfor %}
+    </div>
+
+    <template paynl-payment-plugin></template>
+{% endblock %}
