@@ -19,6 +19,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
+use Exception;
 
 class Api
 {
@@ -232,6 +233,21 @@ class Api
             return \Paynl\Transaction::refund($transactionID, $amount, $description);
         } catch (\Throwable $e) {
             throw new \Exception($e->getMessage());
+        }
+    }
+
+    public function isValidCredentials($tokenCode, $apiToken, $serviceId)
+    {
+        try {
+            SDKConfig::setTokenCode($tokenCode);
+            SDKConfig::setApiToken($apiToken);
+            SDKConfig::setServiceId($serviceId);
+
+            $paymentMethods = Paymentmethods::getList();
+
+            return !empty($paymentMethods);
+        } catch (Exception $exception) {
+            return false;
         }
     }
 }

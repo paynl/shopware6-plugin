@@ -71,4 +71,14 @@ class Config
     {
         return (int)$this->get('additionalAddressFields');
     }
+
+    /**
+     * @param mixed[] $config
+     */
+    public function storeConfigData(array $config): void
+    {
+        foreach ($config as $configKey => $configValue) {
+            $this->config->set(sprintf(self::CONFIG_TEMPLATE, $configKey), $configValue);
+        }
+    }
 }

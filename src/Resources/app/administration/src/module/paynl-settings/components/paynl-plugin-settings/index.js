@@ -26,7 +26,17 @@ Component.register('paynl-plugin-settings', {
             testModeFilled: false,
             allowRefundsFilled: false,
             femaleSalutationsFilled: false,
-            showValidationErrors: false
+            showCredentilasErrors: false,
+            settingsData: {
+                tokenCode: null,
+                allowRefunds: null,
+                apiToken: null,
+                serviceId: null,
+                testMode: null,
+                statusMail: null,
+                additionalAddressFields: null,
+                femaleSalutations: null
+            }
         };
     },
 
@@ -34,6 +44,12 @@ Component.register('paynl-plugin-settings', {
         return {
             title: this.$createTitle()
         };
+    },
+
+    computed: {
+        credentialsEmpty: function() {
+            return !this.tokenCodeFilled || !this.apiTokenFilled || !this.serviceIdFilled;
+        }
     },
 
     methods: {
@@ -47,6 +63,21 @@ Component.register('paynl-plugin-settings', {
 
         onConfigChange(config) {
             this.config = config;
+
+            this.setCredentialsFilled();
+
+            this.settingsData = {
+                tokenCode: this.config['PaynlPaymentShopware6.settings.tokenCode'],
+                allowRefunds: this.config['PaynlPaymentShopware6.settings.allowRefunds'],
+                apiToken: this.config['PaynlPaymentShopware6.settings.apiToken'],
+                serviceId: this.config['PaynlPaymentShopware6.settings.serviceId'],
+                testMode: this.config['PaynlPaymentShopware6.settings.testMode'],
+                statusMail: this.config['PaynlPaymentShopware6.settings.statusMail'],
+                additionalAddressFields: this.config['PaynlPaymentShopware6.settings.additionalAddressFields'],
+                femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations']
+            };
+
+            this.showCredentilasErrors = false;
         },
 
         getConfigValue(field) {
@@ -62,71 +93,99 @@ Component.register('paynl-plugin-settings', {
         },
 
         onSave() {
+            if (this.credentialsEmpty) {
+                this.showCredentilasErrors = true;
+                return;
+            }
+
             this.isSaveSuccessful = false;
             this.isLoading = true;
-            this.$refs.systemConfig.saveAll().then(() => {
-                this.isLoading = false;
-                this.isSaveSuccessful = true;
-                this.createNotificationSuccess({
-                    title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                    message: this.$tc('sw-plugin-config.messageSaveSuccess')
+
+            this.PaynlPaymentService.storeSettings(this.settingsData)
+                .then((response) => {
+                    if (response.success === true) {
+                        this.createNotificationSuccess({
+                            title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                            message: response.message
+                        });
+                    } else {
+                        this.createNotificationError({
+                            title: this.$tc('sw-plugin-config.titleSaveError'),
+                            message: response.message
+                        });
+                    }
+
+                    this.isLoading = false;
+                    this.isSaveSuccessful = true;
+                })
+                .catch((error) => {
+                    this.createNotificationError({
+                        title: this.$tc('sw-plugin-config.titleSaveError'),
+                        message: error
+                    });
+
+                    this.isLoading = false;
                 });
-            }).catch(() => {
-                this.isLoading = false;
-            });
         },
 
         onInstallPaymentMethods() {
-            this.isInstallLoading = true;
-            this.$refs.systemConfig.saveAll().then(() => {
-                this.createNotificationSuccess({
-                    title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                    message: this.$tc('sw-plugin-config.messageSaveSuccess')
-                });
-                this.isInstallSuccessful = false;
+            if (this.credentialsEmpty) {
+                this.showCredentilasErrors = true;
+                return;
+            }
 
-                if (this.isCredentialsEmpty()) {
+            this.isInstallLoading = true;
+
+            this.PaynlPaymentService.storeSettings(this.settingsData)
+                .then((response) => {
+                    if (response.success === true) {
+                        this.createNotificationSuccess({
+                            title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                            message: response.message
+                        });
+
+                        this.isInstallSuccessful = false;
+
+                        this.PaynlPaymentService.installPaymentMethods()
+                            .then((response) => {
+                                this.createNotificationSuccess({
+                                    title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                                    message: response.message
+                                });
+
+                                this.isInstallSuccessful = true;
+                                this.isInstallLoading = false;
+                            })
+                            .catch(() => {
+                                this.createNotificationError({
+                                    title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
+                                    message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
+                                });
+
+                                this.isInstallSuccessful = true;
+                                this.isInstallLoading = false;
+                            });
+                    } else {
+                        this.createNotificationError({
+                            title: this.$tc('sw-plugin-config.titleSaveError'),
+                            message: response.message
+                        });
+
+                        this.isInstallSuccessful = true;
+                        this.isInstallLoading = false;
+                    }
+
+                    this.isLoading = false;
+                    this.isSaveSuccessful = true;
+                })
+                .catch((error) => {
                     this.createNotificationError({
-                        title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
-                        message: this.$tc('paynlValidation.error.wrongCredentials')
+                        title: this.$tc('sw-plugin-config.titleSaveError'),
+                        message: error
                     });
 
-                    this.isInstallSuccessful = true;
-                    this.isInstallLoading = false;
-                } else {
-                    this.PaynlPaymentService.installPaymentMethods()
-                        .then((response) => {
-                            this.createNotificationSuccess({
-                                title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                                message: response.message
-                            });
-
-                            this.isInstallSuccessful = true;
-                            this.isInstallLoading = false;
-                        })
-                        .catch(() => {
-                            this.createNotificationError({
-                                title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
-                                message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
-                            });
-
-                            this.isInstallSuccessful = true;
-                            this.isInstallLoading = false;
-                        });
-                }
-            }).catch((error) => {
-                this.createNotificationError({
-                    title: this.$tc('sw-plugin-config.titleSaveError'),
-                    message: error
+                    this.isLoading = false;
                 });
-
-                this.isInstallSuccessful = true;
-                this.isInstallLoading = false;
-            });
-        },
-
-        isCredentialsEmpty() {
-            return !(this.tokenCodeFilled && this.apiTokenFilled && this.serviceIdFilled);
         },
 
         setCredentialsFilled() {
@@ -135,11 +194,30 @@ Component.register('paynl-plugin-settings', {
             this.serviceIdFilled = !!this.getConfigValue('serviceId');
         },
 
-        getBind(element, config) {
-            this.setCredentialsFilled();
-
+        bindField(element, config) {
             if (config !== this.config) {
                 this.onConfigChange(config);
+            }
+
+            if (this.showCredentilasErrors) {
+                if (element.name === 'PaynlPaymentShopware6.settings.tokenCode' && !this.tokenCodeFilled) {
+                    element.config.error = {
+                        code: 1,
+                        detail: this.$tc('paynlValidation.error.shouldNotBeBlank')
+                    };
+                }
+                if (element.name === 'PaynlPaymentShopware6.settings.apiToken' && !this.apiTokenFilled) {
+                    element.config.error = {
+                        code: 1,
+                        detail: this.$tc('paynlValidation.error.shouldNotBeBlank')
+                    };
+                }
+                if (element.name === 'PaynlPaymentShopware6.settings.serviceId' && !this.serviceIdFilled) {
+                    element.config.error = {
+                        code: 1,
+                        detail: this.$tc('paynlValidation.error.shouldNotBeBlank')
+                    };
+                }
             }
 
             return element;

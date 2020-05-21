@@ -4,5 +4,13 @@
             "cancelled": "Zahlung storniert",
             "denied": "Zahlung abgelehnt"
         }
+    },
+    "paynl": {
+        "messages": {
+            "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",
+            "emptyCredentialsError": "Anmeldeinformationen dürfen nicht leer sein!",
+            "settingsSavedSuccessfully": "Konfigurationen wurden erfolgreich gespeichert.",
+            "wrongCredentials": "Falsche Anmeldeinformationen!"
+        }
     }
 }

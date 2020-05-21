@@ -37,6 +37,14 @@ class PaynlPaymentService extends ApiService {
                 return ApiService.handleResponse(response);
             });
     }
+
+    storeSettings(data) {
+        return this.httpClient
+            .post(`${this.getApiBasePath()}/store-settings`, data, {headers: this.getBasicHeaders()})
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
 }
 
 Application.addServiceProvider('PaynlPaymentService', (container) => {

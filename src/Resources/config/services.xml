@@ -50,8 +50,11 @@
             </call>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Storefront\Controller\ConfigController" public="true">
+        <service id="PaynlPayment\Shopware6\Controller\ConfigController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="translator" />
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\RefundController" public="true">
