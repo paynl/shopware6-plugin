@@ -52,15 +52,7 @@
                                                     <div class="paynl-payment-method-description payment-method-description">
                                                         <strong>{{ payment.translated.name }}</strong>
                                                     </div>
-                                                    {% if (payment.customFields.banks is not empty) %}
-                                                        <div class="paynl-ideal-banks">
-                                                            <select class="form-control" name="banklist">
-                                                                {% for bank in payment.customFields.banks %}
-                                                                    <option value="{{ bank.id }}">{{ bank.visibleName }}</option>
-                                                                {% endfor %}
-                                                            </select>
-                                                        </div>
-                                                    {% endif %}
+                                                    {# TODO: ADD BANKS SELECTION FOR IDEAL#}
                                                     <div
                                                             id="paynl-modal-buttons-{{ loop.index }}"
                                                             class="paynl-modal-buttons"
