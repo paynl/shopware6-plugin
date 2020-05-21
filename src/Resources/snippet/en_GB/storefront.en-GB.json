@@ -4,13 +4,5 @@
             "cancelled": "Payment cancelled",
             "denied": "Payment denied"
         }
-    },
-    "paynl": {
-        "messages": {
-            "paymentMethodsSuccessfullyInstalled": "Payment methods were successfully added.",
-            "emptyCredentialsError": "Credentials cannot be empty!",
-            "settingsSavedSuccessfully": "Configurations were successfully saved.",
-            "wrongCredentials": "Wrong credentials!"
-        }
     }
 }

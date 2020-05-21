@@ -106,12 +106,12 @@ Component.register('paynl-plugin-settings', {
                     if (response.success === true) {
                         this.createNotificationSuccess({
                             title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                            message: response.message
+                            message: this.$tc(response.message)
                         });
                     } else {
                         this.createNotificationError({
                             title: this.$tc('sw-plugin-config.titleSaveError'),
-                            message: response.message
+                            message: this.$tc(response.message)
                         });
                     }
 
@@ -141,7 +141,7 @@ Component.register('paynl-plugin-settings', {
                     if (response.success === true) {
                         this.createNotificationSuccess({
                             title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                            message: response.message
+                            message: this.$tc(response.message)
                         });
 
                         this.isInstallSuccessful = false;
@@ -150,7 +150,7 @@ Component.register('paynl-plugin-settings', {
                             .then((response) => {
                                 this.createNotificationSuccess({
                                     title: this.$tc('sw-plugin-config.titleSaveSuccess'),
-                                    message: response.message
+                                    message: this.$tc(response.message)
                                 });
 
                                 this.isInstallSuccessful = true;
@@ -168,7 +168,7 @@ Component.register('paynl-plugin-settings', {
                     } else {
                         this.createNotificationError({
                             title: this.$tc('sw-plugin-config.titleSaveError'),
-                            message: response.message
+                            message: this.$tc(response.message)
                         });
 
                         this.isInstallSuccessful = true;

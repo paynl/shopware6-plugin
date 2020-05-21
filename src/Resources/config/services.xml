@@ -54,7 +54,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="translator" />
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\RefundController" public="true">
@@ -84,11 +83,11 @@
         </service>
 
         <!--Snippets-->
-        <service id="PaynlPayment\Shopware6\Resources\snippet\en_GB\SnippetFileEn" public="true">
+        <service id="PaynlPayment\Shopware6\Resources\snippet\en_GB\SnippetFileEn">
             <tag name="shopware.snippet.file"/>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Resources\snippet\de_DE\SnippetFileDe" public="true">
+        <service id="PaynlPayment\Shopware6\Resources\snippet\de_DE\SnippetFileDe">
             <tag name="shopware.snippet.file"/>
         </service>
     </services>

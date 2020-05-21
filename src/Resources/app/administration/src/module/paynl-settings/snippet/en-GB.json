@@ -17,6 +17,12 @@
             "paymentMethodsInstallMessage": "Could not install payment methods.",
             "wrongCredentials": "Please insert credentials data.",
             "shouldNotBeBlank": "The field cannot be empty."
+        },
+        "messages": {
+            "paymentMethodsSuccessfullyInstalled": "Payment methods were successfully added.",
+            "emptyCredentialsError": "Credentials cannot be empty!",
+            "settingsSavedSuccessfully": "Configurations were successfully saved.",
+            "wrongCredentials": "Wrong credentials!"
         }
     }
 }

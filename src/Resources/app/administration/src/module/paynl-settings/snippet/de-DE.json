@@ -16,6 +16,12 @@
             "paymentMethodsInstallLabel": "Fehler beim Installieren!",
             "paymentMethodsInstallMessage": "Zahlungsarten konnten nicht installiert werden.",
             "wrongCredentials": "Bitte geben Sie die Anmeldeinformationen ein."
+        },
+        "messages": {
+            "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",
+            "emptyCredentialsError": "Anmeldeinformationen dürfen nicht leer sein!",
+            "settingsSavedSuccessfully": "Konfigurationen wurden erfolgreich gespeichert.",
+            "wrongCredentials": "Falsche Anmeldeinformationen!"
         }
     }
 }
