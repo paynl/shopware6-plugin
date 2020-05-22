@@ -37,6 +37,8 @@ class InstallHelper
     private $connection;
     /** @var Api */
     private $paynlApi;
+    /** @var MediaHelper  */
+    private $mediaHelper;
 
     public function __construct(ContainerInterface $container)
     {
