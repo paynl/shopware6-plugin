@@ -34,13 +34,5 @@
             "Paynl\\": "vendor/paynl/sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
-    },
-    "require-dev": {
-        "phpstan/phpstan": "0.11.19",
-        "phpunit/phpunit": "^7"
-    },
-    "scripts": {
-        "tests": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist --no-coverage\"",
-        "tests-coverage": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist \""
     }
 }
