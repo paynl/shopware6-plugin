@@ -1,7 +1,7 @@
 {
     "name": "paynl/shopware6-plugin",
     "description": "Pay.nl Shopware Plugin",
-    "version": "v0.2.1",
+    "version": "v0.2.2",
     "type": "shopware-platform-plugin",
     "extra": {
         "shopware-plugin-class": "PaynlPayment\\Shopware6\\PaynlPaymentShopware6",
@@ -34,13 +34,5 @@
             "Paynl\\": "vendor/paynl/sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
-    },
-    "require-dev": {
-        "phpstan/phpstan": "0.11.19",
-        "phpunit/phpunit": "^7"
-    },
-    "scripts": {
-        "tests": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist --no-coverage\"",
-        "tests-coverage": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPaymentShopware6/vendor/bin/phpunit -c ./custom/plugins/PaynlPaymentShopware6/phpunit.xml.dist \""
     }
 }

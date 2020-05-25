@@ -1,43 +1,43 @@
 {
     "order-list-override": {
-        "refund": "Refund"
+        "refund": "Rückerstattung"
     },
-    "module": {
-        "name": "Refund payment module",
-        "title": "Refund payment module",
-        "description": "Refund payment module"
+    "refundModule": {
+        "name": "Rückerstattungsmodul",
+        "title": "Rückerstattungsmodul",
+        "description": "Rückerstattungsmodul"
     },
     "refund": {
         "detailBase": {
-            "refund": "Customer:",
-            "customer": "Customer:",
-            "amount": "Amount:",
-            "orderNumber": "Order Number:",
-            "amountToRefund": "Amount to refund:",
-            "description": "Description:",
-            "cardTitleRefund": "Refund",
-            "headlineOrderNumber": "Order number",
-            "headlineTransaction": "Transaction",
-            "headlineDescriptionInput": "Description",
-            "headlineAmountInput": "Amount",
-            "paynlTransactionId": "Pay.nl transaction Id:",
-            "paidAmount": "Paid amount:",
-            "availableForRefund": "Available for refund:",
-            "refundedAmount": "Refunded amount:",
-            "shipping": "Shipping",
-            "allowShippingRefund": "Allow shipping refund",
-            "products": "Products list"
+            "refund": "Kunde/in:",
+            "customer": "Kunde/in:",
+            "amount": "Betrag:",
+            "orderNumber": "Bestellnummer:",
+            "amountToRefund": "Rückerstattungsbetrag:",
+            "description": "Beschreibung:",
+            "cardTitleRefund": "Rückerstattung",
+            "headlineOrderNumber": "Bestellnummer",
+            "headlineTransaction": "Transaktion",
+            "headlineDescriptionInput": "Beschreibung",
+            "headlineAmountInput": "Betrag",
+            "paynlTransactionId": "PAY.nl Transaktion ID:",
+            "paidAmount": "Bezahlter Betrag:",
+            "availableForRefund": "Verfügbar für Rückerstattung:",
+            "refundedAmount": "Rückerstattung Betrag:",
+            "shipping": "Versandkosten",
+            "allowShippingRefund": "Versandrückerstattung zulassen",
+            "products": "Produktliste"
         },
         "products": {
-            "product": "Product",
-            "price": "Price",
-            "quantity": "Quantity",
-            "refund": "Refund",
-            "restock": "Restock"
+            "product": "Produkt",
+            "price": "Preis",
+            "quantity": "Menge",
+            "refund": "Rückerstattung",
+            "restock": "Auffüllen"
         },
         "notifications": {
-            "danger": "Error",
-            "success": "Success"
+            "danger": "Fehler",
+            "success": "Erfolg"
         }
     }
 }

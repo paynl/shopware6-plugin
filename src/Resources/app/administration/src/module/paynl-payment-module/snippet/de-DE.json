@@ -1,26 +1,26 @@
 {
     "module": {
-        "name": "Pay. transaktionsliste",
-        "title": "Pay. transaktionsliste",
-        "description": "Pay. transaktionsliste",
+        "name": "PAY. Transaktionsliste",
+        "title": "PAY. Transaktionsliste",
+        "description": "PAY. Transaktionsliste",
         "navigation": {
-            "label": "Pay. transaktionen"
+            "label": "PAY. Transaktionen"
         }
     },
     "order": {
         "transaction": {
             "paid": "Bezahlt (Erfassung)",
-            "cancelled": "Abgesagt (Leere)"
+            "cancelled": "Annulliert (Leere)"
         }
     },
     "transactions-list": {
-        "paynl_transaction_id": "Transaktionen id",
-        "payment_id": "Zahlung id",
+        "paynl_transaction_id": "Transaktion ID",
+        "payment_id": "Zahlung ID",
         "amount": "Menge",
-        "created_at": "Hergestellt in",
+        "created_at": "Erstellt am",
         "updated_at": "Aktualisiert am",
         "order_number": "Bestellnummer",
-        "customer": "Kundin/Kunde",
+        "customer": "Kunde/in",
         "status": "Transaktionsstatus",
         "links": "Links"
     }

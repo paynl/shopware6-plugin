@@ -51,7 +51,7 @@
                     domain="PaynlPaymentShopware6.settings">
                 <template #card-element="{ element, config }">
                     <sw-form-field-renderer
-                            v-bind="getBind(element, config)"
+                            v-bind="bindField(element, config)"
                             v-model="config[element.name]"/>
                 </template>
             </sw-system-config>
