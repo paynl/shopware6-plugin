@@ -2,7 +2,7 @@
     "order-list-override": {
         "refund": "Rückerstattung"
     },
-    "module": {
+    "refundModule": {
         "name": "Rückerstattungsmodul",
         "title": "Rückerstattungsmodul",
         "description": "Rückerstattungsmodul"
