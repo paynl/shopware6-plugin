@@ -97,6 +97,9 @@ Component.register('paynl-transactions-list-component', {
         criteria.addAssociation('order');
         criteria.addAssociation('customer');
         criteria.addAssociation('orderStateMachine');
+        criteria.addSorting(
+            Criteria.sort('paynl_transactions.createdAt', 'DESC')
+        );
 
         this.repository
             .search(criteria, Shopware.Context.api)
