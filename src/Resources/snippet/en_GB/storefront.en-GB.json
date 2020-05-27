@@ -3,6 +3,12 @@
         "statuses": {
             "cancelled": "Payment cancelled",
             "denied": "Payment denied"
+        },
+        "messages": {
+            "failedTransaction": "Unfortunately, your payment process went wrong. Please change your payment method to finish your order."
+        },
+        "labels": {
+            "changePayment": "Change Payment"
         }
     }
 }

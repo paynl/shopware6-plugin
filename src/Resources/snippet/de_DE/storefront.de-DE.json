@@ -3,6 +3,12 @@
         "statuses": {
             "cancelled": "Zahlung storniert",
             "denied": "Zahlung abgelehnt"
+        },
+        "messages": {
+            "failedTransaction": "Leider ist Ihr Zahlungsprozess schief gelaufen. Bitte ändern Sie Ihre Zahlungsmethode, um Ihre Bestellung abzuschließen."
+        },
+        "labels": {
+            "changePayment": "Zahlung ändern"
         }
     }
 }
