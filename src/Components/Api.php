@@ -124,6 +124,7 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
+            'object' => 'shopware6 0.2.2',
         ];
 
         $customer = $salesChannelContext->getCustomer();
