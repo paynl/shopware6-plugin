@@ -1,14 +1,14 @@
 {
     "checkout": {
         "statuses": {
-            "cancelled": "Zahlung storniert",
-            "denied": "Zahlung abgelehnt"
+            "cancelled": "Betaling geannuleerd",
+            "denied": "Betaling geweigerd"
         },
         "messages": {
-            "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere."
+            "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere."
         },
         "labels": {
-            "changePayment": "Zahlung ändern"
+            "changePayment": "Betaalmethode wijzigen"
         }
     }
 }
