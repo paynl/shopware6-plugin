@@ -5,7 +5,7 @@
             "denied": "Payment denied"
         },
         "messages": {
-            "failedTransaction": "Unfortunately, your payment process went wrong. Please change your payment method to finish your order."
+            "failedTransaction": "Your payment could not be processed with the selected payment method, please select another one."
         },
         "labels": {
             "changePayment": "Change Payment"

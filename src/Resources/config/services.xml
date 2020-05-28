@@ -90,5 +90,9 @@
         <service id="PaynlPayment\Shopware6\Resources\snippet\de_DE\SnippetFileDe">
             <tag name="shopware.snippet.file"/>
         </service>
+
+        <service id="PaynlPayment\Shopware6\Resources\snippet\nl_NL\SnippetFileNl">
+            <tag name="shopware.snippet.file"/>
+        </service>
     </services>
 </container>
