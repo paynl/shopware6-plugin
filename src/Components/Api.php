@@ -9,6 +9,7 @@ use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -36,15 +37,19 @@ class Api
     private $customerHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
+    /** @var EntityRepositoryInterface */
+    private $pluginRepository;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
-        EntityRepositoryInterface $productRepository
+        EntityRepositoryInterface $productRepository,
+        EntityRepositoryInterface $pluginRepository
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
+        $this->pluginRepository = $pluginRepository;
     }
 
     /**
@@ -109,6 +114,13 @@ class Api
         $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
+
+        $criteria = new Criteria();
+        $explodedClassName = explode('\\', PaynlPaymentShopware6::class);
+        $className = array_pop($explodedClassName);
+        $criteria->addFilter(new EqualsAnyFilter('plugin.name', [$className]));
+        $pluginInformation = $this->pluginRepository->search($criteria, Context::createDefaultContext())->first();
+
         $transactionInitialData = [
             // Basic data
             'paymentMethod' => $paynlPaymentMethodId,
@@ -124,7 +136,7 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => 'shopware6 0.2.2',
+            'object' => sprintf('shopware6 %s', $pluginInformation->getVersion()),
         ];
 
         $customer = $salesChannelContext->getCustomer();
