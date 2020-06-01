@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
+use PackageVersions\Versions;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
@@ -36,14 +37,12 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
         Api $api,
-        ProcessingHelper $processingHelper,
-        string $kernelShopwareVersion
+        ProcessingHelper $processingHelper
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
-        $this->kernelShopwareVersion = $kernelShopwareVersion;
     }
 
     /**
@@ -99,11 +98,12 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         try {
+            $shopwareVersion = current(explode('@', Versions::getVersion('shopware/platform')));
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $transaction,
                 $salesChannelContext,
                 $exchangeUrl,
-                $this->kernelShopwareVersion,
+                $shopwareVersion,
                 $this->getPluginVersionFromComposer()
             );
 
@@ -128,16 +128,17 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     }
 
     /**
+     * @param string $defaultValue
      * @return string
      */
-    private function getPluginVersionFromComposer(): string
+    private function getPluginVersionFromComposer($defaultValue = ''): string
     {
         $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
         if (file_exists($composerFilePath)) {
             $composer = json_decode(file_get_contents($composerFilePath), true);
-            return $composer['version'] ?? '';
+            return $composer['version'] ?? $defaultValue;
         }
 
-        return '';
+        return $defaultValue;
     }
 }
