@@ -31,8 +31,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     /** @var ProcessingHelper */
     private $processingHelper;
 
-    private $kernelShopwareVersion;
-
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
@@ -98,12 +96,11 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         try {
-            $shopwareVersion = current(explode('@', Versions::getVersion('shopware/platform')));
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $transaction,
                 $salesChannelContext,
                 $exchangeUrl,
-                $shopwareVersion,
+                $this->getShopwareVersionFromComposer(),
                 $this->getPluginVersionFromComposer()
             );
 
@@ -140,5 +137,14 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return $defaultValue;
+    }
+
+    /**
+     * @param string $defaultValue
+     * @return string
+     */
+    private function getShopwareVersionFromComposer($defaultValue = ''): string
+    {
+        return current(explode('@', Versions::getVersion('shopware/platform'))) ?: $defaultValue;
     }
 }
