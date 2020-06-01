@@ -63,12 +63,8 @@ class InstallHelper
         $customerHelper = new CustomerHelper($config);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
-        /** @var EntityRepositoryInterface $pluginRepository */
-        $pluginRepository = $container->get('plugin.repository');
 
-        $configService->set("PaynlPaymentShopware6.coreVersion", $container->getParameter('kernel.shopware_version'));
-
-        $this->paynlApi = new Api($configService, $config, $customerHelper, $productRepository, $pluginRepository);
+        $this->paynlApi = new Api($config, $customerHelper, $productRepository);
         $this->mediaHelper = new MediaHelper($container);
     }
 

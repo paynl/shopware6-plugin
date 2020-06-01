@@ -38,23 +38,15 @@ class Api
     private $customerHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
-    /** @var EntityRepositoryInterface */
-    private $pluginRepository;
-    /** @var SystemConfigService */
-    private $systemConfigService;
 
     public function __construct(
-        SystemConfigService $systemConfigService,
         Config $config,
         CustomerHelper $customerHelper,
-        EntityRepositoryInterface $productRepository,
-        EntityRepositoryInterface $pluginRepository
+        EntityRepositoryInterface $productRepository
     ) {
-        $this->systemConfigService = $systemConfigService;
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
-        $this->pluginRepository = $pluginRepository;
     }
 
     /**
@@ -84,9 +76,18 @@ class Api
     public function startTransaction(
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
-        string $exchangeUrl
+        string $exchangeUrl,
+        string $showareVersion,
+        string $pluginVersion
     ): Start {
-        $transactionInitialData = $this->getTransactionInitialData($transaction, $salesChannelContext, $exchangeUrl);
+        $transactionInitialData = $this->getTransactionInitialData(
+            $transaction,
+            $salesChannelContext,
+            $exchangeUrl,
+            $showareVersion,
+            $pluginVersion
+        );
+
         $this->setCredentials();
 
         return Transaction::start($transactionInitialData);
@@ -103,14 +104,16 @@ class Api
      * @param AsyncPaymentTransactionStruct $transaction
      * @param SalesChannelContext $salesChannelContext
      * @param string $exchangeUrl
+     * @param string $showareVersion
+     * @param string $pluginVersion
      * @return mixed[]
-     * @throws PaynlPaymentException
-     * @throws InconsistentCriteriaIdsException
      */
     private function getTransactionInitialData(
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
-        string $exchangeUrl
+        string $exchangeUrl,
+        string $showareVersion,
+        string $pluginVersion
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
@@ -119,12 +122,6 @@ class Api
         $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
-
-        $criteria = new Criteria();
-        $explodedClassName = explode('\\', PaynlPaymentShopware6::class);
-        $className = array_pop($explodedClassName);
-        $criteria->addFilter(new EqualsAnyFilter('plugin.name', [$className]));
-        $pluginInformation = $this->pluginRepository->search($criteria, Context::createDefaultContext())->first();
 
         $transactionInitialData = [
             // Basic data
@@ -141,11 +138,7 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => sprintf(
-                'Shopware v%s %s',
-                $this->systemConfigService->get('PaynlPaymentShopware6.coreVersion'),
-                $pluginInformation->getVersion()
-            ),
+            'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
         ];
 
         $customer = $salesChannelContext->getCustomer();
