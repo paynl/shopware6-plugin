@@ -145,6 +145,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
      */
     private function getShopwareVersionFromComposer($defaultValue = ''): string
     {
-        return current(explode('@', Versions::getVersion('shopware/platform'))) ?: $defaultValue;
+        return current(explode('@', Versions::getVersion('shopware/core'))) ?: $defaultValue;
     }
 }
