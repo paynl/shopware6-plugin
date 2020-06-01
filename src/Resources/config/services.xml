@@ -24,6 +24,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Api">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="product.repository"/>

@@ -21,6 +21,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class Api
 {
@@ -39,13 +40,17 @@ class Api
     private $productRepository;
     /** @var EntityRepositoryInterface */
     private $pluginRepository;
+    /** @var SystemConfigService */
+    private $systemConfigService;
 
     public function __construct(
+        SystemConfigService $systemConfigService,
         Config $config,
         CustomerHelper $customerHelper,
         EntityRepositoryInterface $productRepository,
         EntityRepositoryInterface $pluginRepository
     ) {
+        $this->systemConfigService = $systemConfigService;
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
@@ -136,7 +141,11 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => sprintf('shopware6 %s', $pluginInformation->getVersion()),
+            'object' => sprintf(
+                'Shopware v%s %s',
+                $this->systemConfigService->get('PaynlPaymentShopware6.coreVersion'),
+                $pluginInformation->getVersion()
+            ),
         ];
 
         $customer = $salesChannelContext->getCustomer();
