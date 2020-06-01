@@ -63,7 +63,6 @@ class InstallHelper
         $customerHelper = new CustomerHelper($config);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
-
         $this->paynlApi = new Api($config, $customerHelper, $productRepository);
         $this->mediaHelper = new MediaHelper($container);
     }
