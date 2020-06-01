@@ -20,6 +20,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class Api
 {
@@ -36,15 +37,19 @@ class Api
     private $customerHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
+    /** @var TranslatorInterface */
+    private $translator;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
-        EntityRepositoryInterface $productRepository
+        EntityRepositoryInterface $productRepository,
+        TranslatorInterface $translator
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
+        $this->translator = $translator;
     }
 
     /**
@@ -120,6 +125,7 @@ class Api
         $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
+        $orderNumber = $transaction->getOrder()->getOrderNumber();
 
         $transactionInitialData = [
             // Basic data
@@ -128,7 +134,12 @@ class Api
             'currency' => $currency,
             'extra1' => $extra1,
             'testmode' => $testMode,
-            'orderNumber' => $transaction->getOrder()->getOrderNumber(),
+            'orderNumber' => $orderNumber,
+            'description' => sprintf(
+                '%s %s',
+                $this->translator->trans('transactionLabels.order'),
+                $orderNumber
+            ),
 
             // Urls
             'returnUrl' => $returnUrl,

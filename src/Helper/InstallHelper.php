@@ -19,6 +19,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class InstallHelper
 {
@@ -63,7 +64,9 @@ class InstallHelper
         $customerHelper = new CustomerHelper($config);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
-        $this->paynlApi = new Api($config, $customerHelper, $productRepository);
+        /** @var TranslatorInterface $translator */
+        $translator = $container->get('translator');
+        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $translator);
         $this->mediaHelper = new MediaHelper($container);
     }
 

@@ -4,5 +4,8 @@
             "cancelled": "Zahlung storniert",
             "denied": "Zahlung abgelehnt"
         }
+    },
+    "transactionLabels": {
+        "order": "Auftrag:"
     }
 }
