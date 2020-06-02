@@ -13,7 +13,6 @@ use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
@@ -114,6 +113,7 @@ class InstallHelper
             'description' => $paymentMethodDescription,
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
+            'afterOrderEnabled' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
                 'banks' => $paymentMethodValueObject->getBanks()
