@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
+use PackageVersions\Versions;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
@@ -94,9 +95,15 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $paynlTransactionId = '';
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
-
         try {
-            $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
+            $paynlTransaction = $this->paynlApi->startTransaction(
+                $transaction,
+                $salesChannelContext,
+                $exchangeUrl,
+                $this->getShopwareVersionFromComposer(),
+                $this->getPluginVersionFromComposer()
+            );
+
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
@@ -115,5 +122,29 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return '';
+    }
+
+    /**
+     * @param string $defaultValue
+     * @return string
+     */
+    private function getPluginVersionFromComposer($defaultValue = ''): string
+    {
+        $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
+        if (file_exists($composerFilePath)) {
+            $composer = json_decode(file_get_contents($composerFilePath), true);
+            return $composer['version'] ?? $defaultValue;
+        }
+
+        return $defaultValue;
+    }
+
+    /**
+     * @param string $defaultValue
+     * @return string
+     */
+    private function getShopwareVersionFromComposer($defaultValue = ''): string
+    {
+        return current(explode('@', Versions::getVersion('shopware/core'))) ?: $defaultValue;
     }
 }
