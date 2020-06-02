@@ -4,5 +4,8 @@
             "cancelled": "Payment cancelled",
             "denied": "Payment denied"
         }
+    },
+    "transactionLabels": {
+        "order": "Order: "
     }
 }
