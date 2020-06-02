@@ -146,7 +146,7 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => sprintf('Shopware %s %s', $showareVersion, $pluginVersion),
+            'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
         ];
 
         $customer = $salesChannelContext->getCustomer();

@@ -40,6 +40,7 @@
             <argument type="service" id="router.default"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
         </service>
 
