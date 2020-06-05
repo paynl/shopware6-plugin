@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
-use PackageVersions\Versions;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
@@ -30,17 +29,20 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $paynlApi;
     /** @var ProcessingHelper */
     private $processingHelper;
+    private $shopwareVersion;
 
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
         Api $api,
-        ProcessingHelper $processingHelper
+        ProcessingHelper $processingHelper,
+        string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
+        $this->shopwareVersion = $shopwareVersion;
     }
 
     /**
@@ -100,7 +102,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
                 $transaction,
                 $salesChannelContext,
                 $exchangeUrl,
-                $this->getShopwareVersionFromComposer(),
+                $this->shopwareVersion,
                 $this->getPluginVersionFromComposer()
             );
 
@@ -137,14 +139,5 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return $defaultValue;
-    }
-
-    /**
-     * @param string $defaultValue
-     * @return string
-     */
-    private function getShopwareVersionFromComposer($defaultValue = ''): string
-    {
-        return current(explode('@', Versions::getVersion('shopware/core'))) ?: $defaultValue;
     }
 }
