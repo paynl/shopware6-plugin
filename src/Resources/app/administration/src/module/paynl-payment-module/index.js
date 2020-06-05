@@ -12,6 +12,7 @@ Module.register('paynl-payment-module', {
     name: "module.name",
     title: "module.title",
     description: "module.description",
+    color: '#23ac70',
     snippets: {
         'de-DE': deDE,
         'en-GB': enGB,

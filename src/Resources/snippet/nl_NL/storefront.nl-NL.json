@@ -1,0 +1,11 @@
+{
+    "checkout": {
+        "statuses": {
+            "cancelled": "Betaling geannuleerd",
+            "denied": "Betaling geweigerd"
+        }
+    },
+    "transactionLabels": {
+        "order": "Bestellen: "
+    }
+}
