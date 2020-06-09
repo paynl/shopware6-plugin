@@ -27,6 +27,7 @@ Component.register('paynl-refund-page-view', {
     data() {
         return {
             paynlTransactionRepository: null,
+            orderRepository: null,
             order: null,
             refundData: null,
             paynlTransaction: null,
