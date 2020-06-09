@@ -21,6 +21,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class Api
 {
@@ -39,17 +40,21 @@ class Api
     private $productRepository;
     /** @var TranslatorInterface */
     private $translator;
+    /** @var Session */
+    private $session;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
         EntityRepositoryInterface $productRepository,
-        TranslatorInterface $translator
+        TranslatorInterface $translator,
+        Session $session
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
         $this->translator = $translator;
+        $this->session = $session;
     }
 
     /**
@@ -118,6 +123,8 @@ class Api
         string $showareVersion,
         string $pluginVersion
     ): array {
+        $bank = (int)$this->session->get('paynlIssuer');
+        $this->session->remove('paynlIssuer');
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
@@ -148,6 +155,10 @@ class Api
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
             'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
         ];
+
+        if (!empty($bank)) {
+            $transactionInitialData['bank'] = $bank;
+        }
 
         $customer = $salesChannelContext->getCustomer();
         if ($customer instanceof CustomerEntity) {

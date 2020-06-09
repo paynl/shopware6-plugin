@@ -28,6 +28,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="product.repository"/>
             <argument type="service" id="translator" />
+            <argument type="service" id="session"/>
         </service>
 
         <!--Services-->
@@ -95,6 +96,12 @@
 
         <service id="PaynlPayment\Shopware6\Resources\snippet\nl_NL\SnippetFileNl">
             <tag name="shopware.snippet.file"/>
+        </service>
+
+        <!--Subscribers-->
+        <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
+            <tag name="kernel.event_subscriber"/>
+            <argument type="service" id="session"/>
         </service>
     </services>
 </container>

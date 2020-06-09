@@ -7,5 +7,8 @@
     },
     "transactionLabels": {
         "order": "Auftrag:"
+    },
+    "payment": {
+        "selectIssuer": "Wählen Sie eine Bank aus"
     }
 }

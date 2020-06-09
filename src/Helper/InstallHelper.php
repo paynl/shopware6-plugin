@@ -65,7 +65,9 @@ class InstallHelper
         $productRepository = $container->get('product.repository');
         /** @var TranslatorInterface $translator */
         $translator = $container->get('translator');
-        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $translator);
+        /** @var Session $session */
+        $session = $container->get('session');
+        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $translator, $session);
         $this->mediaHelper = new MediaHelper($container);
     }
 

@@ -21,6 +21,17 @@ class PaynlPaymentPlugin extends Plugin {
         }
         if (paynlModalButtons !== null) {
             paynlModalButtons.style.display = 'inline-block';
+
+            const paymentControlElement = paynlModalButtons.closest('.payment-control');
+            const paynlPaymentMethodBanksBlocks = document.getElementById('paynl-banks');
+            const idealBanksBlock = paymentControlElement.getElementsByClassName('paynl-payment-method-banks')[0];
+            const idealBanksSelect = document.getElementById('paynl-ideal-banks-select');
+            paynlPaymentMethodBanksBlocks.style.display = 'none';
+            if (idealBanksBlock !== undefined) {
+                idealBanksBlock.style.display = 'inline-flex';
+            } else {
+                idealBanksSelect.selectedIndex = 0;
+            }
         }
     }
 }
