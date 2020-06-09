@@ -26,7 +26,7 @@ Component.register('paynl-refund-page-view', {
 
     data() {
         return {
-            orderRepository: null,
+            paynlTransactionRepository: null,
             order: null,
             refundData: null,
             paynlTransaction: null,
@@ -49,21 +49,31 @@ Component.register('paynl-refund-page-view', {
     },
 
     mounted() {
+        this.paynlTransactionRepository = this.repositoryFactory.create('paynl_transactions');
         let criteria = new Criteria();
-        criteria
-            .addAssociation('paynlTransactions')
-            .addAssociation('currency')
-            .addAssociation('lineItems');
+        criteria.addFilter(Criteria.equals('orderId', this.orderId));
+        criteria.addSorting(
+            Criteria.sort('paynl_transactions.createdAt', 'DESC')
+        );
 
-        this.orderRepository = this.repositoryFactory.create('order');
-        this.orderRepository.get(this.orderId, Shopware.Context.api, criteria)
-            .then((response) => {
-                this.order = response;
-                // TODO: modify to use one to one relation
-                this.paynlTransaction = response.extensions.paynlTransactions[0];
-                this.products = this.order.lineItems;
+        this.paynlTransactionRepository.search(criteria, Shopware.Context.api)
+            .then((result) => {
+                this.paynlTransaction = result[0];
 
-                this.getDataForRefund();
+                let criteriaOrder = new Criteria();
+                criteriaOrder
+                    .addAssociation('currency')
+                    .addAssociation('lineItems');
+
+                this.orderRepository = this.repositoryFactory.create('order');
+                this.orderRepository.get(this.orderId, Shopware.Context.api, criteriaOrder)
+                    .then((response) => {
+                        this.order = response;
+                        // TODO: modify to use one to one relation
+                        this.products = this.order.lineItems;
+
+                        this.getDataForRefund();
+                    });
             });
     },
 
@@ -136,9 +146,7 @@ Component.register('paynl-refund-page-view', {
                     }
                     location.reload();
                 })
-                .catch((errorResponse) => {
-
-                });
+                .catch((errorResponse) => {});
         },
 
         onUpdateLoading(loadingValue) {
