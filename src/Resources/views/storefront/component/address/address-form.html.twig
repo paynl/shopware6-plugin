@@ -1,0 +1,151 @@
+{% sw_extends '@Storefront/storefront/component/address/address-form.html.twig' %}
+
+{% block component_address_form_company %}
+    {% if shopware.config.core.loginRegistration.showAccountTypeSelection %}
+        {% set accounTypeRequired = true %}
+    {% endif %}
+
+    <div class="form-row country-and-state-form-elements" data-country-state-select="true">
+        {% block component_address_form_country %}
+            <div class="form-group col-md-6">
+                {% if formViolations.getViolations("/countryId") is not empty %}
+                    {% set violationPath = "/countryId" %}
+                {% elseif formViolations.getViolations("/#{prefix}/countryId") is not empty %}
+                    {% set violationPath = "/#{prefix}/countryId" %}
+                {% endif %}
+
+                {% block component_address_form_country_label %}
+                    {{ parent() }}
+                {% endblock %}
+
+                {% block component_address_form_country_select %}
+                    {% set paynlKvkCocCountries = ['BE', 'NL'] %}
+                    <select class="country-select custom-select{% if violationPath %} is-invalid{% endif %} paynl-country-select"
+                            id="{{ prefix }}AddressCountry"
+                            name="{{ prefix }}[countryId]"
+                            required="required"
+                            data-initial-country-id="{{ data.get('countryId') }}">
+                        {% if not data.get('countryId') %}
+                            <option disabled="disabled"
+                                    value=""
+                                    selected="selected">
+                                {{ "address.countryPlaceholder"|trans|sw_sanitize }}
+                            </option>
+                        {% endif %}
+                        {% for country in page.countries %}
+                            <option {% if country.id == data.get('countryId') %}
+                                selected="selected"
+                            {% endif %}
+                                {% if country.iso in paynlKvkCocCountries %}
+                                    data-paynl-kvk-coc-field="true"
+                                {% endif %}
+                                value="{{ country.id }}">
+                                {{ country.translated.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% endblock %}
+            </div>
+
+            <div class="form-group col-md-6 d-none">
+                {% if formViolations.getViolations("/countryStateId") is not empty %}
+                    {% set violationPath = "/countryStateId" %}
+                {% elseif formViolations.getViolations("/#{prefix}/countryStateId") is not empty %}
+                    {% set violationPath = "/#{prefix}/countryStateId" %}
+                {% endif %}
+
+                {% block component_address_form_country_state_label %}
+                    {{ parent() }}
+                {% endblock %}
+
+                {% block component_address_form_country_state_select %}
+                    {{ parent() }}
+                {% endblock %}
+
+                {% block component_address_form_country_error %}
+                    {{ parent() }}
+                {% endblock %}
+            </div>
+        {% endblock %}
+    </div>
+
+    {% if shopware.config.core.loginRegistration.showAccountTypeSelection or prefix == "address" or prefix == "shippingAddress" %}
+
+        <div class="{% if prefix == "shippingAddress" %}address-contact-type-company{% elseif prefix == "address" %}js-field-toggle-contact-type-company d-block{% else %}js-field-toggle-contact-type-company d-none{% endif %}">
+            {% block component_address_form_company_fields %}
+                <div class="form-row">
+                    {% block component_address_form_company_name %}
+                        {{ parent() }}
+                    {% endblock %}
+                </div>
+                <div class="form-row">
+                    {% block component_paynl_kvk_coc_number %}
+                        <div id="paynl-kvk-coc-number-field" class="form-group col-md-6"
+                            {% if data.customFields.cocNumber is not empty %}
+                                style="display: inline-block"
+                            {% else %}
+                                style="display: none"
+                             {% endif %}>
+                            {% if formViolations.getViolations("/cocNumber") is not empty %}
+                                {% set violationPath = "/cocNumber" %}
+                            {% elseif formViolations.getViolations("/cocNumber") is not empty %}
+                                {% set violationPath = "/cocNumber" %}
+                            {% endif %}
+
+                            {% block component_paynl_kvk_coc_number_label %}
+                                <label class="form-label"
+                                       for="coc_number">
+                                    {{ "coc.label"|trans|sw_sanitize }}
+                                </label>
+                            {% endblock %}
+
+                            {% block component_paynl_kvk_coc_number_input %}
+                                <input type="text"
+                                       class="form-control{% if violationPath %} is-invalid{% endif %}"
+                                       placeholder="{{ "coc.placeholder"|trans|striptags }}"
+                                       name="coc_number"
+                                       value="{{ data.customFields.cocNumber }}">
+                            {% endblock %}
+
+                            {% block component_paynl_kvk_coc_number_input_error %}
+                                {% if violationPath %}
+                                    {% sw_include '@Storefront/storefront/utilities/form-violation.html.twig' %}
+                                {% endif %}
+                            {% endblock %}
+                        </div>
+                    {% endblock %}
+                </div>
+                <div class="form-row">
+                    {% block component_address_form_company_department %}
+                        {{ parent() }}
+                    {% endblock %}
+                    {% block component_address_form_company_vatId %}
+                        {{ parent() }}
+                    {% endblock %}
+                </div>
+            {% endblock %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block component_address_form_address_fields %}
+    <div class="form-row">
+        {% block component_address_form_street %}
+            {{ parent() }}
+        {% endblock %}
+        {% block component_address_form_zipcode_city %}
+            {{ parent() }}
+        {% endblock %}
+        {% block component_address_form_additional_field1 %}
+            {{ parent() }}
+        {% endblock %}
+        {% block component_address_form_additional_field2 %}
+            {{ parent() }}
+        {% endblock %}
+    </div>
+    <div class="form-row">
+        {% block component_address_form_phone_number %}
+            {{ parent() }}
+        {% endblock %}
+    </div>
+{% endblock %}

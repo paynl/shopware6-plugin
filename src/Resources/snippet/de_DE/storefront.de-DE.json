@@ -7,5 +7,9 @@
     },
     "transactionLabels": {
         "order": "Auftrag:"
+    },
+    "coc": {
+        "label": "IHK-Nummer",
+        "placeholder": "IHK-Nummer eingeben"
     }
 }

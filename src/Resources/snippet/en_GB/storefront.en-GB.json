@@ -7,5 +7,9 @@
     },
     "transactionLabels": {
         "order": "Order: "
+    },
+    "coc": {
+        "label": "KVK/COC Number",
+        "placeholder": "Enter your COC number"
     }
 }

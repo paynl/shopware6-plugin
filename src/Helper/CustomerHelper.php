@@ -41,6 +41,11 @@ class CustomerHelper
                 'customerReference' => $customer->getCustomerNumber(),
                 'gender' => $gender
             ],
+            'company' => [
+                'name' => $customer->getDefaultBillingAddress()->getCompany(),
+                'cocNumber' => $customer->getDefaultBillingAddress()->getCustomFields()['cocNumber'],
+                'vatNumber' => $customer->getDefaultBillingAddress()->getVatId(),
+            ],
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
         ];

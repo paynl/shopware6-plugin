@@ -96,5 +96,22 @@
         <service id="PaynlPayment\Shopware6\Resources\snippet\nl_NL\SnippetFileNl">
             <tag name="shopware.snippet.file"/>
         </service>
+
+        <service id="PaynlPayment\Shopware6\Service\CustomerAddressService" decorates="Shopware\Core\Checkout\Customer\SalesChannel\AddressService">
+            <argument type="service" id="country.repository" />
+            <argument type="service" id="customer_address.repository"/>
+            <argument type="service" id="Shopware\Core\Checkout\Customer\Validation\AddressValidationFactory"/>
+            <argument type="service" id="Shopware\Core\Framework\Validation\DataValidator"/>
+            <argument type="service" id="event_dispatcher" />
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Subscriber\CustomerRegisterSubscriber">
+            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="customer_address.repository"/>
+            <tag name="kernel.event_subscriber"/>
+            <tag name="shopware.event_subscriber"/>
+        </service>
     </services>
 </container>
