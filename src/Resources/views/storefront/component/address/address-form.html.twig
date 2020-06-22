@@ -81,7 +81,7 @@
                 <div class="form-row">
                     {% block component_paynl_kvk_coc_number %}
                         <div id="paynl-kvk-coc-number-field" class="form-group col-md-6"
-                            {% if data.customFields.cocNumber is not empty %}
+                            {% if data.get('company') is not empty %}
                                 style="display: inline-block"
                             {% else %}
                                 style="display: none"

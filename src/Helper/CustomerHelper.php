@@ -6,6 +6,10 @@ use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
 
@@ -14,9 +18,15 @@ class CustomerHelper
     /** @var Config */
     private $config;
 
-    public function __construct(Config $config)
+    /**
+     * @var EntityRepositoryInterface
+     */
+    private $customerAddressRepository;
+
+    public function __construct(Config $config, EntityRepositoryInterface $customerAddressRepository)
     {
         $this->config = $config;
+        $this->customerAddressRepository = $customerAddressRepository;
     }
 
     /**
@@ -49,6 +59,24 @@ class CustomerHelper
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
         ];
+    }
+
+    public function saveCocNumber(string $addressId, string $cocNumber, Context $context): void
+    {
+        $criteria = (new Criteria());
+        $criteria->addFilter(new EqualsFilter('id', $addressId));
+        /** @var CustomerAddressEntity $addressEntity */
+        $addressEntity = $this->customerAddressRepository->search($criteria, $context)->first();
+        if ($addressEntity instanceof CustomerAddressEntity) {
+            $customFields = $addressEntity->getCustomFields();
+            $customFields['cocNumber'] = $cocNumber;
+            $customFieldData = [
+                'id' => $addressId,
+                'customFields' => $customFields
+            ];
+
+            $this->customerAddressRepository->update([$customFieldData], $context);
+        }
     }
 
     /**

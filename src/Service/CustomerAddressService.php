@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Service;
 
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\SalesChannel\AddressService;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
@@ -28,6 +29,11 @@ class CustomerAddressService extends AddressService
      */
     private $eventDispatcher;
 
+    /**
+     * @var CustomerHelper
+     */
+    private $customerHelper;
+
     public function __construct(
         EntityRepositoryInterface $countryRepository,
         EntityRepositoryInterface $customerAddressRepository,
@@ -35,7 +41,8 @@ class CustomerAddressService extends AddressService
         DataValidator $validator,
         EventDispatcherInterface $eventDispatcher,
         SystemConfigService $systemConfigService,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        CustomerHelper $customerHelper
     ) {
         parent::__construct(
             $countryRepository,
@@ -48,6 +55,7 @@ class CustomerAddressService extends AddressService
         $this->customerAddressRepository = $customerAddressRepository;
         $this->eventDispatcher = $eventDispatcher;
         $this->requestStack = $requestStack;
+        $this->customerHelper = $customerHelper;
     }
 
     public function upsert(DataBag $data, SalesChannelContext $context): string
@@ -55,15 +63,8 @@ class CustomerAddressService extends AddressService
         $addressId = parent::upsert($data, $context);
         $request = $this->requestStack->getMasterRequest();
         $cocNumber = $request->get('coc_number');
-
-        if (!empty($cocNumber)) {
-            $customFieldData = [
-                'id' => $addressId,
-                'customFields' => [
-                    'cocNumber' => $cocNumber,
-                ]
-            ];
-            $this->customerAddressRepository->upsert([$customFieldData], $context->getContext());
+        if(!is_null($cocNumber)) {
+            $this->customerHelper->saveCocNumber($addressId, $cocNumber, $context->getContext());
         }
 
         return $addressId;

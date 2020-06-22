@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\Event\CustomerRegisterEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -19,10 +20,19 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
      */
     private $customerAddressRepository;
 
-    public function __construct(RequestStack $requestStack, EntityRepositoryInterface $customerAddressRepository)
-    {
+    /**
+     * @var CustomerHelper
+     */
+    private $customerHelper;
+
+    public function __construct(
+        RequestStack $requestStack,
+        EntityRepositoryInterface $customerAddressRepository,
+        CustomerHelper $customerHelper
+    ) {
         $this->requestStack = $requestStack;
         $this->customerAddressRepository = $customerAddressRepository;
+        $this->customerHelper = $customerHelper;
     }
 
     public static function getSubscribedEvents(): array
@@ -41,15 +51,8 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
         $addressId = $customer->getDefaultBillingAddressId();
         $request = $this->requestStack->getMasterRequest();
         $cocNumber = $request->get('coc_number');
-        if (!empty($cocNumber)) {
-            $customFieldData = [
-                'id' => $addressId,
-                'customFields' => [
-                    'cocNumber' => $cocNumber,
-                ]
-            ];
-
-            $this->customerAddressRepository->update([$customFieldData], $event->getContext());
+        if(!is_null($cocNumber)) {
+            $this->customerHelper->saveCocNumber($addressId, $cocNumber, $event->getContext());
         }
     }
 }
