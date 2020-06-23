@@ -8,8 +8,6 @@ use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEnt
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
 
@@ -61,22 +59,16 @@ class CustomerHelper
         ];
     }
 
-    public function saveCocNumber(string $addressId, string $cocNumber, Context $context): void
+    public function saveCocNumber(CustomerAddressEntity $customerAddress, string $cocNumber, Context $context): void
     {
-        $criteria = (new Criteria());
-        $criteria->addFilter(new EqualsFilter('id', $addressId));
-        /** @var CustomerAddressEntity $addressEntity */
-        $addressEntity = $this->customerAddressRepository->search($criteria, $context)->first();
-        if ($addressEntity instanceof CustomerAddressEntity) {
-            $customFields = $addressEntity->getCustomFields();
-            $customFields['cocNumber'] = $cocNumber;
-            $customFieldData = [
-                'id' => $addressId,
-                'customFields' => $customFields
-            ];
+        $customFields = $customerAddress->getCustomFields();
+        $customFields['cocNumber'] = $cocNumber;
+        $customFieldData = [
+            'id' => $customerAddress->getId(),
+            'customFields' => $customFields
+        ];
 
-            $this->customerAddressRepository->update([$customFieldData], $context);
-        }
+        $this->customerAddressRepository->update([$customFieldData], $context);
     }
 
     /**

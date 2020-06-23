@@ -78,43 +78,45 @@
                         {{ parent() }}
                     {% endblock %}
                 </div>
-                <div class="form-row">
-                    {% block component_paynl_kvk_coc_number %}
-                        <div id="paynl-kvk-coc-number-field" class="form-group col-md-6"
-                            {% if data.get('company') is not empty %}
-                                style="display: inline-block"
-                            {% else %}
-                                style="display: none"
-                             {% endif %}>
-                            {% if formViolations.getViolations("/cocNumber") is not empty %}
-                                {% set violationPath = "/cocNumber" %}
-                            {% elseif formViolations.getViolations("/cocNumber") is not empty %}
-                                {% set violationPath = "/cocNumber" %}
-                            {% endif %}
-
-                            {% block component_paynl_kvk_coc_number_label %}
-                                <label class="form-label"
-                                       for="coc_number">
-                                    {{ "coc.label"|trans|sw_sanitize }}
-                                </label>
-                            {% endblock %}
-
-                            {% block component_paynl_kvk_coc_number_input %}
-                                <input type="text"
-                                       class="form-control{% if violationPath %} is-invalid{% endif %}"
-                                       placeholder="{{ "coc.placeholder"|trans|striptags }}"
-                                       name="coc_number"
-                                       value="{{ data.customFields.cocNumber }}">
-                            {% endblock %}
-
-                            {% block component_paynl_kvk_coc_number_input_error %}
-                                {% if violationPath %}
-                                    {% sw_include '@Storefront/storefront/utilities/form-violation.html.twig' %}
+                {% if (shopware.config.core.loginRegistration.showAccountTypeSelection and (prefix == "billingAddress")) or (prefix == "address" and (context.customer.defaultBillingAddressId is same as(data.get('id')))) %}
+                    <div class="form-row">
+                        {% block component_paynl_kvk_coc_number %}
+                            <div id="paynl-kvk-coc-number-field" class="form-group col-md-6"
+                                {% if data.get('company') is not empty %}
+                                    style="display: inline-block"
+                                {% else %}
+                                    style="display: none"
+                                 {% endif %}>
+                                {% if formViolations.getViolations("/cocNumber") is not empty %}
+                                    {% set violationPath = "/cocNumber" %}
+                                {% elseif formViolations.getViolations("/cocNumber") is not empty %}
+                                    {% set violationPath = "/cocNumber" %}
                                 {% endif %}
-                            {% endblock %}
-                        </div>
-                    {% endblock %}
-                </div>
+
+                                {% block component_paynl_kvk_coc_number_label %}
+                                    <label class="form-label"
+                                           for="coc_number">
+                                        {{ "coc.label"|trans|sw_sanitize }}
+                                    </label>
+                                {% endblock %}
+
+                                {% block component_paynl_kvk_coc_number_input %}
+                                    <input type="text"
+                                           class="form-control{% if violationPath %} is-invalid{% endif %}"
+                                           placeholder="{{ "coc.placeholder"|trans|striptags }}"
+                                           name="coc_number"
+                                           value="{{ data.customFields.cocNumber }}">
+                                {% endblock %}
+
+                                {% block component_paynl_kvk_coc_number_input_error %}
+                                    {% if violationPath %}
+                                        {% sw_include '@Storefront/storefront/utilities/form-violation.html.twig' %}
+                                    {% endif %}
+                                {% endblock %}
+                            </div>
+                        {% endblock %}
+                    </div>
+                {% endif %}
                 <div class="form-row">
                     {% block component_address_form_company_department %}
                         {{ parent() }}

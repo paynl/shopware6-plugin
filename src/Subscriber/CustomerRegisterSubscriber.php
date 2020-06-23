@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerRegisterEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -50,9 +51,11 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
         $customer = $event->getCustomer();
         $addressId = $customer->getDefaultBillingAddressId();
         $request = $this->requestStack->getMasterRequest();
+        /** @var CustomerAddressEntity $customerAddress */
+        $customerAddress = $customer->getAddresses()->filterByProperty('id', $addressId)->first();
         $cocNumber = $request->get('coc_number');
-        if(!is_null($cocNumber)) {
-            $this->customerHelper->saveCocNumber($addressId, $cocNumber, $event->getContext());
+        if(!is_null($cocNumber) && ($customerAddress instanceof CustomerAddressEntity)) {
+            $this->customerHelper->saveCocNumber($customerAddress, $cocNumber, $event->getContext());
         }
     }
 }

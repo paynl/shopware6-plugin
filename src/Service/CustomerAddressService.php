@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Service;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\SalesChannel\AddressService;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
@@ -62,12 +63,13 @@ class CustomerAddressService extends AddressService
     {
         $addressId = parent::upsert($data, $context);
         $request = $this->requestStack->getMasterRequest();
+        /** @var CustomerAddressEntity $customerAddress */
+        $customerAddress = $context->getCustomer()->getDefaultBillingAddress();
         $cocNumber = $request->get('coc_number');
-        if(!is_null($cocNumber)) {
-            $this->customerHelper->saveCocNumber($addressId, $cocNumber, $context->getContext());
+        if(!is_null($cocNumber) && ($customerAddress instanceof CustomerAddressEntity)) {
+            $this->customerHelper->saveCocNumber($customerAddress, $cocNumber, $context->getContext());
         }
 
         return $addressId;
     }
-
 }
