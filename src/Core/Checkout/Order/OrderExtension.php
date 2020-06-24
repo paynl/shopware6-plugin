@@ -12,7 +12,6 @@ class OrderExtension implements EntityExtensionInterface
 {
     public function extendFields(FieldCollection $collection): void
     {
-        // TODO: modify to use one to one relation
         $collection->add(
             new OneToManyAssociationField(
                 'paynlTransactions',
