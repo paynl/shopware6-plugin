@@ -76,11 +76,14 @@ class InstallHelper
             throw new PaynlPaymentException("Cannot get any payment method.");
         }
 
-        foreach ($paynlPaymentMethods as $paymentMethod) {
-            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
 
-            $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
-            $this->addPaymentMethod($context, $paymentMethodValueObject);
+    public function updatePaymentMethods(Context $context): void
+    {
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (!empty($paynlPaymentMethods)) {
+            $this->upsertPaymentMethods($paynlPaymentMethods, $context);
         }
     }
 
@@ -210,5 +213,19 @@ SQL;
             'to_state_id' => $stateMachineStatePartlyCapturedId,
             'from_state_id' => $stateMachineStatePartlyCapturedId
         ]);
+    }
+
+    /**
+     * @param mixed[] $paynlPaymentMethods
+     * @param Context $context
+     */
+    private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
+    {
+        foreach ($paynlPaymentMethods as $paymentMethod) {
+            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+
+            $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
+            $this->addPaymentMethod($context, $paymentMethodValueObject);
+        }
     }
 }
