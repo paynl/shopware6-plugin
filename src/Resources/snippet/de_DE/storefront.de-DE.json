@@ -6,6 +6,6 @@
         }
     },
     "transactionLabels": {
-        "order": "Auftrag:"
+        "order": "Bestellung: "
     }
 }
