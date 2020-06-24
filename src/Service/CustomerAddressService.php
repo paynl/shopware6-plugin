@@ -59,15 +59,15 @@ class CustomerAddressService extends AddressService
         $this->customerHelper = $customerHelper;
     }
 
-    public function upsert(DataBag $data, SalesChannelContext $context): string
+    public function upsert(DataBag $data, SalesChannelContext $salesChannelContext): string
     {
-        $addressId = parent::upsert($data, $context);
+        $addressId = parent::upsert($data, $salesChannelContext);
         $request = $this->requestStack->getMasterRequest();
         /** @var CustomerAddressEntity $customerAddress */
-        $customerAddress = $context->getCustomer()->getDefaultBillingAddress();
+        $customerAddress = $salesChannelContext->getCustomer()->getDefaultBillingAddress();
         $cocNumber = $request->get('coc_number');
         if(!is_null($cocNumber) && ($customerAddress instanceof CustomerAddressEntity)) {
-            $this->customerHelper->saveCocNumber($customerAddress, $cocNumber, $context->getContext());
+            $this->customerHelper->saveCocNumber($customerAddress, $cocNumber, $salesChannelContext->getContext());
         }
 
         return $addressId;
