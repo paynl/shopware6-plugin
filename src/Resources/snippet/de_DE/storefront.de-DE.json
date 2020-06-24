@@ -3,10 +3,16 @@
         "statuses": {
             "cancelled": "Zahlung storniert",
             "denied": "Zahlung abgelehnt"
+        },
+        "messages": {
+            "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere."
+        },
+        "labels": {
+            "changePayment": "Zahlung ändern"
         }
     },
     "transactionLabels": {
-        "order": "Auftrag:"
+        "order": "Bestellung: "
     },
     "coc": {
         "label": "IHK-Nummer",
