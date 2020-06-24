@@ -58,7 +58,7 @@
                                                                 style="display: inline-block"
                                                             {% else %}
                                                                 style="display: none"
-                                                                {% endif %}>
+                                                            {% endif %}>
                                                                 <select id="paynl-ideal-banks-select" class="custom-control custom-select" name="paynlIssuer">
                                                                     <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                                                     {% for bank in payment.customFields.banks %}
@@ -77,13 +77,11 @@
                                                         style="display: none"
                                                             {% endif %}>
                                                         <button class="btn btn-primary" type="submit">
-                                                            {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
-                                                        </button>
-                                                        <button class="btn btn-light"
-                                                                type="button"
-                                                                data-dismiss="modal"
-                                                                aria-label="Close">
-                                                            {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                                                            {% if action %}
+                                                                {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                                                            {% else %}
+                                                                {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
+                                                            {% endif %}
                                                         </button>
                                                     </div>
                                                     {% if payment.translated.description %}
