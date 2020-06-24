@@ -22,7 +22,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent' => 'onPostDispatchCheckout',
+            'Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent' => 'onCheckoutPaymentMethodChange',
             'Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent' => 'onPaymentMethodChanged'
         ];
     }
@@ -30,7 +30,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /**
      * @param SalesChannelContextSwitchEvent $event
      */
-    public function onPostDispatchCheckout(SalesChannelContextSwitchEvent $event)
+    public function onCheckoutPaymentMethodChange(SalesChannelContextSwitchEvent $event)
     {
         $this->setPaynlIssuer($event->getRequestDataBag()->get('paynlIssuer'));
     }
