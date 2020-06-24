@@ -131,7 +131,6 @@ class Api
             'paymentMethod' => $paynlPaymentMethodId,
             'amount' => $amount,
             'currency' => $currency,
-            'extra1' => $extra1,
             'testmode' => $testMode,
             'orderNumber' => $orderNumber,
             'description' => sprintf(
