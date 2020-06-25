@@ -6,6 +6,8 @@ use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
 
@@ -14,9 +16,15 @@ class CustomerHelper
     /** @var Config */
     private $config;
 
-    public function __construct(Config $config)
+    /**
+     * @var EntityRepositoryInterface
+     */
+    private $customerAddressRepository;
+
+    public function __construct(Config $config, EntityRepositoryInterface $customerAddressRepository)
     {
         $this->config = $config;
+        $this->customerAddressRepository = $customerAddressRepository;
     }
 
     /**
@@ -41,9 +49,26 @@ class CustomerHelper
                 'customerReference' => $customer->getCustomerNumber(),
                 'gender' => $gender
             ],
+            'company' => [
+                'name' => $customer->getDefaultBillingAddress()->getCompany(),
+                'cocNumber' => $customer->getDefaultBillingAddress()->getCustomFields()['cocNumber'],
+                'vatNumber' => $customer->getDefaultBillingAddress()->getVatId(),
+            ],
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
         ];
+    }
+
+    public function saveCocNumber(CustomerAddressEntity $customerAddress, string $cocNumber, Context $context): void
+    {
+        $customFields = $customerAddress->getCustomFields();
+        $customFields['cocNumber'] = $cocNumber;
+        $customFieldData = [
+            'id' => $customerAddress->getId(),
+            'customFields' => $customFields
+        ];
+
+        $this->customerAddressRepository->update([$customFieldData], $context);
     }
 
     /**

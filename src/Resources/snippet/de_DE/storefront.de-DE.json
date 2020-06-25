@@ -13,5 +13,9 @@
     },
     "transactionLabels": {
         "order": "Bestellung: "
+    },
+    "coc": {
+        "label": "IHK-Nummer",
+        "placeholder": "IHK-Nummer eingeben"
     }
 }

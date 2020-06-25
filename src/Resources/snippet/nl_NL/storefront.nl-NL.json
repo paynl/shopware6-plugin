@@ -13,5 +13,9 @@
     },
     "transactionLabels": {
         "order": "Bestelling: "
+    },
+    "coc": {
+        "label": "KVK-nummer",
+        "placeholder": "Voer KVK-nummer in"
     }
 }
