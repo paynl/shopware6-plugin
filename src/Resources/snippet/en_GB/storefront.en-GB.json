@@ -2,7 +2,9 @@
     "checkout": {
         "statuses": {
             "cancelled": "Payment cancelled",
-            "denied": "Payment denied"
+            "denied": "Payment denied",
+            "open": "Payment is being verified by the administrator.",
+            "paid": "Payment successful!"
         },
         "messages": {
             "failedTransaction": "Your payment could not be processed with the selected payment method, please select another one."

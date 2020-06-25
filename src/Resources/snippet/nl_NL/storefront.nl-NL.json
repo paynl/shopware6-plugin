@@ -2,7 +2,9 @@
     "checkout": {
         "statuses": {
             "cancelled": "Betaling geannuleerd",
-            "denied": "Betaling geweigerd"
+            "denied": "Betaling geweigerd",
+            "open": "De betaling wordt geverifieerd door de beheerder.",
+            "paid": "Betaling geslaagd!"
         },
         "messages": {
             "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere."

@@ -41,13 +41,14 @@ class CustomerHelper
             $gender = 'F';
         }
 
-        return [
+        $formattedAddress = [
             'enduser' => [
                 'initials' => $customer->getFirstName(),
                 'lastName' => $customer->getLastName(),
                 'emailAddress' => $customer->getEmail(),
                 'customerReference' => $customer->getCustomerNumber(),
-                'gender' => $gender
+                'gender' => $gender,
+                'phoneNumber' => $customer->getDefaultBillingAddress()->getPhoneNumber(),
             ],
             'company' => [
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
@@ -57,6 +58,13 @@ class CustomerHelper
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
         ];
+
+        $birthDate = $customer->getBirthday();
+        if ($birthDate instanceof \DateTimeInterface) {
+            $formattedAddress['enduser']['birthDate'] = $birthDate;
+        }
+
+        return $formattedAddress;
     }
 
     public function saveCocNumber(CustomerAddressEntity $customerAddress, string $cocNumber, Context $context): void
