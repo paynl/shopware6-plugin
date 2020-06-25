@@ -14,7 +14,12 @@
     "transactionLabels": {
         "order": "Bestellung: "
     },
+
     "payment": {
         "selectIssuer": "Wählen Sie eine Bank aus"
+    },
+    "coc": {
+        "label": "IHK-Nummer",
+        "placeholder": "IHK-Nummer eingeben"
     }
 }

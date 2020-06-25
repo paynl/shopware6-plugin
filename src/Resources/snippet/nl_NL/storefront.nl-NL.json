@@ -16,5 +16,9 @@
     },
     "payment": {
         "selectIssuer": "Kies uw bank"
+    },
+    "coc": {
+        "label": "KVK-nummer",
+        "placeholder": "Voer KVK-nummer in"
     }
 }
