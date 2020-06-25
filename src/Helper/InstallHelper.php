@@ -60,7 +60,9 @@ class InstallHelper
         $this->configService = $configService;
         /** @var Config $config */
         $config = new Config($configService);
-        $customerHelper = new CustomerHelper($config);
+        /** @var EntityRepositoryInterface $customerAddressRepository */
+        $customerAddressRepository = $container->get('customer_address.repository');
+        $customerHelper = new CustomerHelper($config, $customerAddressRepository);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         /** @var TranslatorInterface $translator */
