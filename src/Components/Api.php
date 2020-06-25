@@ -129,7 +129,6 @@ class Api
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
         $orderNumber = $transaction->getOrder()->getOrderNumber();
