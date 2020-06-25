@@ -52,7 +52,22 @@
                                                     <div class="paynl-payment-method-description payment-method-description">
                                                         <strong>{{ payment.translated.name }}</strong>
                                                     </div>
-                                                    {# TODO: ADD BANKS SELECTION FOR IDEAL#}
+                                                    {% if payment.name is same as('iDEAL') %}
+                                                        {% if payment.customFields.banks is defined and payment.customFields.banks is not empty %}
+                                                            <div id="paynl-banks" class="paynl-payment-method-banks" {% if payment.id is same as(defaultPaymentMethodId) %}
+                                                                style="display: inline-block"
+                                                            {% else %}
+                                                                style="display: none"
+                                                            {% endif %}>
+                                                                <select id="paynl-ideal-banks-select" class="custom-control custom-select" name="paynlIssuer">
+                                                                    <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
+                                                                    {% for bank in payment.customFields.banks %}
+                                                                        <option value="{{ bank.id }}" {% if app.session.get('paynlIssuer') is defined and bank.id is same as(app.session.get('paynlIssuer'))%} selected {% endif %}>{{ bank.visibleName }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endif %}
                                                     <div
                                                             id="paynl-modal-buttons-{{ loop.index }}"
                                                             class="paynl-modal-buttons"
@@ -62,13 +77,11 @@
                                                         style="display: none"
                                                             {% endif %}>
                                                         <button class="btn btn-primary" type="submit">
-                                                            {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
-                                                        </button>
-                                                        <button class="btn btn-light"
-                                                                type="button"
-                                                                data-dismiss="modal"
-                                                                aria-label="Close">
-                                                            {{ "checkout.confirmChangePaymentShippingCancel"|trans|sw_sanitize }}
+                                                            {% if action %}
+                                                                {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                                                            {% else %}
+                                                                {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
+                                                            {% endif %}
                                                         </button>
                                                     </div>
                                                     {% if payment.translated.description %}

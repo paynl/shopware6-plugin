@@ -14,6 +14,9 @@
     "transactionLabels": {
         "order": "Order: "
     },
+    "payment": {
+        "selectIssuer": "Select Issuer"
+    },
     "coc": {
         "label": "KVK/COC Number",
         "placeholder": "Enter your COC number"
