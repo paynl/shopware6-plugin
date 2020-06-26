@@ -18,7 +18,7 @@
     "require": {
         "shopware/core": "^6.1",
         "shopware/storefront": "^6.1",
-        "paynl/sdk": "1.5.12"
+        "paynl/sdk": "1.5.15"
     },
     "minimum-stability": "RC",
     "license": "MIT",
