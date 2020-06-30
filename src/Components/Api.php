@@ -123,7 +123,7 @@ class Api
         string $showareVersion,
         string $pluginVersion
     ): array {
-        $bank = (int)$this->session->get('paynlIssuer');
+        $bank = $this->session->get('paynlIssuer');
         $this->session->remove('paynlIssuer');
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
