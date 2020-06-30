@@ -25,7 +25,6 @@ class InstallHelper
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
 
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
-    const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl Payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
     const PAYMENT_METHOD_IDEAL_ID = 10;
 
@@ -105,17 +104,12 @@ class InstallHelper
      */
     private function addPaymentMethod(Context $context, PaymentMethodValueObject $paymentMethodValueObject): void
     {
-        $paymentMethodDescription = sprintf(
-            self::PAYMENT_METHOD_DESCRIPTION_TPL,
-            $paymentMethodValueObject->getVisibleName()
-        );
-
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => PaynlPaymentHandler::class,
             'name' => $paymentMethodValueObject->getName(),
-            'description' => $paymentMethodDescription,
+            'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'afterOrderEnabled' => true,
