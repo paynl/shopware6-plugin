@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "719329369d5d9f0abfd06f79174d5e6c",
+    "content-hash": "9a68fe7b1d6c6c1efac128c419b1aa88",
     "packages": [
         {
             "name": "paynl/sdk",
-            "version": "v1.5.12",
+            "version": "v1.5.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paynl/sdk.git",
-                "reference": "02e41640fdc6d801c3cd2f28a92544d1e7f70faa"
+                "reference": "c801462646b8182677c00d6c0a39a505266067b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paynl/sdk/zipball/02e41640fdc6d801c3cd2f28a92544d1e7f70faa",
-                "reference": "02e41640fdc6d801c3cd2f28a92544d1e7f70faa",
+                "url": "https://api.github.com/repos/paynl/sdk/zipball/c801462646b8182677c00d6c0a39a505266067b4",
+                "reference": "c801462646b8182677c00d6c0a39a505266067b4",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
                     "email": "andy@pay.nl"
                 }
             ],
-            "time": "2019-11-01T12:26:57+00:00"
+            "time": "2020-06-18T14:33:40+00:00"
         },
         {
             "name": "php-curl-class/php-curl-class",
