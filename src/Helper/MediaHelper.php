@@ -60,7 +60,8 @@ class MediaHelper
             return;
         }
 
-        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodValueObject->getId());
+        $paymentMethodBrandId = $paymentMethodValueObject->getBrandId();
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodBrandId);
         if (!file_exists($filePath)) {
             return;
         }
