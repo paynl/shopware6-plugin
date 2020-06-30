@@ -26,6 +26,7 @@ class InstallHelper
 
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
+    const PAYMENT_METHOD_IDEAL_ID = 10;
 
     /** @var SystemConfigService $configService */
     private $configService;
@@ -117,6 +118,9 @@ class InstallHelper
                 'banks' => $paymentMethodValueObject->getBanks()
             ]
         ];
+        if ($paymentMethodValueObject->getId() === self::PAYMENT_METHOD_IDEAL_ID) {
+            $paymentData['customFields']['displayBanks'] = true;
+        }
         $this->paymentMethodRepository->upsert([$paymentData], $context);
 
         $channels = $this->salesChannelRepository->searchIds(new Criteria(), $context);

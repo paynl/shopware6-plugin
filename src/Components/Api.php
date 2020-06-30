@@ -31,6 +31,7 @@ class Api
     const PAYMENT_METHOD_BANKS = 'banks';
     const PAYMENT_METHOD_BRAND = 'brand';
     const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
+    const PAYMENT_METHOD_BRAND_ID = 'id';
 
     const ACTION_PENDING = 'pending';
 
@@ -125,7 +126,7 @@ class Api
         string $showareVersion,
         string $pluginVersion
     ): array {
-        $bank = (int)$this->session->get('paynlIssuer');
+        $bank = $this->session->get('paynlIssuer');
         $this->session->remove('paynlIssuer');
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);

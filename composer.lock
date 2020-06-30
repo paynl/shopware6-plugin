@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9a68fe7b1d6c6c1efac128c419b1aa88",
+    "content-hash": "9be90e36404f63efac81fddc45f92fc0",
     "packages": [
         {
             "name": "paynl/sdk",
