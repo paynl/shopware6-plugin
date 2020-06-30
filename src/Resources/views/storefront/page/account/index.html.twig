@@ -14,8 +14,8 @@
                     {% block page_account_overview_payment_content %}
                         <div class="d-inline">
                             <strong>{{ context.customer.defaultPaymentMethod.translated.name }}</strong>
-                            {% if app.session.get('paynlIssuer') is defined and context.paymentMethod.customFields.banks is defined %}
-                                {% for bank in context.paymentMethod.customFields.banks %}
+                            {% if app.session.get('paynlIssuer') and context.paymentMethod.translated.customFields.banks %}
+                                {% for bank in context.paymentMethod.translated.customFields.banks %}
                                     {% if bank.id is same as(app.session.get('paynlIssuer')) %}
                                         ({{ bank.visibleName }})
                                     {% endif %}

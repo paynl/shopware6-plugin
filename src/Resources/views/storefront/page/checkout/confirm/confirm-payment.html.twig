@@ -3,8 +3,8 @@
 {% block page_checkout_confirm_payment_current_text %}
     {{ parent() }}
 
-    {% if app.session.get('paynlIssuer') is defined and context.paymentMethod.customFields.banks is defined %}
-        {% for bank in context.paymentMethod.customFields.banks %}
+    {% if app.session.get('paynlIssuer') and context.paymentMethod.translated.customFields.banks%}
+        {% for bank in context.paymentMethod.translated.customFields.banks %}
             {% if bank.id is same as(app.session.get('paynlIssuer')) %}
                 ({{ bank.visibleName }})
             {% endif %}

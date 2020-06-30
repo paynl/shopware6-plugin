@@ -33,7 +33,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
      */
     public function onCheckoutPaymentMethodChange(SalesChannelContextSwitchEvent $event)
     {
-        $this->setPaynlIssuer($event->getRequestDataBag());
+        $this->setPaynlIssuer((int)$event->getRequestDataBag()->get('paynlIssuer'));
     }
 
     /**
@@ -41,15 +41,14 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
      */
     public function onPaymentMethodChanged(CustomerChangedPaymentMethodEvent $event)
     {
-        $this->setPaynlIssuer($event->getRequestDataBag());
+        $this->setPaynlIssuer((int)$event->getRequestDataBag()->get('paynlIssuer'));
     }
 
     /**
-     * @param RequestDataBag $requestDataBag
+     * @param int $paynlIssuer
      */
-    private function setPaynlIssuer(RequestDataBag $requestDataBag)
+    private function setPaynlIssuer(int $paynlIssuer)
     {
-        $paynlIssuer = $requestDataBag->get('paynlIssuer');
         if (!empty($paynlIssuer)) {
             $this->session->set('paynlIssuer', $paynlIssuer);
         }
