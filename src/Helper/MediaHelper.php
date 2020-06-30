@@ -17,7 +17,6 @@ class MediaHelper
 {
     const MEDIA_NAME_TEMPLATE = 'paynlpayment_%s';
     const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
-    const BRAND_ID = 'id';
 
     /** @var EntityRepositoryInterface */
     private $mediaRepository;
@@ -61,8 +60,8 @@ class MediaHelper
             return;
         }
 
-        $paymentMethodBrand = $paymentMethodValueObject->getBrand();
-        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodBrand[self::BRAND_ID]);
+        $paymentMethodBrandId = $paymentMethodValueObject->getBrandId();
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodBrandId);
         if (!file_exists($filePath)) {
             return;
         }

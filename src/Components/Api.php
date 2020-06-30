@@ -30,6 +30,7 @@ class Api
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
     const PAYMENT_METHOD_BANKS = 'banks';
     const PAYMENT_METHOD_BRAND = 'brand';
+    const PAYMENT_METHOD_BRAND_ID = 'id';
 
     const ACTION_PENDING = 'pending';
 

@@ -11,7 +11,7 @@ class PaymentMethodValueObject
     private $name;
     private $visibleName;
     private $banks;
-    private $brand;
+    private $brandId;
 
     public function __construct(array $paymentMethod)
     {
@@ -20,7 +20,7 @@ class PaymentMethodValueObject
         $this->name = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $this->visibleName = $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME];
         $this->banks = $paymentMethod[Api::PAYMENT_METHOD_BANKS] ?: [];
-        $this->brand = $paymentMethod[Api::PAYMENT_METHOD_BRAND] ?: [];
+        $this->brandId = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_ID];
     }
 
     /**
@@ -64,10 +64,10 @@ class PaymentMethodValueObject
     }
 
     /**
-     * @return mixed[]
+     * @return int
      */
-    public function getBrand(): array
+    public function getBrandId(): int
     {
-        return $this->brand;
+        return $this->brandId;
     }
 }
