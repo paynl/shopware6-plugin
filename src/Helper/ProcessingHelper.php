@@ -98,6 +98,8 @@ class ProcessingHelper
      * @param Context $context
      * @param bool $isExchange
      * @return string
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Error
      */
     public function updateTransaction(PaynlTransaction $paynlTransaction, Context $context, bool $isExchange): string
     {

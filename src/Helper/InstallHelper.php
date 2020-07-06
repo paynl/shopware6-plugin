@@ -182,12 +182,25 @@ class InstallHelper
 
     public function removeStates(): void
     {
-        $stateMachineStateSQl = <<<SQL
-SELECT id FROM state_machine_state WHERE technical_name = :technical_name LIMIT 1
-SQL;
-        $removeStateMachineTransitionSQL = <<<SQL
-DELETE FROM state_machine_transition WHERE to_state_id = :to_state_id OR from_state_id = :from_state_id;
-SQL;
+        $stateMachineStateSQl = join(' ' , [
+            'SELECT',
+            'id',
+            'FROM',
+            'state_machine_state',
+            'WHERE',
+            'technical_name = :technical_name',
+            'LIMIT 1'
+        ]);
+
+        $removeStateMachineTransitionSQL = join(' ' , [
+            'DELETE FROM',
+            'state_machine_transition',
+            'WHERE',
+            'to_state_id = :to_state_id',
+            'OR',
+            'from_state_id = :from_state_id'
+        ]);
+
         // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_VERIFY
