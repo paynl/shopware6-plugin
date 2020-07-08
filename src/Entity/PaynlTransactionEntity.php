@@ -20,12 +20,12 @@ class PaynlTransactionEntity extends Entity
     protected $paynlTransactionId;
 
     /**
-     * @var int
+     * @var string
      */
     protected $paymentId;
 
     /**
-     * @var float
+     * @var string
      */
     protected $amount;
 
@@ -49,12 +49,7 @@ class PaynlTransactionEntity extends Entity
      */
     protected $orderId;
 
-    /**
-     * @var string
-     */
-    protected $latestActionName;
-
-    public function getTechnicalName(): ?string
+    public function getTechnicalName(): string
     {
         return $this->technicalName;
     }
@@ -94,22 +89,22 @@ class PaynlTransactionEntity extends Entity
         $this->orderId = $orderId;
     }
 
-    public function getPaymentId(): ?int
+    public function getPaymentId(): ?string
     {
         return $this->paymentId;
     }
 
-    public function setPaymentId(int $paymentId): void
+    public function setPaymentId(string $paymentId): void
     {
         $this->paymentId = $paymentId;
     }
 
-    public function getAmount(): ?float
+    public function getAmount(): ?string
     {
         return $this->amount;
     }
 
-    public function setAmount(float $amount): void
+    public function setAmount(string $amount): void
     {
         $this->amount = $amount;
     }
@@ -132,30 +127,5 @@ class PaynlTransactionEntity extends Entity
     public function setException(string $exception): void
     {
         $this->exception = $exception;
-    }
-
-    public function getLatestActionName(): ?string
-    {
-        return $this->latestActionName;
-    }
-
-    public function setLatestActionName(string $latestActionName): void
-    {
-        $this->latestActionName = $latestActionName;
-    }
-
-    public function getData(): array
-    {
-        return [
-            'technicalName' => $this->getTechnicalName(),
-            'paynlTransactionId' => $this->getPaynlTransactionId(),
-            'orderTransactionId' => $this->getOrderTransactionId(),
-            'orderId' => $this->getOrderId(),
-            'paymentId' => $this->getPaymentId(),
-            'amount' => $this->getAmount(),
-            'currency' => $this->getCurrency(),
-            'exception' => $this->getException(),
-            'latestActionName' => $this->getLatestActionName()
-        ];
     }
 }

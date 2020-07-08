@@ -73,18 +73,22 @@ class RefundController extends AbstractController
     public function refund(Request $request): JsonResponse
     {
         $post = $request->request->all();
-        $paynlTransactionId = $post['transactionId'];
+        $paynlPaymentId = $post['transactionId'];
         $amount = (string)$post['amount'];
         $description = $post['description'];
         $products = $post['products'];
         $messages = [];
-
         try {
             // TODO: need newer version of PAYNL/SDK
-            $this->paynlApi->refund($paynlTransactionId, $amount, $description);
+            $this->paynlApi->refund($paynlPaymentId, $amount, $description);
             $this->restock($products);
 
-            $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
+            $criteria = new Criteria();
+            $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlPaymentId));
+            $context = Context::createDefaultContext();
+            /** @var PaynlTransactionEntity $transactionEntity */
+            $transactionEntity = $this->transactionRepository->search($criteria, $context)->first();
+            $this->processingHelper->updateTransaction($transactionEntity, $context, false);
             $messages[] = [
                 'type' => 'success',
                 'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))

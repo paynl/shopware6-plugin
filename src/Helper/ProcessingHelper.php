@@ -81,6 +81,8 @@ class ProcessingHelper
     /**
      * @param string $paynlTransactionId
      * @return string
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Error
      */
     public function notifyActionUpdateTransactionByPaynlTransactionId(string $paynlTransactionId): string
     {

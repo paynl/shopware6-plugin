@@ -79,20 +79,13 @@ class InstallHelper
         if (empty($paynlPaymentMethods)) {
             throw new PaynlPaymentException("Cannot get any payment method.");
         }
-        $paymentMethods = [];
-        $salesChannelsData = [];
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
             $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
-            $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
-            $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
+            $this->addPaymentMethod($context, $paymentMethodValueObject);
         }
-
-        $this->paymentMethodRepository->upsert($paymentMethods, $context);
-        $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
     }
 
     private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
@@ -107,29 +100,9 @@ class InstallHelper
 
     /**
      * @param Context $context
-     * @param string $paymentMethodId
-     * @return mixed[]
-     */
-    private function getSalesChannelsData(Context $context, string $paymentMethodId): array
-    {
-        $channelsIds = $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds();
-        $salesChannelsData = [];
-        foreach ($channelsIds as $channelId) {
-            $salesChannelsData[] = [
-                'salesChannelId' => $channelId,
-                'paymentMethodId' => $paymentMethodId,
-            ];
-        }
-
-        return $salesChannelsData;
-    }
-
-    /**
-     * @param Context $context
      * @param PaymentMethodValueObject $paymentMethodValueObject
-     * @return mixed[]
      */
-    private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
+    private function addPaymentMethod(Context $context, PaymentMethodValueObject $paymentMethodValueObject): void
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
@@ -148,8 +121,17 @@ class InstallHelper
         if ($paymentMethodValueObject->getId() === self::PAYMENT_METHOD_IDEAL_ID) {
             $paymentData['customFields']['displayBanks'] = true;
         }
+        $this->paymentMethodRepository->upsert([$paymentData], $context);
 
-        return $paymentData;
+        $channels = $this->salesChannelRepository->searchIds(new Criteria(), $context);
+        foreach ($channels->getIds() as $channelId) {
+            $data = [
+                'salesChannelId' => $channelId,
+                'paymentMethodId' => $paymentMethodValueObject->getHashedId(),
+            ];
+
+            $this->paymentMethodSalesChannelRepository->upsert([$data], $context);
+        }
     }
 
     public function deactivatePaymentMethods(Context $context): void
@@ -160,25 +142,6 @@ class InstallHelper
     public function activatePaymentMethods(Context $context): void
     {
         $this->changePaymentMethodsStatuses($context, true);
-    }
-
-    public function removePaymentMethodsMedia(Context $context): void
-    {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
-        if (empty($paynlPaymentMethods)) {
-            throw new PaynlPaymentException("Cannot get any payment method.");
-        }
-
-        foreach ($paynlPaymentMethods as $paymentMethod) {
-            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
-            $paymentMethodMediaId = $this->mediaHelper->getMediaIds($paymentMethodValueObject->getName(), $context);
-            if ($paymentMethodMediaId) {
-                $paymentMethodMediaId = array_map(static function ($id) {
-                    return ['id' => $id];
-                }, $paymentMethodMediaId);
-                $this->mediaHelper->deleteMedia($paymentMethodMediaId, $context);
-            }
-        }
     }
 
     public function removeConfigurationData(): void
@@ -219,12 +182,25 @@ class InstallHelper
 
     public function removeStates(): void
     {
-        $stateMachineStateSQl = <<<SQL
-SELECT id FROM state_machine_state WHERE technical_name = :technical_name LIMIT 1
-SQL;
-        $removeStateMachineTransitionSQL = <<<SQL
-DELETE FROM state_machine_transition WHERE to_state_id = :to_state_id OR from_state_id = :from_state_id;
-SQL;
+        $stateMachineStateSQl = join(' ' , [
+            'SELECT',
+            'id',
+            'FROM',
+            'state_machine_state',
+            'WHERE',
+            'technical_name = :technical_name',
+            'LIMIT 1'
+        ]);
+
+        $removeStateMachineTransitionSQL = join(' ' , [
+            'DELETE FROM',
+            'state_machine_transition',
+            'WHERE',
+            'to_state_id = :to_state_id',
+            'OR',
+            'from_state_id = :from_state_id'
+        ]);
+
         // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_VERIFY
