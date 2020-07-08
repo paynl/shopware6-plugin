@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 
 class Migration1584438271InsertingStatuses extends MigrationStep
 {
@@ -69,7 +70,7 @@ SQL;
                 NULL
             )
             ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
+                UPDATE `action_name` = :action_name, `updated_at` = CURRENT_TIME();
 SQL;
 
     private $insertMailTemplateTypeSql = <<<SQL
@@ -82,7 +83,7 @@ SQL;
                 NULL
             )
             ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
+                UPDATE `technical_name` = :technical_name, `updated_at` = CURRENT_TIME();
 SQL;
 
     private $insertMailTemplateTypeTranslationSQL = <<<SQL
@@ -198,17 +199,17 @@ JSON;
         ])->fetchColumn();
 
         $authorizeStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
-            'technical_name' => 'authorize',
+            'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
         $verifyStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
-            'technical_name' => 'verify',
+            'technical_name' => StateMachineStateEnum::ACTION_VERIFY,
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
         $partlyCapturedStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
-            'technical_name' => 'partly_captured',
+            'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
@@ -219,7 +220,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'authorize',
+            'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $openStateMachineStateId,
             'to_state_id' => $authorizeStateMachineStateId,
@@ -228,7 +229,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'verify',
+            'action_name' => StateMachineStateEnum::ACTION_VERIFY,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $openStateMachineStateId,
             'to_state_id' => $verifyStateMachineStateId,
@@ -237,7 +238,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'partly_captured',
+            'action_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $openStateMachineStateId,
             'to_state_id' => $partlyCapturedStateMachineStateId,
@@ -246,7 +247,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'do_pay',
+            'action_name' => StateMachineTransitionActions::ACTION_PAID,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $authorizeStateMachineStateId,
             'to_state_id' => $paidStateMachineStateId,
@@ -264,7 +265,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'do_pay',
+            'action_name' => StateMachineTransitionActions::ACTION_PAID,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $verifyStateMachineStateId,
             'to_state_id' => $paidStateMachineStateId,
