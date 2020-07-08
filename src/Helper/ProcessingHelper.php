@@ -289,7 +289,7 @@ class ProcessingHelper
                 $orderActionName = StateMachineStateEnum::ACTION_PARTLY_CAPTURED;
                 break;
             case PaynlTransactionStatusesEnum::STATUS_PAID:
-                $orderActionName = StateMachineTransitionActions::ACTION_PAY;
+                $orderActionName = StateMachineTransitionActions::ACTION_PAID;
                 break;
             case PaynlTransactionStatusesEnum::STATUS_PAID_CHECKAMOUNT:
                 $orderActionName = StateMachineTransitionActions::ACTION_CANCEL;
@@ -307,7 +307,7 @@ class ProcessingHelper
                 $orderActionName = StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
                 break;
             case PaynlTransactionStatusesEnum::STATUS_PARTIAL_PAYMENT:
-                $orderActionName = StateMachineTransitionActions::ACTION_PAY_PARTIALLY;
+                $orderActionName = StateMachineTransitionActions::ACTION_PAID_PARTIALLY;
                 break;
             default:
                 $orderActionName = '';

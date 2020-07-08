@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 
 class Migration1584438271InsertingStatuses extends MigrationStep
 {
@@ -14,32 +15,32 @@ class Migration1584438271InsertingStatuses extends MigrationStep
     private $orderTransactionStateSQL = <<<SQL
 SELECT id FROM state_machine WHERE technical_name = :technical_name LIMIT 1
 SQL;
-    
+
     private $stateMachineStateSQL = <<<SQL
 SELECT id FROM state_machine_state WHERE technical_name = :technical_name AND state_machine_id = :state_machine_id
 SQL;
-    
+
     private $languageSQL = <<<SQL
 SELECT `id` FROM `language` where `name` = :name limit 1
 SQL;
-    
+
     private $mailTempaleTypeId = <<<SQL
 SELECT id FROM mail_template_type WHERE technical_name LIKE :technical_name LIMIT 1
 SQL;
-    
+
     private $sqlStateMachineState = <<<SQL
             INSERT INTO state_machine_state (id, technical_name, state_machine_id, created_at, updated_at)
             VALUES (
-                :id, 
-                :technical_name, 
-                :state_machine_id, 
-                :created_at, 
+                :id,
+                :technical_name,
+                :state_machine_id,
+                :created_at,
                 NULL
             )
             ON DUPLICATE KEY
                 UPDATE `updated_at` = CURRENT_TIME();
 SQL;
-    
+
     private $stateMachineStateTranslation = <<<SQL
             INSERT INTO state_machine_state_translation
                 (`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)
@@ -54,56 +55,56 @@ SQL;
             ON DUPLICATE KEY
                 UPDATE `updated_at` = CURRENT_TIME();
 SQL;
-    
+
     private $insertTransitionSQL = <<<SQL
-            INSERT INTO state_machine_transition 
+            INSERT INTO state_machine_transition
                 (id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)
             VALUES (
-                :id, 
-                :action_name, 
+                :id,
+                :action_name,
                 :state_machine_id,
                 :from_state_id,
-                :to_state_id, 
-                NULL, 
-                :created_at, 
+                :to_state_id,
+                NULL,
+                :created_at,
                 NULL
             )
             ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
+                UPDATE `action_name` = :action_name, `updated_at` = CURRENT_TIME();
 SQL;
-    
+
     private $insertMailTemplateTypeSql = <<<SQL
             INSERT INTO mail_template_type (id, technical_name, available_entities, created_at, updated_at)
             VALUES (
-                :id, 
-                :technical_name, 
-                :available_entities, 
-                :created_at, 
+                :id,
+                :technical_name,
+                :available_entities,
+                :created_at,
                 NULL
             )
             ON DUPLICATE KEY
-                UPDATE `updated_at` = CURRENT_TIME();
+                UPDATE `technical_name` = :technical_name, `updated_at` = CURRENT_TIME();
 SQL;
-    
+
     private $insertMailTemplateTypeTranslationSQL = <<<SQL
-            INSERT INTO mail_template_type_translation 
+            INSERT INTO mail_template_type_translation
                 (mail_template_type_id, language_id, name, custom_fields, created_at, updated_at)
             VALUES (
-                :mail_template_type_id, 
-                :language_id, 
-                :name, 
-                NULL, 
-                :created_at, 
+                :mail_template_type_id,
+                :language_id,
+                :name,
+                NULL,
+                :created_at,
                 NULL
             )
             ON DUPLICATE KEY
                 UPDATE `updated_at` = CURRENT_TIME();
 SQL;
-    
+
     private $availableEntries = <<<JSON
 {"order":"order","previousState":"state_machine_state","newState":"state_machine_state","salesChannel":"sales_channel"}
 JSON;
-    
+
     public function getCreationTimestamp(): int
     {
         return 1584438271;
@@ -185,33 +186,33 @@ JSON;
                 'created_at' => $date
             ]);
         }
-        
+
         // Adding transitions
         $paidStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
             'technical_name' => 'paid',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
-        
+
         $openStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
             'technical_name' => 'open',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
-        
+
         $authorizeStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
-            'technical_name' => 'authorize',
+            'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
-        
+
         $verifyStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
-            'technical_name' => 'verify',
+            'technical_name' => StateMachineStateEnum::ACTION_VERIFY,
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
-        
+
         $partlyCapturedStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
-            'technical_name' => 'partly_captured',
+            'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
-        
+
         $cancelledCapturedStateMachineStateId = $connection->executeQuery($this->stateMachineStateSQL, [
             'technical_name' => 'cancelled',
             'state_machine_id' => $orderTransactionStateId,
@@ -219,7 +220,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'authorize',
+            'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $openStateMachineStateId,
             'to_state_id' => $authorizeStateMachineStateId,
@@ -228,7 +229,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'verify',
+            'action_name' => StateMachineStateEnum::ACTION_VERIFY,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $openStateMachineStateId,
             'to_state_id' => $verifyStateMachineStateId,
@@ -237,7 +238,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'partly_captured',
+            'action_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $openStateMachineStateId,
             'to_state_id' => $partlyCapturedStateMachineStateId,
@@ -246,13 +247,13 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'pay',
+            'action_name' => StateMachineTransitionActions::ACTION_PAID,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $authorizeStateMachineStateId,
             'to_state_id' => $paidStateMachineStateId,
             'created_at' => $date
         ]);
-        
+
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
             'action_name' => 'cancel',
@@ -261,16 +262,16 @@ JSON;
             'to_state_id' => $cancelledCapturedStateMachineStateId,
             'created_at' => $date
         ]);
-        
+
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'pay',
+            'action_name' => StateMachineTransitionActions::ACTION_PAID,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $verifyStateMachineStateId,
             'to_state_id' => $paidStateMachineStateId,
             'created_at' => $date
         ]);
-        
+
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
             'action_name' => 'cancel',
@@ -279,7 +280,7 @@ JSON;
             'to_state_id' => $cancelledCapturedStateMachineStateId,
             'created_at' => $date
         ]);
-        
+
         $connection->executeQuery($this->insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.authorize',
