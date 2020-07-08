@@ -134,13 +134,6 @@ class ProcessingHelper
     public function processNotify(string $paynlTransactionId): string
     {
         try {
-            $apiTransaction = $this->getPaynlApiTransaction($paynlTransactionId);
-            if (!$apiTransaction->isBeingVerified() && $apiTransaction->isPending()) {
-                $paymentDetailsState = $apiTransaction->getStatus()->getData()['paymentDetails']['state'];
-
-                return sprintf("TRUE| Transaction status code (%s)", $paymentDetailsState);
-            }
-
             return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
             return sprintf(
