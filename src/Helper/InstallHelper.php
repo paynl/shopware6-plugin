@@ -144,6 +144,25 @@ class InstallHelper
         $this->changePaymentMethodsStatuses($context, true);
     }
 
+    public function removePaymentMethodsMedia(Context $context): void
+    {
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (empty($paynlPaymentMethods)) {
+            throw new PaynlPaymentException("Cannot get any payment method.");
+        }
+
+        foreach ($paynlPaymentMethods as $paymentMethod) {
+            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
+            $paymentMethodMediaId = $this->mediaHelper->getMediaIds($paymentMethodValueObject->getName(), $context);
+            if ($paymentMethodMediaId) {
+                $paymentMethodMediaId = array_map(static function ($id) {
+                    return ['id' => $id];
+                }, $paymentMethodMediaId);
+                $this->mediaHelper->deleteMedia($paymentMethodMediaId, $context);
+            }
+        }
+    }
+
     public function removeConfigurationData(): void
     {
         $paynlPaymentConfigs = $this->configService->get('PaynlPaymentShopware6');
