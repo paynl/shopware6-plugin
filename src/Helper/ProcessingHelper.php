@@ -161,7 +161,7 @@ class ProcessingHelper
         $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
         if ($paynlTransaction->isBeingVerified()
             && $currentActionName == StateMachineTransitionActions::ACTION_DO_PAY) {
-            $this->updatePaynlStatusByStatusCode(
+            $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
                 $currentActionName
@@ -175,7 +175,7 @@ class ProcessingHelper
         if ($paynlTransaction->isBeingVerified()
             && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL
         ) {
-            $this->updatePaynlStatusByStatusCode(
+            $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_CANCEL,
                 $currentActionName
@@ -187,7 +187,7 @@ class ProcessingHelper
         }
 
         if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_DO_PAY) {
-            $this->updatePaynlStatusByStatusCode(
+            $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
                 $currentActionName
@@ -199,7 +199,7 @@ class ProcessingHelper
         }
 
         if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL) {
-            $this->updatePaynlStatusByStatusCode(
+            $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_CANCEL,
                 $currentActionName
@@ -283,23 +283,6 @@ class ProcessingHelper
         }
 
         $this->paynlTransactionRepository->update([$updateData], Context::createDefaultContext());
-    }
-
-    /**
-     * @param string $paynlTransactionId
-     * @param int $paynlTransactionStatusCode
-     * @param string $orderTransactionTransitionName
-     */
-    private function updatePaynlStatusByStatusCode(
-        string $paynlTransactionId,
-        int $paynlTransactionStatusCode,
-        string $orderTransactionTransitionName
-    ): void {
-        $this->updatePaynlTransactionStatus(
-            $paynlTransactionId,
-            $paynlTransactionStatusCode,
-            $orderTransactionTransitionName
-        );
     }
 
     /**
