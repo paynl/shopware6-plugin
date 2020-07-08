@@ -77,16 +77,14 @@
                                                         style="display: none"
                                                             {% endif %}>
                                                         <button class="btn btn-primary" type="submit">
-                                                            {% if action %}
+                                                            {% if activeRoute == "frontend.checkout.confirm.page" %}
                                                                 {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
                                                             {% else %}
                                                                 {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
                                                             {% endif %}
                                                         </button>
                                                     </div>
-                                                    {% if payment.translated.description %}
-                                                        <p>{{ payment.translated.description|raw }}</p>
-                                                    {% endif %}
+                                                    <p>{{ payment.translated.description|raw }}</p>
                                                 {% else %}
                                                     {{ parent() }}
                                                 {% endif %}
