@@ -87,7 +87,8 @@ class InstallHelper
 
             $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
             $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-            $this->setSalesChannelsData($context, $paymentMethodValueObject->getHashedId(), $salesChannelsData);
+            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
+            $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
 
         $this->paymentMethodRepository->upsert($paymentMethods, $context);
@@ -107,17 +108,20 @@ class InstallHelper
     /**
      * @param Context $context
      * @param string $paymentMethodId
-     * @param mixed[] $salesChannelsData
+     * @return mixed[]
      */
-    private function setSalesChannelsData(Context $context, string $paymentMethodId, array &$salesChannelsData): void
+    private function getSalesChannelsData(Context $context, string $paymentMethodId): array
     {
-        $channels = $this->salesChannelRepository->searchIds(new Criteria(), $context);
-        foreach ($channels->getIds() as $channelId) {
+        $channelsIds = $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds();
+        $salesChannelsData = [];
+        foreach ($channelsIds as $channelId) {
             $salesChannelsData[] = [
                 'salesChannelId' => $channelId,
                 'paymentMethodId' => $paymentMethodId,
             ];
         }
+
+        return $salesChannelsData;
     }
 
     /**
