@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 
 class Migration1584438271InsertingStatuses extends MigrationStep
 {
@@ -246,7 +247,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'do_pay',
+            'action_name' => StateMachineTransitionActions::ACTION_PAID,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $authorizeStateMachineStateId,
             'to_state_id' => $paidStateMachineStateId,
@@ -264,7 +265,7 @@ JSON;
 
         $connection->executeQuery($this->insertTransitionSQL, [
             'id' => Uuid::randomBytes(),
-            'action_name' => 'do_pay',
+            'action_name' => StateMachineTransitionActions::ACTION_PAID,
             'state_machine_id' => $orderTransactionStateId,
             'from_state_id' => $verifyStateMachineStateId,
             'to_state_id' => $paidStateMachineStateId,
