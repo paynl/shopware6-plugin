@@ -82,12 +82,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
-        $context = $salesChannelContext->getContext();
-        $orderId = $transaction->getOrder()->getId();
-
-        /** @var PaynlTransactionEntity $paynlTransaction */
-        $paynlTransaction = $this->processingHelper->findTransactionByOrderId($orderId, $context);
-        $this->processingHelper->updateTransaction($paynlTransaction, $context, false);
+        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($transaction->getOrder()->getId());
     }
 
     private function sendReturnUrlToExternalGateway(
@@ -97,6 +92,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $paynlTransactionId = '';
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $transaction,

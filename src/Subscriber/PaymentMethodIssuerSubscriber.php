@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Subscriber;
 
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
+use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent;
@@ -32,9 +33,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
      */
     public function onCheckoutPaymentMethodChange(SalesChannelContextSwitchEvent $event)
     {
-        if (array_key_exists('paynlIssuer', $event->getRequestDataBag()->all())) {
-            $this->session->set('paynlIssuer', $event->getRequestDataBag()->get('paynlIssuer'));
-        }
+        $this->setPaynlIssuer((int)$event->getRequestDataBag()->get('paynlIssuer'));
     }
 
     /**
@@ -42,6 +41,16 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
      */
     public function onPaymentMethodChanged(CustomerChangedPaymentMethodEvent $event)
     {
-        $this->session->set('paynlIssuer', $event->getRequestDataBag()->get('paynlIssuer'));
+        $this->setPaynlIssuer((int)$event->getRequestDataBag()->get('paynlIssuer'));
+    }
+
+    /**
+     * @param int $paynlIssuer
+     */
+    private function setPaynlIssuer(int $paynlIssuer)
+    {
+        if (!empty($paynlIssuer)) {
+            $this->session->set('paynlIssuer', $paynlIssuer);
+        }
     }
 }
