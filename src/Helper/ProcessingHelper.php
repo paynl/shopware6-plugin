@@ -160,7 +160,7 @@ class ProcessingHelper
     {
         $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
         if ($paynlTransaction->isBeingVerified()
-            && $currentActionName == StateMachineTransitionActions::ACTION_DO_PAY) {
+            && $currentActionName === StateMachineTransitionActions::ACTION_DO_PAY) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -173,7 +173,7 @@ class ProcessingHelper
         }
 
         if ($paynlTransaction->isBeingVerified()
-            && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL
+            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
         ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
@@ -186,7 +186,7 @@ class ProcessingHelper
             return;
         }
 
-        if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_DO_PAY) {
+        if ($paynlTransaction->isAuthorized() && $currentActionName === StateMachineTransitionActions::ACTION_DO_PAY) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -198,7 +198,7 @@ class ProcessingHelper
             return;
         }
 
-        if ($paynlTransaction->isAuthorized() && $currentActionName == StateMachineTransitionActions::ACTION_CANCEL) {
+        if ($paynlTransaction->isAuthorized() && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_CANCEL,
@@ -229,7 +229,7 @@ class ProcessingHelper
 
         if (
             !empty($orderTransactionTransitionName)
-            && $orderTransactionTransitionName != $paynlTransactionEntity->getLatestActionName()
+            && $orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName()
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
