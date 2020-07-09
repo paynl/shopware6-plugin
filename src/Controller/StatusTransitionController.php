@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Controller;
 
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -49,14 +50,19 @@ class StatusTransitionController extends AbstractController
         $orderTransactionId = $request->get('transactionId', '');
         $currentActionName = $request->get('currentActionName', '');
         try {
+            /** @var PaynlTransactionEntity $paynlTransaction */
             $paynlTransaction = $this->paynlTransactionRepository
                 ->search(
                     (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId)),
                     Context::createDefaultContext()
                 )
                 ->first();
-            $paynlTransactionId = $paynlTransaction->getPaynlTransactionId();
-            $this->processingHelper->processChangePaynlStatus($paynlTransactionId, $currentActionName);
+
+            $this->processingHelper->processChangePaynlStatus(
+                $paynlTransaction->getId(),
+                $paynlTransaction->getPaynlTransactionId(),
+                $currentActionName
+            );
 
             return new JsonResponse($request->request->all());
         } catch (Error\Api $exception) {

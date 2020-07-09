@@ -96,20 +96,6 @@ class MediaHelper
         return !empty($media);
     }
 
-    public function getMediaIds(string $paymentMethodsName, Context $context): array
-    {
-        $criteria = (new Criteria())->addFilter(
-            new EqualsFilter('fileName', $this->getMediaName($paymentMethodsName))
-        );
-
-        return $this->mediaRepository->searchIds($criteria, $context)->getIds();
-    }
-
-    public function deleteMedia(array $ids, Context $context): void
-    {
-        $this->mediaRepository->delete($ids, $context);
-    }
-
     private function getMediaName(string $paymentMethodName): string
     {
         $paymentMethodName = strtolower(trim(preg_replace('/[\W]/', '_', $paymentMethodName), '_'));
