@@ -79,13 +79,20 @@ class InstallHelper
         if (empty($paynlPaymentMethods)) {
             throw new PaynlPaymentException("Cannot get any payment method.");
         }
+        $paymentMethods = [];
+        $salesChannelsData = [];
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
             $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
-            $this->addPaymentMethod($context, $paymentMethodValueObject);
+            $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
+            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
+            $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
+
+        $this->paymentMethodRepository->upsert($paymentMethods, $context);
+        $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
     }
 
     private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
@@ -100,9 +107,29 @@ class InstallHelper
 
     /**
      * @param Context $context
-     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @param string $paymentMethodId
+     * @return mixed[]
      */
-    private function addPaymentMethod(Context $context, PaymentMethodValueObject $paymentMethodValueObject): void
+    private function getSalesChannelsData(Context $context, string $paymentMethodId): array
+    {
+        $channelsIds = $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds();
+        $salesChannelsData = [];
+        foreach ($channelsIds as $channelId) {
+            $salesChannelsData[] = [
+                'salesChannelId' => $channelId,
+                'paymentMethodId' => $paymentMethodId,
+            ];
+        }
+
+        return $salesChannelsData;
+    }
+
+    /**
+     * @param Context $context
+     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @return mixed[]
+     */
+    private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
@@ -121,17 +148,8 @@ class InstallHelper
         if ($paymentMethodValueObject->getId() === self::PAYMENT_METHOD_IDEAL_ID) {
             $paymentData['customFields']['displayBanks'] = true;
         }
-        $this->paymentMethodRepository->upsert([$paymentData], $context);
 
-        $channels = $this->salesChannelRepository->searchIds(new Criteria(), $context);
-        foreach ($channels->getIds() as $channelId) {
-            $data = [
-                'salesChannelId' => $channelId,
-                'paymentMethodId' => $paymentMethodValueObject->getHashedId(),
-            ];
-
-            $this->paymentMethodSalesChannelRepository->upsert([$data], $context);
-        }
+        return $paymentData;
     }
 
     public function deactivatePaymentMethods(Context $context): void
