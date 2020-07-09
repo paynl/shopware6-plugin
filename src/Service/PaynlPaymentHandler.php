@@ -91,6 +91,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $paynlTransactionId = '';
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $transaction,

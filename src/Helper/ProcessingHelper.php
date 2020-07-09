@@ -81,8 +81,6 @@ class ProcessingHelper
     /**
      * @param string $paynlTransactionId
      * @return string
-     * @throws \Paynl\Error\Api
-     * @throws \Paynl\Error\Error
      */
     public function notifyActionUpdateTransactionByPaynlTransactionId(string $paynlTransactionId): string
     {
@@ -155,7 +153,7 @@ class ProcessingHelper
     {
         $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
         if ($paynlTransaction->isBeingVerified()
-            && $currentActionName === StateMachineTransitionActions::ACTION_DO_PAY) {
+            && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -181,7 +179,7 @@ class ProcessingHelper
             return;
         }
 
-        if ($paynlTransaction->isAuthorized() && $currentActionName === StateMachineTransitionActions::ACTION_DO_PAY) {
+        if ($paynlTransaction->isAuthorized() && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
