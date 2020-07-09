@@ -166,7 +166,7 @@ class InstallHelper
     {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         if (empty($paynlPaymentMethods)) {
-            throw new PaynlPaymentException("Cannot get any payment method.");
+            return;
         }
 
         foreach ($paynlPaymentMethods as $paymentMethod) {
