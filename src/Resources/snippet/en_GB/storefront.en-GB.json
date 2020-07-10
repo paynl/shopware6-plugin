@@ -3,7 +3,7 @@
         "statuses": {
             "cancelled": "Payment cancelled",
             "denied": "Payment denied",
-            "open": "Payment is being verified by the administrator.",
+            "in_progress": "Payment is being verified by the administrator.",
             "paid": "Payment successful!"
         },
         "messages": {
