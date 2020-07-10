@@ -3,7 +3,7 @@
         "statuses": {
             "cancelled": "Betaling geannuleerd",
             "denied": "Betaling geweigerd",
-            "open": "De betaling wordt geverifieerd door de beheerder.",
+            "in_progress": "De betaling wordt geverifieerd door de beheerder.",
             "paid": "Betaling geslaagd!"
         },
         "messages": {

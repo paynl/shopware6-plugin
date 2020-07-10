@@ -3,7 +3,7 @@
         "statuses": {
             "cancelled": "Zahlung storniert",
             "denied": "Zahlung abgelehnt",
-            "open": "Die Zahlung wird durch den Verwalter überprüft.",
+            "in_progress": "Die Zahlung wird durch den Verwalter überprüft.",
             "paid": "Zahlung erfolgreich!"
         },
         "messages": {
