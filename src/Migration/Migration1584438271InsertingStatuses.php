@@ -224,68 +224,69 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+        $inProgressStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
+            'technical_name' => 'in_progress',
             'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $openStateMachineStateId,
-            'to_state_id' => $authorizeStateMachineStateId,
-            'created_at' => $date
-        ]);
+        ])->fetchColumn();
 
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => StateMachineStateEnum::ACTION_VERIFY,
-            'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $openStateMachineStateId,
-            'to_state_id' => $verifyStateMachineStateId,
-            'created_at' => $date
-        ]);
+        $transitions = [
+            [
+                'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+                'from_state_id' => $inProgressStateMachineStateId,
+                'to_state_id' => $authorizeStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineStateEnum::ACTION_VERIFY,
+                'from_state_id' => $inProgressStateMachineStateId,
+                'to_state_id' => $verifyStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+                'from_state_id' => $openStateMachineStateId,
+                'to_state_id' => $authorizeStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineStateEnum::ACTION_VERIFY,
+                'from_state_id' => $openStateMachineStateId,
+                'to_state_id' => $verifyStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
+                'from_state_id' => $openStateMachineStateId,
+                'to_state_id' => $partlyCapturedStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineTransitionActions::ACTION_PAID,
+                'from_state_id' => $authorizeStateMachineStateId,
+                'to_state_id' => $paidStateMachineStateId,
+            ],
+            [
+                'action_name' => 'cancel',
+                'from_state_id' => $authorizeStateMachineStateId,
+                'to_state_id' => $cancelledCapturedStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineTransitionActions::ACTION_PAID,
+                'from_state_id' => $verifyStateMachineStateId,
+                'to_state_id' => $paidStateMachineStateId
+            ],
+            [
+                'action_name' => 'cancel',
+                'from_state_id' => $verifyStateMachineStateId,
+                'to_state_id' => $cancelledCapturedStateMachineStateId,
+            ]
+        ];
 
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
+        $defaultData = [
             'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $openStateMachineStateId,
-            'to_state_id' => $partlyCapturedStateMachineStateId,
             'created_at' => $date
-        ]);
-
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => StateMachineTransitionActions::ACTION_PAID,
-            'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $authorizeStateMachineStateId,
-            'to_state_id' => $paidStateMachineStateId,
-            'created_at' => $date
-        ]);
-
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => 'cancel',
-            'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $authorizeStateMachineStateId,
-            'to_state_id' => $cancelledCapturedStateMachineStateId,
-            'created_at' => $date
-        ]);
-
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => StateMachineTransitionActions::ACTION_PAID,
-            'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $verifyStateMachineStateId,
-            'to_state_id' => $paidStateMachineStateId,
-            'created_at' => $date
-        ]);
-
-        $connection->executeQuery($insertTransitionSQL, [
-            'id' => Uuid::randomBytes(),
-            'action_name' => 'cancel',
-            'state_machine_id' => $orderTransactionStateId,
-            'from_state_id' => $verifyStateMachineStateId,
-            'to_state_id' => $cancelledCapturedStateMachineStateId,
-            'created_at' => $date
-        ]);
+        ];
+        foreach ($transitions as $transition) {
+            $connection->executeQuery(
+                $insertTransitionSQL,
+                array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
+            );
+        }
 
         $connection->executeQuery($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
