@@ -1,23 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Service;
+namespace PaynlPayment\Shopware6\Service;
 
 use Exception;
-use PaynlPayment\Components\Api;
-use PaynlPayment\Entity\PaynlTransactionEntity;
-use PaynlPayment\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
-use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Shopware\Core\System\StateMachine\Exception\IllegalTransitionException;
-use Shopware\Core\System\StateMachine\Exception\StateMachineInvalidEntityIdException;
-use Shopware\Core\System\StateMachine\Exception\StateMachineInvalidStateFieldException;
-use Shopware\Core\System\StateMachine\Exception\StateMachineNotFoundException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -34,17 +28,20 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $paynlApi;
     /** @var ProcessingHelper */
     private $processingHelper;
+    private $shopwareVersion;
 
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
         Api $api,
-        ProcessingHelper $processingHelper
+        ProcessingHelper $processingHelper,
+        string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
+        $this->shopwareVersion = $shopwareVersion;
     }
 
     /**
@@ -84,12 +81,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
-        $context = $salesChannelContext->getContext();
-        $orderId = $transaction->getOrder()->getId();
-
-        /** @var PaynlTransactionEntity $paynlTransaction */
-        $paynlTransaction = $this->processingHelper->findTransactionByOrderId($orderId, $context);
-        $this->processingHelper->updateTransaction($paynlTransaction, $context, false);
+        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($transaction->getOrder()->getId());
     }
 
     private function sendReturnUrlToExternalGateway(
@@ -101,7 +93,14 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         try {
-            $paynlTransaction = $this->paynlApi->startTransaction($transaction, $salesChannelContext, $exchangeUrl);
+            $paynlTransaction = $this->paynlApi->startTransaction(
+                $transaction,
+                $salesChannelContext,
+                $exchangeUrl,
+                $this->shopwareVersion,
+                $this->getPluginVersionFromComposer()
+            );
+
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
@@ -120,5 +119,20 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return '';
+    }
+
+    /**
+     * @param string $defaultValue
+     * @return string
+     */
+    private function getPluginVersionFromComposer($defaultValue = ''): string
+    {
+        $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
+        if (file_exists($composerFilePath)) {
+            $composer = json_decode(file_get_contents($composerFilePath), true);
+            return $composer['version'] ?? $defaultValue;
+        }
+
+        return $defaultValue;
     }
 }

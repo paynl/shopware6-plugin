@@ -1,10 +1,10 @@
 {
-    "name": "paynl/shopware-plugin",
+    "name": "paynl/shopware6-plugin",
     "description": "Pay.nl Shopware Plugin",
-    "version": "v1.0.0",
+    "version": "v0.3.0",
     "type": "shopware-platform-plugin",
     "extra": {
-        "shopware-plugin-class": "PaynlPayment\\PaynlPayment",
+        "shopware-plugin-class": "PaynlPayment\\Shopware6\\PaynlPaymentShopware6",
         "plugin-icon": "src/Resources/public/plugin.png",
         "label": {
             "de-DE": "Pay.nl payment",
@@ -13,45 +13,33 @@
         "description": {
             "de-DE": "Pay.nl Payment Shopware Plugin",
             "en-GB": "Pay.nl Payment Shopware Plugin"
-        },
-        "hooks": {
-          "pre-push": [
-            "composer lint"
-          ]
         }
     },
     "require": {
-        "paynl/sdk": "dev-master"
+        "shopware/core": "^6.1",
+        "shopware/storefront": "^6.1",
+        "paynl/sdk": "1.5.15"
     },
+    "minimum-stability": "RC",
     "license": "MIT",
     "authors": [
         {
-              "name": "Pay.nl dev team",
-              "email": "support@pay.nl"
+            "name": "Pay.nl dev team",
+            "email": "support@pay.nl"
         }
     ],
     "autoload": {
         "psr-4": {
-            "PaynlPayment\\": "src/",
+            "PaynlPayment\\Shopware6\\": "src/",
             "Paynl\\": "vendor/paynl/sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
     },
     "require-dev": {
-        "jakub-onderka/php-parallel-lint": "^1.0",
-        "phpstan/phpstan": "0.10.3",
-        "thecodingmachine/phpstan-strict-rules": "^0.10.3",
-        "squizlabs/php_codesniffer": "^3.3",
         "phpunit/phpunit": "^7",
-        "brainmaestro/composer-git-hooks": "^2.8",
         "mockery/mockery": "^1.3"
     },
     "scripts": {
-      "lint": "docker-compose run php-cli-container bash -c \"./custom/plugins/PaynlPayment/vendor/bin/parallel-lint ./custom/plugins/PaynlPayment/src && ./custom/plugins/PaynlPayment/vendor/bin/phpcs --extensions=php -p ./custom/plugins/PaynlPayment/src --standard=PSR2 && ./custom/plugins/PaynlPayment/vendor/bin/phpstan analyse -c ./custom/plugins/PaynlPayment/phpstan.neon -l max ./custom/plugins/PaynlPayment/src\"",
-      "fix": "docker-compose run php-cli-container bash -c \"./custom/plugins/PaynlPayment/vendor/bin/phpcbf ./custom/plugins/PaynlPayment/src --standard=PSR2\"",
-      "post-install-cmd": "cghooks add --ignore-lock",
-      "post-update-cmd": "cghooks update",
-      "cghooks": "cghooks",
       "tests": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPayment/vendor/bin/phpunit -c ./custom/plugins/PaynlPayment/phpunit.xml.dist --no-coverage\"",
       "tests-coverage": "docker-compose run php-cli-container bash -c  \"./custom/plugins/PaynlPayment/vendor/bin/phpunit -c ./custom/plugins/PaynlPayment/phpunit.xml.dist \""
     }

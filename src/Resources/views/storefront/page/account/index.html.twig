@@ -1,0 +1,41 @@
+{% sw_extends '@Storefront/storefront/page/account/index.html.twig' %}
+
+{% block page_account_overview_payment %}
+    <div class="col-lg-6 card-col account-overview-card account-overview-payment">
+        {% block page_account_overview_payment_card %}
+            <div class="card">
+                <div class="card-body">
+                    {% block page_account_overview_payment_title %}
+                        <h2 class="card-title">
+                            {{ "account.overviewPaymentHeader"|trans|sw_sanitize }}
+                        </h2>
+                    {% endblock %}
+
+                    {% block page_account_overview_payment_content %}
+                        <div class="d-inline">
+                            <strong>{{ context.customer.defaultPaymentMethod.translated.name }}</strong>
+                            {% if app.session.get('paynlIssuer') and context.paymentMethod.translated.customFields.banks %}
+                                {% for bank in context.paymentMethod.translated.customFields.banks %}
+                                    {% if bank.id is same as(app.session.get('paynlIssuer')) %}
+                                        ({{ bank.visibleName }})
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <p>{{ context.customer.defaultPaymentMethod.description }}</p>
+                    {% endblock %}
+
+                    {% block page_account_overview_payment_actions %}
+                        <div class="card-actions">
+                            <a href="{{ path('frontend.account.payment.page') }}"
+                               title="{{ "account.overviewChangePayment"|trans|striptags }}"
+                               class="btn btn-light">
+                                {{ "account.overviewChangePayment"|trans|sw_sanitize }}
+                            </a>
+                        </div>
+                    {% endblock %}
+                </div>
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}

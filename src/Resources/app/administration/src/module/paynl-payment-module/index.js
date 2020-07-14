@@ -1,7 +1,9 @@
-import './page/components/transactions-list';
-import './page/transactions-list-component';
+import './page/components/paynl-transactions-list';
+import './page/paynl-transactions-list-component';
+
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
+import nlNL from './snippet/nl-NL.json';
 
 const { Module } = Shopware;
 
@@ -10,22 +12,21 @@ Module.register('paynl-payment-module', {
     name: "module.name",
     title: "module.title",
     description: "module.description",
-    color: '#62ff80',
-    icon: 'default-money-card',
+    color: '#23ac70',
     snippets: {
         'de-DE': deDE,
-        'en-GB': enGB
+        'en-GB': enGB,
+        'nl-NL': nlNL
     },
     routes: {
         list: {
-            component: 'transactions-list-component',
+            component: 'paynl-transactions-list-component',
             path: 'list'
         }
     },
     navigation: [{
+        parent: 'sw-order',
         label: "module.navigation.label",
-        color: '#62ff80',
         path: 'paynl.payment.module.list',
-        icon: 'default-money-card'
     }]
 });

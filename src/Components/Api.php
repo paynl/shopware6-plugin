@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Components;
+namespace PaynlPayment\Shopware6\Components;
 
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
-use PaynlPayment\Exceptions\PaynlPaymentException;
-use PaynlPayment\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -19,12 +19,19 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
+use Exception;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class Api
 {
     const PAYMENT_METHOD_ID = 'id';
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
+    const PAYMENT_METHOD_BANKS = 'banks';
+    const PAYMENT_METHOD_BRAND = 'brand';
+    const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
+    const PAYMENT_METHOD_BRAND_ID = 'id';
 
     const ACTION_PENDING = 'pending';
 
@@ -34,15 +41,23 @@ class Api
     private $customerHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
+    /** @var TranslatorInterface */
+    private $translator;
+    /** @var Session */
+    private $session;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
-        EntityRepositoryInterface $productRepository
+        EntityRepositoryInterface $productRepository,
+        TranslatorInterface $translator,
+        Session $session
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
+        $this->translator = $translator;
+        $this->session = $session;
     }
 
     /**
@@ -72,9 +87,18 @@ class Api
     public function startTransaction(
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
-        string $exchangeUrl
+        string $exchangeUrl,
+        string $showareVersion,
+        string $pluginVersion
     ): Start {
-        $transactionInitialData = $this->getTransactionInitialData($transaction, $salesChannelContext, $exchangeUrl);
+        $transactionInitialData = $this->getTransactionInitialData(
+            $transaction,
+            $salesChannelContext,
+            $exchangeUrl,
+            $showareVersion,
+            $pluginVersion
+        );
+
         $this->setCredentials();
 
         return Transaction::start($transactionInitialData);
@@ -91,30 +115,38 @@ class Api
      * @param AsyncPaymentTransactionStruct $transaction
      * @param SalesChannelContext $salesChannelContext
      * @param string $exchangeUrl
+     * @param string $showareVersion
+     * @param string $pluginVersion
      * @return mixed[]
-     * @throws PaynlPaymentException
-     * @throws InconsistentCriteriaIdsException
      */
     private function getTransactionInitialData(
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
-        string $exchangeUrl
+        string $exchangeUrl,
+        string $showareVersion,
+        string $pluginVersion
     ): array {
+        $bank = (int)$this->session->get('paynlIssuer');
+        $this->session->remove('paynlIssuer');
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
+        $orderNumber = $transaction->getOrder()->getOrderNumber();
         $transactionInitialData = [
             // Basic data
             'paymentMethod' => $paynlPaymentMethodId,
             'amount' => $amount,
             'currency' => $currency,
-            'extra1' => $extra1,
             'testmode' => $testMode,
-            'orderNumber' => $transaction->getOrder()->getOrderNumber(),
+            'orderNumber' => $orderNumber,
+            'description' => sprintf(
+                '%s %s',
+                $this->translator->trans('transactionLabels.order'),
+                $orderNumber
+            ),
 
             // Urls
             'returnUrl' => $returnUrl,
@@ -122,7 +154,12 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
+            'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
         ];
+
+        if (!empty($bank)) {
+            $transactionInitialData['bank'] = $bank;
+        }
 
         $customer = $salesChannelContext->getCustomer();
         if ($customer instanceof CustomerEntity) {
@@ -154,7 +191,7 @@ class Api
     {
         $paymentMethods = $this->getPaymentMethods();
         foreach ($paymentMethods as $paymentMethod) {
-            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) {
+            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) { //NOSONAR
                 return $paymentMethod;
             }
         }
@@ -232,6 +269,21 @@ class Api
             return \Paynl\Transaction::refund($transactionID, $amount, $description);
         } catch (\Throwable $e) {
             throw new \Exception($e->getMessage());
+        }
+    }
+
+    public function isValidCredentials($tokenCode, $apiToken, $serviceId)
+    {
+        try {
+            SDKConfig::setTokenCode($tokenCode);
+            SDKConfig::setApiToken($apiToken);
+            SDKConfig::setServiceId($serviceId);
+
+            $paymentMethods = Paymentmethods::getList();
+
+            return !empty($paymentMethods);
+        } catch (Exception $exception) {
+            return false;
         }
     }
 }

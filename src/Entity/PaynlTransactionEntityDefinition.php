@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Entity;
+namespace PaynlPayment\Shopware6\Entity;
 
 use Shopware\Core\Checkout\Customer\CustomerDefinition;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\CreatedAtField;
@@ -14,6 +15,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\IdField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\IntField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\LongTextField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToOneAssociationField;
+use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToOneAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\StringField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\UpdatedAtField;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
@@ -43,22 +45,23 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
         return new FieldCollection([
             (new IdField('id', 'id'))->addFlags(new PrimaryKey(), new Required()),
 
-            (new FkField('customer_id', 'customerId', PaynlTransactionEntityDefinition::class))
+            (new FkField('customer_id', 'customerId', CustomerDefinition::class))
                 ->addFlags(new Required()),
-            (new FkField('order_id', 'orderId', PaynlTransactionEntityDefinition::class))
+            (new FkField('order_id', 'orderId', OrderDefinition::class))
                 ->addFlags(new Required()),
-            (new FkField('order_transaction_id', 'orderTransactionId', PaynlTransactionEntityDefinition::class))
+            (new FkField('order_transaction_id', 'orderTransactionId', OrderTransactionDefinition::class))
+                ->addFlags(new Required()),
+            (new FkField('order_state_id', 'orderStateId', StateMachineStateDefinition::class))
                 ->addFlags(new Required()),
 
             (new StringField('paynl_transaction_id', 'paynlTransactionId', 16)),
             (new IntField('payment_id', 'paymentId')),
             (new FloatField('amount', 'amount'))->setFlags(new Required()),
             (new StringField('currency', 'currency', 3))->setFlags(new Required()),
+            (new StringField('latest_action_name', 'latestActionName'))->setFlags(new Required()),
             (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
-            (new FkField('order_state_id', 'orderStateId', StateMachineStateDefinition::class))
-                ->addFlags(new Required()),
             (new IntField('state_id', 'stateId')),
 
             new ManyToOneAssociationField(
@@ -73,14 +76,21 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'customer_id',
                 CustomerDefinition::class,
                 'id',
-                false
+                true
             ),
             new ManyToOneAssociationField(
                 'orderStateMachine',
                 'order_state_id',
                 StateMachineStateDefinition::class,
                 'id',
-                false
+                true
+            ),
+            new OneToOneAssociationField(
+                'orderTransaction',
+                'order_transaction_id',
+                'id',
+                OrderTransactionDefinition::class,
+                true
             ),
 
             new CreatedAtField(),

@@ -1,0 +1,28 @@
+{
+    "paynlSettings": {
+        "general": {
+            "name": "Paynl plugin",
+            "title": "Paynl plugin",
+            "description": "Paynl plugin",
+            "mainMenuItemGeneral": "Paynl betaling"
+        },
+        "settingsForm": {
+            "save": "Opslaan",
+            "installPaymentMethods": "Betaalmethoden installeren"
+        }
+    },
+    "paynlValidation": {
+        "error": {
+            "paymentMethodsInstallLabel": "Installatiefout!",
+            "paymentMethodsInstallMessage": "Betaalmethoden kunnen niet worden geïnstalleerd",
+            "wrongCredentials": "Voer inloggegevens in.",
+            "shouldNotBeBlank": "Dit veld mag niet leeg zijn."
+        },
+        "messages": {
+            "paymentMethodsSuccessfullyInstalled": "Betaalmethoden succesvol toegevoegd.",
+            "emptyCredentialsError": "Inloggegevens mogen niet leeg zijn!",
+            "settingsSavedSuccessfully": "Configuratie succesvol opgeslagen.",
+            "wrongCredentials": "Onjuiste inloggegevens!"
+        }
+    }
+}

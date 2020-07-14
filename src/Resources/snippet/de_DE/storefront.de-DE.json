@@ -2,7 +2,26 @@
     "checkout": {
         "statuses": {
             "cancelled": "Zahlung storniert",
-            "denied": "Zahlung abgelehnt"
+            "denied": "Zahlung abgelehnt",
+            "in_progress": "Die Zahlung wird durch den Verwalter überprüft.",
+            "paid": "Zahlung erfolgreich!"
+        },
+        "messages": {
+            "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere."
+        },
+        "labels": {
+            "changePayment": "Zahlung ändern"
         }
+    },
+    "transactionLabels": {
+        "order": "Bestellung: "
+    },
+
+    "payment": {
+        "selectIssuer": "Wählen Sie eine Bank aus"
+    },
+    "coc": {
+        "label": "IHK-Nummer",
+        "placeholder": "IHK-Nummer eingeben"
     }
 }

@@ -1,0 +1,62 @@
+{% block paynl_payment %}
+<sw-page>
+    {% block paynl_payment_header %}
+    <template #smart-bar-header>
+        <h2>
+            {{ $tc('sw-settings.index.title') }}
+            <sw-icon name="small-arrow-medium-right" small></sw-icon>
+            {{ $tc('paynlSettings.general.title') }}
+        </h2>
+    </template>
+    {% endblock %}
+
+    {% block paynl_payment_actions %}
+    <template #smart-bar-actions>
+        {% block paynl_payment_settings_actions_save %}
+        <sw-button-process
+                class="sw-settings-login-registration__save-action"
+                :isLoading="isLoading"
+                :processSuccess="isSaveSuccessful"
+                :disabled="isLoading"
+                variant="primary"
+                @process-finish="saveFinish"
+                @click="onSave">
+            {{ $tc('paynlSettings.settingsForm.save') }}
+        </sw-button-process>
+        {% endblock %}
+
+        {% block paynl_payment_settings_actions_install_payment_methods %}
+        <sw-button-process
+                class="sw-settings-login-registration__save-action"
+                :isLoading="isInstallLoading"
+                :processSuccess="isInstallSuccessful"
+                :disabled="isInstallLoading"
+                variant="primary"
+                @process-finish="installFinish"
+                @click="onInstallPaymentMethods">
+            {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
+        </sw-button-process>
+        {% endblock %}
+    </template>
+    {% endblock %}
+
+    {% block paynl_payment_settings_content %}
+    <template #content>
+        <sw-card-view>
+            <sw-system-config
+                    ref="systemConfig"
+                    inherit
+                    @config-changed="onConfigChange"
+                    salesChannelSwitchable
+                    domain="PaynlPaymentShopware6.settings">
+                <template #card-element="{ element, config }">
+                    <sw-form-field-renderer
+                            v-bind="bindField(element, config)"
+                            v-model="config[element.name]"/>
+                </template>
+            </sw-system-config>
+        </sw-card-view>
+    </template>
+    {% endblock %}
+</sw-page>
+{% endblock %}

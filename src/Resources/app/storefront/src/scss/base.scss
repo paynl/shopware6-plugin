@@ -1,0 +1,45 @@
+.paynl-image {
+  max-height: 50px !important;
+  margin-right: 15px;
+  float: left;
+}
+
+.paynl-ideal-banks {
+  display: inline-block;
+}
+
+.paynl-button-container {
+  display: none;
+  float: right;
+}
+
+.paynl-savebutton {
+  display: none;
+  float: right;
+}
+
+.paynl-diguise {
+  display: none;
+}
+
+#paynl-cocfield{
+  display: none;
+}
+
+.paynl-payment-method-description {
+  display: inline-block;
+}
+
+.paynl-payment-method-banks {
+    display: inline-flex;
+    margin-left: 130px;
+    align-self: center;
+}
+
+.paynl-modal-buttons {
+  float: right;
+}
+
+.payment-method .form-group {
+    margin-bottom: unset;
+}

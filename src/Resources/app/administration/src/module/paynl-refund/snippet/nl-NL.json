@@ -1,0 +1,43 @@
+{
+    "order-list-override": {
+        "refund": "Restituties"
+    },
+    "refundModule": {
+        "name": "Restitutiepagina",
+        "title": "Restitutiepagina",
+        "description": "Restitutiepagina"
+    },
+    "refund": {
+        "detailBase": {
+            "refund": "Klant:",
+            "customer": "Klant:",
+            "amount": "Bedrag:",
+            "orderNumber": "Bestelnummer:",
+            "amountToRefund": "Restitutiebedrag",
+            "description": "Beschrijving:",
+            "cardTitleRefund": "Restitutie",
+            "headlineOrderNumber": "Bestelnummer",
+            "headlineTransaction": "Transactie",
+            "headlineDescriptionInput": "Beschrijving",
+            "headlineAmountInput": "Bedrag",
+            "paynlTransactionId": "PAY.nl transactie ID:",
+            "paidAmount": "Bedrag betaald:",
+            "availableForRefund": "Beschikbaar voor restitutie:",
+            "refundedAmount": "Restitutiebedrag:",
+            "shipping": "Verzendkosten",
+            "allowShippingRefund": "Restitutie van verzendkosten toestaan",
+            "products": "Productenlijst"
+        },
+        "products": {
+            "product": "Product",
+            "price": "Prijs",
+            "quantity": "Hoeveelheid",
+            "refund": "Restitutie",
+            "restock": "Voorraad aanvullen"
+        },
+        "notifications": {
+            "danger": "Mislukt",
+            "success": "Geslaagd"
+        }
+    }
+}

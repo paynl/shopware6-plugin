@@ -1,0 +1,43 @@
+{
+    "order-list-override": {
+        "refund": "Rückerstattung"
+    },
+    "refundModule": {
+        "name": "Rückerstattungsmodul",
+        "title": "Rückerstattungsmodul",
+        "description": "Rückerstattungsmodul"
+    },
+    "refund": {
+        "detailBase": {
+            "refund": "Kunde/in:",
+            "customer": "Kunde/in:",
+            "amount": "Betrag:",
+            "orderNumber": "Bestellnummer:",
+            "amountToRefund": "Rückerstattungsbetrag:",
+            "description": "Beschreibung:",
+            "cardTitleRefund": "Rückerstattung",
+            "headlineOrderNumber": "Bestellnummer",
+            "headlineTransaction": "Transaktion",
+            "headlineDescriptionInput": "Beschreibung",
+            "headlineAmountInput": "Betrag",
+            "paynlTransactionId": "PAY.nl Transaktion ID:",
+            "paidAmount": "Bezahlter Betrag:",
+            "availableForRefund": "Verfügbar für Rückerstattung:",
+            "refundedAmount": "Rückerstattung Betrag:",
+            "shipping": "Versandkosten",
+            "allowShippingRefund": "Versandrückerstattung zulassen",
+            "products": "Produktliste"
+        },
+        "products": {
+            "product": "Produkt",
+            "price": "Preis",
+            "quantity": "Menge",
+            "refund": "Rückerstattung",
+            "restock": "Auffüllen"
+        },
+        "notifications": {
+            "danger": "Fehler",
+            "success": "Erfolg"
+        }
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "module": {
+        "name": "PAY. transactielijst",
+        "title": "PAY. transactielijst",
+        "description": "PAY. transactielijst",
+        "navigation": {
+            "label": "PAY. transacties"
+        }
+    },
+    "order": {
+        "transaction": {
+            "paid": "Betaald (Capture)",
+            "cancelled": "Geannuleerd (Vrijgeven)"
+        }
+    },
+    "transactions-list": {
+        "paynl_transaction_id": "Transactie ID",
+        "payment_id": "Betalings ID",
+        "amount": "Bedrag",
+        "created_at": "Gecreëerd op",
+        "updated_at": "Geüpdatet op",
+        "order_number": "Bestelnummer",
+        "customer": "Klant",
+        "status": "Transactie status",
+        "links": "Links"
+    }
+}

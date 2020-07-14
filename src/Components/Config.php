@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Components;
+namespace PaynlPayment\Shopware6\Components;
 
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class Config
 {
-    const CONFIG_TEMPLATE = 'PaynlPayment.config.%s';
+    const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.settings.%s';
     const FEMALE_SALUTATIONS = 'mrs, ms, miss, ma\'am, frau, mevrouw, mevr';
 
     private $config;
@@ -70,5 +70,15 @@ class Config
     public function getUseAdditionalAddressFields(): int
     {
         return (int)$this->get('additionalAddressFields');
+    }
+
+    /**
+     * @param mixed[] $config
+     */
+    public function storeConfigData(array $config): void
+    {
+        foreach ($config as $configKey => $configValue) {
+            $this->config->set(sprintf(self::CONFIG_TEMPLATE, $configKey), $configValue);
+        }
     }
 }

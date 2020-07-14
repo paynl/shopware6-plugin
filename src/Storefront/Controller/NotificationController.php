@@ -1,13 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Storefront\Controller;
+namespace PaynlPayment\Shopware6\Storefront\Controller;
 
-use PaynlPayment\Components\Api;
-use PaynlPayment\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Storefront\Controller\StorefrontController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -24,18 +23,18 @@ class NotificationController extends StorefrontController
     }
 
     /**
-     * @Route("/PaynlPayment/notify", name="frontend.PaynlPayment.notify", options={"seo"="false"}, methods={"POST"})
+     * @Route("/PaynlPayment/notify",
+     *     name="frontend.PaynlPayment.notify",
+     *     defaults={"csrf_protected"=false},
+     *     options={"seo"="false"},
+     *     methods={"POST", "GET"}
+     *     )
      */
-    public function notify(Request $request): JsonResponse
+    public function notify(Request $request): Response
     {
-        $action = $request->get('action', '');
-        $responseText = 'FALSE|';
-        if (strtolower($action) !== Api::ACTION_PENDING) {
-            $transactionId = $request->get('order_id', '');
-            $responseText = $this->processingHelper->processNotify($transactionId);
-        }
-        $response = new JsonResponse();
+        $transactionId = $request->get('order_id', '');
+        $responseText = $this->processingHelper->processNotify($transactionId);
 
-        return $response->setContent($responseText);
+        return new Response($responseText);
     }
 }
