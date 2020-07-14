@@ -77,7 +77,7 @@
                                                         style="display: none"
                                                             {% endif %}>
                                                         <button class="btn btn-primary" type="submit">
-                                                            {% if activeRoute == "frontend.checkout.confirm.page" %}
+                                                            {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
                                                                 {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
                                                             {% else %}
                                                                 {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
