@@ -46,7 +46,8 @@ class PaynlAccountOrderController extends AccountOrderController
             $contextSwitchRoute,
             $orderStateChangeRoute,
             $setPaymentOrderRoute,
-            $handlePaymentMethodRoute
+            $handlePaymentMethodRoute,
+            $session
         );
         $this->session = $session;
     }
