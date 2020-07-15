@@ -104,7 +104,6 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\SetPaymentOrderRoute"/>
             <argument type="service" id="Shopware\Core\Checkout\Payment\SalesChannel\HandlePaymentMethodRoute"/>
             <argument type="service" id="session"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController.inner"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
