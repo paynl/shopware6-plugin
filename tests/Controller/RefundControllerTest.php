@@ -2,11 +2,11 @@
 
 namespace PaynlPayment\Tests\Controller;
 
-use PaynlPayment\Components\Api;
-use PaynlPayment\Components\Config;
-use PaynlPayment\Controller\RefundController;
-use PaynlPayment\Entity\PaynlTransactionEntity;
-use PaynlPayment\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Controller\RefundController;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;

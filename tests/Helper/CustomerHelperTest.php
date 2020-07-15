@@ -2,11 +2,13 @@
 
 namespace PaynlPayment\Tests\Helpers;
 
-use PaynlPayment\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PHPUnit\Framework\TestCase;
-use PaynlPayment\Components\Config;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
 
@@ -25,6 +27,7 @@ class CustomerHelperTest extends TestCase
     private $lastName = 'LastName';
     private $email = 'Email';
     private $customerNumber = 'CustomerNumber';
+    private $phone = '0501231212';
 
     public function testFormatAddresses()
     {
@@ -34,7 +37,7 @@ class CustomerHelperTest extends TestCase
             $customerAddressEntityMock
         );
 
-        $customerHelper = new CustomerHelper($this->getConfigMock());
+        $customerHelper = new CustomerHelper($this->getConfigMock(), $this->getCustomerAddressRepositoryMock());
         $customerHelper->formatAddresses($customerEntityMock);
 
         // assert
@@ -59,6 +62,13 @@ class CustomerHelperTest extends TestCase
             ->andReturn($this->useAdditionalAddressFields);
 
         return $configMock;
+    }
+
+    private function getCustomerAddressRepositoryMock()
+    {
+        $customerAddressRepository = \Mockery::mock(EntityRepository::class);
+
+        return $customerAddressRepository;
     }
 
     private function getCountryEntityMock()
@@ -108,6 +118,8 @@ class CustomerHelperTest extends TestCase
             ->andReturn($this->firstName);
         $customerAddressEntityMock->shouldReceive('getLastName')
             ->andReturn($this->lastName);
+        $customerAddressEntityMock->shouldReceive('getPhoneNumber')
+            ->andReturn($this->phone);
         $customerAddressEntityMock->shouldReceive('getAdditionalAddressLine1')
             ->andReturn($this->additionalAddressLine1);
         $customerAddressEntityMock->shouldReceive('getAdditionalAddressLine2')

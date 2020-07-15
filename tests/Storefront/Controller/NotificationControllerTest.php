@@ -2,8 +2,8 @@
 
 namespace PaynlPayment\Tests\Storefront\Controller;
 
-use PaynlPayment\Helper\ProcessingHelper;
-use PaynlPayment\Storefront\Controller\NotificationController;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Storefront\Controller\NotificationController;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

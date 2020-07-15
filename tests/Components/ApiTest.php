@@ -1,10 +1,11 @@
 <?php
 
-namespace PaynlPayment\Tests\Components;
+namespace PaynlPaymentShopware6\Tests\Components;
 
-use PaynlPayment\Components\Api;
-use PaynlPayment\Components\Config;
-use PaynlPayment\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -14,6 +15,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\Framework\Context;
 use Paynl\Result\Transaction\Start;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Prevent setting the class alias for all test suites
@@ -49,6 +52,9 @@ class ApiTest extends TestCase
     private $currencyEntityMock;
     private $asyncPaymentTransactionStructMock;
     private $salesChannelContextMock;
+    private $translator;
+    private $session;
+    private $orderEntityMock;
 
     public function setUp(): void
     {
@@ -67,16 +73,21 @@ class ApiTest extends TestCase
             ->shouldReceive('start')
             ->andReturn($startTransactionMock);
 
-        $this->entityRepositoryInterfaceMock = \Mockery::mock(EntityRepositoryInterface::class);
+        $this->entityRepositoryInterfaceMock = \Mockery::mock( EntityRepositoryInterface::class);
         $this->customerHelperMock = \Mockery::mock(CustomerHelper::class);
         $this->currencyEntityMock = \Mockery::mock(PaymentMethodEntity::class)
             ->shouldReceive([
                 'getIsoCode' => $this->isoCode
             ]);
 
+        $this->orderEntityMock = \Mockery::mock(OrderEntity::class)
+            ->shouldReceive('getId')->andReturn($this->orderId)
+            ->shouldReceive('getAmountTotal')->andReturn($this->orderTotalAmount)
+            ->shouldReceive('getOrderNumber')->andReturn($this->orderNumber);
+
         $this->asyncPaymentTransactionStructMock = \Mockery::mock(AsyncPaymentTransactionStruct::class)
             ->shouldReceive([
-                'getOrder' => $this->getOrderEntityMock(),
+                'getOrder' => $this->orderEntityMock,
                 'getReturnUrl' => $this->returnUrl
             ]);
 
@@ -90,6 +101,8 @@ class ApiTest extends TestCase
             ]);
         $contextMock = \Mockery::mock(Context::class);
         $customerEntityMock = \Mockery::mock(CustomerEntity::class);
+        $this->translator = \Mockery::mock(TranslatorInterface::class);
+        $this->session = \Mockery::mock(Session::class);
 
         $this->salesChannelContextMock = \Mockery::mock(SalesChannelContext::class)
             ->shouldReceive([
@@ -104,7 +117,9 @@ class ApiTest extends TestCase
         $this->apiInstance = new Api(
             $this->getConfigMock($this->tokenCode, $this->serviceId, $this->apiToken),
             $this->customerHelperMock,
-            $this->entityRepositoryInterfaceMock
+            $this->entityRepositoryInterfaceMock,
+            $this->translator,
+            $this->session
         );
 
         $result = $this->apiInstance->getPaymentMethods();
@@ -115,13 +130,17 @@ class ApiTest extends TestCase
         $this->apiInstance = new Api(
             $this->getConfigMock('', $this->serviceId, $this->apiToken),
             $this->customerHelperMock,
-            $this->entityRepositoryInterfaceMock
+            $this->entityRepositoryInterfaceMock,
+            $this->translator,
+            $this->session
         );
-        $this->expectException(\PaynlPayment\Exceptions\PaynlPaymentException::class);
+        $this->expectException(PaynlPaymentException::class);
         $this->apiInstance->startTransaction(
             $this->asyncPaymentTransactionStructMock,
             $this->salesChannelContextMock,
-            '/'
+            '/PaynlPayment/notify',
+            '6.2.0',
+            '0.3.0'
         );
         $this->assertFalse(false, 'Got an exception PaynlPaymentException.');
     }
@@ -130,7 +149,9 @@ class ApiTest extends TestCase
         $this->apiInstance = new Api(
             $this->getConfigMock('', $this->serviceId, $this->apiToken),
             $this->customerHelperMock,
-            $this->entityRepositoryInterfaceMock
+            $this->entityRepositoryInterfaceMock,
+            $this->translator,
+            $this->session
         );
         $this->expectException(\Exception::class);
         $this->apiInstance->refund(
@@ -140,16 +161,6 @@ class ApiTest extends TestCase
         );
 
         $this->assertFalse(false, 'Refund is not allowed.');
-    }
-
-    private function getOrderEntityMock()
-    {
-        $orderEntityMock = \Mockery::mock(OrderEntity::class);
-        $orderEntityMock->shouldReceive('getId')->andReturn($this->orderId);
-        $orderEntityMock->shouldReceive('getAmountTotal')->andReturn($this->orderTotalAmount);
-        $orderEntityMock->shouldReceive('getOrderNumber')->andReturn($this->orderNumber);
-
-        return $orderEntityMock;
     }
 
     private function getConfigMock(string $tokenCode, string $apiToken, string $serviceId)

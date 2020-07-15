@@ -3,10 +3,10 @@
 namespace PaynlPayment\Tests\Service;
 
 use Paynl\Result\Transaction\Start;
-use PaynlPayment\Components\Api;
-use PaynlPayment\Entity\PaynlTransactionEntity;
-use PaynlPayment\Helper\ProcessingHelper;
-use PaynlPayment\Service\PaynlPaymentHandler;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
@@ -50,7 +50,8 @@ class PaynlPaymentHandlerTest extends TestCase
             $this->getOrderTransactionStateHandlerMock(),
             $this->getRouterInterfaceMock(),
             $this->getApiMock(),
-            $this->getProcessingHelperMock()
+            $this->getProcessingHelperMock(),
+            '6.2.0'
         );
     }
 
@@ -92,6 +93,8 @@ class PaynlPaymentHandlerTest extends TestCase
         $processingHelperMock->shouldReceive('findTransactionByOrderId')
             ->andReturn($this->paynlTransactionEntityMock());
         $processingHelperMock->shouldReceive('updateTransaction')
+            ->andReturn('');
+        $processingHelperMock->shouldReceive('returnUrlActionUpdateTransactionByOrderId')
             ->andReturn('');
 
         return $processingHelperMock;
