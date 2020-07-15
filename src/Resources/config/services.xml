@@ -93,6 +93,23 @@
             </call>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController"
+                 decorates="Shopware\Storefront\Controller\AccountOrderController">
+            <argument type="service" id="Shopware\Storefront\Page\Account\Order\AccountOrderPageLoader"/>
+            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\OrderRoute"/>
+            <argument type="service" id="Shopware\Core\Framework\DataAbstractionLayer\Search\RequestCriteriaBuilder"/>
+            <argument type="service" id="Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoader"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\ContextSwitchRoute"/>
+            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\CancelOrderRoute"/>
+            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\SetPaymentOrderRoute"/>
+            <argument type="service" id="Shopware\Core\Checkout\Payment\SalesChannel\HandlePaymentMethodRoute"/>
+            <argument type="service" id="session"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController.inner"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
         <!--Entities-->
         <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />
