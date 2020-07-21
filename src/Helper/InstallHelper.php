@@ -76,6 +76,16 @@ class InstallHelper
 
     public function addPaymentMethods(Context $context): void
     {
+        $this->upsertPaymentMethods($context);
+    }
+
+    public function updatePaymentMethods(Context $context): void
+    {
+        $this->upsertPaymentMethods($context);
+    }
+
+    private function upsertPaymentMethods(Context $context): void
+    {
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         if (empty($paynlPaymentMethods)) {
             throw new PaynlPaymentException("Cannot get any payment method.");
@@ -94,11 +104,6 @@ class InstallHelper
 
         $this->paymentMethodRepository->upsert($paymentMethods, $context);
         $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
-    }
-
-    public function updatePaymentMethods(Context $context): void
-    {
-        $this->addPaymentMethods($context);
     }
 
     private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
