@@ -151,6 +151,7 @@ class InstallHelper
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'afterOrderEnabled' => true,
+            'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
                 'banks' => $paymentMethodValueObject->getBanks()
