@@ -4,7 +4,6 @@ namespace PaynlPayment\Shopware6\Controller;
 
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
@@ -73,22 +72,18 @@ class RefundController extends AbstractController
     public function refund(Request $request): JsonResponse
     {
         $post = $request->request->all();
-        $paynlPaymentId = $post['transactionId'];
+        $paynlTransactionId = $post['transactionId'];
         $amount = (string)$post['amount'];
         $description = $post['description'];
         $products = $post['products'];
         $messages = [];
+
         try {
             // TODO: need newer version of PAYNL/SDK
-            $this->paynlApi->refund($paynlPaymentId, $amount, $description);
+            $this->paynlApi->refund($paynlTransactionId, $amount, $description);
             $this->restock($products);
 
-            $criteria = new Criteria();
-            $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlPaymentId));
-            $context = Context::createDefaultContext();
-            /** @var PaynlTransactionEntity $transactionEntity */
-            $transactionEntity = $this->transactionRepository->search($criteria, $context)->first();
-            $this->processingHelper->updateTransaction($transactionEntity, $context, false);
+            $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
             $messages[] = [
                 'type' => 'success',
                 'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))

@@ -60,7 +60,8 @@ class MediaHelper
             return;
         }
 
-        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodValueObject->getId());
+        $paymentMethodBrandId = $paymentMethodValueObject->getBrandId();
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodBrandId);
         if (!file_exists($filePath)) {
             return;
         }
@@ -93,6 +94,20 @@ class MediaHelper
         $media = $this->mediaRepository->search($criteria, $context)->first();
 
         return !empty($media);
+    }
+
+    public function getMediaIds(string $paymentMethodsName, Context $context): array
+    {
+        $criteria = (new Criteria())->addFilter(
+            new EqualsFilter('fileName', $this->getMediaName($paymentMethodsName))
+        );
+
+        return $this->mediaRepository->searchIds($criteria, $context)->getIds();
+    }
+
+    public function deleteMedia(array $ids, Context $context): void
+    {
+        $this->mediaRepository->delete($ids, $context);
     }
 
     private function getMediaName(string $paymentMethodName): string

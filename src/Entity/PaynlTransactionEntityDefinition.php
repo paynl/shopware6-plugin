@@ -15,6 +15,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\IdField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\IntField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\LongTextField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\ManyToOneAssociationField;
+use Shopware\Core\Framework\DataAbstractionLayer\Field\OneToOneAssociationField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\StringField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\UpdatedAtField;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
@@ -57,6 +58,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
             (new IntField('payment_id', 'paymentId')),
             (new FloatField('amount', 'amount'))->setFlags(new Required()),
             (new StringField('currency', 'currency', 3))->setFlags(new Required()),
+            (new StringField('latest_action_name', 'latestActionName'))->setFlags(new Required()),
             (new LongTextField('exception', 'exception')),
             (new StringField('comment', 'comment')),
             (new StringField('dispatch', 'dispatch')),
@@ -74,21 +76,21 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'customer_id',
                 CustomerDefinition::class,
                 'id',
-                false
+                true
             ),
             new ManyToOneAssociationField(
                 'orderStateMachine',
                 'order_state_id',
                 StateMachineStateDefinition::class,
                 'id',
-                false
+                true
             ),
-            new ManyToOneAssociationField(
+            new OneToOneAssociationField(
                 'orderTransaction',
                 'order_transaction_id',
-                OrderTransactionDefinition::class,
                 'id',
-                false
+                OrderTransactionDefinition::class,
+                true
             ),
 
             new CreatedAtField(),

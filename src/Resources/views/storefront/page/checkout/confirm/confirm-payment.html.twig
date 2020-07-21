@@ -1,0 +1,14 @@
+{% sw_extends '@Storefront/storefront/page/checkout/confirm/confirm-payment.html.twig' %}
+
+{% block page_checkout_confirm_payment_current_text %}
+    {{ parent() }}
+
+    {% if app.session.get('paynlIssuer') and context.paymentMethod.translated.customFields.banks %}
+        {% for bank in context.paymentMethod.translated.customFields.banks %}
+            {% if bank.id is same as(app.session.get('paynlIssuer')) %}
+                ({{ bank.visibleName }})
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}
