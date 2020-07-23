@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
 * @RouteScope(scopes={"storefront"})
@@ -36,6 +37,7 @@ class PaynlAccountOrderController extends AccountOrderController
         AbstractCancelOrderRoute $orderStateChangeRoute,
         AbstractSetPaymentOrderRoute $setPaymentOrderRoute,
         AbstractHandlePaymentMethodRoute $handlePaymentMethodRoute,
+        EventDispatcherInterface $eventDispatcher,
         Session $session
     ) {
         parent::__construct(
@@ -47,6 +49,7 @@ class PaynlAccountOrderController extends AccountOrderController
             $orderStateChangeRoute,
             $setPaymentOrderRoute,
             $handlePaymentMethodRoute,
+            $eventDispatcher,
             $session
         );
         $this->session = $session;
