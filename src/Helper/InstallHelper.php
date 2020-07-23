@@ -19,6 +19,7 @@ use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class InstallHelper
 {
@@ -79,6 +80,22 @@ class InstallHelper
         if (empty($paynlPaymentMethods)) {
             throw new PaynlPaymentException("Cannot get any payment method.");
         }
+
+        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
+
+    public function updatePaymentMethods(Context $context): void
+    {
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (empty($paynlPaymentMethods)) {
+            return;
+        }
+
+        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
+
+    private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
+    {
         $paymentMethods = [];
         $salesChannelsData = [];
 
@@ -140,6 +157,7 @@ class InstallHelper
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'afterOrderEnabled' => true,
+            'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
                 'banks' => $paymentMethodValueObject->getBanks()

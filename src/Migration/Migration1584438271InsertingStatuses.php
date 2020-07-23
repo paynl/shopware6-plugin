@@ -224,22 +224,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
-        $inProgressStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => 'in_progress',
-            'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
-
         $transitions = [
-            [
-                'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
-                'from_state_id' => $inProgressStateMachineStateId,
-                'to_state_id' => $authorizeStateMachineStateId,
-            ],
-            [
-                'action_name' => StateMachineStateEnum::ACTION_VERIFY,
-                'from_state_id' => $inProgressStateMachineStateId,
-                'to_state_id' => $verifyStateMachineStateId,
-            ],
             [
                 'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
                 'from_state_id' => $openStateMachineStateId,
@@ -256,7 +241,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                 'to_state_id' => $partlyCapturedStateMachineStateId,
             ],
             [
-                'action_name' => StateMachineTransitionActions::ACTION_PAID,
+                'action_name' => 'pay',
                 'from_state_id' => $authorizeStateMachineStateId,
                 'to_state_id' => $paidStateMachineStateId,
             ],
@@ -266,7 +251,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                 'to_state_id' => $cancelledCapturedStateMachineStateId,
             ],
             [
-                'action_name' => StateMachineTransitionActions::ACTION_PAID,
+                'action_name' => 'pay',
                 'from_state_id' => $verifyStateMachineStateId,
                 'to_state_id' => $paidStateMachineStateId
             ],

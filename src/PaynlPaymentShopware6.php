@@ -11,6 +11,7 @@ use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
+use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 
 class PaynlPaymentShopware6 extends Plugin
 {
@@ -26,6 +27,11 @@ class PaynlPaymentShopware6 extends Plugin
     public function activate(ActivateContext $activateContext): void
     {
         (new InstallHelper($this->container))->activatePaymentMethods($activateContext->getContext());
+    }
+
+    public function update(UpdateContext $updateContext): void
+    {
+        (new InstallHelper($this->container))->updatePaymentMethods($updateContext->getContext());
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void
