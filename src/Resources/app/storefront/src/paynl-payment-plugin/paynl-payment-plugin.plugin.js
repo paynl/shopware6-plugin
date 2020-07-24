@@ -3,6 +3,7 @@ import Plugin from 'src/plugin-system/plugin.class';
 class PaynlPaymentPlugin extends Plugin {
     init() {
         this.paymentMethodsScriptsInit();
+        this.idealChangeBank();
     }
 
     paymentMethodsScriptsInit() {
@@ -10,6 +11,19 @@ class PaynlPaymentPlugin extends Plugin {
         for (let i = 0; i < paymentMethodsRadio.length; i++) {
             paymentMethodsRadio[i].onchange = this.onChangeCallback;
         }
+    }
+
+    idealChangeBank() {
+        document.getElementById('paynl-ideal-banks-select').onchange = this.onChangeBank;
+    }
+
+    onChangeBank() {
+        const idealBank = document.getElementById('paynl-ideal-banks-select').value;
+        const xhr = new XMLHttpRequest();
+        const data = {'paynlIssuer': idealBank};
+        xhr.open('POST', '/PaynlPayment/order/change/payment', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
     }
 
     onChangeCallback(element) {
@@ -33,6 +47,11 @@ class PaynlPaymentPlugin extends Plugin {
                 idealBanksSelect.selectedIndex = 0;
             }
         }
+
+        const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
+        idealBankSelect.value = '';
+        const changeEvent = new Event('change');
+        idealBankSelect.dispatchEvent(changeEvent);
     }
 }
 
