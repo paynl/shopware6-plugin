@@ -2,9 +2,9 @@
 
 namespace PaynlPayment\Shopware6\Storefront\Controller;
 
-use Nette\Application\Responses\JsonResponse;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Storefront\Controller\StorefrontController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
