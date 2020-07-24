@@ -25,7 +25,7 @@ class PaynlAccountOrderController extends StorefrontController
      * @Route(
      *     "/PaynlPayment/order/change/payment",
      *     name="frontend.PaynlPayment.edit-order.change-payment-method",
-     *     methods={"POST", "GET"},
+     *     methods={"POST"},
      *     defaults={"csrf_protected"=false}
      *     )
      * @param Request $request
