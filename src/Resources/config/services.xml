@@ -66,6 +66,13 @@
             </call>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController" public="true">
+            <argument type="service" id="session"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Controller\ConfigController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
@@ -88,24 +95,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="paynl_transactions.repository"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController"
-                 decorates="Shopware\Storefront\Controller\AccountOrderController">
-            <argument type="service" id="Shopware\Storefront\Page\Account\Order\AccountOrderPageLoader"/>
-            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\OrderRoute"/>
-            <argument type="service" id="Shopware\Core\Framework\DataAbstractionLayer\Search\RequestCriteriaBuilder"/>
-            <argument type="service" id="Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoader"/>
-            <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\ContextSwitchRoute"/>
-            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\CancelOrderRoute"/>
-            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\SetPaymentOrderRoute"/>
-            <argument type="service" id="Shopware\Core\Checkout\Payment\SalesChannel\HandlePaymentMethodRoute"/>
-            <argument type="service" id="event_dispatcher"/>
-            <argument type="service" id="session"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController.inner"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
