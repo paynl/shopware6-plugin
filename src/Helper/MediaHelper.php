@@ -57,7 +57,8 @@ class MediaHelper
     public function addImageToMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
     {
         if ($this->isAlreadyExist($paymentMethodValueObject->getName(), $context)) {
-           $this->deleteMedia($this->getMediaIds($paymentMethodValueObject->getName(), $context), $context);
+            $mediaIds = $this->getMediaIds($paymentMethodValueObject->getName(), $context);
+            $this->deleteMedia($mediaIds, $context);
         }
 
         $paymentMethodBrandId = $paymentMethodValueObject->getBrandId();
@@ -101,12 +102,12 @@ class MediaHelper
         $criteria = (new Criteria())->addFilter(
             new EqualsFilter('fileName', $this->getMediaName($paymentMethodsName))
         );
-        $ids = $this->mediaRepository->searchIds($criteria, $context)->getIds();
-        $ids = array_map(static function ($id) {
+        $mediaIds = $this->mediaRepository->searchIds($criteria, $context)->getIds();
+        $mediaIds = array_map(static function ($id) {
             return ['id' => $id];
-        }, $ids);
+        }, $mediaIds);
 
-        return $ids;
+        return $mediaIds;
     }
 
     public function deleteMedia(array $ids, Context $context): void
