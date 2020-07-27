@@ -99,6 +99,7 @@ class InstallHelper
         $paymentMethods = [];
         $salesChannelsData = [];
 
+        $this->mediaHelper->removeOldMedia($context);
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
@@ -187,13 +188,7 @@ class InstallHelper
             return;
         }
 
-        foreach ($paynlPaymentMethods as $paymentMethod) {
-            $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
-            $paymentMethodMediaId = $this->mediaHelper->getMediaIds($paymentMethodValueObject->getName(), $context);
-            if ($paymentMethodMediaId) {
-                $this->mediaHelper->deleteMedia($paymentMethodMediaId, $context);
-            }
-        }
+        $this->mediaHelper->removeOldMedia($context);
     }
 
     public function removeConfigurationData(): void
