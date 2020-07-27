@@ -191,9 +191,6 @@ class InstallHelper
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
             $paymentMethodMediaId = $this->mediaHelper->getMediaIds($paymentMethodValueObject->getName(), $context);
             if ($paymentMethodMediaId) {
-                $paymentMethodMediaId = array_map(static function ($id) {
-                    return ['id' => $id];
-                }, $paymentMethodMediaId);
                 $this->mediaHelper->deleteMedia($paymentMethodMediaId, $context);
             }
         }
