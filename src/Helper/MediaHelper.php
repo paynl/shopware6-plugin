@@ -57,7 +57,7 @@ class MediaHelper
     public function addImageToMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
     {
         if ($this->isAlreadyExist($paymentMethodValueObject->getName(), $context)) {
-           $this->deleteMedia($this->getMediaIds($paymentMethodValueObject->getName(), $context));
+           $this->deleteMedia($this->getMediaIds($paymentMethodValueObject->getName(), $context), $context);
         }
 
         $paymentMethodBrandId = $paymentMethodValueObject->getBrandId();
