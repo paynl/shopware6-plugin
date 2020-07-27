@@ -47,35 +47,45 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
             'UPDATE `action_name` = :action_name, `updated_at` = CURRENT_TIME();'
         ]);
 
-        $orderTransactionStateId = $connection->executeQuery($orderTransactionStateSQL, [
+        $orderTransactionStateId = $connection->fetchColumn($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
-        ])->fetchColumn();
+        ]);
 
-        $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+        $authorizeStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+            'technical_name' => 'paynl_authorize',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ]);
 
-        $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => StateMachineStateEnum::ACTION_VERIFY,
+        $partlyCapturedStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+            'technical_name' => 'paynl_partly_captured',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ]);
 
-        $inProgressStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
+        $verifyStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+            'technical_name' => 'paynl_authorize',
+            'state_machine_id' => $orderTransactionStateId,
+        ]);
+
+        $inProgressStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
             'technical_name' => 'in_progress',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ]);
 
         $transitions = [
             [
-                'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+                'action_name' => 'paynl_authorize',
                 'from_state_id' => $inProgressStateMachineStateId,
                 'to_state_id' => $authorizeStateMachineStateId,
             ],
             [
-                'action_name' => StateMachineStateEnum::ACTION_VERIFY,
+                'action_name' => 'paynl_verify',
                 'from_state_id' => $inProgressStateMachineStateId,
                 'to_state_id' => $verifyStateMachineStateId,
+            ],
+            [
+                'action_name' => 'paynl_partly_captured',
+                'from_state_id' => $inProgressStateMachineStateId,
+                'to_state_id' => $partlyCapturedStateMachineStateId,
             ]
         ];
 
