@@ -133,7 +133,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchColumn();
 
         $statusesArray = [
-            'verify' => [
+            'paynl_verify' => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Verify',
@@ -143,7 +143,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                     'name' => 'Überprüfen',
                 ],
             ],
-            'authorize' => [
+            'paynl_authorize' => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Authorize',
@@ -153,7 +153,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                     'name' => 'Autorisieren',
                 ],
             ],
-            'partly_captured' => [
+            'paynl_partly_captured' => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Partly captured',
@@ -205,17 +205,17 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchColumn();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => 'authorize',
+            'technical_name' => 'paynl_authorize',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => 'verify',
+            'technical_name' => 'paynl_verify',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
         $partlyCapturedStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => 'partly_captured',
+            'technical_name' => 'paynl_partly_captured',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
@@ -226,17 +226,17 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $transitions = [
             [
-                'action_name' => 'authorize',
+                'action_name' => 'paynl_authorize',
                 'from_state_id' => $openStateMachineStateId,
                 'to_state_id' => $authorizeStateMachineStateId,
             ],
             [
-                'action_name' => 'verify',
+                'action_name' => 'paynl_verify',
                 'from_state_id' => $openStateMachineStateId,
                 'to_state_id' => $verifyStateMachineStateId,
             ],
             [
-                'action_name' => 'partly_captured',
+                'action_name' => 'paynl_partly_captured',
                 'from_state_id' => $openStateMachineStateId,
                 'to_state_id' => $partlyCapturedStateMachineStateId,
             ],
