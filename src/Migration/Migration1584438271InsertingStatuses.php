@@ -133,7 +133,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchColumn();
 
         $statusesArray = [
-            StateMachineStateEnum::ACTION_VERIFY => [
+            'verify' => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Verify',
@@ -143,7 +143,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                     'name' => 'Überprüfen',
                 ],
             ],
-            StateMachineStateEnum::ACTION_AUTHORIZE => [
+            'authorize' => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Authorize',
@@ -153,7 +153,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                     'name' => 'Autorisieren',
                 ],
             ],
-            StateMachineStateEnum::ACTION_PARTLY_CAPTURED => [
+            'partly_captured' => [
                 'english' => [
                     'id' => $languageEnglishId,
                     'name' => 'Partly captured',
@@ -205,17 +205,17 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchColumn();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+            'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => StateMachineStateEnum::ACTION_VERIFY,
+            'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
         $partlyCapturedStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
+            'technical_name' => 'partly_captured',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
@@ -226,17 +226,17 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $transitions = [
             [
-                'action_name' => StateMachineStateEnum::ACTION_AUTHORIZE,
+                'action_name' => 'authorize',
                 'from_state_id' => $openStateMachineStateId,
                 'to_state_id' => $authorizeStateMachineStateId,
             ],
             [
-                'action_name' => StateMachineStateEnum::ACTION_VERIFY,
+                'action_name' => 'verify',
                 'from_state_id' => $openStateMachineStateId,
                 'to_state_id' => $verifyStateMachineStateId,
             ],
             [
-                'action_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED,
+                'action_name' => 'partly_captured',
                 'from_state_id' => $openStateMachineStateId,
                 'to_state_id' => $partlyCapturedStateMachineStateId,
             ],
