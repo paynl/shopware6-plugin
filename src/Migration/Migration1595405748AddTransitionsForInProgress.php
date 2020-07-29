@@ -52,17 +52,17 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
         ]);
 
         $authorizeStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
-            'technical_name' => 'paynl_authorize',
+            'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
         $partlyCapturedStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
-            'technical_name' => 'paynl_partly_captured',
+            'technical_name' => 'partly_captured',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
         $verifyStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
-            'technical_name' => 'paynl_authorize',
+            'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
@@ -73,17 +73,17 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
 
         $transitions = [
             [
-                'action_name' => 'paynl_authorize',
+                'action_name' => 'authorize',
                 'from_state_id' => $inProgressStateMachineStateId,
                 'to_state_id' => $authorizeStateMachineStateId,
             ],
             [
-                'action_name' => 'paynl_verify',
+                'action_name' => 'verify',
                 'from_state_id' => $inProgressStateMachineStateId,
                 'to_state_id' => $verifyStateMachineStateId,
             ],
             [
-                'action_name' => 'paynl_partly_captured',
+                'action_name' => 'partly_captured',
                 'from_state_id' => $inProgressStateMachineStateId,
                 'to_state_id' => $partlyCapturedStateMachineStateId,
             ]

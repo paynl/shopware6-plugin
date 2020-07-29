@@ -56,7 +56,7 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
         ])->fetchColumn();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => 'paynl_authorize',
+            'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
@@ -66,7 +66,7 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
         ])->fetchColumn();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
-            'technical_name' => 'paynl_verify',
+            'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
         ])->fetchColumn();
 
