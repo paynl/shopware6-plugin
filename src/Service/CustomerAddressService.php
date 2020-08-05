@@ -36,7 +36,6 @@ class CustomerAddressService extends AddressService
     private $customerHelper;
 
     public function __construct(
-        EntityRepositoryInterface $countryRepository,
         EntityRepositoryInterface $customerAddressRepository,
         $addressValidationFactory,
         DataValidator $validator,
@@ -46,13 +45,13 @@ class CustomerAddressService extends AddressService
         CustomerHelper $customerHelper
     ) {
         parent::__construct(
-            $countryRepository,
             $customerAddressRepository,
             $addressValidationFactory,
             $validator,
             $eventDispatcher,
             $systemConfigService
         );
+
         $this->customerAddressRepository = $customerAddressRepository;
         $this->eventDispatcher = $eventDispatcher;
         $this->requestStack = $requestStack;

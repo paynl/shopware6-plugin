@@ -48,7 +48,6 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\CustomerAddressService" decorates="Shopware\Core\Checkout\Customer\SalesChannel\AddressService">
-            <argument type="service" id="country.repository" />
             <argument type="service" id="customer_address.repository"/>
             <argument type="service" id="Shopware\Core\Checkout\Customer\Validation\AddressValidationFactory"/>
             <argument type="service" id="Shopware\Core\Framework\Validation\DataValidator"/>
