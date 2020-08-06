@@ -7,11 +7,12 @@ use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEnt
 use Shopware\Core\Checkout\Customer\SalesChannel\AddressService;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
-use Shopware\Core\Framework\Validation\DataValidator;
+use Shopware\Core\Framework\Validation\DataValidationFactoryInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Shopware\Core\Framework\Validation\DataValidator;
 
 class CustomerAddressService extends AddressService
 {
@@ -37,7 +38,7 @@ class CustomerAddressService extends AddressService
 
     public function __construct(
         EntityRepositoryInterface $customerAddressRepository,
-        $addressValidationFactory,
+        DataValidationFactoryInterface $addressValidationFactory,
         DataValidator $validator,
         EventDispatcherInterface $eventDispatcher,
         SystemConfigService $systemConfigService,

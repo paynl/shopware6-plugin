@@ -45,7 +45,7 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/v1/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
+     * @Route("/api/v{version}/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
      */
     public function getRefundData(Request $request): JsonResponse
     {
