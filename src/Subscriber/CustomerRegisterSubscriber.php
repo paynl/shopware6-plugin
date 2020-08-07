@@ -4,8 +4,11 @@ namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
+use Shopware\Core\Checkout\Customer\CustomerEvents;
 use Shopware\Core\Checkout\Customer\Event\CustomerRegisterEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\Event\DataMappingEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -40,7 +43,27 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     {
         return [
             'Shopware\Core\Checkout\Customer\Event\CustomerRegisterEvent' => 'onCustomerRegister',
+            CustomerEvents::MAPPING_ADDRESS_CREATE => 'onCustomerProfileSave',
         ];
+    }
+
+    public function onCustomerProfileSave(DataMappingEvent $event)
+    {
+        $request = $this->requestStack->getMasterRequest();
+        $cocNumber = $request->get('coc_number');
+        $addressId = $request->get('addressId');
+        if (is_null($addressId)) {
+            return;
+        }
+        /** @var CustomerAddressEntity $customerAddress */
+        $customerAddress = $this->customerAddressRepository->search(
+            new Criteria([$addressId]),
+            $event->getContext()
+        )
+            ->first();
+        if(!is_null($cocNumber) && ($customerAddress instanceof CustomerAddressEntity)) {
+            $this->customerHelper->saveCocNumber($customerAddress, $cocNumber, $event->getContext());
+        }
     }
 
     /**
