@@ -31,6 +31,8 @@ Bank Transfer | Cartasi | GivaCard | SprayPay | Przelewy24 |
 # Installation
 #### Installing
 
+It is possible to download the plugin via the Shopware store for free. But you can also follow the steps below if you wish to do so.
+
 1. Download the plugin from this repo.
 2. In the Shopware 6 Admin panel navigate to Settings -> System -> Plugins
 3. Now click on the Upload plugin button and upload the plugin.
@@ -50,6 +52,8 @@ All the active payments on your Sale Location are now available for Shopware 6!
 
 
 #### Update instructions
+
+If you have installed the plugin via the Shopware store you can skip step 1 and 3.
 
 1. Download the updated verson from this repo.
 2. In the Shopware 6 Admin panel navigate to Settings -> System -> Plugins
