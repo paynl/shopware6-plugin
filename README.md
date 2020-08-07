@@ -5,7 +5,7 @@
 
 # Description
 
-With the PAY. plugin you can easily add different payment methods to your XXX webshop. You can go to https://www.pay.nl (Dutch) for an overview of all our features and services, you can also visit https://docs.pay.nl/https://docs.pay.nl/plugins#shopware-six for more documentation of our plugin.
+With the PAY. plugin you can easily add different payment methods to your Shopware 6 webshop. You can go to https://www.pay.nl (Dutch) for an overview of all our features and services, you can also visit https://docs.pay.nl/plugins#shopware-six for more documentation of our plugin.
 
 - [Description](#description)
 - [Available payment methods](#available-payment-methods)
@@ -59,7 +59,7 @@ All the active payments on your Sale Location are now available for Shopware 6!
 
 # Usage
 
-**More information on this plugin can be found on https://docs.pay.nl/https://docs.pay.nl/plugins#shopware-six**
+**More information on this plugin can be found on https://docs.pay.nl/plugins#shopware-six**
 
 # Support
 https://www.pay.nl
