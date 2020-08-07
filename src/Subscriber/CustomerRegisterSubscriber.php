@@ -47,20 +47,20 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @param DataMappingEvent $event
+     */
     public function onCustomerProfileSave(DataMappingEvent $event)
     {
         $request = $this->requestStack->getMasterRequest();
         $cocNumber = $request->get('coc_number');
         $addressId = $request->get('addressId');
+        $context = $event->getContext();
         if (is_null($addressId)) {
             return;
         }
         /** @var CustomerAddressEntity $customerAddress */
-        $customerAddress = $this->customerAddressRepository->search(
-            new Criteria([$addressId]),
-            $event->getContext()
-        )
-            ->first();
+        $customerAddress = $this->customerAddressRepository->search(new Criteria([$addressId]), $context)->first();
         if(!is_null($cocNumber) && ($customerAddress instanceof CustomerAddressEntity)) {
             $this->customerHelper->saveCocNumber($customerAddress, $cocNumber, $event->getContext());
         }
