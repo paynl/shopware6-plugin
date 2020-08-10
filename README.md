@@ -16,24 +16,15 @@ With the PAY. plugin you can easily add different payment methods to your Shopwa
 
 # Available payment methods
 
-Bank Payments  | Creditcards | Gift cards & Vouchers | Pay by invoice | Others | 
-:-----------: | :-----------: | :-----------: | :-----------: | :-----------: |
-iDEAL + QR |Visa | VVV Cadeaukaart | AfterPay | PayPal |
-Bancontact + QR |  Mastercard | Webshop Giftcard | Billink | WeChatPay | 
-Giropay |American Express | FashionCheque |Focum AchterafBetalen.nl | AmazonPay |
-MyBank | Carte Bancaire | Podium Cadeaukaart | Capayable Achteraf Betalen | Cashly | 
-SOFORT | PostePay | Gezondheidsbon | Capayable Gespreid betalen | Pay Fixed Price (phone) |
-Maestro | Dankort | Fashion Giftcard | Klarna | Instore Payments (POS) |
-Bank Transfer | Cartasi | GivaCard | SprayPay | Przelewy24 | 
-| Tikkie | | YourGift | Creditclick | | 
-| | | Paysafecard |
+This list includes payment options like: iDEAL + QR, Bancontact + QR, Maestro, Visa, FashionCheque, Mastercard, Billink, Klarna, PayPal, Afterpay and many more. We at PAY. provide multiple payment options for your webshop. You can look up the full list on https://www.pay.nl/betaalmethoden.<br/>
+For more info, consult PAY. support at support@pay.nl.
 
 # Installation
 #### Installing
 
 It is possible to download the plugin via the Shopware store for free. But you can also follow the steps below if you wish to do so.
 
-1. Download the plugin from this repo.
+1. Download the latest .zip, you can find this on https://github.com/paynl/shopware6-plugin/releases.
 2. In the Shopware 6 Admin panel navigate to Settings -> System -> Plugins
 3. Now click on the Upload plugin button and upload the plugin.
 4. Then click on the three dots ... on the right most side.
