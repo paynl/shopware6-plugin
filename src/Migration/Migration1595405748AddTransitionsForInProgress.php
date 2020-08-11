@@ -62,7 +62,7 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
         ]);
 
         $verifyStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
-            'technical_name' => 'authorize',
+            'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
