@@ -1,4 +1,8 @@
 {
+    "paynlDefault": {
+        "error": "Fout",
+        "success": "Geslaagd"
+    },
     "paynlSettings": {
         "general": {
             "name": "Paynl plugin",
