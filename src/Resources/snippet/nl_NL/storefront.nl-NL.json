@@ -2,10 +2,25 @@
     "checkout": {
         "statuses": {
             "cancelled": "Betaling geannuleerd",
-            "denied": "Betaling geweigerd"
+            "denied": "Betaling geweigerd",
+            "in_progress": "De betaling wordt geverifieerd door de beheerder.",
+            "paid": "Betaling geslaagd!"
+        },
+        "messages": {
+            "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere."
+        },
+        "labels": {
+            "changePayment": "Betaalmethode wijzigen"
         }
     },
     "transactionLabels": {
-        "order": "Bestellen: "
+        "order": "Bestelling: "
+    },
+    "payment": {
+        "selectIssuer": "Kies uw bank"
+    },
+    "coc": {
+        "label": "KVK-nummer",
+        "placeholder": "Voer KVK-nummer in"
     }
 }

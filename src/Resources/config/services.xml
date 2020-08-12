@@ -6,7 +6,9 @@
         <!--Helpers-->
         <service id="PaynlPayment\Shopware6\Helper\CustomerHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="customer_address.repository"/>
         </service>
+
         <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_transactions.repository"/>
@@ -28,6 +30,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="product.repository"/>
             <argument type="service" id="translator" />
+            <argument type="service" id="session"/>
         </service>
 
         <!--Services-->
@@ -47,6 +50,13 @@
         <!--Controllers-->
         <service id="PaynlPayment\Shopware6\Storefront\Controller\NotificationController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController" public="true">
+            <argument type="service" id="session"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
@@ -95,6 +105,20 @@
 
         <service id="PaynlPayment\Shopware6\Resources\snippet\nl_NL\SnippetFileNl">
             <tag name="shopware.snippet.file"/>
+        </service>
+
+        <!--Subscribers-->
+        <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
+            <tag name="kernel.event_subscriber"/>
+            <argument type="service" id="session"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Subscriber\CustomerRegisterSubscriber">
+            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="customer_address.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+            <tag name="kernel.event_subscriber"/>
+            <tag name="shopware.event_subscriber"/>
         </service>
     </services>
 </container>

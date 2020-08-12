@@ -26,6 +26,7 @@ Component.register('paynl-refund-page-view', {
 
     data() {
         return {
+            paynlTransactionRepository: null,
             orderRepository: null,
             order: null,
             refundData: null,
@@ -33,7 +34,7 @@ Component.register('paynl-refund-page-view', {
             products: null,
             identifier: '',
             isEditing: false,
-            isLoading: true,
+            isLoading: false,
             isSaveSuccessful: false,
             amountToRefund: 0,
             description: '',
@@ -48,23 +49,8 @@ Component.register('paynl-refund-page-view', {
         };
     },
 
-    mounted() {
-        let criteria = new Criteria();
-        criteria
-            .addAssociation('paynlTransactions')
-            .addAssociation('currency')
-            .addAssociation('lineItems');
-
-        this.orderRepository = this.repositoryFactory.create('order');
-        this.orderRepository.get(this.orderId, Shopware.Context.api, criteria)
-            .then((response) => {
-                this.order = response;
-                // TODO: modify to use one to one relation
-                this.paynlTransaction = response.extensions.paynlTransactions[0];
-                this.products = this.order.lineItems;
-
-                this.getDataForRefund();
-            });
+    created() {
+        this.createdComponent();
     },
 
     computed: {
@@ -87,9 +73,58 @@ Component.register('paynl-refund-page-view', {
                         this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
                         this.isLoading = false;
                     }
+                    this.isLoading = false;
                 })
-                .catch((errorResponse) => {
+                .catch((exception) => {
+                    this.isLoading = false;
+                });
+        },
 
+        createdComponent() {
+            this.isLoading = true;
+            this.paynlTransactionRepository = this.repositoryFactory.create('paynl_transactions');
+            let criteria = new Criteria();
+            criteria.addFilter(Criteria.equals('orderId', this.orderId));
+            criteria.addSorting(
+                Criteria.sort('paynl_transactions.createdAt', 'DESC')
+            );
+
+            this.paynlTransactionRepository.search(criteria, Shopware.Context.api)
+                .then((result) => {
+                    this.paynlTransaction = result[0];
+
+                    let criteriaOrder = new Criteria();
+                    criteriaOrder
+                        .addAssociation('currency')
+                        .addAssociation('lineItems');
+
+                    this.orderRepository = this.repositoryFactory.create('order');
+                    this.orderRepository.get(this.orderId, Shopware.Context.api, criteriaOrder)
+                        .then((response) => {
+                            this.order = response;
+                            // TODO: modify to use one to one relation
+                            this.products = this.order.lineItems;
+
+                            this.getDataForRefund();
+                        })
+                        .catch((exception) => {
+                            this.isLoading = false;
+
+                            this.createNotificationError({
+                                title: this.$tc('refund.notifications.danger'),
+                                message: exception
+                            });
+                        });
+
+                    this.isLoading = false;
+                })
+                .catch((exception) => {
+                    this.isLoading = false;
+
+                    this.createNotificationError({
+                        title: this.$tc('refund.notifications.danger'),
+                        message: exception
+                    });
                 });
         },
 
@@ -114,6 +149,8 @@ Component.register('paynl-refund-page-view', {
         },
 
         onRefundClick() {
+            this.isLoading = true;
+
             let data = {
                 transactionId: this.paynlTransaction.paynlTransactionId,
                 amount: this.amountToRefund,
@@ -134,10 +171,15 @@ Component.register('paynl-refund-page-view', {
                             message: responseData[0].content
                         });
                     }
-                    location.reload();
+                    this.createdComponent();
                 })
-                .catch((errorResponse) => {
+                .catch((exception) => {
+                    this.isLoading = false;
 
+                    this.createNotificationError({
+                        title: this.$tc('refund.notifications.danger'),
+                        message: exception
+                    });
                 });
         },
 

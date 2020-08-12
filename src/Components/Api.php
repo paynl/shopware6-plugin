@@ -21,6 +21,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class Api
 {
@@ -28,6 +29,9 @@ class Api
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
     const PAYMENT_METHOD_BANKS = 'banks';
+    const PAYMENT_METHOD_BRAND = 'brand';
+    const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
+    const PAYMENT_METHOD_BRAND_ID = 'id';
 
     const ACTION_PENDING = 'pending';
 
@@ -39,17 +43,21 @@ class Api
     private $productRepository;
     /** @var TranslatorInterface */
     private $translator;
+    /** @var Session */
+    private $session;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
         EntityRepositoryInterface $productRepository,
-        TranslatorInterface $translator
+        TranslatorInterface $translator,
+        Session $session
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
         $this->translator = $translator;
+        $this->session = $session;
     }
 
     /**
@@ -118,11 +126,12 @@ class Api
         string $showareVersion,
         string $pluginVersion
     ): array {
+        $bank = (int)$this->session->get('paynlIssuer');
+        $this->session->remove('paynlIssuer');
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        $extra1 = $transaction->getOrder()->getId();
         $testMode = $this->config->getTestMode();
         $returnUrl = $transaction->getReturnUrl();
         $orderNumber = $transaction->getOrder()->getOrderNumber();
@@ -131,7 +140,6 @@ class Api
             'paymentMethod' => $paynlPaymentMethodId,
             'amount' => $amount,
             'currency' => $currency,
-            'extra1' => $extra1,
             'testmode' => $testMode,
             'orderNumber' => $orderNumber,
             'description' => sprintf(
@@ -148,6 +156,10 @@ class Api
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
             'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
         ];
+
+        if (!empty($bank)) {
+            $transactionInitialData['bank'] = $bank;
+        }
 
         $customer = $salesChannelContext->getCustomer();
         if ($customer instanceof CustomerEntity) {

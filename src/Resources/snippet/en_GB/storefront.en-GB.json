@@ -2,10 +2,25 @@
     "checkout": {
         "statuses": {
             "cancelled": "Payment cancelled",
-            "denied": "Payment denied"
+            "denied": "Payment denied",
+            "in_progress": "Payment is being verified by the administrator.",
+            "paid": "Payment successful!"
+        },
+        "messages": {
+            "failedTransaction": "Your payment could not be processed with the selected payment method, please select another one."
+        },
+        "labels": {
+            "changePayment": "Change Payment"
         }
     },
     "transactionLabels": {
         "order": "Order: "
+    },
+    "payment": {
+        "selectIssuer": "Select Issuer"
+    },
+    "coc": {
+        "label": "KVK/COC Number",
+        "placeholder": "Enter your COC number"
     }
 }

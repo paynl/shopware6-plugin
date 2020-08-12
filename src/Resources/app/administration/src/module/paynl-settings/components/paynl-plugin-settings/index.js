@@ -105,12 +105,12 @@ Component.register('paynl-plugin-settings', {
                 .then((response) => {
                     if (response.success === true) {
                         this.createNotificationSuccess({
-                            title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                            title: this.$tc('paynlDefault.success'),
                             message: this.$tc(response.message)
                         });
                     } else {
                         this.createNotificationError({
-                            title: this.$tc('sw-plugin-config.titleSaveError'),
+                            title: this.$tc('paynlDefault.error'),
                             message: this.$tc(response.message)
                         });
                     }
@@ -120,7 +120,7 @@ Component.register('paynl-plugin-settings', {
                 })
                 .catch((error) => {
                     this.createNotificationError({
-                        title: this.$tc('sw-plugin-config.titleSaveError'),
+                        title: this.$tc('paynlDefault.error'),
                         message: error
                     });
 
@@ -140,7 +140,7 @@ Component.register('paynl-plugin-settings', {
                 .then((response) => {
                     if (response.success === true) {
                         this.createNotificationSuccess({
-                            title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                            title: this.$tc('paynlDefault.success'),
                             message: this.$tc(response.message)
                         });
 
@@ -149,7 +149,7 @@ Component.register('paynl-plugin-settings', {
                         this.PaynlPaymentService.installPaymentMethods()
                             .then((response) => {
                                 this.createNotificationSuccess({
-                                    title: this.$tc('sw-plugin-config.titleSaveSuccess'),
+                                    title: this.$tc('paynlDefault.success'),
                                     message: this.$tc(response.message)
                                 });
 
@@ -167,7 +167,7 @@ Component.register('paynl-plugin-settings', {
                             });
                     } else {
                         this.createNotificationError({
-                            title: this.$tc('sw-plugin-config.titleSaveError'),
+                            title: this.$tc('paynlDefault.error'),
                             message: this.$tc(response.message)
                         });
 
@@ -180,7 +180,7 @@ Component.register('paynl-plugin-settings', {
                 })
                 .catch((error) => {
                     this.createNotificationError({
-                        title: this.$tc('sw-plugin-config.titleSaveError'),
+                        title: this.$tc('paynlDefault.error'),
                         message: error
                     });
 

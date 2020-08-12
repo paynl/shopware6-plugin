@@ -9,6 +9,7 @@ use Shopware\Core\Content\Media\MediaEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class MediaHelper
 {
     const MEDIA_NAME_TEMPLATE = 'paynlpayment_%s';
+    const MEDIA_NAME_PREFIX = 'paynlpayment';
     const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
 
     /** @var EntityRepositoryInterface */
@@ -60,7 +62,8 @@ class MediaHelper
             return;
         }
 
-        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodValueObject->getId());
+        $paymentMethodBrandId = $paymentMethodValueObject->getBrandId();
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, $paymentMethodBrandId);
         if (!file_exists($filePath)) {
             return;
         }
@@ -93,6 +96,23 @@ class MediaHelper
         $media = $this->mediaRepository->search($criteria, $context)->first();
 
         return !empty($media);
+    }
+
+    public function removeOldMedia(Context $context): void
+    {
+        $criteria = (new Criteria())->addFilter(
+            new ContainsFilter('fileName', self::MEDIA_NAME_PREFIX)
+        );
+        $mediaIds = $this->mediaRepository->searchIds($criteria, $context)->getIds();
+        $mediaIds = array_map(static function ($id) {
+            return ['id' => $id];
+        }, $mediaIds);
+
+        if (empty($mediaIds)) {
+            return;
+        }
+
+        $this->mediaRepository->delete($mediaIds, $context);
     }
 
     private function getMediaName(string $paymentMethodName): string

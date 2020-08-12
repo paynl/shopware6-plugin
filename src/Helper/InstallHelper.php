@@ -19,14 +19,15 @@ use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class InstallHelper
 {
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
 
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
-    const PAYMENT_METHOD_DESCRIPTION_TPL = 'Paynl Payment method: %s';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
+    const PAYMENT_METHOD_IDEAL_ID = 10;
 
     /** @var SystemConfigService $configService */
     private $configService;
@@ -60,12 +61,16 @@ class InstallHelper
         $this->configService = $configService;
         /** @var Config $config */
         $config = new Config($configService);
-        $customerHelper = new CustomerHelper($config);
+        /** @var EntityRepositoryInterface $customerAddressRepository */
+        $customerAddressRepository = $container->get('customer_address.repository');
+        $customerHelper = new CustomerHelper($config, $customerAddressRepository);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         /** @var TranslatorInterface $translator */
         $translator = $container->get('translator');
-        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $translator);
+        /** @var Session $session */
+        $session = $container->get('session');
+        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $translator, $session);
         $this->mediaHelper = new MediaHelper($container);
     }
 
@@ -76,12 +81,36 @@ class InstallHelper
             throw new PaynlPaymentException("Cannot get any payment method.");
         }
 
+        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
+
+    public function updatePaymentMethods(Context $context): void
+    {
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (empty($paynlPaymentMethods)) {
+            return;
+        }
+
+        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
+
+    private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
+    {
+        $paymentMethods = [];
+        $salesChannelsData = [];
+
+        $this->mediaHelper->removeOldMedia($context);
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
             $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
-            $this->addPaymentMethod($context, $paymentMethodValueObject);
+            $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
+            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
+            $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
+
+        $this->paymentMethodRepository->upsert($paymentMethods, $context);
+        $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
     }
 
     private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
@@ -96,40 +125,50 @@ class InstallHelper
 
     /**
      * @param Context $context
-     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @param string $paymentMethodId
+     * @return mixed[]
      */
-    private function addPaymentMethod(Context $context, PaymentMethodValueObject $paymentMethodValueObject): void
+    private function getSalesChannelsData(Context $context, string $paymentMethodId): array
     {
-        $paymentMethodDescription = sprintf(
-            self::PAYMENT_METHOD_DESCRIPTION_TPL,
-            $paymentMethodValueObject->getVisibleName()
-        );
+        $channelsIds = $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds();
+        $salesChannelsData = [];
+        foreach ($channelsIds as $channelId) {
+            $salesChannelsData[] = [
+                'salesChannelId' => $channelId,
+                'paymentMethodId' => $paymentMethodId,
+            ];
+        }
 
+        return $salesChannelsData;
+    }
+
+    /**
+     * @param Context $context
+     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @return mixed[]
+     */
+    private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
+    {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => PaynlPaymentHandler::class,
             'name' => $paymentMethodValueObject->getName(),
-            'description' => $paymentMethodDescription,
+            'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
             'afterOrderEnabled' => true,
+            'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
                 'banks' => $paymentMethodValueObject->getBanks()
             ]
         ];
-        $this->paymentMethodRepository->upsert([$paymentData], $context);
-
-        $channels = $this->salesChannelRepository->searchIds(new Criteria(), $context);
-        foreach ($channels->getIds() as $channelId) {
-            $data = [
-                'salesChannelId' => $channelId,
-                'paymentMethodId' => $paymentMethodValueObject->getHashedId(),
-            ];
-
-            $this->paymentMethodSalesChannelRepository->upsert([$data], $context);
+        if ($paymentMethodValueObject->getId() === self::PAYMENT_METHOD_IDEAL_ID) {
+            $paymentData['customFields']['displayBanks'] = true;
         }
+
+        return $paymentData;
     }
 
     public function deactivatePaymentMethods(Context $context): void
@@ -140,6 +179,16 @@ class InstallHelper
     public function activatePaymentMethods(Context $context): void
     {
         $this->changePaymentMethodsStatuses($context, true);
+    }
+
+    public function removePaymentMethodsMedia(Context $context): void
+    {
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        if (empty($paynlPaymentMethods)) {
+            return;
+        }
+
+        $this->mediaHelper->removeOldMedia($context);
     }
 
     public function removeConfigurationData(): void
@@ -180,12 +229,25 @@ class InstallHelper
 
     public function removeStates(): void
     {
-        $stateMachineStateSQl = <<<SQL
-SELECT id FROM state_machine_state WHERE technical_name = :technical_name LIMIT 1
-SQL;
-        $removeStateMachineTransitionSQL = <<<SQL
-DELETE FROM state_machine_transition WHERE to_state_id = :to_state_id OR from_state_id = :from_state_id;
-SQL;
+        $stateMachineStateSQl = join(' ' , [
+            'SELECT',
+            'id',
+            'FROM',
+            'state_machine_state',
+            'WHERE',
+            'technical_name = :technical_name',
+            'LIMIT 1'
+        ]);
+
+        $removeStateMachineTransitionSQL = join(' ' , [
+            'DELETE FROM',
+            'state_machine_transition',
+            'WHERE',
+            'to_state_id = :to_state_id',
+            'OR',
+            'from_state_id = :from_state_id'
+        ]);
+
         // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_VERIFY

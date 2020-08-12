@@ -30,6 +30,16 @@
   display: inline-block;
 }
 
+.paynl-payment-method-banks {
+    display: inline-flex;
+    margin-left: 130px;
+    align-self: center;
+}
+
 .paynl-modal-buttons {
   float: right;
+}
+
+.payment-method .form-group {
+    margin-bottom: unset;
 }

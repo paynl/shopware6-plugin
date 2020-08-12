@@ -17,11 +17,9 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
         $query = '
             CREATE TABLE IF NOT EXISTS `paynl_transactions` (
                 `id` BINARY(16) NOT NULL,
-
                 `customer_id` BINARY(16) NOT NULL,
                 `order_id` BINARY(16) NULL,
                 `order_transaction_id` BINARY(16) NULL,
-
                 `paynl_transaction_id` VARCHAR(16),
                 `payment_id` INT(11) NOT NULL,
                 `amount` FLOAT NOT NULL,
@@ -31,7 +29,6 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                 `dispatch` VARCHAR(255),
                 `state_id` INT(11) NULL,
                 `order_state_id` BINARY(16) NULL,
-
                 `created_at` DATETIME(3) NOT NULL,
                 `updated_at` DATETIME(3) NULL,
 
@@ -45,16 +42,15 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
                     FOREIGN KEY (`customer_id`)
                     REFERENCES `customer` (`id`)
                     ON DELETE RESTRICT ON UPDATE CASCADE,
-
                 CONSTRAINT `fk.paynl_transaction.order_id`
                     FOREIGN KEY (`order_id`)
                     REFERENCES `order` (`id`)
                     ON DELETE RESTRICT ON UPDATE CASCADE,
-
                 CONSTRAINT `fk.paynl_transaction.order_state_id`
                     FOREIGN KEY (`order_state_id`)
                     REFERENCES `state_machine_state` (`id`)
                     ON DELETE RESTRICT ON UPDATE CASCADE
+
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ';
 
