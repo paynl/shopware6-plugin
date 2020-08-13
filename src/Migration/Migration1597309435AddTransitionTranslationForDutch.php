@@ -14,11 +14,6 @@ class Migration1597309435AddTransitionTranslationForDutch extends MigrationStep
 
     public function update(Connection $connection): void
     {
-        // implement update
-    }
-
-    public function updateDestructive(Connection $connection): void
-    {
         $languageSQL = join(' ', [
             'SELECT',
             'id',
@@ -104,5 +99,10 @@ class Migration1597309435AddTransitionTranslationForDutch extends MigrationStep
                 ]);
             }
         }
+    }
+
+    public function updateDestructive(Connection $connection): void
+    {
+
     }
 }
