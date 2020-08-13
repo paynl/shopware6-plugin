@@ -27,7 +27,8 @@
 }
 
 .paynl-payment-method-description {
-  display: inline-block;
+    display: inline-flex;
+    align-self: center;
 }
 
 .paynl-payment-method-banks {
@@ -36,10 +37,22 @@
     align-self: center;
 }
 
-.paynl-modal-buttons {
-  float: right;
+.paynl-payment-method-block {
+    height: 40px;
 }
 
 .payment-method .form-group {
+    margin-bottom: 1rem;
+}
+
+.custom-radio .paynl-payment-method-label::after,
+.custom-radio .paynl-payment-method-label::before {
+    top: 25%;
+}
+
+.payment-control p.paynl-payment-method-text {
+    margin-top: 1rem;
     margin-bottom: unset;
+    text-align: right;
+    margin-left: auto;
 }

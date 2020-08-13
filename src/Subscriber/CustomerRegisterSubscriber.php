@@ -43,6 +43,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     {
         return [
             'Shopware\Core\Checkout\Customer\Event\CustomerRegisterEvent' => 'onCustomerRegister',
+            'Shopware\Core\Checkout\Customer\Event\GuestCustomerRegisterEvent' => 'onCustomerRegister',
             CustomerEvents::MAPPING_ADDRESS_CREATE => 'onCustomerProfileSave',
         ];
     }
