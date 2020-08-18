@@ -26,8 +26,7 @@
 
                                     {% block component_payment_method_label %}
                                         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-
-                                                <label class="custom-control-label paynl-payment-method-label payment-method-label"
+                                        <label class="custom-control-label paynl-payment-method-label payment-method-label"
                                                        for="paymentMethod{{ loop.index }}">
                                                     {% block component_payment_method_image %}
                                                         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
@@ -69,6 +68,43 @@
                                                                     </select>
                                                                 </div>
                                                             {% endif %}
+                                                        {% endif %}
+
+                                                        {% if payment.translated.customFields.isPayLater %}
+                                                            <div class="paynl-paylater-fields align-content-center"
+                                                                {% if payment.id is same as(defaultPaymentMethodId) %}
+                                                                    style="display: inline-block"
+                                                                {% else %}
+                                                                    style="display: none"
+                                                                {% endif %}
+                                                            >
+                                                                {% if not page.isBirthdayExists %}
+                                                                    <div class="paynl-paylater-input-block  mb-1">
+                                                                        <label class="form-label"
+                                                                           for="dob">{{ "checkout.labels.dob"|trans|striptags }}</label>
+                                                                        <input type="text"
+                                                                               data-date-picker="true"
+                                                                               data-enable-time="false"
+                                                                               data-alt-format="Y-m-d"
+                                                                               class="form-control paynl-dob"
+                                                                               placeholder="{{ "checkout.labels.dob"|trans|striptags }}"
+                                                                               name="dob[{{ payment.id }}]"
+                                                                               data-min-date="1900-01-01"
+                                                                               data-max-date="today">
+                                                                    </div>
+                                                                {% endif %}
+                                                                {% if not page.isPhoneNumberExists %}
+                                                                    <div class="paynl-paylater-input-block">
+                                                                        <label class="form-label"
+                                                                               for="phone">{{ "checkout.labels.phone"|trans|striptags }}</label>
+                                                                        <input type="tel"
+                                                                               class="form-control"
+                                                                               placeholder="{{ "checkout.labels.phone"|trans|striptags }}"
+                                                                               name="phone[{{ payment.id }}]"
+                                                                               value="">
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
                                                         {% endif %}
                                                         <div
                                                                 id="paynl-modal-buttons-{{ loop.index }}"

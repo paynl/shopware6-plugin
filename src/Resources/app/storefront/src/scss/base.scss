@@ -4,8 +4,32 @@
   float: left;
 }
 
-.paynl-ideal-banks {
+.paynl-ideal-banks,
+.paynl-paylater-fields {
   display: inline-block;
+}
+
+.paynl-paylater-fields {
+    margin-left: 80px;
+    align-self: center;
+    align-content: space-between;
+}
+
+.paynl-paylater-input-block {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.paynl-paylater-input-block label {
+    white-space: nowrap;
+    float: right;
+}
+
+.paynl-paylater-fields input {
+    display: flex;
+    width: 160px;
+    margin-left: 0.5rem;
 }
 
 .paynl-button-container {
@@ -26,6 +50,10 @@
   display: none;
 }
 
+.paynl-modal-buttons,
+.paynl-payment-method-label {
+    align-self: center;
+}
 .paynl-payment-method-description {
     display: inline-flex;
     align-self: center;
@@ -34,11 +62,12 @@
 .paynl-payment-method-banks {
     display: inline-flex;
     margin-left: 130px;
+    margin-right: 1rem;
     align-self: center;
 }
 
 .paynl-payment-method-block {
-    height: 40px;
+    min-height: 40px;
 }
 
 .payment-method .form-group {
@@ -51,7 +80,7 @@
 }
 
 .payment-control p.paynl-payment-method-text {
-    margin-top: 1rem;
+    margin-top: 0.2rem;
     margin-bottom: unset;
     text-align: right;
     margin-left: auto;

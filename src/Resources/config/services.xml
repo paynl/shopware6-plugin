@@ -7,6 +7,7 @@
         <service id="PaynlPayment\Shopware6\Helper\CustomerHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="customer_address.repository"/>
+            <argument type="service" id="customer.repository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
@@ -111,6 +112,7 @@
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
             <tag name="kernel.event_subscriber"/>
             <argument type="service" id="session"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CheckoutConfirmSubscriber" public="true">

@@ -21,10 +21,19 @@ class CustomerHelper
      */
     private $customerAddressRepository;
 
-    public function __construct(Config $config, EntityRepositoryInterface $customerAddressRepository)
-    {
+    /**
+     * @var EntityRepositoryInterface
+     */
+    private $customerRepository;
+
+    public function __construct(
+        Config $config,
+        EntityRepositoryInterface $customerAddressRepository,
+        EntityRepositoryInterface $customerRepository
+    ) {
         $this->config = $config;
         $this->customerAddressRepository = $customerAddressRepository;
+        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -77,6 +86,34 @@ class CustomerHelper
         ];
 
         $this->customerAddressRepository->update([$customFieldData], $context);
+    }
+
+    public function saveCustomerPhone(CustomerAddressEntity $customerAddress, string $phone, Context $context): void
+    {
+        if (empty($phone)) {
+            return;
+        }
+
+        $customerAddressData = [
+            'id' => $customerAddress->getId(),
+            'phoneNumber' => $phone
+        ];
+
+        $this->customerAddressRepository->update([$customerAddressData], $context);
+    }
+
+    public function saveCustomerBirthdate(CustomerEntity $customer, string $dob, Context $context): void
+    {
+        if (empty($dob)) {
+            return;
+        }
+
+        $customerData = [
+            'id' => $customer->getId(),
+            'birthday' => $dob
+        ];
+
+        $this->customerRepository->update([$customerData], $context);
     }
 
     /**

@@ -10,7 +10,9 @@
             "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere."
         },
         "labels": {
-            "changePayment": "Probeer opnieuw"
+            "changePayment": "Probeer opnieuw",
+            "dob": "Geboortedatum:",
+            "phone": "Telefoon:"
         }
     },
     "transactionLabels": {
