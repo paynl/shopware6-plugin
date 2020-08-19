@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
+use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -13,7 +14,8 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
     {
         return [
             CheckoutConfirmPageLoadedEvent::class => 'onConfirmPageLoaded',
-            AccountPaymentMethodPageLoadedEvent::class => 'onAccountPageLoaded'
+            AccountPaymentMethodPageLoadedEvent::class => 'onAccountPageLoaded',
+            AccountEditOrderPageLoadedEvent::class => 'onEditOrderPageLoaded'
         ];
     }
 
@@ -21,6 +23,20 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
      * @param CheckoutConfirmPageLoadedEvent $event
      */
     public function onConfirmPageLoaded(CheckoutConfirmPageLoadedEvent $event)
+    {
+        $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
+        $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
+
+        $event->getPage()->assign([
+            'isBirthdayExists' => !empty($birthday),
+            'isPhoneNumberExists' => !empty($phoneNumber)
+        ]);
+    }
+
+    /**
+     * @param AccountEditOrderPageLoadedEvent $event
+     */
+    public function onEditOrderPageLoaded(AccountEditOrderPageLoadedEvent $event)
     {
         $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
         $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
