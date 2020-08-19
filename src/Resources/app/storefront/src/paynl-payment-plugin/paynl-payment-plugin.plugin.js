@@ -33,6 +33,10 @@ class PaynlPaymentPlugin extends Plugin {
         for (let i = 0; i < paynlBtnsModalBlocks.length; i++) {
             paynlBtnsModalBlocks[i].style.display = 'none';
         }
+        const paylaterBlocks = document.getElementsByClassName('paynl-paylater-fields');
+        for (let i = 0; i < paylaterBlocks.length; i++) {
+            paylaterBlocks[i].style.display = 'none';
+        }
         if (paynlModalButtons !== null) {
             paynlModalButtons.style.display = 'inline-block';
 
@@ -40,11 +44,16 @@ class PaynlPaymentPlugin extends Plugin {
             const paynlPaymentMethodBanksBlocks = document.getElementById('paynl-banks');
             const idealBanksBlock = paymentControlElement.getElementsByClassName('paynl-payment-method-banks')[0];
             const idealBanksSelect = document.getElementById('paynl-ideal-banks-select');
+            const paylaterBlock = paymentControlElement.getElementsByClassName('paynl-paylater-fields')[0];
             paynlPaymentMethodBanksBlocks.style.display = 'none';
             if (idealBanksBlock !== undefined) {
                 idealBanksBlock.style.display = 'inline-flex';
             } else {
                 idealBanksSelect.selectedIndex = 0;
+            }
+
+            if (paylaterBlock !== undefined) {
+                paylaterBlock.style.display = 'inline-block';
             }
         }
 

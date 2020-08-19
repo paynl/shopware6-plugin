@@ -10,7 +10,9 @@
             "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere."
         },
         "labels": {
-            "changePayment": "Zahlung ändern"
+            "changePayment": "Erneut versuchen",
+            "dob": "Geburtsdatum:",
+            "phone": "Telefon:"
         }
     },
     "transactionLabels": {
