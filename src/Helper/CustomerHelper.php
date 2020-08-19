@@ -58,6 +58,7 @@ class CustomerHelper
                 'customerReference' => $customer->getCustomerNumber(),
                 'gender' => $gender,
                 'phoneNumber' => $customer->getDefaultBillingAddress()->getPhoneNumber(),
+                'birthDate' => $customer->getBirthday(),
             ],
             'company' => [
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
