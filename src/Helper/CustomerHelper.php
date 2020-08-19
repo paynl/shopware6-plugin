@@ -13,6 +13,8 @@ use Shopware\Core\System\Salutation\SalutationEntity;
 
 class CustomerHelper
 {
+    private const BIRTHDATE_FORMAT = 'd-m-Y';
+
     /** @var Config */
     private $config;
 
@@ -58,7 +60,6 @@ class CustomerHelper
                 'customerReference' => $customer->getCustomerNumber(),
                 'gender' => $gender,
                 'phoneNumber' => $customer->getDefaultBillingAddress()->getPhoneNumber(),
-                'birthDate' => $customer->getBirthday(),
             ],
             'company' => [
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
@@ -70,8 +71,8 @@ class CustomerHelper
         ];
 
         $birthDate = $customer->getBirthday();
-        if ($birthDate instanceof \DateTimeInterface) {
-            $formattedAddress['enduser']['birthDate'] = $birthDate;
+        if (!empty($birthDate)) {
+            $formattedAddress['enduser']['birthDate'] = $birthDate->format(self::BIRTHDATE_FORMAT);
         }
 
         return $formattedAddress;
