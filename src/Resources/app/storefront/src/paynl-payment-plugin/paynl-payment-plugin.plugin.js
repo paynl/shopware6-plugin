@@ -4,6 +4,7 @@ class PaynlPaymentPlugin extends Plugin {
     init() {
         this.paymentMethodsScriptsInit();
         this.idealChangeBank();
+        this.savePayLaterData();
     }
 
     paymentMethodsScriptsInit() {
@@ -11,16 +12,48 @@ class PaynlPaymentPlugin extends Plugin {
         for (let i = 0; i < paymentMethodsRadio.length; i++) {
             paymentMethodsRadio[i].onchange = this.onChangeCallback;
         }
+        const paynlChangePMButton = document.getElementsByClassName('paynl-change-payment-method');
+        for (let i = 0; i < paynlChangePMButton.length; i++) {
+            paynlChangePMButton[i].onclick = this.onSavePaymentMethod;
+        }
     }
 
     idealChangeBank() {
         document.getElementById('paynl-ideal-banks-select').onchange = this.onChangeBank;
     }
 
+    savePayLaterData() {
+        document.getElementsByClassName('paynl-change-payment-method').onclick = this.onSavePaymentMethod;
+    }
+
     onChangeBank() {
         const idealBank = document.getElementById('paynl-ideal-banks-select').value;
         const xhr = new XMLHttpRequest();
         const data = {'paynlIssuer': idealBank};
+        xhr.open('POST', '/PaynlPayment/order/change/payment', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
+    }
+
+    onSavePaymentMethod(element) {
+        const dobArray = document.getElementsByClassName('paynl-dob');
+        const phoneArray = document.getElementsByClassName('paynl-phone');
+        const paymentMethodInputId = element.target.dataset.paynlPaymentMethodInputId;
+        const paymentMethodInput = document.getElementById(paymentMethodInputId);
+
+        let dob = '';
+        let phone = '';
+        const currentDobFieldName = 'dob[' + paymentMethodInput.value + ']';
+        const currentPhoneFieldName = 'phone[' + paymentMethodInput.value + ']';
+        if (currentDobFieldName in dobArray) {
+            dob = dobArray[currentDobFieldName].value
+        }
+        if (currentPhoneFieldName in phoneArray) {
+            phone = phoneArray[currentPhoneFieldName].value
+        }
+
+        const xhr = new XMLHttpRequest();
+        const data = {'dob': dob, 'phone': phone};
         xhr.open('POST', '/PaynlPayment/order/change/payment', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(data));

@@ -79,7 +79,7 @@
                                                                 {% endif %}
                                                             >
                                                                 {% if not page.isBirthdayExists %}
-                                                                    <div class="paynl-paylater-input-block  mb-1">
+                                                                    <div class="paynl-paylater-input-block mb-1">
                                                                         <label class="form-label"
                                                                            for="dob">{{ "checkout.labels.dob"|trans|striptags }}</label>
                                                                         <input type="text"
@@ -98,7 +98,7 @@
                                                                         <label class="form-label"
                                                                                for="phone">{{ "checkout.labels.phone"|trans|striptags }}</label>
                                                                         <input type="tel"
-                                                                               class="form-control"
+                                                                               class="form-control paynl-phone"
                                                                                placeholder="{{ "checkout.labels.phone"|trans|striptags }}"
                                                                                name="phone[{{ payment.id }}]"
                                                                                value="">
@@ -114,7 +114,7 @@
                                                         {% else %}
                                                             style="display: none"
                                                                 {% endif %}>
-                                                            <button class="btn btn-primary" type="submit">
+                                                            <button class="btn btn-primary paynl-change-payment-method" data-paynl-payment-method-input-id="paymentMethod{{ loop.index }}" type="submit">
                                                                 {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
                                                                     {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
                                                                 {% else %}

@@ -76,7 +76,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         if (array_key_exists('dob', $requestData) && array_key_exists($paymentMethodId, $requestData['dob'])) {
-            $dobArray =$requestData['dob'];
+            $dobArray = $requestData['dob'];
             $dob = $dobArray = $dobArray[$paymentMethodId] ?? '';
 
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
