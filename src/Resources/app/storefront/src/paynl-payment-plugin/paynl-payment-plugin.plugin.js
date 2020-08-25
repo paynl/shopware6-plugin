@@ -36,20 +36,18 @@ class PaynlPaymentPlugin extends Plugin {
     }
 
     onSavePaymentMethod(element) {
-        const dobArray = document.getElementsByClassName('paynl-dob');
-        const phoneArray = document.getElementsByClassName('paynl-phone');
-        const paymentMethodInputId = element.target.dataset.paynlPaymentMethodInputId;
-        const paymentMethodInput = document.getElementById(paymentMethodInputId);
+        const dobInputId = element.target.dataset.paynlDobFieldId;
+        const phoneInputId = element.target.dataset.paynlPhoneFieldId;
+        const dobInput = document.getElementById(dobInputId);
+        const phoneInput = document.getElementById(phoneInputId);
 
         let dob = '';
         let phone = '';
-        const currentDobFieldName = 'dob[' + paymentMethodInput.value + ']';
-        const currentPhoneFieldName = 'phone[' + paymentMethodInput.value + ']';
-        if (currentDobFieldName in dobArray) {
-            dob = dobArray[currentDobFieldName].value
+        if (dobInput !== null) {
+            dob = dobInput.value;
         }
-        if (currentPhoneFieldName in phoneArray) {
-            phone = phoneArray[currentPhoneFieldName].value
+        if (phoneInput !== null) {
+            phone = phoneInput.value
         }
 
         const xhr = new XMLHttpRequest();

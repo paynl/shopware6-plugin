@@ -41,7 +41,6 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
      */
     public function onCheckoutPaymentMethodChange(SalesChannelContextSwitchEvent $event)
     {
-
         if (array_key_exists('paynlIssuer', $event->getRequestDataBag()->all())) {
             $this->session->set('paynlIssuer', $event->getRequestDataBag()->get('paynlIssuer'));
         }

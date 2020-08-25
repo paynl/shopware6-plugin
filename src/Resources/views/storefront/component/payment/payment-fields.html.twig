@@ -83,6 +83,7 @@
                                                                         <label class="form-label"
                                                                            for="dob">{{ "checkout.labels.dob"|trans|striptags }}</label>
                                                                         <input type="text"
+                                                                               id="paynl-dob-{{ loop.index }}"
                                                                                data-date-picker="true"
                                                                                data-enable-time="false"
                                                                                data-alt-format="Y-m-d"
@@ -98,6 +99,7 @@
                                                                         <label class="form-label"
                                                                                for="phone">{{ "checkout.labels.phone"|trans|striptags }}</label>
                                                                         <input type="tel"
+                                                                               id="paynl-phone-{{ loop.index }}"
                                                                                class="form-control paynl-phone"
                                                                                placeholder="{{ "checkout.labels.phone"|trans|striptags }}"
                                                                                name="phone[{{ payment.id }}]"
@@ -106,15 +108,17 @@
                                                                 {% endif %}
                                                             </div>
                                                         {% endif %}
-                                                        <div
-                                                                id="paynl-modal-buttons-{{ loop.index }}"
+                                                        <div id="paynl-modal-buttons-{{ loop.index }}"
                                                                 class="paynl-modal-buttons ml-auto"
                                                                 {% if payment.id is same as(defaultPaymentMethodId) %}
                                                             style="display: inline-block"
                                                         {% else %}
                                                             style="display: none"
                                                                 {% endif %}>
-                                                            <button class="btn btn-primary paynl-change-payment-method" data-paynl-payment-method-input-id="paymentMethod{{ loop.index }}" type="submit">
+                                                            <button class="btn btn-primary paynl-change-payment-method"
+                                                                    data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
+                                                                    data-paynl-phone-field-id="paynl-phone-{{ loop.index }}"
+                                                                    type="submit">
                                                                 {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
                                                                     {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
                                                                 {% else %}
