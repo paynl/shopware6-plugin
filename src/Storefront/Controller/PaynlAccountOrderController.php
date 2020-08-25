@@ -45,6 +45,23 @@ class PaynlAccountOrderController extends StorefrontController
     public function orderChangePayment(Request $request): JsonResponse
     {
         $this->session->set('paynlIssuer', $request->get('paynlIssuer') ?: null);
+
+        return new JsonResponse(['success' => true]);
+    }
+
+    /**
+     * @Route(
+     *     "/PaynlPayment/order/change/paylater-fields",
+     *     name="frontend.PaynlPayment.edit-order.change-paylater-fields",
+     *     methods={"POST"},
+     *     defaults={"csrf_protected"=false}
+     *     )
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function orderChangePaylaterFields(Request $request): JsonResponse
+    {
+
         /** @var SalesChannelContext $salesChannelContext */
         $salesChannelContext = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
         $dob = $request->get('dob');

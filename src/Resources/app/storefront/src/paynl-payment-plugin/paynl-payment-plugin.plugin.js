@@ -52,7 +52,7 @@ class PaynlPaymentPlugin extends Plugin {
 
         const xhr = new XMLHttpRequest();
         const data = {'dob': dob, 'phone': phone};
-        xhr.open('POST', '/PaynlPayment/order/change/payment', true);
+        xhr.open('POST', '/PaynlPayment/order/change/paylater-fields', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(data));
     }
