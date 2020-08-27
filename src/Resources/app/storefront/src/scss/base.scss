@@ -86,3 +86,9 @@
     text-align: right;
     margin-left: auto;
 }
+
+@media (max-width: 500px) {
+    .paynl-payment-method-banks {
+        margin-left: unset;
+    }
+}
