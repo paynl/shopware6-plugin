@@ -54,6 +54,7 @@
 .paynl-payment-method-label {
     align-self: center;
 }
+
 .paynl-payment-method-description {
     display: inline-flex;
     align-self: center;
@@ -78,13 +79,25 @@
 .custom-radio .paynl-payment-method-label::before {
     top: 25%;
 }
+.paynl-paynl-payment-tooltip {
+    display: inline-flex;
+    height: 24px;
+    margin-left: 10px;
+}
 
-.payment-control p.paynl-payment-method-text {
-    margin-top: 0.2rem;
-    width: 80%;
-    margin-bottom: unset;
+.paynl-paynl-payment-tooltip:focus {
+    outline: none;
+}
+
+.tooltip-inner {
+    background-color: white;
+    color: black;
+    border: 1px solid #bcc1c7;
     text-align: right;
-    margin-left: auto;
+}
+
+.tooltip.bs-tooltip-left .arrow:before{
+    border-left-color: #bcc1c7;
 }
 
 @media (max-width: 500px) {
