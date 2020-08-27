@@ -72,7 +72,7 @@
 }
 
 .payment-method .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .custom-radio .paynl-payment-method-label::after,
@@ -102,6 +102,6 @@
 
 @media (max-width: 500px) {
     .paynl-payment-method-banks {
-        margin-left: unset;
+        margin-left: 0.5rem;
     }
 }
