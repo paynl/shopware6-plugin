@@ -13,6 +13,8 @@ use Shopware\Core\System\Salutation\SalutationEntity;
 
 class CustomerHelper
 {
+    private const BIRTHDATE_FORMAT = 'd-m-Y';
+
     /** @var Config */
     private $config;
 
@@ -21,10 +23,19 @@ class CustomerHelper
      */
     private $customerAddressRepository;
 
-    public function __construct(Config $config, EntityRepositoryInterface $customerAddressRepository)
-    {
+    /**
+     * @var EntityRepositoryInterface
+     */
+    private $customerRepository;
+
+    public function __construct(
+        Config $config,
+        EntityRepositoryInterface $customerAddressRepository,
+        EntityRepositoryInterface $customerRepository
+    ) {
         $this->config = $config;
         $this->customerAddressRepository = $customerAddressRepository;
+        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -60,8 +71,8 @@ class CustomerHelper
         ];
 
         $birthDate = $customer->getBirthday();
-        if ($birthDate instanceof \DateTimeInterface) {
-            $formattedAddress['enduser']['birthDate'] = $birthDate;
+        if (!empty($birthDate)) {
+            $formattedAddress['enduser']['birthDate'] = $birthDate->format(self::BIRTHDATE_FORMAT);
         }
 
         return $formattedAddress;
@@ -77,6 +88,34 @@ class CustomerHelper
         ];
 
         $this->customerAddressRepository->update([$customFieldData], $context);
+    }
+
+    public function saveCustomerPhone(CustomerAddressEntity $customerAddress, string $phone, Context $context): void
+    {
+        if (empty($phone)) {
+            return;
+        }
+
+        $customerAddressData = [
+            'id' => $customerAddress->getId(),
+            'phoneNumber' => $phone
+        ];
+
+        $this->customerAddressRepository->update([$customerAddressData], $context);
+    }
+
+    public function saveCustomerBirthdate(CustomerEntity $customer, string $dob, Context $context): void
+    {
+        if (empty($dob)) {
+            return;
+        }
+
+        $customerData = [
+            'id' => $customer->getId(),
+            'birthday' => $dob
+        ];
+
+        $this->customerRepository->update([$customerData], $context);
     }
 
     /**

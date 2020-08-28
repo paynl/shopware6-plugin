@@ -40,7 +40,7 @@ class StatusTransitionController extends AbstractController
     }
 
     /**
-     * @Route("/api/v1/paynl/change-transaction-status",
+     * @Route("/api/v{version}/paynl/change-transaction-status",
      *     name="api.PaynlPayment.changeTransactionStatus",
      *     methods={"POST"}
      *     )

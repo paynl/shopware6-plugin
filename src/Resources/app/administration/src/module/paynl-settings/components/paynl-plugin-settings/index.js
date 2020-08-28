@@ -33,7 +33,6 @@ Component.register('paynl-plugin-settings', {
                 apiToken: null,
                 serviceId: null,
                 testMode: null,
-                statusMail: null,
                 additionalAddressFields: null,
                 femaleSalutations: null
             }
@@ -72,7 +71,6 @@ Component.register('paynl-plugin-settings', {
                 apiToken: this.config['PaynlPaymentShopware6.settings.apiToken'],
                 serviceId: this.config['PaynlPaymentShopware6.settings.serviceId'],
                 testMode: this.config['PaynlPaymentShopware6.settings.testMode'],
-                statusMail: this.config['PaynlPaymentShopware6.settings.statusMail'],
                 additionalAddressFields: this.config['PaynlPaymentShopware6.settings.additionalAddressFields'],
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations']
             };

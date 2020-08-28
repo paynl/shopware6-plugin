@@ -18,10 +18,12 @@ class PaynlPaymentShopware6 extends Plugin
     public function uninstall(UninstallContext $uninstallContext): void
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
-        (new InstallHelper($this->container))->removePaymentMethodsMedia($uninstallContext->getContext());
-        (new InstallHelper($this->container))->removeConfigurationData();
-        (new InstallHelper($this->container))->dropTables();
-        (new InstallHelper($this->container))->removeStates();
+        if (!$uninstallContext->keepUserData()) {
+            (new InstallHelper($this->container))->removePaymentMethodsMedia($uninstallContext->getContext());
+            (new InstallHelper($this->container))->removeConfigurationData();
+            (new InstallHelper($this->container))->dropTables();
+            (new InstallHelper($this->container))->removeStates();
+        }
     }
 
     public function activate(ActivateContext $activateContext): void

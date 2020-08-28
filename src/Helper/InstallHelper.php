@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
+use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
@@ -63,7 +64,9 @@ class InstallHelper
         $config = new Config($configService);
         /** @var EntityRepositoryInterface $customerAddressRepository */
         $customerAddressRepository = $container->get('customer_address.repository');
-        $customerHelper = new CustomerHelper($config, $customerAddressRepository);
+        /** @var EntityRepositoryInterface $customerRepository */
+        $customerRepository = $container->get('customer.repository');
+        $customerHelper = new CustomerHelper($config, $customerAddressRepository, $customerRepository);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         /** @var TranslatorInterface $translator */
@@ -164,9 +167,15 @@ class InstallHelper
                 'banks' => $paymentMethodValueObject->getBanks()
             ]
         ];
-        if ($paymentMethodValueObject->getId() === self::PAYMENT_METHOD_IDEAL_ID) {
+        $paymentMethodId = $paymentMethodValueObject->getId();
+        if ($paymentMethodId === self::PAYMENT_METHOD_IDEAL_ID) {
             $paymentData['customFields']['displayBanks'] = true;
         }
+
+        if (in_array($paymentMethodId, PayLaterPaymentMethodsEnum::PAY_LATER_PAYMENT_METHODS)) {
+            $paymentData['customFields']['isPayLater'] = true;
+        }
+
 
         return $paymentData;
     }
