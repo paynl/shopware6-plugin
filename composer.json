@@ -13,6 +13,14 @@
         "description": {
             "de-DE": "Pay.nl Payment Shopware Plugin",
             "en-GB": "Pay.nl Payment Shopware Plugin"
+        },
+        "manufacturerLink": {
+            "de-DE": "https://pay.nl",
+            "en-GB": "https://pay.nl"
+        },
+        "supportLink": {
+            "de-DE": "https://docs.pay.nl/plugins#shopware-six",
+            "en-GB": "https://docs.pay.nl/plugins#shopware-six"
         }
     },
     "require": {
