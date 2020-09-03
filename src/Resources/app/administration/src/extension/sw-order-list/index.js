@@ -8,20 +8,8 @@ Component.override('sw-order-list', {
 
     computed: {
         orderCriteria() {
-            const criteria = new Criteria(this.page, this.limit);
-
-            criteria.setTerm(this.term);
-            criteria.addSorting(Criteria.sort(this.sortBy, this.sortDirection));
-
+            const criteria = this.$super('orderCriteria');
             criteria.addAssociation('paynlTransactions');
-            criteria.addAssociation('addresses');
-            criteria.addAssociation('salesChannel');
-            criteria.addAssociation('orderCustomer');
-            criteria.addAssociation('currency');
-            criteria.addAssociation('documents');
-            criteria.addAssociation('transactions');
-            criteria.addAssociation('deliveries');
-            criteria.getAssociation('transactions').addSorting(Criteria.sort('createdAt'));
 
             return criteria;
         },
