@@ -74,19 +74,22 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'customer',
                 'customer_id',
                 CustomerDefinition::class,
-                'id'
+                'id',
+                true
             ),
             new ManyToOneAssociationField(
                 'stateMachineState',
                 'order_state_id',
                 StateMachineStateDefinition::class,
-                'id'
+                'id',
+                true
             ),
             new OneToOneAssociationField(
                 'orderTransaction',
                 'order_transaction_id',
                 'id',
-                OrderTransactionDefinition::class
+                OrderTransactionDefinition::class,
+                true
             ),
 
             new CreatedAtField(),
