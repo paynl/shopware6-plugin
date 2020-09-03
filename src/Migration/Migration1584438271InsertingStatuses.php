@@ -241,7 +241,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                 'to_state_id' => $partlyCapturedStateMachineStateId,
             ],
             [
-                'action_name' => 'pay',
+                'action_name' => 'paid',
                 'from_state_id' => $authorizeStateMachineStateId,
                 'to_state_id' => $paidStateMachineStateId,
             ],
@@ -251,7 +251,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                 'to_state_id' => $cancelledCapturedStateMachineStateId,
             ],
             [
-                'action_name' => 'pay',
+                'action_name' => 'paid',
                 'from_state_id' => $verifyStateMachineStateId,
                 'to_state_id' => $paidStateMachineStateId
             ],

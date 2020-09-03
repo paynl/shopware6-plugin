@@ -10,7 +10,9 @@
             "failedTransaction": "Your payment could not be processed with the selected payment method, please select another one."
         },
         "labels": {
-            "changePayment": "Change Payment"
+            "changePayment": "Try again",
+            "dob": "Date of birth:",
+            "phone": "Phone:"
         }
     },
     "transactionLabels": {

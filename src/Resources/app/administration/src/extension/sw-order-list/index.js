@@ -18,7 +18,10 @@ Component.override('sw-order-list', {
             criteria.addAssociation('salesChannel');
             criteria.addAssociation('orderCustomer');
             criteria.addAssociation('currency');
+            criteria.addAssociation('documents');
             criteria.addAssociation('transactions');
+            criteria.addAssociation('deliveries');
+            criteria.getAssociation('transactions').addSorting(Criteria.sort('createdAt'));
 
             return criteria;
         },
