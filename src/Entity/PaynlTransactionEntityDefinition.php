@@ -79,7 +79,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 true
             ),
             new ManyToOneAssociationField(
-                'orderStateMachine',
+                'stateMachineState',
                 'order_state_id',
                 StateMachineStateDefinition::class,
                 'id',

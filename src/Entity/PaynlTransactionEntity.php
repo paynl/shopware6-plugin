@@ -2,8 +2,12 @@
 
 namespace PaynlPayment\Shopware6\Entity;
 
+use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityIdTrait;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateEntity;
 
 class PaynlTransactionEntity extends Entity
 {
@@ -53,6 +57,51 @@ class PaynlTransactionEntity extends Entity
      * @var string
      */
     protected $latestActionName;
+
+    /**
+     * @var string
+     */
+    protected $customerId;
+
+    /**
+     * @var string
+     */
+    protected $orderStateId;
+
+    /**
+     * @var string
+     */
+    protected $comment;
+
+    /**
+     * @var string
+     */
+    protected $dispatch;
+
+    /**
+     * @var string
+     */
+    protected $stateId;
+
+    /**
+     * @var OrderEntity
+     */
+    protected $order;
+
+    /**
+     * @var CustomerEntity
+     */
+    protected $customer;
+
+    /**
+     * @var StateMachineStateEntity
+     */
+    protected $stateMachineState;
+
+    /**
+     * @var OrderTransactionEntity
+     */
+    protected $orderTransaction;
 
     public function getTechnicalName(): ?string
     {
@@ -157,5 +206,149 @@ class PaynlTransactionEntity extends Entity
             'exception' => $this->getException(),
             'latestActionName' => $this->getLatestActionName()
         ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getCustomerId(): string
+    {
+        return $this->customerId;
+    }
+
+    /**
+     * @param string $customerId
+     */
+    public function setCustomerId(string $customerId): void
+    {
+        $this->customerId = $customerId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOrderStateId(): string
+    {
+        return $this->orderStateId;
+    }
+
+    /**
+     * @param string $orderStateId
+     */
+    public function setOrderStateId(string $orderStateId): void
+    {
+        $this->orderStateId = $orderStateId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getComment(): string
+    {
+        return $this->comment;
+    }
+
+    /**
+     * @param string $comment
+     */
+    public function setComment(string $comment): void
+    {
+        $this->comment = $comment;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDispatch(): string
+    {
+        return $this->dispatch;
+    }
+
+    /**
+     * @param string $dispatch
+     */
+    public function setDispatch(string $dispatch): void
+    {
+        $this->dispatch = $dispatch;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStateId(): string
+    {
+        return $this->stateId;
+    }
+
+    /**
+     * @param string $stateId
+     */
+    public function setStateId(string $stateId): void
+    {
+        $this->stateId = $stateId;
+    }
+
+    /**
+     * @return OrderEntity
+     */
+    public function getOrder(): OrderEntity
+    {
+        return $this->order;
+    }
+
+    /**
+     * @param OrderEntity $order
+     */
+    public function setOrder(OrderEntity $order): void
+    {
+        $this->order = $order;
+    }
+
+    /**
+     * @return CustomerEntity
+     */
+    public function getCustomer(): CustomerEntity
+    {
+        return $this->customer;
+    }
+
+    /**
+     * @param CustomerEntity $customer
+     */
+    public function setCustomer(CustomerEntity $customer): void
+    {
+        $this->customer = $customer;
+    }
+
+    /**
+     * @return OrderTransactionEntity
+     */
+    public function getOrderTransaction(): OrderTransactionEntity
+    {
+        return $this->orderTransaction;
+    }
+
+    /**
+     * @param OrderTransactionEntity $orderTransaction
+     */
+    public function setOrderTransaction(OrderTransactionEntity $orderTransaction): void
+    {
+        $this->orderTransaction = $orderTransaction;
+    }
+
+    /**
+     * @return StateMachineStateEntity
+     */
+    public function getStateMachineState(): StateMachineStateEntity
+    {
+        return $this->stateMachineState;
+    }
+
+    /**
+     * @param StateMachineStateEntity $stateMachineState
+     */
+    public function setStateMachineState(StateMachineStateEntity $stateMachineState): void
+    {
+        $this->stateMachineState = $stateMachineState;
     }
 }
