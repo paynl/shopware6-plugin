@@ -34,11 +34,12 @@
             <argument type="service" id="session"/>
         </service>
 
-        <!--Services-->
+        <!--Definition Extensions-->
         <service id="PaynlPayment\Shopware6\Core\Checkout\Order\OrderExtension">
             <tag name="shopware.entity.extension"/>
         </service>
 
+        <!--Services-->
         <service id="PaynlPayment\Shopware6\Service\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>

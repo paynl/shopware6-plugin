@@ -217,7 +217,7 @@ class ProcessingHelper
             $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         /** @var OrderTransactionEntity $orderTransaction */
-        $orderTransaction = $paynlTransactionEntity->orderTransaction;
+        $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
 
         if (

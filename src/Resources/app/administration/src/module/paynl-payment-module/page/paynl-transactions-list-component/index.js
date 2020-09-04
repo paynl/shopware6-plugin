@@ -96,7 +96,7 @@ Component.register('paynl-transactions-list-component', {
         let criteria = new Criteria();
         criteria.addAssociation('order');
         criteria.addAssociation('customer');
-        criteria.addAssociation('orderStateMachine');
+        criteria.addAssociation('stateMachineState');
         criteria.addSorting(
             Criteria.sort('paynl_transactions.createdAt', 'DESC')
         );

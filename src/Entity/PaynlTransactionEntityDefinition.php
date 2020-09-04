@@ -68,8 +68,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'order',
                 'order_id',
                 OrderDefinition::class,
-                'id',
-                false
+                'id'
             ),
             new ManyToOneAssociationField(
                 'customer',
@@ -79,7 +78,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 true
             ),
             new ManyToOneAssociationField(
-                'orderStateMachine',
+                'stateMachineState',
                 'order_state_id',
                 StateMachineStateDefinition::class,
                 'id',
