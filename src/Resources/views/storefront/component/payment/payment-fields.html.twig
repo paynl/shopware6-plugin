@@ -20,7 +20,7 @@
                                             {% if payment.id is same as(defaultPaymentMethodId) %}
                                                 {% set isChecked = 'checked="checked"' %}
                                             {% endif %}
-                                            <div class="paynl-payment-method-block d-flex align-content-between justify-between">
+                                            <div class="paynl-payment-method-block d-flex align-content-between">
                                                 <input type="radio"
                                                        id="paymentMethod{{ loop.index }}"
                                                        name="paymentMethodId"
@@ -55,12 +55,12 @@
                                                         {{ parent() }}
                                                     {% endif %}
                                                 {% endblock %}
+                                                <div class="paynl-payment-method-description payment-method-description">
+                                                    <strong>{{ payment.translated.name }}</strong>
+                                                </div>
                                             </label>
                                                 {% block component_payment_method_description %}
                                                     {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                                                        <div class="paynl-payment-method-description payment-method-description">
-                                                            <strong>{{ payment.translated.name }}</strong>
-                                                        </div>
                                                         {% if payment.translated.customFields.displayBanks %}
                                                             {% if payment.translated.customFields.banks is not empty %}
                                                                 <div id="paynl-banks" class="paynl-payment-method-banks" style="display: {{ isDefaultPmIdDisplay }}">
@@ -109,7 +109,7 @@
                                                                 {% endif %}
                                                             </div>
                                                         {% endif %}
-                                                        <div class="d-inline-flex align-items-center">
+                                                        <div class="paynl-button-info-block d-inline-flex align-items-center">
                                                             <div id="paynl-modal-buttons-{{ loop.index }}" class="paynl-modal-buttons" style="display: {{ isDefaultPmIdDisplay }}">
                                                                 <button class="btn btn-primary paynl-change-payment-method"
                                                                         data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
