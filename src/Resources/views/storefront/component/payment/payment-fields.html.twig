@@ -3,6 +3,11 @@
 {% block component_payment_methods %}
     <div class="payment-methods">
         {% for payment in page.paymentMethods %}
+            {% set isDefaultPmIdDisplay = 'none' %}
+            {% if payment.id is same as(defaultPaymentMethodId) %}
+                {% set isDefaultPmIdDisplay = 'inline-block' %}
+            {% endif %}
+
             {% block component_payment_method %}
                 <div class="payment-method">
                     {% block component_payment_method_field %}
@@ -11,14 +16,18 @@
                                 <div class="custom-control custom-radio payment-control">
                                     {% block component_payment_method_input %}
                                         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                                    <div class="paynl-payment-method-block d-flex align-content-between">
-                                            <input type="radio"
-                                                   id="paymentMethod{{ loop.index }}"
-                                                   name="paymentMethodId"
-                                                   value="{{ payment.id }}"
-                                                   data-paynl-modal-btns-id="paynl-modal-buttons-{{ loop.index }}"
-                                                   {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
-                                                   class="custom-control-input paynl-payment-method-input payment-method-input">
+                                            {% set isChecked = '' %}
+                                            {% if payment.id is same as(defaultPaymentMethodId) %}
+                                                {% set isChecked = 'checked="checked"' %}
+                                            {% endif %}
+                                            <div class="paynl-payment-method-block d-flex align-content-between">
+                                                <input type="radio"
+                                                       id="paymentMethod{{ loop.index }}"
+                                                       name="paymentMethodId"
+                                                       value="{{ payment.id }}"
+                                                       data-paynl-modal-btns-id="paynl-modal-buttons-{{ loop.index }}"
+                                                       {{ isChecked }}
+                                                       class="custom-control-input paynl-payment-method-input payment-method-input">
                                         {% else %}
                                             {{ parent() }}
                                         {% endif %}
@@ -26,44 +35,43 @@
 
                                     {% block component_payment_method_label %}
                                         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                                        <label class="custom-control-label paynl-payment-method-label payment-method-label"
-                                                       for="paymentMethod{{ loop.index }}">
-                                                    {% block component_payment_method_image %}
-                                                        {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                                                            {% if payment.media %}
-                                                                {% sw_thumbnails 'payment-method-image-thumbnails' with {
+                                            <label class="custom-control-label paynl-payment-method-label payment-method-label" for="paymentMethod{{ loop.index }}">
+                                                {% block component_payment_method_image %}
+                                                    {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+                                                        {% if payment.media %}
+                                                            {% sw_thumbnails 'payment-method-image-thumbnails' with {
                                                                 media: payment.media,
                                                                 sizes: {
-                                                                'default': '100px'
+                                                                    'default': '100px'
                                                                 },
                                                                 attributes: {
-                                                                'class': 'payment-method-image paynl-payment-method-image',
-                                                                'alt': (payment.media.translated.alt ?: payment.translated.name),
-                                                                'title': (payment.media.translated.title ?: payment.translated.name)
+                                                                    'class': 'payment-method-image paynl-payment-method-image',
+                                                                    'alt': (payment.media.translated.alt ?: payment.translated.name),
+                                                                    'title': (payment.media.translated.title ?: payment.translated.name)
                                                                 }
-                                                                } %}
-                                                            {% endif %}
-                                                        {% else %}
-                                                            {{ parent() }}
+                                                            } %}
                                                         {% endif %}
-                                                    {% endblock %}
-                                                </label>
+                                                    {% else %}
+                                                        {{ parent() }}
+                                                    {% endif %}
+                                                {% endblock %}
+                                                <div class="paynl-payment-method-description payment-method-description">
+                                                    <strong>{{ payment.translated.name }}</strong>
+                                                </div>
+                                            </label>
                                                 {% block component_payment_method_description %}
                                                     {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                                                        <div class="paynl-payment-method-description payment-method-description">
-                                                            <strong>{{ payment.translated.name }}</strong>
-                                                        </div>
                                                         {% if payment.translated.customFields.displayBanks %}
                                                             {% if payment.translated.customFields.banks is not empty %}
-                                                                <div id="paynl-banks" class="paynl-payment-method-banks" {% if payment.id is same as(defaultPaymentMethodId) %}
-                                                                    style="display: inline-block"
-                                                                {% else %}
-                                                                    style="display: none"
-                                                                {% endif %}>
+                                                                <div id="paynl-banks" class="paynl-payment-method-banks" style="display: {{ isDefaultPmIdDisplay }}">
                                                                     <select id="paynl-ideal-banks-select" class="custom-control custom-select" name="paynlIssuer">
                                                                         <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                                                         {% for bank in payment.translated.customFields.banks %}
-                                                                            <option value="{{ bank.id }}" {% if app.session.get('paynlIssuer') is defined and bank.id is same as(app.session.get('paynlIssuer'))%} selected {% endif %}>{{ bank.visibleName }}</option>
+                                                                            {% set isSelected = '' %}
+                                                                            {% if app.session.get('paynlIssuer') is defined and bank.id is same as(app.session.get('paynlIssuer'))%}
+                                                                                {% set isSelected = 'selected' %}
+                                                                            {% endif %}
+                                                                            <option value="{{ bank.id }}" {{ isSelected }}>{{ bank.visibleName }}</option>
                                                                         {% endfor %}
                                                                     </select>
                                                                 </div>
@@ -71,17 +79,10 @@
                                                         {% endif %}
 
                                                         {% if payment.translated.customFields.isPayLater %}
-                                                            <div class="paynl-paylater-fields align-content-center"
-                                                                {% if payment.id is same as(defaultPaymentMethodId) %}
-                                                                    style="display: inline-block"
-                                                                {% else %}
-                                                                    style="display: none"
-                                                                {% endif %}
-                                                            >
+                                                            <div class="paynl-paylater-fields align-content-center" style="display: {{ isDefaultPmIdDisplay }}">
                                                                 {% if not page.isBirthdayExists %}
                                                                     <div class="paynl-paylater-input-block mb-1">
-                                                                        <label class="form-label"
-                                                                           for="dob">{{ "checkout.labels.dob"|trans|striptags }}</label>
+                                                                        <label class="form-label" for="dob">{{ "checkout.labels.dob"|trans|striptags }}</label>
                                                                         <input type="text"
                                                                                id="paynl-dob-{{ loop.index }}"
                                                                                data-date-picker="true"
@@ -94,10 +95,10 @@
                                                                                data-max-date="today">
                                                                     </div>
                                                                 {% endif %}
+
                                                                 {% if not page.isPhoneNumberExists %}
                                                                     <div class="paynl-paylater-input-block">
-                                                                        <label class="form-label"
-                                                                               for="phone">{{ "checkout.labels.phone"|trans|striptags }}</label>
+                                                                        <label class="form-label" for="phone">{{ "checkout.labels.phone"|trans|striptags }}</label>
                                                                         <input type="tel"
                                                                                id="paynl-phone-{{ loop.index }}"
                                                                                class="form-control paynl-phone"
@@ -108,14 +109,8 @@
                                                                 {% endif %}
                                                             </div>
                                                         {% endif %}
-                                                        <div class="ml-auto d-inline-flex align-items-center">
-                                                            <div id="paynl-modal-buttons-{{ loop.index }}"
-                                                                    class="paynl-modal-buttons"
-                                                                    {% if payment.id is same as(defaultPaymentMethodId) %}
-                                                                style="display: inline-block"
-                                                            {% else %}
-                                                                style="display: none"
-                                                                    {% endif %}>
+                                                        <div class="paynl-button-info-block d-inline-flex align-items-center">
+                                                            <div id="paynl-modal-buttons-{{ loop.index }}" class="paynl-modal-buttons" style="display: {{ isDefaultPmIdDisplay }}">
                                                                 <button class="btn btn-primary paynl-change-payment-method"
                                                                         data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
                                                                         data-paynl-phone-field-id="paynl-phone-{{ loop.index }}"
