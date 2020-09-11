@@ -100,6 +100,16 @@
     border-left-color: #bcc1c7;
 }
 
+.do_not_show {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .show_only_desktop {
+        display: none !important;
+    }
+}
+
 @media (max-width: 500px) {
     .paynl-payment-method-banks {
         margin-left: 0.5rem;

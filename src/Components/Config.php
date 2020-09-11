@@ -56,6 +56,11 @@ class Config
         return (bool)$this->get('allowRefunds', false);
     }
 
+    public function getShowDescription(): string
+    {
+        return $this->get('showDescription', 'show_payment_method_info');
+    }
+
     /**
      * @return string[]
      */
