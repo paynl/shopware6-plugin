@@ -1,0 +1,30 @@
+{% sw_extends '@Storefront/storefront/layout/footer/footer.html.twig' %}
+
+{% block layout_footer_payment_logos %}
+    {% set paynlPmCounter = 0 %}
+    {% for paymentMethod in page.salesChannelPaymentMethods %}
+        {% if paymentMethod.formattedHandlerIdentifier == 'handler_paynlpayment_paynlpaymenthandler' %}
+            {% set paynlPmCounter = paynlPmCounter+1 %}
+        {% endif %}
+        {% block layout_footer_payment_logo %}
+            {% if paynlPmCounter <= 5 or paymentMethod.formattedHandlerIdentifier != 'handler_paynlpayment_paynlpaymenthandler' %}
+                {% if paymentMethod.media %}
+                    <div class="footer-logo is-payment">
+                        {% sw_thumbnails 'footer-payment-image-thumbnails' with {
+                            media: paymentMethod.media,
+                            sizes: {
+                                'default': '100px'
+                            },
+                            attributes: {
+                                'class': 'img-fluid footer-logo-image',
+                                'alt': (paymentMethod.media.translated.alt ?: paymentMethod.translated.name),
+                                'title': (paymentMethod.media.translated.title ?: paymentMethod.translated.name)
+                            }
+                        } %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endblock %}
+    {% endfor %}
+{% endblock %}
+
