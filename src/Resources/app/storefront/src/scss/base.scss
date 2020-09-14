@@ -10,7 +10,6 @@
 }
 
 .paynl-paylater-fields {
-    margin-left: 80px;
     align-self: center;
     align-content: space-between;
 }
@@ -69,6 +68,7 @@
 
 .paynl-payment-method-block {
     min-height: 40px;
+    justify-content: space-between;
 }
 
 .payment-method .form-group {
@@ -100,6 +100,16 @@
     border-left-color: #bcc1c7;
 }
 
+.do_not_show {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .show_only_desktop {
+        display: none !important;
+    }
+}
+
 .paynl-payment-method-label img {
     margin-right: 0.45rem;
 }
@@ -107,5 +117,35 @@
 @media (max-width: 500px) {
     .paynl-payment-method-banks {
         margin-left: 0.5rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 990px) {
+    .confirm-payment-modal .modal-dialog {
+        max-width: 650px;
+    }
+}
+
+@media (max-width: 768px) {
+    .paynl-payment-method-block {
+        flex-wrap: wrap;
+    }
+
+    .paynl-payment-method-input {
+        order: 1;
+    }
+
+    .paynl-payment-method-label {
+        order: 2;
+    }
+
+    .paynl-button-info-block {
+        order: 3;
+    }
+
+    .paynl-paylater-fields, .paynl-payment-method-banks {
+        margin-top: 15px;
+        width: 100%;
+        order: 4;
     }
 }
