@@ -156,7 +156,7 @@ class InstallHelper
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => PaynlPaymentHandler::class,
-            'name' => $paymentMethodValueObject->getName(),
+            'name' => $paymentMethodValueObject->getVisibleName(),
             'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
             'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
