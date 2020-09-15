@@ -117,6 +117,11 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\PageLoadedSubscriber" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Subscriber\CheckoutConfirmSubscriber" public="true">
             <tag name="kernel.event_subscriber"/>
         </service>

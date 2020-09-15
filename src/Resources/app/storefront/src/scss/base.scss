@@ -108,20 +108,8 @@
     order: 3;
 }
 
-@media (max-width: 768px) {
-    .show_only_desktop {
-        display: none !important;
-    }
-}
-
 .paynl-payment-method-label img {
     margin-right: 0.45rem;
-}
-
-@media (max-width: 500px) {
-    .paynl-payment-method-banks {
-        margin-left: 0.5rem;
-    }
 }
 
 @media (min-width: 768px) and (max-width: 990px) {
@@ -131,6 +119,10 @@
 }
 
 @media (max-width: 768px) {
+    .show_only_desktop {
+        display: none !important;
+    }
+
     .paynl-payment-method-block {
         flex-wrap: wrap;
     }
@@ -154,9 +146,9 @@
     }
 }
 
-@media (max-width: 425px) {
-    .paynl-payment-method-description {
-        max-width: 150px;
+@media (max-width: 500px) {
+    .paynl-payment-method-banks {
+        margin-left: 0.5rem;
     }
 }
 
