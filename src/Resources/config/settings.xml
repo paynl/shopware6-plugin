@@ -52,6 +52,33 @@
             <helpText lang="nl-NL">Schakel dit in om toe te staan dat restituties worden verwerkt vanuit de bestellijst</helpText>
             <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet werden können</helpText>
         </input-field>
+        <input-field type="single-select">
+            <name>showDescription</name>
+            <label>Show description</label>
+            <label lang="nl-NL">Toon beschrijving</label>
+            <label lang="de-DE">Beschreibung anzeigen</label>
+            <defaultValue>show_payment_method_info</defaultValue>
+            <options>
+                <option>
+                    <id>show_payment_method_info</id>
+                    <name>Show payment method info</name>
+                    <name lang="nl-NL">Toon betaalmethode beschrijving</name>
+                    <name lang="de-DE">Zahlungsinformationen anzeigen</name>
+                </option>
+                <option>
+                    <id>do_not_show</id>
+                    <name>Do not show payment method info</name>
+                    <name lang="nl-NL">Betaalmethode beschrijving niet tonen</name>
+                    <name lang="de-DE">Zahlungsinformationen nicht anzeigen</name>
+                </option>
+                <option>
+                    <id>show_only_desktop</id>
+                    <name>Show only on desktop</name>
+                    <name lang="nl-NL">Alleen op desktop tonen</name>
+                    <name lang="de-DE">Nur auf dem Desktop anzeigen</name>
+                </option>
+            </options>
+        </input-field>
         <input-field type="bool">
             <name>additionalAddressFields</name>
             <label>Use additional address fields</label>
