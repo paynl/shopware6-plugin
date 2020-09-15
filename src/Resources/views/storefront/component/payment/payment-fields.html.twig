@@ -43,6 +43,9 @@
                                                                 }
                                                                 } %}
                                                             {% endif %}
+                                                            <div class="paynl-payment-method-description payment-method-description">
+                                                                <strong>{{ payment.translated.name }}</strong>
+                                                            </div>
                                                         {% else %}
                                                             {{ parent() }}
                                                         {% endif %}
@@ -50,9 +53,6 @@
                                                 </label>
                                                 {% block component_payment_method_description %}
                                                     {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                                                        <div class="paynl-payment-method-description payment-method-description">
-                                                            <strong>{{ payment.translated.name }}</strong>
-                                                        </div>
                                                         {% if payment.translated.customFields.displayBanks %}
                                                             {% if payment.translated.customFields.banks is not empty %}
                                                                 <div id="paynl-banks" class="paynl-payment-method-banks" {% if payment.id is same as(defaultPaymentMethodId) %}
@@ -108,7 +108,7 @@
                                                                 {% endif %}
                                                             </div>
                                                         {% endif %}
-                                                        <div class="ml-auto d-inline-flex align-items-center">
+                                                        <div class="d-inline-flex align-items-center">
                                                             <div id="paynl-modal-buttons-{{ loop.index }}"
                                                                     class="paynl-modal-buttons"
                                                                     {% if payment.id is same as(defaultPaymentMethodId) %}

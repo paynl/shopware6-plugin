@@ -104,6 +104,10 @@
     display: none !important;
 }
 
+.paynl-payment-method-block .align-items-center {
+    order: 3;
+}
+
 @media (max-width: 768px) {
     .show_only_desktop {
         display: none !important;
@@ -147,5 +151,23 @@
         margin-top: 15px;
         width: 100%;
         order: 4;
+    }
+}
+
+@media (max-width: 425px) {
+    .paynl-payment-method-description {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 425px) {
+    .paynl-payment-method-description {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 350px) {
+    .paynl-payment-method-description {
+        max-width: 100px;
     }
 }
