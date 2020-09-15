@@ -54,10 +54,12 @@
         </input-field>
         <input-field type="single-select">
             <name>showDescription</name>
-            <label>Show description</label>
-            <label lang="nl-NL">Toon beschrijving</label>
-            <label lang="de-DE">Beschreibung anzeigen</label>
-            <defaultValue>show_payment_method_info</defaultValue>
+            <label>Payment methods description</label>
+            <label lang="nl-NL">Betaalmethoden beschrijving</label>
+            <label lang="de-DE">Beschreibung der Zahlungsmethoden</label>
+            <placeholder>Payment methods description</placeholder>
+            <placeholder lang="nl-NL">Betaalmethoden beschrijving</placeholder>
+            <placeholder lang="de-DE">Beschreibung der Zahlungsmethoden</placeholder>
             <options>
                 <option>
                     <id>show_payment_method_info</id>
