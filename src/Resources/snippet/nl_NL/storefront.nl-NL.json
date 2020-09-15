@@ -7,7 +7,7 @@
             "paid": "Betaling geslaagd!"
         },
         "messages": {
-            "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere."
+            "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere betaaloptie of probeer opnieuw."
         },
         "labels": {
             "changePayment": "Probeer opnieuw",
