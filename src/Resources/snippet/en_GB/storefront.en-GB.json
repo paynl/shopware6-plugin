@@ -7,7 +7,7 @@
             "paid": "Payment successful!"
         },
         "messages": {
-            "failedTransaction": "Your payment could not be processed with the selected payment method, please select another one."
+            "failedTransaction": "Your payment could not be processed with the selected payment method, please select another one or try again."
         },
         "labels": {
             "changePayment": "Try again",

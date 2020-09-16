@@ -154,12 +154,16 @@
 
 @media (max-width: 425px) {
     .paynl-payment-method-description {
-        max-width: 150px;
+        max-width: 130px;
     }
 }
 
 @media (max-width: 350px) {
     .paynl-payment-method-description {
-        max-width: 100px;
+        max-width: 90px;
+    }
+
+    .paynl-payment-method-description strong {
+        word-break: break-all;
     }
 }
