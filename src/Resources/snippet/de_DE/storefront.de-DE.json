@@ -7,7 +7,7 @@
             "paid": "Zahlung erfolgreich!"
         },
         "messages": {
-            "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere."
+            "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere aus oder versuchen Sie es erneut."
         },
         "labels": {
             "changePayment": "Erneut versuchen",
