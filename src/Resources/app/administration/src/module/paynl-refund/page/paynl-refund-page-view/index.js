@@ -81,51 +81,7 @@ Component.register('paynl-refund-page-view', {
         },
 
         createdComponent() {
-            this.isLoading = true;
-            this.paynlTransactionRepository = this.repositoryFactory.create('paynl_transactions');
-            let criteria = new Criteria();
-            criteria.addFilter(Criteria.equals('orderId', this.orderId));
-            criteria.addSorting(
-                Criteria.sort('paynl_transactions.createdAt', 'DESC')
-            );
-
-            this.paynlTransactionRepository.search(criteria, Shopware.Context.api)
-                .then((result) => {
-                    this.paynlTransaction = result[0];
-
-                    let criteriaOrder = new Criteria();
-                    criteriaOrder
-                        .addAssociation('currency')
-                        .addAssociation('lineItems');
-
-                    this.orderRepository = this.repositoryFactory.create('order');
-                    this.orderRepository.get(this.orderId, Shopware.Context.api, criteriaOrder)
-                        .then((response) => {
-                            this.order = response;
-                            // TODO: modify to use one to one relation
-                            this.products = this.order.lineItems;
-
-                            this.getDataForRefund();
-                        })
-                        .catch((exception) => {
-                            this.isLoading = false;
-
-                            this.createNotificationError({
-                                title: this.$tc('refund.notifications.danger'),
-                                message: exception
-                            });
-                        });
-
-                    this.isLoading = false;
-                })
-                .catch((exception) => {
-                    this.isLoading = false;
-
-                    this.createNotificationError({
-                        title: this.$tc('refund.notifications.danger'),
-                        message: exception
-                    });
-                });
+            this.loadOrderData();
         },
 
         updateIdentifier(identifier) {
@@ -185,6 +141,28 @@ Component.register('paynl-refund-page-view', {
 
         onUpdateLoading(loadingValue) {
             this.isLoading = loadingValue;
+        },
+
+        loadOrderData() {
+            this.isLoading = true;
+            let criteria = new Criteria();
+            criteria
+                .addAssociation('paynlTransactions')
+                .addAssociation('currency')
+                .addAssociation('lineItems');
+
+            criteria.getAssociation('paynlTransactions')
+                .addSorting(Criteria.sort('paynl_transactions.createdAt', 'DESC'));
+
+            this.orderRepository = this.repositoryFactory.create('order');
+            this.orderRepository.get(this.orderId, Shopware.Context.api, criteria)
+                .then((response) => {
+                    this.order = response;
+                    this.paynlTransaction = response.extensions.paynlTransactions[0];
+                    this.products = this.order.lineItems;
+
+                    this.getDataForRefund();
+                });
         }
     }
 });

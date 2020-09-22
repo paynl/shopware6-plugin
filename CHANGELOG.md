@@ -1,3 +1,12 @@
+# 0.3.1
+- corrected the order canceling message  for the Dutch version
+- fixed responsive design for the fields DoB and Phone number
+- changed PM title from 'Name' to 'Visible Name'
+- added limitation for PMs depiction in the footer (now max. 5)
+- added admin functionality of choosing whether to show PMs description
+- code improvements (refactoring)
+- minor CSS fixes
+
 # 0.3.0
 - Added messages for Order Finished page: for Pending - "Payment is being verified by administrator"; For Paid - "Payment successful!"
 - Added descriptions from API for certain PMs

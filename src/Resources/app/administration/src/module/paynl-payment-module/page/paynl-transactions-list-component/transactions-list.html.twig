@@ -32,8 +32,8 @@
                     </template>
 
                     <template slot="column-status" slot-scope="{ item }">
-                        <sw-label :variant="getVariantFromPaymentState(item.orderStateMachine.technicalName)" appearance="pill">
-                            {{ item.orderStateMachine.name }}
+                        <sw-label :variant="getVariantFromPaymentState(item.stateMachineState.technicalName)" appearance="pill">
+                            {{ item.stateMachineState.name }}
                         </sw-label>
                     </template>
 

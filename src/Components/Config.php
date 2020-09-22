@@ -81,4 +81,9 @@ class Config
             $this->config->set(sprintf(self::CONFIG_TEMPLATE, $configKey), $configValue);
         }
     }
+
+    public function getShowDescription(): string
+    {
+        return $this->get('showDescription', 'show_payment_method_info');
+    }
 }
