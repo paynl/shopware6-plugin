@@ -21,8 +21,13 @@ class PaymentMethodValueObject
         $this->name = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $this->visibleName = $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME];
         $this->banks = $paymentMethod[Api::PAYMENT_METHOD_BANKS] ?: [];
-        $this->brandId = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_ID];
-        $this->description = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_DESCRIPTION];
+        if (!empty($paymentMethod[Api::PAYMENT_METHOD_BRAND])) {
+            $this->brandId = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_ID];
+            $this->description = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_DESCRIPTION];
+        } else {
+            $this->brandId = null;
+            $this->description = '';
+        }
     }
 
     /**
@@ -66,9 +71,9 @@ class PaymentMethodValueObject
     }
 
     /**
-     * @return int
+     * @return null|int
      */
-    public function getBrandId(): int
+    public function getBrandId(): ?int
     {
         return $this->brandId;
     }
