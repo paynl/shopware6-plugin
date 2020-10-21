@@ -20,14 +20,9 @@ class PaymentMethodValueObject
         $this->hashedId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
         $this->name = $paymentMethod[Api::PAYMENT_METHOD_NAME];
         $this->visibleName = $paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME];
-        $this->banks = $paymentMethod[Api::PAYMENT_METHOD_BANKS] ?: [];
-        if (!empty($paymentMethod[Api::PAYMENT_METHOD_BRAND])) {
-            $this->brandId = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_ID];
-            $this->description = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_DESCRIPTION];
-        } else {
-            $this->brandId = null;
-            $this->description = '';
-        }
+        $this->banks = $paymentMethod[Api::PAYMENT_METHOD_BANKS] ?? [];
+        $this->brandId = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_ID] ?? null;
+        $this->description = $paymentMethod[Api::PAYMENT_METHOD_BRAND][Api::PAYMENT_METHOD_BRAND_DESCRIPTION] ?? '';
     }
 
     /**
