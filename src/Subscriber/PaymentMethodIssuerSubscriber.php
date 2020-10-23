@@ -45,6 +45,9 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
             $this->session->set('paynlIssuer', $event->getRequestDataBag()->get('paynlIssuer'));
         }
 
+        if (!$event->getRequestDataBag()->has('paymentMethodId')) {
+            return;
+        }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
 
@@ -57,6 +60,10 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     public function onPaymentMethodChanged(CustomerChangedPaymentMethodEvent $event)
     {
         $this->session->set('paynlIssuer', $event->getRequestDataBag()->get('paynlIssuer'));
+
+        if (!$event->getRequestDataBag()->has('paymentMethodId')) {
+            return;
+        }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
 
