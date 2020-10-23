@@ -73,18 +73,13 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     private function processPayLaterFields(array $requestData, CustomerEntity $customer, Context $context): void
     {
         $paymentMethodId = $requestData['paymentMethodId'];
-        if (array_key_exists('phone', $requestData) && array_key_exists($paymentMethodId, $requestData['phone'])) {
-            $phoneNumbers = $requestData['phone'];
-            $phone = $phoneNumbers[$paymentMethodId];
+        $phone = $requestData['phone'][$paymentMethodId] ?? null;
+        if ($phone) {
             $billingAddress = $customer->getDefaultBillingAddress();
-
             $this->customerHelper->saveCustomerPhone($billingAddress, $phone, $context);
         }
-
-        if (array_key_exists('dob', $requestData) && array_key_exists($paymentMethodId, $requestData['dob'])) {
-            $dobArray = $requestData['dob'];
-            $dob = $dobArray = $dobArray[$paymentMethodId] ?? '';
-
+        $dob = $requestData['dob'][$paymentMethodId] ?? null;
+        if ($dob) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
         }
     }
