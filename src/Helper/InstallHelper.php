@@ -106,7 +106,9 @@ class InstallHelper
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
-            $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
+            if (!empty($paymentMethodValueObject->getBrandId())) {
+                $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
+            }
             $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
             $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);

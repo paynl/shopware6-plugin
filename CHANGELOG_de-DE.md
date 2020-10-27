@@ -1,11 +1,15 @@
+# 0.3.2
+- Bug mit leeren brand ID behoben
+- Bug mit der Änderung der Versandmethode behoben, auf der Bestellseite
+
 # 0.3.1
-- korrigierte die Auftragsstornierungsmeldung für die niederländische Version
-- das reaktionsfähige Design für die Felder DoB und Telefonnummer korrigiert
+- Korrigierte die Auftragsstornierungsmeldung für die niederländische Version
+- Das reaktionsfähige Design für die Felder DoB und Telefonnummer korrigiert
 - PM-Titel von 'Name' in 'Sichtbarer Name' geändert
 - Einschränkung für die Darstellung von PMs in der Fußzeile hinzugefügt (jetzt max. 5)
 - Admin-Funktionalität hinzugefügt, mit der gewählt werden kann, ob die Beschreibung der PMs angezeigt werden soll
 - Code-Verbesserungen (Refactoring)
-- kleinere CSS-Fixes
+- Kleinere CSS-Fixes
 
 # 0.3.0
 - Beschreibung hinzugefügt für Bestellseite: Pending - "Zahlung wird vom Administrator kontrolliert"; Paid - "Zahlung erfolgreich"

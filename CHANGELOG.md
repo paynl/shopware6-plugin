@@ -1,11 +1,15 @@
+# 0.3.2
+- Fixed the bug with empty brand data
+- Fixed the bug with Shipping method edit on Complete order page
+
 # 0.3.1
-- corrected the order canceling message  for the Dutch version
-- fixed responsive design for the fields DoB and Phone number
-- changed PM title from 'Name' to 'Visible Name'
-- added limitation for PMs depiction in the footer (now max. 5)
-- added admin functionality of choosing whether to show PMs description
-- code improvements (refactoring)
-- minor CSS fixes
+- Corrected the order canceling message  for the Dutch version
+- Fixed responsive design for the fields DoB and Phone number
+- Changed PM title from 'Name' to 'Visible Name'
+- Added limitation for PMs depiction in the footer (now max. 5)
+- Added admin functionality of choosing whether to show PMs description
+- Code improvements (refactoring)
+- Minor CSS fixes
 
 # 0.3.0
 - Added messages for Order Finished page: for Pending - "Payment is being verified by administrator"; For Paid - "Payment successful!"
