@@ -63,12 +63,16 @@ class CustomerHelper
             ],
             'company' => [
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
-                'cocNumber' => $customer->getDefaultBillingAddress()->getCustomFields()['cocNumber'],
                 'vatNumber' => $customer->getDefaultBillingAddress()->getVatId(),
             ],
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
         ];
+
+        $cocNumber = $customer->getDefaultBillingAddress()->getCustomFields()['cocNumber'] ?? null;
+        if (!empty($cocNumber)) {
+            $formattedAddress['company']['cocNumber'] = $cocNumber;
+        }
 
         $birthDate = $customer->getBirthday();
         if (!empty($birthDate)) {
