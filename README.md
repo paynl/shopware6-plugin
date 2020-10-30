@@ -6,7 +6,7 @@
 # Description
 
 This PAY. plugin provides all the payment methods your need for your Shopware6 webshop. 
-For more info about this plugin visit <a href="https://docs.pay.nl/plugins#shopware-six">PAY's documentation</a>.
+For more information about this plugin visit <a href="https://docs.pay.nl/plugins#shopware-six">PAY's documentation</a>.
 
 - [Description](#description)
 - [Available payment methods](#available-payment-methods)
@@ -17,8 +17,8 @@ For more info about this plugin visit <a href="https://docs.pay.nl/plugins#shopw
 
 # Available payment methods
 
-This list includes payment options like: iDEAL + QR, Bancontact + QR, Maestro, Visa, FashionCheque, Mastercard, Billink, Klarna, PayPal, Afterpay and many more. We at PAY. provide multiple payment options for your webshop. Look up the full list on https://www.pay.nl/betaalmethoden.<br/>
-For more info, consult PAY. support at support@pay.nl.
+This list includes payment options like: iDEAL + QR, Bancontact + QR, Maestro, Visa, FashionCheque, Mastercard, Billink, Klarna, PayPal, Afterpay and many more. We at PAY. provide multiple payment options for your webshop. Check the full list at <a href="https://www.pay.nl/betaalmethoden">PAY's payment methods</a>.
+For more information on this topic consult PAY. at support@pay.nl.
 
 # Installation
 #### Installing
