@@ -16,6 +16,9 @@ class PaynlPaymentPlugin extends Plugin {
         for (let i = 0; i < paynlChangePMButton.length; i++) {
             paynlChangePMButton[i].onclick = this.onSavePaymentMethod;
         }
+
+        const form = document.getElementById('confirmPaymentForm');
+        form.addEventListener('submit', this.onSavePaymentMethod);
     }
 
     idealChangeBank() {
@@ -28,6 +31,12 @@ class PaynlPaymentPlugin extends Plugin {
 
     onChangeBank() {
         const idealBank = document.getElementById('paynl-ideal-banks-select').value;
+        if (idealBank === '') {
+            document.getElementById('paynl-ideal-banks-select').classList.add('invalid');
+        } else {
+            document.getElementById('paynl-ideal-banks-select').classList.remove('invalid');
+        }
+
         const xhr = new XMLHttpRequest();
         const data = {'paynlIssuer': idealBank};
         xhr.open('POST', '/PaynlPayment/order/change/payment', true);
@@ -41,6 +50,19 @@ class PaynlPaymentPlugin extends Plugin {
         const dobInput = document.getElementById(dobInputId);
         const phoneInput = document.getElementById(phoneInputId);
 
+        const banksWrapper = document.getElementById('paynl-banks');
+        const banksSelect = document.getElementById('paynl-ideal-banks-select');
+        const bankWrapperVisible = banksWrapper.offsetWidth > 0 && banksWrapper.offsetHeight > 0;
+
+        if (bankWrapperVisible && banksSelect.value == '') {
+            element.preventDefault();
+            element.stopPropagation();
+
+            banksSelect.classList.add('invalid');
+        } else {
+            banksSelect.classList.remove('invalid');
+        }
+
         let dob = '';
         let phone = '';
         if (dobInput !== null) {
@@ -50,6 +72,7 @@ class PaynlPaymentPlugin extends Plugin {
             phone = phoneInput.value
         }
 
+        window.stop();
         const xhr = new XMLHttpRequest();
         const data = {'dob': dob, 'phone': phone};
         xhr.open('POST', '/PaynlPayment/order/change/paylater-fields', true);
