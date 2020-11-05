@@ -31,9 +31,8 @@ class PaynlPaymentPlugin extends Plugin {
 
     onChangeBank() {
         const idealBank = document.getElementById('paynl-ideal-banks-select').value;
-        if (idealBank === '') {
-            document.getElementById('paynl-ideal-banks-select').classList.add('invalid');
-        } else {
+
+        if (idealBank !== '') {
             document.getElementById('paynl-ideal-banks-select').classList.remove('invalid');
         }
 
@@ -72,7 +71,6 @@ class PaynlPaymentPlugin extends Plugin {
             phone = phoneInput.value
         }
 
-        window.stop();
         const xhr = new XMLHttpRequest();
         const data = {'dob': dob, 'phone': phone};
         xhr.open('POST', '/PaynlPayment/order/change/paylater-fields', true);
@@ -104,6 +102,7 @@ class PaynlPaymentPlugin extends Plugin {
                 idealBanksBlock.style.display = 'inline-flex';
             } else {
                 idealBanksSelect.selectedIndex = 0;
+                idealBanksSelect.classList.remove('invalid');
             }
 
             if (paylaterBlock !== undefined) {
