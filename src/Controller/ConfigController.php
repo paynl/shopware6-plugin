@@ -41,8 +41,14 @@ class ConfigController extends AbstractController
     public function installPaymentMethods(Request $request, Context $context): JsonResponse
     {
         try {
-            $this->installHelper->addPaymentMethods($context);
-            $this->installHelper->activatePaymentMethods($context);
+            if ($this->config->getSinglePaymentMethodInd()) {
+                $this->installHelper->addSinglePaymentMethod($context);
+            } else {
+                $this->installHelper->removeSinglePaymentMethod($context);
+                $this->installHelper->addPaymentMethods($context);
+                $this->installHelper->activatePaymentMethods($context);
+            }
+
 
             return $this->json([
                 'success' => true,

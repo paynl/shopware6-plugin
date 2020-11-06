@@ -35,6 +35,15 @@
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
         <input-field type="bool">
+            <name>useSinglePaymentMethod</name>
+            <label>Use single payment method by PAY.</label>
+            <label lang="nl-NL">Use single payment method by PAY.</label>
+            <label lang="de-DE">Use single payment method by PAY.</label>
+            <helpText>Use single payment method by PAY.</helpText>
+            <helpText lang="nl-NL">Use single payment method by PAY.</helpText>
+            <helpText lang="de-DE">Use single payment method by PAY.</helpText>
+        </input-field>
+        <input-field type="bool">
             <name>testMode</name>
             <label>Test mode</label>
             <label lang="nl-NL">Test mode</label>

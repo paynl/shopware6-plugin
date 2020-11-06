@@ -12,9 +12,13 @@ use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
+use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -29,6 +33,8 @@ class InstallHelper
     const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
     const PAYMENT_METHOD_IDEAL_ID = 10;
+
+    const SINGLE_PAYMENT_METHOD_ID = '123456789000';
 
     /** @var SystemConfigService $configService */
     private $configService;
@@ -95,6 +101,70 @@ class InstallHelper
         }
 
         $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
+
+    public function addSinglePaymentMethod(Context $context): void
+    {
+        $this->switchAllPaymentMethods($context, false);
+        $update = $this->updateSinglePaymentMethod($context, true);
+
+        if (!$update) {
+            $paymentMethodData[] = [
+                'id' => md5(self::SINGLE_PAYMENT_METHOD_ID),
+                API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
+                API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
+                API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
+                API::PAYMENT_METHOD_BRAND => [
+                    API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
+                ]
+            ];
+
+            $this->upsertPaymentMethods($paymentMethodData, $context);
+        }
+    }
+
+    public function removeSinglePaymentMethod(Context $context): void
+    {
+        $this->switchAllPaymentMethods($context, true);
+        $this->updateSinglePaymentMethod($context, false);
+    }
+
+    private function updateSinglePaymentMethod(Context $context, bool $active): bool
+    {
+        /** @var PaymentMethodEntity $paymentMethod */
+        $paymentMethod = $this->paymentMethodRepository->search(
+            new Criteria([md5(self::SINGLE_PAYMENT_METHOD_ID)]),
+            $context
+        )->first();
+
+        if (empty($paymentMethod)) {
+            return false;
+        }
+
+        $pmData[] = [
+            'id' => $paymentMethod->getId(),
+            'active' => $active
+        ];
+        $this->paymentMethodRepository->upsert($pmData, $context);
+
+        return true;
+    }
+
+    private function switchAllPaymentMethods(Context $context, bool $active): void
+    {
+        /** @var PaymentMethodCollection $paymentMethods */
+        $paymentMethods = $this->paymentMethodRepository->search(new Criteria(), $context);
+        $paymentMethodsNewData = [];
+
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethods as $paymentMethod) {
+            $paymentMethodsNewData[] = [
+                'id' => $paymentMethod->getId(),
+                'active' => $active
+            ];
+        }
+
+        $this->paymentMethodRepository->update($paymentMethodsNewData, $context);
     }
 
     private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
