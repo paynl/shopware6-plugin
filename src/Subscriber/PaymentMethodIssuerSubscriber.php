@@ -95,19 +95,18 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $issuer = $this->session->get('paynlIssuer');
 
         if ($issuer !== null) {
+            $data = [];
             $order = $event->getOrder();
             $context = $event->getContext();
-            $data = [];
+            $orderCustomFields = (array)$order->getCustomFields();
+            $orderCustomFields['paynlIssuer'] = $issuer;
 
             $data[] = [
                 'id' => $order->getId(),
-                'customFields' => [
-                    'paynlIssuer' => $issuer
-                ]
+                'customFields' => $orderCustomFields
             ];
 
             $this->orderHelper->updateOrderCustomFields($context, $data);
         }
-
     }
 }
