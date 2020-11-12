@@ -3,7 +3,7 @@
         <dt>{{ $tc('sw-order.detailBase.labelPaymentMethod') }}</dt>
         <dd>
             {{ currentOrder.transactions.last().paymentMethod.translated.name}}
-            <i v-if="payIssuer">{{ payIssuer }}</i>
+            <span v-if="payIssuer">({{ payIssuer }})</span>
         </dd>
     </template>
 {% endblock %}
