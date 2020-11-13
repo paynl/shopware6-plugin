@@ -8,7 +8,7 @@
         <span class="order-table-body-value">
             {{ order.transactions|last.paymentMethod.translated.name }}
             {% if order.customFields.paynlIssuer is defined %}
-                {% for bank in order.transactions|last.paymentMethod.customFields.banks %}
+                {% for bank in order.transactions|last.paymentMethod.translated.customFields.banks %}
                     {% if bank.id == order.customFields.paynlIssuer %}
                         ({{ bank.visibleName }})
                     {% endif %}
