@@ -21,10 +21,6 @@
             <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Helper\OrderHelper" public="true">
-            <argument type="service" id="order.repository"/>
-        </service>
-
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\Config">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -34,6 +30,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="product.repository"/>
+            <argument type="service" id="order.repository"/>
             <argument type="service" id="translator" />
             <argument type="service" id="session"/>
         </service>
@@ -119,7 +116,6 @@
             <tag name="kernel.event_subscriber"/>
             <argument type="service" id="session"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\OrderHelper"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\PageLoadedSubscriber" public="true">

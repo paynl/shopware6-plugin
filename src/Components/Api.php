@@ -41,6 +41,8 @@ class Api
     private $customerHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
+    /** @var EntityRepositoryInterface */
+    private $orderRepository;
     /** @var TranslatorInterface */
     private $translator;
     /** @var Session */
@@ -50,12 +52,14 @@ class Api
         Config $config,
         CustomerHelper $customerHelper,
         EntityRepositoryInterface $productRepository,
+        EntityRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
         Session $session
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
+        $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->session = $session;
     }
@@ -158,6 +162,16 @@ class Api
         ];
 
         if (!empty($bank)) {
+            $orderCustomFields = (array)$transaction->getOrder()->getCustomFields();
+            $orderCustomFields['paynlIssuer'] = $bank;
+
+            $data[] = [
+                'id' => $transaction->getOrder()->getId(),
+                'customFields' => $orderCustomFields
+            ];
+
+            $this->orderRepository->upsert($data, $salesChannelContext->getContext());
+
             $transactionInitialData['bank'] = $bank;
         }
 

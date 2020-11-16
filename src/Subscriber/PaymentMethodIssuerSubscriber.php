@@ -3,8 +3,6 @@
 namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
-use PaynlPayment\Shopware6\Helper\OrderHelper;
-use Shopware\Core\Checkout\Cart\Event\CheckoutOrderPlacedEvent;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
 use Shopware\Core\Framework\Context;
@@ -20,17 +18,12 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /** @var CustomerHelper $customerHelper */
     private $customerHelper;
 
-    /** @var OrderHelper $orderHelper */
-    private $orderHelper;
-
     public function __construct(
         Session $session,
-        CustomerHelper $customerHelper,
-        OrderHelper $orderHelper
+        CustomerHelper $customerHelper
     ) {
         $this->session = $session;
         $this->customerHelper = $customerHelper;
-        $this->orderHelper = $orderHelper;
     }
 
     public static function getSubscribedEvents(): array
@@ -38,7 +31,6 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         return [
             'Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent' => 'onCheckoutPaymentMethodChange',
             'Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent' => 'onPaymentMethodChanged',
-            CheckoutOrderPlacedEvent::class => 'onOrderPlaced'
         ];
     }
 
@@ -87,26 +79,6 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $dob = $requestData['dob'][$paymentMethodId] ?? null;
         if ($dob) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
-        }
-    }
-
-    public function onOrderPlaced(CheckoutOrderPlacedEvent $event): void
-    {
-        $issuer = $this->session->get('paynlIssuer');
-
-        if ($issuer !== null) {
-            $data = [];
-            $order = $event->getOrder();
-            $context = $event->getContext();
-            $orderCustomFields = (array)$order->getCustomFields();
-            $orderCustomFields['paynlIssuer'] = $issuer;
-
-            $data[] = [
-                'id' => $order->getId(),
-                'customFields' => $orderCustomFields
-            ];
-
-            $this->orderHelper->updateOrderCustomFields($context, $data);
         }
     }
 }
