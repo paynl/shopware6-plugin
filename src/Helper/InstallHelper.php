@@ -19,6 +19,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
+use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -36,27 +37,27 @@ class InstallHelper
 
     /** @var SystemConfigService $configService */
     private $configService;
+    /** @var PluginIdProvider $pluginIdProvider */
     private $pluginIdProvider;
+    /** @var EntityRepositoryInterface $paymentMethodRepository */
     private $paymentMethodRepository;
+    /** @var EntityRepositoryInterface $salesChannelRepository */
     private $salesChannelRepository;
+    /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
     private $paymentMethodSalesChannelRepository;
+    /** @var Connection $connection */
     private $connection;
-    /** @var Api */
+    /** @var Api $paynlApi */
     private $paynlApi;
-    /** @var MediaHelper  */
+    /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var PluginIdProvider $this->pluginIdProvider  */
         $this->pluginIdProvider = $container->get(PluginIdProvider::class);
-        /** @var EntityRepositoryInterface $this->paymentMethodRepository */
         $this->paymentMethodRepository = $container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
-        /** @var EntityRepositoryInterface $this->salesChannelRepository */
         $this->salesChannelRepository = $container->get('sales_channel.repository');
-        /** @var EntityRepositoryInterface $this->paymentMethodSalesChannelRepository */
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
-        /** @var Connection $this->connection */
         $this->connection = $container->get(Connection::class);
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
@@ -64,7 +65,6 @@ class InstallHelper
         /** @var SystemConfigService $configService */
         $configService = $container->get(SystemConfigService::class);
         $this->configService = $configService;
-        /** @var Config $config */
         $config = new Config($configService);
         /** @var EntityRepositoryInterface $customerAddressRepository */
         $customerAddressRepository = $container->get('customer_address.repository');
@@ -123,8 +123,11 @@ class InstallHelper
 
     public function removeSinglePaymentMethod(Context $context): void
     {
-        $this->switchAllPaymentMethods($context, true);
-        $this->updateSinglePaymentMethod($context, false);
+        $update = $this->updateSinglePaymentMethod($context, false);
+
+        if ($update) {
+            $this->switchAllPaymentMethods($context, true);
+        }
     }
 
     private function updateSinglePaymentMethod(Context $context, bool $active): bool
@@ -148,6 +151,22 @@ class InstallHelper
         return true;
     }
 
+    public function setDefaultPaymentMethod(Context $context, string $paymentMethodId): void
+    {
+        $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
+        $salesChannelsToUpdate = [];
+
+        /** @var SalesChannelEntity $salesChannel */
+        foreach ($salesChannels as $salesChannel) {
+            $salesChannelsToUpdate[] = [
+                'id' => $salesChannel->getId(),
+                'paymentMethodId'=> md5($paymentMethodId)
+            ];
+        }
+
+        $this->salesChannelRepository->upsert($salesChannelsToUpdate, $context);
+    }
+
     private function switchAllPaymentMethods(Context $context, bool $active): void
     {
         /** @var PaymentMethodCollection $paymentMethods */
@@ -156,6 +175,10 @@ class InstallHelper
 
         /** @var PaymentMethodEntity $paymentMethod */
         foreach ($paymentMethods as $paymentMethod) {
+            if ($paymentMethod->getId() === md5(self::SINGLE_PAYMENT_METHOD_ID)) {
+                continue;
+            }
+
             $paymentMethodsNewData[] = [
                 'id' => $paymentMethod->getId(),
                 'active' => $active
