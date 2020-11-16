@@ -108,8 +108,7 @@ class InstallHelper
 
         if (!$update) {
             $paymentMethodData[] = [
-                'id' => md5(self::SINGLE_PAYMENT_METHOD_ID),
-                API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
+                API::PAYMENT_METHOD_ID => md5(self::SINGLE_PAYMENT_METHOD_ID),
                 API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
                 API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
                 API::PAYMENT_METHOD_BRAND => [
