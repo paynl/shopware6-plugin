@@ -33,7 +33,7 @@ class InstallHelper
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
     const PAYMENT_METHOD_IDEAL_ID = 10;
 
-    const SINGLE_PAYMENT_METHOD_ID = '123456789000';
+    const SINGLE_PAYMENT_METHOD_ID = '123456789';
 
     /** @var SystemConfigService $configService */
     private $configService;
@@ -108,7 +108,7 @@ class InstallHelper
 
         if (!$update) {
             $paymentMethodData[] = [
-                API::PAYMENT_METHOD_ID => md5(self::SINGLE_PAYMENT_METHOD_ID),
+                API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
                 API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
                 API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
                 API::PAYMENT_METHOD_BRAND => [
