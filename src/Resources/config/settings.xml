@@ -36,12 +36,12 @@
         </input-field>
         <input-field type="bool">
             <name>useSinglePaymentMethod</name>
-            <label>Use single payment method by PAY.</label>
-            <label lang="nl-NL">Use single payment method by PAY.</label>
-            <label lang="de-DE">Use single payment method by PAY.</label>
-            <helpText>Use single payment method by PAY.</helpText>
-            <helpText lang="nl-NL">Use single payment method by PAY.</helpText>
-            <helpText lang="de-DE">Use single payment method by PAY.</helpText>
+            <label>Use a single payment method provided by PAY.</label>
+            <label lang="nl-NL">Gebruik een uniforme betalingsmethode die wordt aangeboden door PAY.</label>
+            <label lang="de-DE">Verwenden Sie eine angebotene einheitliche Zahlungsmethode von PAY.</label>
+            <helpText>This option turns off all the other payment methods. A user will be redirected to PAY.'s payment method page.</helpText>
+            <helpText lang="nl-NL">Deze optie deactiveert alle betaalmethoden. Een gebruiker wordt doorgestuurd naar de betaalmethodepagina van PAY.</helpText>
+            <helpText lang="de-DE">Diese Option deaktiviert alle Zahlungsmethoden. Ein Benutzer wird auf die Seite Zahlungsmethode von PAY weitergeleitet.</helpText>
         </input-field>
         <input-field type="bool">
             <name>testMode</name>

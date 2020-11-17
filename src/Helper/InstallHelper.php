@@ -12,6 +12,7 @@ use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
+use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
@@ -150,16 +151,38 @@ class InstallHelper
         return true;
     }
 
-    public function setDefaultPaymentMethod(Context $context, string $paymentMethodId): void
+    public function setDefaultPaymentMethod(Context $context, ?string $paymentMethodId = null): void
     {
         $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
         $salesChannelsToUpdate = [];
+
+        if ($paymentMethodId === null) {
+            /** @var PaymentMethodEntity $paymentMethod */
+            $paymentMethod = $this->paymentMethodRepository->search(
+                (new Criteria())->addFilter(new EqualsFilter('handlerIdentifier', CashPayment::class)),
+                $context
+            )->first();
+
+            if (!empty($paymentMethod)) {
+                $paymentMethodId = $paymentMethod->getId();
+            } else {
+                /** @var PaymentMethodEntity $paymentMethod */
+                $paymentMethod = $this->paymentMethodRepository->search(
+                    (new Criteria())
+                        ->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class))
+                        ->addFilter(new EqualsFilter('active', 1)),
+                    $context
+                )->first();
+
+                $paymentMethodId = $paymentMethod->getId();
+            }
+        }
 
         /** @var SalesChannelEntity $salesChannel */
         foreach ($salesChannels as $salesChannel) {
             $salesChannelsToUpdate[] = [
                 'id' => $salesChannel->getId(),
-                'paymentMethodId'=> md5($paymentMethodId)
+                'paymentMethodId'=> $paymentMethodId
             ];
         }
 

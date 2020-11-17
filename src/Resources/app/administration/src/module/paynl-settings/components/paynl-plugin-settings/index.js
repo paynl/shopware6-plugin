@@ -132,6 +132,10 @@ Component.register('paynl-plugin-settings', {
         },
 
         onInstallPaymentMethods() {
+            if (this.settingsData.useSinglePaymentMethod) {
+                return;
+            }
+
             if (this.credentialsEmpty) {
                 this.showCredentilasErrors = true;
                 return;

@@ -40,6 +40,10 @@ class ConfigController extends AbstractController
      */
     public function installPaymentMethods(Request $request, Context $context): JsonResponse
     {
+        if ($this->config->getSinglePaymentMethodInd()) {
+            return new JsonResponse([]);
+        }
+
         try {
             $this->installHelper->addPaymentMethods($context);
             $this->installHelper->activatePaymentMethods($context);
@@ -78,14 +82,11 @@ class ConfigController extends AbstractController
                 $this->installHelper->addSinglePaymentMethod($context);
                 $this->installHelper->setDefaultPaymentMethod(
                     $context,
-                    (string)InstallHelper::SINGLE_PAYMENT_METHOD_ID
+                    md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID)
                 );
             } else {
                 $this->installHelper->removeSinglePaymentMethod($context);
-                $this->installHelper->setDefaultPaymentMethod(
-                    $context,
-                    (string)InstallHelper::PAYMENT_METHOD_IDEAL_ID
-                );
+                $this->installHelper->setDefaultPaymentMethod($context);
             }
 
             return $this->json([
