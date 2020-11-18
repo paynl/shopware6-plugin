@@ -41,7 +41,6 @@
 
                 <div class="finish-header"><a class="btn btn-lg btn-primary" href="/account/order/edit/{{ page.getOrder.id }}">{{ "checkout.labels.changePayment"|trans() }}</a></div>
             {% endif %}
-
         {% else %}
             {{ parent() }}
         {% endif %}
@@ -56,13 +55,7 @@
                     {{ parent() }}
                 {% endif %}
             {% endblock %}
-
-            {# @depracted tag:6.4.0 #}
-            {% block page_checkout_finish_action %}
-
-                {# @depracted tag:6.4.0 #}
-                {% block page_checkout_finish_action_back %}{% endblock %}
-            {% endblock %}
+            {{ parent }}
         </div>
     {% endblock %}
 {% endblock %}
