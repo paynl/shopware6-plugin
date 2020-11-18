@@ -53,10 +53,6 @@
         {% block page_checkout_finish_teaser %}
             {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                 {% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
-                {% if (status == 'cancelled' or status == 'denied') %}
-                    {% if page.changedPayment != true %}
-                    {% endif %}
-                {% endif %}
             {% else %}
                 {{ parent() }}
             {% endif %}
