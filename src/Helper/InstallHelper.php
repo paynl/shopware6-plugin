@@ -163,9 +163,7 @@ class InstallHelper
                 $context
             )->first();
 
-            if (!empty($paymentMethod)) {
-                $paymentMethodId = $paymentMethod->getId();
-            } else {
+            if (empty($paymentMethod)) {
                 /** @var PaymentMethodEntity $paymentMethod */
                 $paymentMethod = $this->paymentMethodRepository->search(
                     (new Criteria())
@@ -173,9 +171,9 @@ class InstallHelper
                         ->addFilter(new EqualsFilter('active', 1)),
                     $context
                 )->first();
-
-                $paymentMethodId = $paymentMethod->getId();
             }
+
+            $paymentMethodId = $paymentMethod->getId();
         }
 
         /** @var SalesChannelEntity $salesChannel */
