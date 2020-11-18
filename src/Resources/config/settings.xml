@@ -35,6 +35,15 @@
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
         <input-field type="bool">
+            <name>useSinglePaymentMethod</name>
+            <label>Use a uniform payment method by PAY.</label>
+            <label lang="nl-NL">Gebruik een uniforme betaalmethode aangeboden door PAY.</label>
+            <label lang="de-DE">Verwenden Sie eine einheitliche, von PAY angebotene Zahlungsmethode.</label>
+            <helpText>This option turns off all other payment methods and redirects the user to PAY's hosted payment pages.</helpText>
+            <helpText lang="nl-NL">Deze optie deactiveert alternatieve betaalmethoden en stuurt de gebruiker door naar de hosted payment pages van PAY.</helpText>
+            <helpText lang="de-DE">Diese Option deaktiviert alternative Zahlungsmethoden und leitet den Benutzer auf die gehosteten Zahlungsseiten von PAY um.</helpText>
+        </input-field>
+        <input-field type="bool">
             <name>testMode</name>
             <label>Test mode</label>
             <label lang="nl-NL">Test mode</label>

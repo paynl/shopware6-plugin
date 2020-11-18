@@ -12,11 +12,15 @@ use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
+use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
+use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
+use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -30,29 +34,31 @@ class InstallHelper
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
     const PAYMENT_METHOD_IDEAL_ID = 10;
 
+    const SINGLE_PAYMENT_METHOD_ID = '123456789';
+
     /** @var SystemConfigService $configService */
     private $configService;
+    /** @var PluginIdProvider $pluginIdProvider */
     private $pluginIdProvider;
+    /** @var EntityRepositoryInterface $paymentMethodRepository */
     private $paymentMethodRepository;
+    /** @var EntityRepositoryInterface $salesChannelRepository */
     private $salesChannelRepository;
+    /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
     private $paymentMethodSalesChannelRepository;
+    /** @var Connection $connection */
     private $connection;
-    /** @var Api */
+    /** @var Api $paynlApi */
     private $paynlApi;
-    /** @var MediaHelper  */
+    /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
 
     public function __construct(ContainerInterface $container)
     {
-        /** @var PluginIdProvider $this->pluginIdProvider  */
         $this->pluginIdProvider = $container->get(PluginIdProvider::class);
-        /** @var EntityRepositoryInterface $this->paymentMethodRepository */
         $this->paymentMethodRepository = $container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
-        /** @var EntityRepositoryInterface $this->salesChannelRepository */
         $this->salesChannelRepository = $container->get('sales_channel.repository');
-        /** @var EntityRepositoryInterface $this->paymentMethodSalesChannelRepository */
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
-        /** @var Connection $this->connection */
         $this->connection = $container->get(Connection::class);
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
@@ -60,7 +66,6 @@ class InstallHelper
         /** @var SystemConfigService $configService */
         $configService = $container->get(SystemConfigService::class);
         $this->configService = $configService;
-        /** @var Config $config */
         $config = new Config($configService);
         /** @var EntityRepositoryInterface $customerAddressRepository */
         $customerAddressRepository = $container->get('customer_address.repository');
@@ -95,6 +100,112 @@ class InstallHelper
         }
 
         $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+    }
+
+    public function addSinglePaymentMethod(Context $context): void
+    {
+        $this->switchAllPaymentMethods($context, false);
+        $update = $this->updateSinglePaymentMethod($context, true);
+
+        if (!$update) {
+            $paymentMethodData[] = [
+                API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
+                API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
+                API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
+                API::PAYMENT_METHOD_BRAND => [
+                    API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
+                ]
+            ];
+
+            $this->upsertPaymentMethods($paymentMethodData, $context);
+        }
+    }
+
+    public function removeSinglePaymentMethod(Context $context): void
+    {
+        $update = $this->updateSinglePaymentMethod($context, false);
+
+        if ($update) {
+            $this->switchAllPaymentMethods($context, true);
+        }
+    }
+
+    private function updateSinglePaymentMethod(Context $context, bool $active): bool
+    {
+        /** @var PaymentMethodEntity $paymentMethod */
+        $paymentMethod = $this->paymentMethodRepository->search(
+            new Criteria([md5(self::SINGLE_PAYMENT_METHOD_ID)]),
+            $context
+        )->first();
+
+        if (empty($paymentMethod)) {
+            return false;
+        }
+
+        $pmData[] = [
+            'id' => $paymentMethod->getId(),
+            'active' => $active
+        ];
+        $this->paymentMethodRepository->upsert($pmData, $context);
+
+        return true;
+    }
+
+    public function setDefaultPaymentMethod(Context $context, ?string $paymentMethodId = null): void
+    {
+        $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
+        $salesChannelsToUpdate = [];
+
+        if ($paymentMethodId === null) {
+            /** @var PaymentMethodEntity $paymentMethod */
+            $paymentMethod = $this->paymentMethodRepository->search(
+                (new Criteria())->addFilter(new EqualsFilter('handlerIdentifier', CashPayment::class)),
+                $context
+            )->first();
+
+            if (empty($paymentMethod)) {
+                /** @var PaymentMethodEntity $paymentMethod */
+                $paymentMethod = $this->paymentMethodRepository->search(
+                    (new Criteria())
+                        ->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class))
+                        ->addFilter(new EqualsFilter('active', 1)),
+                    $context
+                )->first();
+            }
+
+            $paymentMethodId = $paymentMethod->getId();
+        }
+
+        /** @var SalesChannelEntity $salesChannel */
+        foreach ($salesChannels as $salesChannel) {
+            $salesChannelsToUpdate[] = [
+                'id' => $salesChannel->getId(),
+                'paymentMethodId'=> $paymentMethodId
+            ];
+        }
+
+        $this->salesChannelRepository->upsert($salesChannelsToUpdate, $context);
+    }
+
+    private function switchAllPaymentMethods(Context $context, bool $active): void
+    {
+        /** @var PaymentMethodCollection $paymentMethods */
+        $paymentMethods = $this->paymentMethodRepository->search(new Criteria(), $context);
+        $paymentMethodsNewData = [];
+
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethods as $paymentMethod) {
+            if ($paymentMethod->getId() === md5(self::SINGLE_PAYMENT_METHOD_ID)) {
+                continue;
+            }
+
+            $paymentMethodsNewData[] = [
+                'id' => $paymentMethod->getId(),
+                'active' => $active
+            ];
+        }
+
+        $this->paymentMethodRepository->update($paymentMethodsNewData, $context);
     }
 
     private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
