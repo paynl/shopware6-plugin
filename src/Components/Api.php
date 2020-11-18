@@ -181,11 +181,19 @@ class Api
             $transactionInitialData = array_merge($transactionInitialData, $addresses);
         }
 
+        if ($this->config->getSinglePaymentMethodInd()) {
+            unset($transactionInitialData['paymentMethod']);
+        }
+
         return $transactionInitialData;
     }
 
     public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId): int
     {
+        if ($this->config->getSinglePaymentMethodInd()) {
+            return 0;
+        }
+
         $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId);
         if (is_null($paynlPaymentMethod)) {
             throw new PaynlPaymentException('Could not detect payment method.');

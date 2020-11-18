@@ -46,6 +46,11 @@ class Config
         return (string)$this->get('serviceId');
     }
 
+    public function getSinglePaymentMethodInd(): bool
+    {
+        return (bool)$this->get('useSinglePaymentMethod');
+    }
+
     public function getTestMode(): int
     {
         return (int)$this->get('testMode');
