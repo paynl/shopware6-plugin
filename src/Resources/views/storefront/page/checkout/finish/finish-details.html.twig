@@ -1,4 +1,5 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
+
 {% block page_checkout_finish_data %}
     {% block page_checkout_finish_header %}
         {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
@@ -58,4 +59,18 @@
             {{ parent }}
         </div>
     {% endblock %}
+{% endblock %}
+
+{% block page_checkout_finish_order_payment_method %}
+    <p>
+        <strong>{{ "checkout.finishInfoPayment"|trans|sw_sanitize }}</strong>
+        {{ page.order.transactions.last.paymentMethod.translated.name }}
+        {% if page.order.customFields.paynlIssuer is defined %}
+            {% for bank in page.order.transactions.last.paymentMethod.translated.customFields.banks %}
+                {% if bank.id == page.order.customFields.paynlIssuer %}
+                    ({{ bank.visibleName }})
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </p>
 {% endblock %}
