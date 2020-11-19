@@ -22,7 +22,9 @@ class PaynlPaymentPlugin extends Plugin {
     }
 
     idealChangeBank() {
-        document.getElementById('paynl-ideal-banks-select').onchange = this.onChangeBank;
+        if (document.getElementById('paynl-ideal-banks-select')) {
+            document.getElementById('paynl-ideal-banks-select').onchange = this.onChangeBank;
+        }
     }
 
     savePayLaterData() {
@@ -94,15 +96,18 @@ class PaynlPaymentPlugin extends Plugin {
 
             const paymentControlElement = paynlModalButtons.closest('.payment-control');
             const paynlPaymentMethodBanksBlocks = document.getElementById('paynl-banks');
-            const idealBanksBlock = paymentControlElement.getElementsByClassName('paynl-payment-method-banks')[0];
-            const idealBanksSelect = document.getElementById('paynl-ideal-banks-select');
             const paylaterBlock = paymentControlElement.getElementsByClassName('paynl-paylater-fields')[0];
-            paynlPaymentMethodBanksBlocks.style.display = 'none';
-            if (idealBanksBlock !== undefined) {
-                idealBanksBlock.style.display = 'inline-flex';
-            } else {
-                idealBanksSelect.selectedIndex = 0;
-                idealBanksSelect.classList.remove('invalid');
+
+            if (paynlPaymentMethodBanksBlocks) {
+                const idealBanksBlock = paymentControlElement.getElementsByClassName('paynl-payment-method-banks')[0];
+                const idealBanksSelect = document.getElementById('paynl-ideal-banks-select');
+                paynlPaymentMethodBanksBlocks.style.display = 'none';
+                if (idealBanksBlock !== undefined) {
+                    idealBanksBlock.style.display = 'inline-flex';
+                } else {
+                    idealBanksSelect.selectedIndex = 0;
+                    idealBanksSelect.classList.remove('invalid');
+                }
             }
 
             if (paylaterBlock !== undefined) {
@@ -111,9 +116,12 @@ class PaynlPaymentPlugin extends Plugin {
         }
 
         const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
-        idealBankSelect.value = '';
-        const changeEvent = new Event('change');
-        idealBankSelect.dispatchEvent(changeEvent);
+
+        if (idealBankSelect) {
+            idealBankSelect.value = '';
+            const changeEvent = new Event('change');
+            idealBankSelect.dispatchEvent(changeEvent);
+        }
     }
 }
 
