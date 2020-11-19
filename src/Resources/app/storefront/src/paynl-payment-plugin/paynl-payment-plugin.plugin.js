@@ -52,16 +52,18 @@ class PaynlPaymentPlugin extends Plugin {
         const phoneInput = document.getElementById(phoneInputId);
 
         const banksWrapper = document.getElementById('paynl-banks');
-        const banksSelect = document.getElementById('paynl-ideal-banks-select');
-        const bankWrapperVisible = banksWrapper.offsetWidth > 0 && banksWrapper.offsetHeight > 0;
+        if (banksWrapper) {
+            const banksSelect = document.getElementById('paynl-ideal-banks-select');
+            const bankWrapperVisible = banksWrapper.offsetWidth > 0 && banksWrapper.offsetHeight > 0;
 
-        if (bankWrapperVisible && banksSelect.value == '') {
-            element.preventDefault();
-            element.stopPropagation();
+            if (bankWrapperVisible && banksSelect.value == '') {
+                element.preventDefault();
+                element.stopPropagation();
 
-            banksSelect.classList.add('invalid');
-        } else {
-            banksSelect.classList.remove('invalid');
+                banksSelect.classList.add('invalid');
+            } else {
+                banksSelect.classList.remove('invalid');
+            }
         }
 
         let dob = '';
