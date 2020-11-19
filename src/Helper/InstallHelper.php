@@ -327,16 +327,19 @@ class InstallHelper
 
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        $paynlPaymentMethods = $this->paymentMethodRepository->search(
+            (new Criteria())->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class)),
+            $context
+        );
         $upsertData = [];
+        /** @var PaymentMethodEntity $paymentMethod */
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            $paymentMethodId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]); //NOSONAR
-            if (!$this->isInstalledPaymentMethod($paymentMethodId)) {
+            if ($active && $paymentMethod->getId() === md5(self::SINGLE_PAYMENT_METHOD_ID)) {
                 continue;
             }
 
             $upsertData[] = [
-                'id' => $paymentMethodId,
+                'id' => $paymentMethod->getId(),
                 'active' => $active,
             ];
         }
