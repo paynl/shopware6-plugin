@@ -8,3 +8,4 @@ import './extension/sw-order-list';
 import './extension/sw-order-state-history-card';
 import './extension/sw-order-detail-base';
 import './extension/sw-settings-index';
+import './extension/sw-order-user-card';

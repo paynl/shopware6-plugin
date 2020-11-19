@@ -1,12 +1,12 @@
 .paynl-image {
-  max-height: 50px !important;
-  margin-right: 15px;
-  float: left;
+    max-height: 50px !important;
+    margin-right: 15px;
+    float: left;
 }
 
 .paynl-ideal-banks,
 .paynl-paylater-fields {
-  display: inline-block;
+    display: inline-block;
 }
 
 .paynl-paylater-fields {
@@ -32,21 +32,21 @@
 }
 
 .paynl-button-container {
-  display: none;
-  float: right;
+    display: none;
+    float: right;
 }
 
 .paynl-savebutton {
-  display: none;
-  float: right;
+    display: none;
+    float: right;
 }
 
 .paynl-diguise {
-  display: none;
+    display: none;
 }
 
 #paynl-cocfield{
-  display: none;
+    display: none;
 }
 
 .paynl-modal-buttons,
@@ -79,6 +79,11 @@
 .custom-radio .paynl-payment-method-label::before {
     top: 25%;
 }
+
+.custom-control.custom-select.invalid {
+    border-color: #f00;
+}
+
 .paynl-paynl-payment-tooltip {
     display: inline-flex;
     height: 24px;
