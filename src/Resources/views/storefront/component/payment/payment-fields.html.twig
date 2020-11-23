@@ -10,7 +10,7 @@
                             {% block component_payment_method_control %}
                                 {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                                     <div class="custom-control custom-radio payment-control">
-                                        <div class="paynl-payment-method-block d-flex align-content-between">
+                                        <div class="paynl-payment-method-block">
                                             {% block component_payment_method_input %}
                                                 {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                                                     <input type="radio"
@@ -72,7 +72,7 @@
                                                                 {% endif %}
 
                                                                 {% if payment.translated.customFields.isPayLater %}
-                                                                    <div class="paynl-paylater-fields align-content-center"
+                                                                    <div class="paynl-paylater-fields"
                                                                         {% if payment.id is same as(defaultPaymentMethodId) %}
                                                                             style="display: inline-block"
                                                                         {% else %}
@@ -80,7 +80,7 @@
                                                                         {% endif %}
                                                                     >
                                                                         {% if not page.isBirthdayExists %}
-                                                                            <div class="paynl-paylater-input-block mb-1">
+                                                                            <div class="paynl-paylater-input-block">
                                                                                 <label class="form-label"
                                                                                    for="dob">{{ "checkout.labels.dob"|trans|striptags }}</label>
                                                                                 <input type="text"
