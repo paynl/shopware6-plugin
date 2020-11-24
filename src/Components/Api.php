@@ -11,6 +11,7 @@ use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -243,12 +244,19 @@ class Api
         $entities = $this->productRepository->search($criteria, $context);
         $elements = $entities->getElements();
 
+        /** @var OrderLineItemEntity $item */
         foreach ($productsItems as $item) {
+            $vatPercentage = 0;
+            // Fix for Promotion Gift by Meteor plugin
+            if (!isset($item->getPayload()['meteor_free_gift']) || $item->getPayload()['meteor_free_gift'] === false) {
+                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+            }
+
             $products[] = [
                 'id' => $elements[$item->getReferencedId()]->get('autoIncrement'),
                 'name' => $item->getLabel(),
                 'price' => $item->getUnitPrice(),
-                'vatPercentage' => $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate(),
+                'vatPercentage' => $vatPercentage,
                 'qty' => $item->getPrice()->getQuantity(),
                 'type' => Transaction::PRODUCT_TYPE_ARTICLE,
             ];
