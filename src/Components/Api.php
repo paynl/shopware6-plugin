@@ -248,7 +248,7 @@ class Api
         foreach ($productsItems as $item) {
             $vatPercentage = 0;
             // Fix for Promotion Gift by Meteor plugin
-            if (!isset($item->getPayload()['meteor_free_gift']) || $item->getPayload()['meteor_free_gift'] === false) {
+            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
                 $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
             }
 
