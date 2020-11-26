@@ -247,7 +247,6 @@ class Api
         /** @var OrderLineItemEntity $item */
         foreach ($productsItems as $item) {
             $vatPercentage = 0;
-            // Fix for Promotion Gift by Meteor plugin
             if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
                 $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
             }
