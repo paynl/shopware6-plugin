@@ -10,14 +10,13 @@
                             {% block component_payment_method_control %}
                                 {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                                     <div class="custom-control custom-radio payment-control">
-                                        <div class="paynl-payment-method-block">
+                                        <div class="paynl-payment-method-block{% if payment.id is same as(defaultPaymentMethodId) %} active{% endif %}">
                                             {% block component_payment_method_input %}
                                                 {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                                                     <input type="radio"
                                                            id="paymentMethod{{ loop.index }}"
                                                            name="paymentMethodId"
                                                            value="{{ payment.id }}"
-                                                           data-paynl-modal-btns-id="paynl-modal-buttons-{{ loop.index }}"
                                                            {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
                                                            class="custom-control-input paynl-payment-method-input payment-method-input">
                                                 {% else %}
@@ -35,12 +34,12 @@
                                                                         {% sw_thumbnails 'payment-method-image-thumbnails' with {
                                                                         media: payment.media,
                                                                         sizes: {
-                                                                        'default': '100px'
+                                                                            'default': '100px'
                                                                         },
                                                                         attributes: {
-                                                                        'class': 'payment-method-image paynl-payment-method-image',
-                                                                        'alt': (payment.media.translated.alt ?: payment.translated.name),
-                                                                        'title': (payment.media.translated.title ?: payment.translated.name)
+                                                                            'class': 'payment-method-image paynl-payment-method-image',
+                                                                            'alt': (payment.media.translated.alt ?: payment.translated.name),
+                                                                            'title': (payment.media.translated.title ?: payment.translated.name)
                                                                         }
                                                                         } %}
                                                                     {% endif %}
@@ -56,11 +55,7 @@
                                                             {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                                                                 {% if payment.translated.customFields.displayBanks %}
                                                                     {% if payment.translated.customFields.banks is not empty %}
-                                                                        <div id="paynl-banks" class="paynl-payment-method-banks" {% if payment.id is same as(defaultPaymentMethodId) %}
-                                                                            style="display: inline-block"
-                                                                        {% else %}
-                                                                            style="display: none"
-                                                                        {% endif %}>
+                                                                        <div class="paynl-ideal-issuers-block">
                                                                             <select id="paynl-ideal-banks-select" class="custom-control custom-select" name="paynlIssuer">
                                                                                 <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                                                                 {% for bank in payment.translated.customFields.banks %}
@@ -72,13 +67,7 @@
                                                                 {% endif %}
 
                                                                 {% if payment.translated.customFields.isPayLater %}
-                                                                    <div class="paynl-paylater-fields"
-                                                                        {% if payment.id is same as(defaultPaymentMethodId) %}
-                                                                            style="display: inline-block"
-                                                                        {% else %}
-                                                                            style="display: none"
-                                                                        {% endif %}
-                                                                    >
+                                                                    <div class="paynl-paylater-fields">
                                                                         {% if not page.isBirthdayExists %}
                                                                             <div class="paynl-paylater-input-block">
                                                                                 <label class="form-label"
@@ -110,24 +99,16 @@
                                                                     </div>
                                                                 {% endif %}
                                                                 <div class="d-inline-flex align-items-center">
-                                                                    <div id="paynl-modal-buttons-{{ loop.index }}"
-                                                                            class="paynl-modal-buttons"
-                                                                            {% if payment.id is same as(defaultPaymentMethodId) %}
-                                                                        style="display: inline-block"
-                                                                    {% else %}
-                                                                        style="display: none"
-                                                                            {% endif %}>
-                                                                        <button class="btn btn-primary paynl-change-payment-method"
-                                                                                data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
-                                                                                data-paynl-phone-field-id="paynl-phone-{{ loop.index }}"
-                                                                                type="submit">
-                                                                            {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
-                                                                                {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
-                                                                            {% else %}
-                                                                                {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
-                                                                            {% endif %}
-                                                                        </button>
-                                                                    </div>
+                                                                    <button class="btn btn-primary paynl-change-payment-method"
+                                                                            data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
+                                                                            data-paynl-phone-field-id="paynl-phone-{{ loop.index }}"
+                                                                            type="submit">
+                                                                        {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
+                                                                            {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                                                                        {% else %}
+                                                                            {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
+                                                                        {% endif %}
+                                                                    </button>
                                                                     {% if payment.translated.description %}
                                                                         <div class="paynl-paynl-payment-tooltip {{ page.showDescription }}" tabindex="0"  data-toggle="tooltip" data-placement="left" title="{{ payment.translated.description|raw }}">
                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">

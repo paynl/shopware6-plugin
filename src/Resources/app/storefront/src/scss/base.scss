@@ -1,3 +1,15 @@
+.paynl-payment-method-block .paynl-paylater-fields,
+.paynl-payment-method-block .paynl-ideal-issuers-block,
+.paynl-payment-method-block .paynl-change-payment-method {
+    display: none;
+}
+
+.paynl-payment-method-block.active .paynl-paylater-fields,
+.paynl-payment-method-block.active .paynl-ideal-issuers-block,
+.paynl-payment-method-block.active .paynl-change-payment-method {
+    display: inline-block;
+}
+
 .paynl-payment-method-label,
 .paynl-paylater-input-block,
 .paynl-payment-method-block {
@@ -20,7 +32,7 @@
 }
 
 .paynl-paylater-fields,
-.paynl-modal-buttons {
+.paynl-change-payment-method {
     margin-right: 10px;
 }
 

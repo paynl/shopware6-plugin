@@ -3,8 +3,6 @@ import Plugin from 'src/plugin-system/plugin.class';
 class PaynlPaymentPlugin extends Plugin {
     init() {
         this.paymentMethodsScriptsInit();
-        this.idealChangeBank();
-        this.savePayLaterData();
     }
 
     paymentMethodsScriptsInit() {
@@ -12,117 +10,61 @@ class PaynlPaymentPlugin extends Plugin {
         for (let i = 0; i < paymentMethodsRadio.length; i++) {
             paymentMethodsRadio[i].onchange = this.onChangeCallback;
         }
-        const paynlChangePMButton = document.getElementsByClassName('paynl-change-payment-method');
-        for (let i = 0; i < paynlChangePMButton.length; i++) {
-            paynlChangePMButton[i].onclick = this.onSavePaymentMethod;
-        }
 
         const form = document.getElementById('confirmPaymentForm');
         form.addEventListener('submit', this.onSavePaymentMethod);
     }
 
-    idealChangeBank() {
-        if (document.getElementById('paynl-ideal-banks-select')) {
-            document.getElementById('paynl-ideal-banks-select').onchange = this.onChangeBank;
-        }
-    }
-
-    savePayLaterData() {
-        document.getElementsByClassName('paynl-change-payment-method').onclick = this.onSavePaymentMethod;
-    }
-
-    onChangeBank() {
-        const idealBank = document.getElementById('paynl-ideal-banks-select').value;
-
-        if (idealBank !== '') {
-            document.getElementById('paynl-ideal-banks-select').classList.remove('invalid');
-        }
-
-        const xhr = new XMLHttpRequest();
-        const data = {'paynlIssuer': idealBank};
-        xhr.open('POST', '/PaynlPayment/order/change/payment', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(data));
-    }
-
     onSavePaymentMethod(element) {
-        const dobInputId = element.target.dataset.paynlDobFieldId;
-        const phoneInputId = element.target.dataset.paynlPhoneFieldId;
-        const dobInput = document.getElementById(dobInputId);
-        const phoneInput = document.getElementById(phoneInputId);
+        const data = {};
+        const currentPaymentMethod = document.getElementsByClassName('paynl-payment-method-block active')[0];
 
-        const banksWrapper = document.getElementById('paynl-banks');
-        if (banksWrapper) {
-            const banksSelect = document.getElementById('paynl-ideal-banks-select');
-            const bankWrapperVisible = banksWrapper.offsetWidth > 0 && banksWrapper.offsetHeight > 0;
+        if (currentPaymentMethod.querySelector('#paynl-ideal-banks-select') !== null) {
+            const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
 
-            if (bankWrapperVisible && banksSelect.value == '') {
+            if (idealBankSelect.value !== '') {
+                data.issuer = idealBankSelect.value;
+            } else {
                 element.preventDefault();
                 element.stopPropagation();
 
-                banksSelect.classList.add('invalid');
-            } else {
-                banksSelect.classList.remove('invalid');
+                idealBankSelect.classList.add('invalid');
+
+                return;
             }
         }
 
-        let dob = '';
-        let phone = '';
-        if (dobInput !== null) {
-            dob = dobInput.value;
-        }
-        if (phoneInput !== null) {
-            phone = phoneInput.value
+        if (currentPaymentMethod.querySelector('.paynl-paylater-fields')) {
+            const dobInput = currentPaymentMethod.querySelector('.paynl-dob');
+            if (dobInput && dobInput.value !== '') {
+                data.dob = dobInput.value;
+            }
+
+            const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
+            if (phoneInput && phoneInput.value !== '') {
+                data.phone = phoneInput.value;
+            }
         }
 
         const xhr = new XMLHttpRequest();
-        const data = {'dob': dob, 'phone': phone};
         xhr.open('POST', '/PaynlPayment/order/change/paylater-fields', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(data));
     }
 
     onChangeCallback(element) {
-        const btnsModalBlockId = element.target.dataset.paynlModalBtnsId;
-        const paynlModalButtons = document.getElementById(btnsModalBlockId);
-        const paynlBtnsModalBlocks = document.getElementsByClassName('paynl-modal-buttons');
-        for (let i = 0; i < paynlBtnsModalBlocks.length; i++) {
-            paynlBtnsModalBlocks[i].style.display = 'none';
+        const paymentBlocks = document.getElementsByClassName('paynl-payment-method-block');
+        for (let i = 0; i < paymentBlocks.length; i++) {
+            paymentBlocks[i].classList.remove('active');
         }
-        const paylaterBlocks = document.getElementsByClassName('paynl-paylater-fields');
-        for (let i = 0; i < paylaterBlocks.length; i++) {
-            paylaterBlocks[i].style.display = 'none';
-        }
-        if (paynlModalButtons !== null) {
-            paynlModalButtons.style.display = 'inline-block';
+        const currentPaymentBlock = element.target.parentNode;
+        currentPaymentBlock.classList.add('active');
 
-            const paymentControlElement = paynlModalButtons.closest('.payment-control');
-            const paynlPaymentMethodBanksBlocks = document.getElementById('paynl-banks');
-            const paylaterBlock = paymentControlElement.getElementsByClassName('paynl-paylater-fields')[0];
+        if (currentPaymentBlock.querySelector('#paynl-ideal-banks-select') !== null) {
+            const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
 
-            if (paynlPaymentMethodBanksBlocks) {
-                const idealBanksBlock = paymentControlElement.getElementsByClassName('paynl-payment-method-banks')[0];
-                const idealBanksSelect = document.getElementById('paynl-ideal-banks-select');
-                paynlPaymentMethodBanksBlocks.style.display = 'none';
-                if (idealBanksBlock !== undefined) {
-                    idealBanksBlock.style.display = 'inline-flex';
-                } else {
-                    idealBanksSelect.selectedIndex = 0;
-                    idealBanksSelect.classList.remove('invalid');
-                }
-            }
-
-            if (paylaterBlock !== undefined) {
-                paylaterBlock.style.display = 'inline-block';
-            }
-        }
-
-        const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
-
-        if (idealBankSelect) {
             idealBankSelect.value = '';
-            const changeEvent = new Event('change');
-            idealBankSelect.dispatchEvent(changeEvent);
+            idealBankSelect.classList.remove('invalid');
         }
     }
 }
