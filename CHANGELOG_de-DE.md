@@ -1,3 +1,9 @@
+# 0.3.3
+- die Funktion einer obligatorischen Auswahl von iDEAL Bankaussteller hinzugefügt
+- das Feature einer einheitlichen Zahlungsmethode hinzugefügt (hosted payment pages)
+- die Vererbung von Vorlagen verbessert
+- GmbH-Nummer bug behoben
+
 # 0.3.2
 - Bug mit leeren brand ID behoben
 - Bug mit der Änderung der Versandmethode behoben, auf der Bestellseite
