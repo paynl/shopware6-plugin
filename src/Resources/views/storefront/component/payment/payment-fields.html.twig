@@ -99,16 +99,18 @@
                                                                     </div>
                                                                 {% endif %}
                                                                 <div class="d-inline-flex align-items-center">
-                                                                    <button class="btn btn-primary paynl-change-payment-method"
-                                                                            data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
-                                                                            data-paynl-phone-field-id="paynl-phone-{{ loop.index }}"
-                                                                            type="submit">
-                                                                        {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
-                                                                            {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
-                                                                        {% else %}
-                                                                            {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
-                                                                        {% endif %}
-                                                                    </button>
+                                                                    {% if page.paymentMethods|length > 1 %}
+                                                                        <button class="btn btn-primary paynl-change-payment-method"
+                                                                                data-paynl-dob-field-id="paynl-dob-{{ loop.index }}"
+                                                                                data-paynl-phone-field-id="paynl-phone-{{ loop.index }}"
+                                                                                type="submit">
+                                                                            {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
+                                                                                {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
+                                                                            {% else %}
+                                                                                {{ "account.paymentChangeSubmit"|trans|sw_sanitize }}
+                                                                            {% endif %}
+                                                                        </button>
+                                                                    {% endif %}
                                                                     {% if payment.translated.description %}
                                                                         <div class="paynl-paynl-payment-tooltip {{ page.showDescription }}" tabindex="0"  data-toggle="tooltip" data-placement="left" title="{{ payment.translated.description|raw }}">
                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
