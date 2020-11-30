@@ -2,7 +2,6 @@
 - added the feature of a compulsory selection of iDEAL bank issuer
 - added the feature of a unified payment method
 - improved templates inheritance
-- fixed the bug with Payment Methods deactivation on plugin uninstall
 - fixed the bug with the CoC number
 
 # 0.3.2
