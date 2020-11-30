@@ -12,18 +12,16 @@ use Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent;
 
 class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 {
-    /**
-     * @var Session
-     */
+    /** @var Session $session */
     private $session;
 
-    /**
-     * @var CustomerHelper
-     */
+    /** @var CustomerHelper $customerHelper */
     private $customerHelper;
 
-    public function __construct(Session $session, CustomerHelper $customerHelper)
-    {
+    public function __construct(
+        Session $session,
+        CustomerHelper $customerHelper
+    ) {
         $this->session = $session;
         $this->customerHelper = $customerHelper;
     }
@@ -32,7 +30,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     {
         return [
             'Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent' => 'onCheckoutPaymentMethodChange',
-            'Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent' => 'onPaymentMethodChanged'
+            'Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent' => 'onPaymentMethodChanged',
         ];
     }
 

@@ -41,6 +41,8 @@ class Api
     private $customerHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
+    /** @var EntityRepositoryInterface */
+    private $orderRepository;
     /** @var TranslatorInterface */
     private $translator;
     /** @var Session */
@@ -50,12 +52,14 @@ class Api
         Config $config,
         CustomerHelper $customerHelper,
         EntityRepositoryInterface $productRepository,
+        EntityRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
         Session $session
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->productRepository = $productRepository;
+        $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->session = $session;
     }
@@ -127,7 +131,7 @@ class Api
         string $pluginVersion
     ): array {
         $bank = (int)$this->session->get('paynlIssuer');
-        $this->session->remove('paynlIssuer');
+
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
@@ -158,6 +162,16 @@ class Api
         ];
 
         if (!empty($bank)) {
+            $orderCustomFields = (array)$transaction->getOrder()->getCustomFields();
+            $orderCustomFields['paynlIssuer'] = $bank;
+
+            $data[] = [
+                'id' => $transaction->getOrder()->getId(),
+                'customFields' => $orderCustomFields
+            ];
+
+            $this->orderRepository->upsert($data, $salesChannelContext->getContext());
+
             $transactionInitialData['bank'] = $bank;
         }
 
@@ -167,11 +181,19 @@ class Api
             $transactionInitialData = array_merge($transactionInitialData, $addresses);
         }
 
+        if ($this->config->getSinglePaymentMethodInd()) {
+            unset($transactionInitialData['paymentMethod']);
+        }
+
         return $transactionInitialData;
     }
 
     public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId): int
     {
+        if ($this->config->getSinglePaymentMethodInd()) {
+            return 0;
+        }
+
         $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId);
         if (is_null($paynlPaymentMethod)) {
             throw new PaynlPaymentException('Could not detect payment method.');
