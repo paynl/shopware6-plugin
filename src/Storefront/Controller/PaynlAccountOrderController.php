@@ -34,23 +34,6 @@ class PaynlAccountOrderController extends StorefrontController
 
     /**
      * @Route(
-     *     "/PaynlPayment/order/change/payment",
-     *     name="frontend.PaynlPayment.edit-order.change-payment-method",
-     *     methods={"POST"},
-     *     defaults={"csrf_protected"=false}
-     *     )
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function orderChangePayment(Request $request): JsonResponse
-    {
-        $this->session->set('paynlIssuer', $request->get('paynlIssuer') ?: null);
-
-        return new JsonResponse(['success' => true]);
-    }
-
-    /**
-     * @Route(
      *     "/PaynlPayment/order/change/paylater-fields",
      *     name="frontend.PaynlPayment.edit-order.change-paylater-fields",
      *     methods={"POST"},
@@ -61,11 +44,11 @@ class PaynlAccountOrderController extends StorefrontController
      */
     public function orderChangePaylaterFields(Request $request): JsonResponse
     {
-
         /** @var SalesChannelContext $salesChannelContext */
         $salesChannelContext = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
         $dob = $request->get('dob');
         $phone = $request->get('phone');
+        $issuer = $request->get('issuer');
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
         /** @var CustomerAddressEntity $billingAddress */
@@ -74,8 +57,15 @@ class PaynlAccountOrderController extends StorefrontController
         if (!empty($dob)) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
         }
+
         if (!empty($phone)) {
             $this->customerHelper->saveCustomerPhone($billingAddress, $phone, $context);
+        }
+
+        if (!empty($issuer)) {
+            $this->session->set('paynlIssuer', $issuer);
+        } else {
+            $this->session->remove('paynlIssuer');
         }
 
         return new JsonResponse(['success' => true]);
