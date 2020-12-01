@@ -48,10 +48,6 @@ class PaynlPaymentPlugin extends Plugin {
             const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
             if (phoneInput && phoneInput.value !== '') {
                 const regex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
-                console.log(regex.test(phoneInput.value));
-                element.preventDefault();
-                element.stopPropagation();
-                return
                 if (!regex.test(phoneInput.value)) {
                     element.preventDefault();
                     element.stopPropagation();
