@@ -49,7 +49,8 @@
     top: 25%;
 }
 
-.custom-control.custom-select.invalid {
+.custom-control.custom-select.invalid,
+.form-control.invalid {
     border-color: #f00;
 }
 

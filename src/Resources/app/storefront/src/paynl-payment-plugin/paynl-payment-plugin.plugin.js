@@ -13,6 +13,11 @@ class PaynlPaymentPlugin extends Plugin {
 
         const form = document.getElementById('confirmPaymentForm');
         form.addEventListener('submit', this.onSavePaymentMethod);
+
+        const phoneInput = form.querySelector('.paynl-phone');
+        if (phoneInput !== null) {
+            phoneInput.addEventListener('focus', this.onInputFocus);
+        }
     }
 
     onSavePaymentMethod(element) {
@@ -42,6 +47,16 @@ class PaynlPaymentPlugin extends Plugin {
 
             const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
             if (phoneInput && phoneInput.value !== '') {
+                const regex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
+                if (!regex.test(phoneInput.value)) {
+                    element.preventDefault();
+                    element.stopPropagation();
+
+                    phoneInput.classList.add('invalid');
+
+                    return;
+                }
+
                 data.phone = phoneInput.value;
             }
         }
@@ -66,6 +81,10 @@ class PaynlPaymentPlugin extends Plugin {
             idealBankSelect.value = '';
             idealBankSelect.classList.remove('invalid');
         }
+    }
+
+    onInputFocus(event) {
+        event.target.classList.remove('invalid');
     }
 }
 
