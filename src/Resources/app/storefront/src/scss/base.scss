@@ -23,7 +23,7 @@
 }
 
 .paynl-paylater-input-block input {
-    max-width: 220px;
+    max-width: 175px;
 }
 
 .paynl-paylater-input-block label {
@@ -77,13 +77,13 @@
     display: none !important;
 }
 
-@media (min-width: 768px) and (max-width: 991px) {
+@media screen and (min-width: 768px) and (max-width: 991px) {
     .confirm-payment-modal .modal-dialog {
         max-width: 650px;
     }
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
     .show_only_desktop {
         display: none !important;
     }
@@ -97,7 +97,7 @@
     }
 
     .paynl-paylater-fields,
-    .paynl-payment-method-banks {
+    .paynl-ideal-issuers-block {
         order: 3;
         width: 100%;
         margin-top: 10px;
