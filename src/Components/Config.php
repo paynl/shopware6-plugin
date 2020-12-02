@@ -9,6 +9,9 @@ class Config
     const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.settings.%s';
     const FEMALE_SALUTATIONS = 'mrs, ms, miss, ma\'am, frau, mevrouw, mevr';
 
+    const SHOW_PHONE_FIELD_CONFIG_KEY = 'core.loginRegistration.showPhoneNumberField';
+    const SHOW_DOB_FIELD_CONFIG_KEY = 'core.loginRegistration.showBirthdayField';
+
     private $config;
 
     public function __construct(SystemConfigService $systemConfigService)
@@ -90,5 +93,11 @@ class Config
     public function getShowDescription(): string
     {
         return $this->get('showDescription', 'show_payment_method_info');
+    }
+
+    public function setDefaultConfigFields(bool $active): void
+    {
+        $this->config->set(self::SHOW_PHONE_FIELD_CONFIG_KEY, $active);
+        $this->config->set(self::SHOW_DOB_FIELD_CONFIG_KEY, $active);
     }
 }
