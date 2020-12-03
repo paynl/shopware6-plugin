@@ -18,6 +18,11 @@ class PaynlPaymentPlugin extends Plugin {
         if (phoneInput !== null) {
             phoneInput.addEventListener('focus', this.onInputFocus);
         }
+
+        const issuerSelect = form.querySelector('#paynl-ideal-banks-select');
+        if (issuerSelect !== null) {
+            issuerSelect.addEventListener('change', this.onIssuerChange);
+        }
     }
 
     onSavePaymentMethod(element) {
@@ -84,6 +89,10 @@ class PaynlPaymentPlugin extends Plugin {
     }
 
     onInputFocus(event) {
+        event.target.classList.remove('invalid');
+    }
+
+    onIssuerChange(event) {
         event.target.classList.remove('invalid');
     }
 }
