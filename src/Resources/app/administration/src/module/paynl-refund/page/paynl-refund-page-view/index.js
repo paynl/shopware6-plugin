@@ -76,10 +76,9 @@ Component.register('paynl-refund-page-view', {
                         this.availableForRefund = data.availableForRefund;
                         this.refundedAmount = data.refundedAmount;
 
-                        if (this.withShipping) {
-                            this.amountToRefund = this.availableForRefund;
-                        } else {
-                            this.amountToRefund = this.availableForRefund - this.order.shippingTotal;
+                        this.amountToRefund = this.availableForRefund;
+                        if (!this.withShipping) {
+                            this.amountToRefund -= this.order.shippingTotal;
                         }
 
                         this.isLoading = false;
