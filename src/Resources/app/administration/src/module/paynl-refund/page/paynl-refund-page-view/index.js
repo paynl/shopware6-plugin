@@ -29,17 +29,21 @@ Component.register('paynl-refund-page-view', {
             paynlTransactionRepository: null,
             orderRepository: null,
             order: null,
-            refundData: null,
             paynlTransaction: null,
+
+            availableForRefund: 0,
+            refundedAmount: 0,
+
+            amountToRefund: 0,
             products: null,
             identifier: '',
+            description: '',
+            productsQuantity: {},
+            withShipping: false,
+
             isEditing: false,
             isLoading: false,
             isSaveSuccessful: false,
-            amountToRefund: 0,
-            description: '',
-            productsQuantity: {},
-            withShipping: false
         };
     },
 
@@ -69,8 +73,14 @@ Component.register('paynl-refund-page-view', {
                             message: data.errorMessage
                         });
                     } else {
-                        this.refundData = data;
-                        this.amountToRefund = this.refundData.availableForRefund + this.order.shippingTotal;
+                        this.availableForRefund = data.availableForRefund;
+                        this.refundedAmount = data.refundedAmount;
+
+                        this.amountToRefund = this.availableForRefund;
+                        if (!this.withShipping) {
+                            this.amountToRefund -= this.order.shippingTotal;
+                        }
+
                         this.isLoading = false;
                     }
                     this.isLoading = false;
