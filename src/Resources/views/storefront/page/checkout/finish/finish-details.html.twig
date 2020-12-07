@@ -54,7 +54,6 @@
                 {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
                     {% if status == 'paid' %}
                         <p class="finish-teaser">{{ "checkout.finishInfoConfirmationMail"|trans|sw_sanitize }}</p>
-                    {% else %}
                     {% endif %}
                 {% else %}
                     {{ parent() }}
