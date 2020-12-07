@@ -1,9 +1,10 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
 
+{% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
+
 {% block page_checkout_finish_data %}
     {% block page_checkout_finish_header %}
         {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-            {% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
             {% if (status == 'cancelled' or status == 'denied') %}
                 <h1 class="finish-header text-danger">
                     {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
@@ -51,7 +52,10 @@
         <div class="finish-content">
             {% block page_checkout_finish_teaser %}
                 {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
-                    {% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
+                    {% if status == 'paid' %}
+                        <p class="finish-teaser">{{ "checkout.finishInfoConfirmationMail"|trans|sw_sanitize }}</p>
+                    {% else %}
+                    {% endif %}
                 {% else %}
                     {{ parent() }}
                 {% endif %}
