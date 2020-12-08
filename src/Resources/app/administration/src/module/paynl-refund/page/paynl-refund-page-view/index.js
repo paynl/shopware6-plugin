@@ -61,6 +61,13 @@ Component.register('paynl-refund-page-view', {
         fullName() {
             return this.order.orderCustomer.firstName + ' ' + this.order.orderCustomer.lastName;
         },
+        maxRefundAmount() {
+            if (this.withShipping) {
+                return this.availableForRefund;
+            }
+
+            return this.availableForRefund - this.order.shippingTotal;
+        }
     },
 
     methods: {
