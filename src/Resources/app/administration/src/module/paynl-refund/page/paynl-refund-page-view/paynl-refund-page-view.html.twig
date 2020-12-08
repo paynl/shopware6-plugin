@@ -16,7 +16,7 @@
                                 </sw-description-list>
                                 <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
                                     <dt>{{ $tc('refund.detailBase.amountToRefund') }}</dt>
-                                    <dd><sw-number-field v-model="amountToRefund" :min="0" :max="availableForRefund" :value="0"></sw-number-field></dd>
+                                    <dd><sw-number-field v-model="amountToRefund" :min="0" :max="maxRefundAmount" :value="0"></sw-number-field></dd>
                                     <dt>{{ $tc('refund.detailBase.description') }}</dt>
                                     <dd><sw-text-field v-model="description"></sw-text-field></dd>
                                 </sw-description-list>
