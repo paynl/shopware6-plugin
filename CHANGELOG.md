@@ -1,3 +1,10 @@
+# 1.3.0
+- fixed the bug with tax rate calculation
+- fixed the bug with the refund processing
+- added the snippet for "Order confirmation email has been sent" for the Successful payments
+- added validation for the Phonenumber field
+- improved mobile responsiveness
+
 # 0.3.3
 - added the feature of a compulsory selection of iDEAL bank issuer
 - added the feature of a unified payment method
