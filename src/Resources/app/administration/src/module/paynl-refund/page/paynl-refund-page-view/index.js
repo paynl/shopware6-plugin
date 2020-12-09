@@ -67,6 +67,12 @@ Component.register('paynl-refund-page-view', {
             }
 
             return this.availableForRefund - this.order.shippingTotal;
+        },
+        getProductsPrice() {
+            return this.paynlTransaction.amount - this.order.shippingTotal;
+        },
+        showHelpText() {
+            return (!this.withShipping && this.order.shippingTotal > 0);
         }
     },
 

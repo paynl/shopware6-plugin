@@ -23,10 +23,12 @@
             "paynlTransactionId": "PAY.nl Transaktion ID:",
             "paidAmount": "Bezahlter Betrag:",
             "availableForRefund": "Verfügbar für Rückerstattung:",
-            "refundedAmount": "Rückerstattung Betrag:",
+            "refundedAmount": "Rückerstattung Betrag",
             "shipping": "Versandkosten",
             "allowShippingRefund": "Versandrückerstattung zulassen",
-            "products": "Produktliste"
+            "products": "Produktliste",
+            "productsTotal": "Produkte insgesamt",
+            "helpText": "Um Versandkosten einschließen, aktivieren Sie das Kontrollkästchen \"Versand Rückerstattungen zulassen\""
         },
         "products": {
             "product": "Produkt",

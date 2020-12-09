@@ -23,10 +23,12 @@
             "paynlTransactionId": "Pay.nl transaction Id:",
             "paidAmount": "Paid amount:",
             "availableForRefund": "Available for refund:",
-            "refundedAmount": "Refunded amount:",
+            "refundedAmount": "Refunded amount",
             "shipping": "Shipping",
             "allowShippingRefund": "Allow shipping refund",
-            "products": "Products list"
+            "products": "Products list",
+            "productsTotal": "Products total",
+            "helpText": "To include the shipping costs, please, activate \"Allow shipping refund\" checkbox"
         },
         "products": {
             "product": "Product",
