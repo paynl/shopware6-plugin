@@ -23,10 +23,12 @@
             "paynlTransactionId": "PAY.nl transactie ID:",
             "paidAmount": "Bedrag betaald:",
             "availableForRefund": "Beschikbaar voor restitutie:",
-            "refundedAmount": "Restitutiebedrag:",
+            "refundedAmount": "Restitutiebedrag",
             "shipping": "Verzendkosten",
             "allowShippingRefund": "Restitutie van verzendkosten toestaan",
-            "products": "Productenlijst"
+            "products": "Productenlijst",
+            "productsTotal": "Producten totaal",
+            "helpText": "Om de verzendkosten op te nemen, vindt u het selectievakje \"Restitutie van verzendkosten toestaan\" aan"
         },
         "products": {
             "product": "Product",
