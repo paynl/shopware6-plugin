@@ -1,44 +1,39 @@
-.paynl-image {
-    max-height: 50px !important;
-    margin-right: 15px;
-    float: left;
+.paynl-payment-method-block .paynl-paylater-fields,
+.paynl-payment-method-block .paynl-ideal-issuers-block,
+.paynl-payment-method-block .paynl-change-payment-method {
+    display: none;
 }
 
-.paynl-ideal-banks,
-.paynl-paylater-fields {
+.paynl-payment-method-block.active .paynl-paylater-fields,
+.paynl-payment-method-block.active .paynl-ideal-issuers-block,
+.paynl-payment-method-block.active .paynl-change-payment-method {
     display: inline-block;
 }
 
-.paynl-paylater-fields {
-    align-self: center;
-    align-content: space-between;
+.paynl-payment-method-label,
+.paynl-paylater-input-block,
+.paynl-payment-method-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .paynl-paylater-input-block {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+.paynl-paylater-input-block input {
+    max-width: 175px;
 }
 
 .paynl-paylater-input-block label {
     white-space: nowrap;
-    float: right;
+    margin-right: 5px;
 }
 
-.paynl-paylater-fields input {
-    display: flex;
-    width: 160px;
-    margin-left: 0.5rem;
-}
-
-.paynl-button-container {
-    display: none;
-    float: right;
-}
-
-.paynl-savebutton {
-    display: none;
-    float: right;
+.paynl-paylater-fields,
+.paynl-change-payment-method {
+    margin-right: 10px;
 }
 
 .paynl-diguise {
@@ -49,45 +44,18 @@
     display: none;
 }
 
-.paynl-modal-buttons,
-.paynl-payment-method-label {
-    align-self: center;
-}
-
-.paynl-payment-method-description {
-    display: inline-flex;
-    align-self: center;
-}
-
-.paynl-payment-method-banks {
-    display: inline-flex;
-    margin-left: 130px;
-    margin-right: 1rem;
-    align-self: center;
-}
-
-.paynl-payment-method-block {
-    min-height: 40px;
-    justify-content: space-between;
-}
-
-.payment-method .form-group {
-    margin-bottom: 1rem;
-}
-
 .custom-radio .paynl-payment-method-label::after,
 .custom-radio .paynl-payment-method-label::before {
     top: 25%;
 }
 
-.custom-control.custom-select.invalid {
+.custom-control.custom-select.invalid,
+.form-control.invalid {
     border-color: #f00;
 }
 
 .paynl-paynl-payment-tooltip {
-    display: inline-flex;
-    height: 24px;
-    margin-left: 10px;
+    cursor: help;
 }
 
 .paynl-paynl-payment-tooltip:focus {
@@ -109,21 +77,13 @@
     display: none !important;
 }
 
-.paynl-payment-method-block .align-items-center {
-    order: 3;
-}
-
-.paynl-payment-method-label img {
-    margin-right: 0.45rem;
-}
-
-@media (min-width: 768px) and (max-width: 990px) {
+@media screen and (min-width: 768px) and (max-width: 991px) {
     .confirm-payment-modal .modal-dialog {
         max-width: 650px;
     }
 }
 
-@media (max-width: 768px) {
+@media screen and (max-width: 767px) {
     .show_only_desktop {
         display: none !important;
     }
@@ -132,43 +92,14 @@
         flex-wrap: wrap;
     }
 
-    .paynl-payment-method-input {
-        order: 1;
+    .paynl-payment-method-description {
+        max-width: 100px;
     }
 
-    .paynl-payment-method-label {
-        order: 2;
-    }
-
-    .paynl-button-info-block {
+    .paynl-paylater-fields,
+    .paynl-ideal-issuers-block {
         order: 3;
-    }
-
-    .paynl-paylater-fields, .paynl-payment-method-banks {
-        margin-top: 15px;
         width: 100%;
-        order: 4;
-    }
-}
-
-@media (max-width: 500px) {
-    .paynl-payment-method-banks {
-        margin-left: 0.5rem;
-    }
-}
-
-@media (max-width: 425px) {
-    .paynl-payment-method-description {
-        max-width: 130px;
-    }
-}
-
-@media (max-width: 350px) {
-    .paynl-payment-method-description {
-        max-width: 90px;
-    }
-
-    .paynl-payment-method-description strong {
-        word-break: break-all;
+        margin-top: 10px;
     }
 }

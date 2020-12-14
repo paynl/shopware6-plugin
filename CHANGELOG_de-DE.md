@@ -1,3 +1,10 @@
+# 1.3.0
+- Den Fehler bei der Berechnung des Mehrwertsteuer behoben
+- Den Fehler bei der Bearbeitung der Rückerstattung behoben
+- Snippet hinzugefügt "Auftragsbestätigungs-E-Mail wurde gesendet" für die Erfolgreichen Zahlungen
+- Validierung für das Feld "Telefonnummer" hinzugefügt
+- verbesserte mobile Reaktionsfähigkeit
+
 # 0.3.3
 - die Funktion einer obligatorischen Auswahl von iDEAL Bankaussteller hinzugefügt
 - das Feature einer einheitlichen Zahlungsmethode hinzugefügt (hosted payment pages)

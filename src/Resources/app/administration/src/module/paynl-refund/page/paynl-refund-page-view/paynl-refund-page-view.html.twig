@@ -10,17 +10,21 @@
                                     <dt>{{ $tc('refund.detailBase.customer') }}</dt>
                                     <dd>{{ fullName }}</dd>
                                     <dt>{{ $tc('refund.detailBase.amount') }}</dt>
-                                    <dd>{{ order.amountTotal|currency(order.currency.translated.shortName) }}</dd>
+                                    <dd>
+                                        {{ order.amountTotal|currency(order.currency.translated.shortName) }}<br>
+                                        <i>{{ $tc('refund.detailBase.productsTotal') }}: </i>
+                                        {{ getProductsPrice|currency(order.currency.translated.shortName) }}<br>
+                                        <i>{{ $tc('refund.detailBase.shipping') }}: </i>
+                                        {{ order.shippingTotal|currency(order.currency.translated.shortName) }}
+                                    </dd>
                                     <dt>{{ $tc('refund.detailBase.orderNumber') }}</dt>
                                     <dd>{{ order.orderNumber }}</dd>
                                 </sw-description-list>
                                 <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
                                     <dt>{{ $tc('refund.detailBase.amountToRefund') }}</dt>
                                     <dd>
-                                        <sw-number-field v-if="refundData" v-model="amountToRefund" :min="0" :max="refundData.availableForRefund + order.shippingTotal" :value="0">
-                                        </sw-number-field>
-                                        <sw-number-field v-else v-model="amountToRefund" :min="0" :max="order.shippingTotal" :value="0">
-                                        </sw-number-field>
+                                        <sw-number-field v-model="amountToRefund" :min="0" :max="maxRefundAmount" :value="0"></sw-number-field>
+                                        <small v-if="showHelpText">{{ $tc('refund.detailBase.helpText') }}</small>
                                     </dd>
                                     <dt>{{ $tc('refund.detailBase.description') }}</dt>
                                     <dd><sw-text-field v-model="description"></sw-text-field></dd>
@@ -34,13 +38,22 @@
                                     <dt>{{ $tc('refund.detailBase.paynlTransactionId') }}</dt>
                                     <dd>{{ paynlTransaction.paynlTransactionId }}</dd>
                                     <dt>{{ $tc('refund.detailBase.paidAmount') }}</dt>
-                                    <dd>{{ paynlTransaction.amount|currency(order.currency.translated.shortName) }}</dd>
+                                    <dd>
+                                        {{ paynlTransaction.amount|currency(order.currency.translated.shortName) }}<br>
+                                        <i>{{ $tc('refund.detailBase.productsTotal') }}: </i>
+                                        {{ getProductsPrice|currency(order.currency.translated.shortName) }}<br>
+                                        <i>{{ $tc('refund.detailBase.shipping') }}: </i>
+                                        {{ order.shippingTotal|currency(order.currency.translated.shortName) }}
+                                    </dd>
                                 </sw-description-list>
                                 <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical">
-                                    <dt>{{ $tc('refund.detailBase.refundedAmount') }}</dt>
-                                    <dd><span v-if="refundData">{{ refundData.refundedAmount|currency(order.currency.translated.shortName) }}</span><span v-else>{{ 0|currency(order.currency.translated.shortName) }}</span></dd>
+                                    <dt>{{ $tc('refund.detailBase.refundedAmount') }}:</dt>
+                                    <dd><span v-if="refundedAmount">{{ refundedAmount|currency(order.currency.translated.shortName) }}</span><span v-else>{{ 0|currency(order.currency.translated.shortName) }}</span></dd>
                                     <dt>{{ $tc('refund.detailBase.availableForRefund') }}</dt>
-                                    <dd><span v-if="refundData">{{ refundData.availableForRefund|currency(order.currency.translated.shortName) }}</span><span v-else>{{ 0|currency(order.currency.translated.shortName) }}</span></dd>
+                                    <dd>
+                                        <span v-if="availableForRefund">{{ availableForRefund|currency(order.currency.translated.shortName) }}</span>
+                                        <span v-else>{{ 0|currency(order.currency.translated.shortName) }}</span>
+                                    </dd>
                                 </sw-description-list>
                             </sw-container>
                         </sw-card-section>
