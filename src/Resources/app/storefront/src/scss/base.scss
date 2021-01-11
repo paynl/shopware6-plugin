@@ -1,105 +1,13 @@
-.paynl-payment-method-block .paynl-paylater-fields,
-.paynl-payment-method-block .paynl-ideal-issuers-block,
-.paynl-payment-method-block .paynl-change-payment-method {
+.paynl-payment-method-extra {
+    padding-left: 1.5rem;
     display: none;
 }
 
-.paynl-payment-method-block.active .paynl-paylater-fields,
-.paynl-payment-method-block.active .paynl-ideal-issuers-block,
-.paynl-payment-method-block.active .paynl-change-payment-method {
-    display: inline-block;
-}
-
-.paynl-payment-method-label,
-.paynl-paylater-input-block,
-.paynl-payment-method-block {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.paynl-paylater-input-block {
-    margin-bottom: 8px;
-}
-
-.paynl-paylater-input-block input {
-    max-width: 175px;
-}
-
-.paynl-paylater-input-block label {
-    white-space: nowrap;
-    margin-right: 5px;
-}
-
-.paynl-paylater-fields,
-.paynl-change-payment-method {
-    margin-right: 10px;
-}
-
-.paynl-diguise {
-    display: none;
-}
-
-#paynl-cocfield{
-    display: none;
-}
-
-.custom-radio .paynl-payment-method-label::after,
-.custom-radio .paynl-payment-method-label::before {
-    top: 25%;
+.paynl-payment-method-extra.active {
+    display: block;
 }
 
 .custom-control.custom-select.invalid,
 .form-control.invalid {
     border-color: #f00;
-}
-
-.paynl-paynl-payment-tooltip {
-    cursor: help;
-}
-
-.paynl-paynl-payment-tooltip:focus {
-    outline: none;
-}
-
-.tooltip-inner {
-    background-color: white;
-    color: black;
-    border: 1px solid #bcc1c7;
-    text-align: right;
-}
-
-.tooltip.bs-tooltip-left .arrow:before{
-    border-left-color: #bcc1c7;
-}
-
-.do_not_show {
-    display: none !important;
-}
-
-@media screen and (min-width: 768px) and (max-width: 991px) {
-    .confirm-payment-modal .modal-dialog {
-        max-width: 650px;
-    }
-}
-
-@media screen and (max-width: 767px) {
-    .show_only_desktop {
-        display: none !important;
-    }
-
-    .paynl-payment-method-block {
-        flex-wrap: wrap;
-    }
-
-    .paynl-payment-method-description {
-        max-width: 100px;
-    }
-
-    .paynl-paylater-fields,
-    .paynl-ideal-issuers-block {
-        order: 3;
-        width: 100%;
-        margin-top: 10px;
-    }
 }
