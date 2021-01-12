@@ -1,5 +1,19 @@
 {% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
 
+{% block component_payment_method_description %}
+    {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+        <div class="payment-method-description">
+            <strong>{{ payment.translated.name }}</strong>
+            {% if payment.translated.description %}
+                <p class="{{ page.showDescription }}">{{ payment.translated.description|raw }}</p>
+            {% endif %}
+        </div>
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+
+{% endblock %}
+
 {% block component_payment_fieldset_template %}
     {% block pay_component_payment_extra %}
         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}

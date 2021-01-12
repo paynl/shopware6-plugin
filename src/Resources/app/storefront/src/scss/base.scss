@@ -1,3 +1,7 @@
+.payment-method-description .do_not_show {
+    display: none !important;
+}
+
 .paynl-payment-method-extra {
     padding-left: 1.5rem;
     display: none;
@@ -10,4 +14,10 @@
 .custom-control.custom-select.invalid,
 .form-control.invalid {
     border-color: #f00;
+}
+
+@media screen and (max-width: 767px) {
+    .payment-method-description .show_only_desktop {
+        display: none;
+    }
 }
