@@ -1,6 +1,6 @@
 import Plugin from 'src/plugin-system/plugin.class';
 
-class PaynlPaymentPlugin extends Plugin {
+export default class PaynlPaymentPlugin extends Plugin {
     init() {
         this.paymentMethodsScriptsInit();
     }
@@ -8,7 +8,7 @@ class PaynlPaymentPlugin extends Plugin {
     paymentMethodsScriptsInit() {
         const paymentMethodsRadio = document.getElementsByClassName('payment-method-input');
         for (let i = 0; i < paymentMethodsRadio.length; i++) {
-            paymentMethodsRadio[i].onchange = this.onChangeCallback;
+            paymentMethodsRadio[i].addEventListener('change', this.onChangeCallback);
         }
 
         const form = document.getElementById('confirmPaymentForm');
@@ -27,10 +27,10 @@ class PaynlPaymentPlugin extends Plugin {
 
     onSavePaymentMethod(element) {
         const data = {};
-        const currentPaymentMethod = document.getElementsByClassName('paynl-payment-method-block active')[0];
+        const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
 
         if (currentPaymentMethod.querySelector('#paynl-ideal-banks-select') !== null) {
-            const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
+            const idealBankSelect = currentPaymentMethod.querySelector('#paynl-ideal-banks-select');
 
             if (idealBankSelect.value !== '') {
                 data.issuer = idealBankSelect.value;
@@ -44,12 +44,13 @@ class PaynlPaymentPlugin extends Plugin {
             }
         }
 
-        if (currentPaymentMethod.querySelector('.paynl-paylater-fields')) {
+        if (currentPaymentMethod.querySelector('.paynl-dob')) {
             const dobInput = currentPaymentMethod.querySelector('.paynl-dob');
             if (dobInput && dobInput.value !== '') {
                 data.dob = dobInput.value;
             }
-
+        }
+        if (currentPaymentMethod.querySelector('.paynl-phone')) {
             const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
             if (phoneInput && phoneInput.value !== '') {
                 const regex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
@@ -73,12 +74,13 @@ class PaynlPaymentPlugin extends Plugin {
     }
 
     onChangeCallback(element) {
-        const paymentBlocks = document.getElementsByClassName('paynl-payment-method-block');
-        for (let i = 0; i < paymentBlocks.length; i++) {
-            paymentBlocks[i].classList.remove('active');
+        const extraDataBlocks = document.getElementsByClassName('paynl-payment-method-extra');
+        for (let i = 0; i < extraDataBlocks.length; i++) {
+            extraDataBlocks[i].classList.remove('active');
         }
-        const currentPaymentBlock = element.target.parentNode;
-        currentPaymentBlock.classList.add('active');
+        const currentPaymentBlock = element.target.parentNode.parentNode.parentNode;
+        const extraDataBlock = currentPaymentBlock.querySelector('.paynl-payment-method-extra');
+        extraDataBlock.classList.add('active');
 
         if (currentPaymentBlock.querySelector('#paynl-ideal-banks-select') !== null) {
             const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
@@ -96,5 +98,3 @@ class PaynlPaymentPlugin extends Plugin {
         event.target.classList.remove('invalid');
     }
 }
-
-export default PaynlPaymentPlugin;
