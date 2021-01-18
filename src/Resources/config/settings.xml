@@ -70,6 +70,15 @@
             <helpText lang="nl-NL">Schakel dit in om toe te staan dat restituties worden verwerkt vanuit de bestellijst</helpText>
             <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet werden können</helpText>
         </input-field>
+        <input-field type="bool">
+            <name>usePAYStyles</name>
+            <label>Use styles by PAY.</label>
+            <label lang="nl-NL">Use styles by PAY.</label>
+            <label lang="de-DE">Use styles by PAY.</label>
+            <helpText>Enable this to use styles by PAY. on payment methods form</helpText>
+            <helpText lang="nl-NL">Enable this to use styles by PAY. on payment methods form</helpText>
+            <helpText lang="de-DE">Enable this to use styles by PAY. on payment methods form</helpText>
+        </input-field>
         <input-field type="single-select">
             <name>showDescription</name>
             <label>Payment methods description</label>
