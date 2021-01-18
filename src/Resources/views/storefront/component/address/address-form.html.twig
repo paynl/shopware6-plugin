@@ -77,7 +77,8 @@
                         {{ parent() }}
                     {% endblock %}
                 </div>
-                {% if (shopware.config.core.loginRegistration.showAccountTypeSelection and (prefix == "billingAddress")) or (prefix == "address" and (context.customer.defaultBillingAddressId is same as(data.get('id')))) %}
+
+                {% if (shopware.config.core.loginRegistration.showAccountTypeSelection and (prefix in ["billingAddress", "address"])) or (prefix == "address" and (context.customer.defaultBillingAddressId is same as(data.get('id')))) %}
                     <div class="form-row">
                         {% block component_paynl_kvk_coc_number %}
                             {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
