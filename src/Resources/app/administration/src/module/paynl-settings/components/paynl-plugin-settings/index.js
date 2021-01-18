@@ -25,6 +25,7 @@ Component.register('paynl-plugin-settings', {
             serviceIdFilled: false,
             useSinglePaymentMethodFilled: false,
             testModeFilled: false,
+            usePAYStylesFilled: false,
             cocNumberRequiredFilled: false,
             allowRefundsFilled: false,
             femaleSalutationsFilled: false,
@@ -37,6 +38,7 @@ Component.register('paynl-plugin-settings', {
                 useSinglePaymentMethod: null,
                 testMode: null,
                 cocNumberRequired: null,
+                usePAYStyles: null,
                 showDescription: null,
                 additionalAddressFields: null,
                 femaleSalutations: null
@@ -80,7 +82,8 @@ Component.register('paynl-plugin-settings', {
                 cocNumberRequired: this.config['PaynlPaymentShopware6.settings.cocNumberRequired'],
                 showDescription: this.config['PaynlPaymentShopware6.settings.showDescription'],
                 additionalAddressFields: this.config['PaynlPaymentShopware6.settings.additionalAddressFields'],
-                femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations']
+                femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
+                usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
             };
 
             this.showCredentilasErrors = false;
