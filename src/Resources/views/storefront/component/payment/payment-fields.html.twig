@@ -60,6 +60,7 @@
                         {% if not page.isPhoneNumberExists %}
                             <div class="form-group">
                                 <input type="tel"
+                                       pattern="^[0-9-+\s()]*$"
                                        id="paynl-phone-{{ loop.index }}"
                                        class="form-control paynl-phone"
                                        placeholder="{{ "checkout.labels.phone"|trans|striptags }}"

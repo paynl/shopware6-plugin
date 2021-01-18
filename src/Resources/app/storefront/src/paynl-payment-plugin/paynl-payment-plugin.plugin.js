@@ -53,16 +53,6 @@ export default class PaynlPaymentPlugin extends Plugin {
         if (currentPaymentMethod.querySelector('.paynl-phone')) {
             const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
             if (phoneInput && phoneInput.value !== '') {
-                const regex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
-                if (!regex.test(phoneInput.value)) {
-                    element.preventDefault();
-                    element.stopPropagation();
-
-                    phoneInput.classList.add('invalid');
-
-                    return;
-                }
-
                 data.phone = phoneInput.value;
             }
         }
