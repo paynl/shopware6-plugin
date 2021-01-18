@@ -21,27 +21,33 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
         const select = args[0];
         const selectedOption = event.target.options[event.target.selectedIndex];
         const kvkCocFieldBlock = document.getElementById('paynl-kvk-coc-number-field');
+        const kvkCocFieldInput = kvkCocFieldBlock.querySelector('input[name="coc_number"]');
 
         if (selectedOption.getAttribute('data-paynl-kvk-coc-field') === null) {
             kvkCocFieldBlock.style.display = 'none';
+            kvkCocFieldInput.setAttribute('disabled', 'disabled');
 
             return;
         }
 
         if (select === null || select.value !== 'business') {
             kvkCocFieldBlock.style.display = 'none';
+            kvkCocFieldInput.setAttribute('disabled', 'disabled');
 
             return;
         }
 
         kvkCocFieldBlock.style.display = 'inline-block';
+        kvkCocFieldInput.removeAttribute('disabled');
     }
 
     onAccountTypeChange(event) {
         const kvkCocFieldBlock = document.getElementById('paynl-kvk-coc-number-field');
+        const kvkCocFieldInput = kvkCocFieldBlock.querySelector('input[name="coc_number"]');
 
         if (event.target.value !== 'business') {
             kvkCocFieldBlock.style.display = 'none';
+            kvkCocFieldInput.setAttribute('disabled', 'disabled');
 
             return;
         }
@@ -55,10 +61,13 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
 
         if (selectedValue.getAttribute('data-paynl-kvk-coc-field') === null) {
             kvkCocFieldBlock.style.display = 'none';
+            kvkCocFieldInput.setAttribute('disabled', 'disabled');
 
             return;
         }
 
+
         kvkCocFieldBlock.style.display = 'inline-block';
+        kvkCocFieldInput.removeAttribute('disabled');
     }
 }

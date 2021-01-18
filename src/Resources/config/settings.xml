@@ -53,6 +53,15 @@
             <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie alle Transaktionen im Testmodus starten möchten</helpText>
         </input-field>
         <input-field type="bool">
+            <name>cocNumberRequired</name>
+            <label>CoC number required</label>
+            <label lang="nl-NL">KvK nummer vereist</label>
+            <label lang="de-DE">CoC Nummer erforderlich</label>
+            <helpText>This will make the CoC number, at registration, a required field for commercial customers only</helpText>
+            <helpText lang="nl-NL">This will make the CoC number, at registration, a required field for commercial customers only</helpText>
+            <helpText lang="de-DE">This will make the CoC number, at registration, a required field for commercial customers only</helpText>
+        </input-field>
+        <input-field type="bool">
             <name>allowRefunds</name>
             <label>Allow refunds</label>
             <label lang="nl-NL">Restituties toestaan</label>

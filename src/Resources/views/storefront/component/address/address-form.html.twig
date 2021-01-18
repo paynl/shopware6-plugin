@@ -70,7 +70,6 @@
     </div>
 
     {% if shopware.config.core.loginRegistration.showAccountTypeSelection or prefix == "address" or prefix == "shippingAddress" %}
-
         <div class="{% if prefix == "shippingAddress" %}address-contact-type-company{% elseif prefix == "address" %}js-field-toggle-contact-type-company d-block{% else %}js-field-toggle-contact-type-company d-none{% endif %}">
             {% block component_address_form_company_fields %}
                 <div class="form-row">
@@ -81,6 +80,7 @@
                 {% if (shopware.config.core.loginRegistration.showAccountTypeSelection and (prefix == "billingAddress")) or (prefix == "address" and (context.customer.defaultBillingAddressId is same as(data.get('id')))) %}
                     <div class="form-row">
                         {% block component_paynl_kvk_coc_number %}
+                            {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
                             <div id="paynl-kvk-coc-number-field" class="form-group col-md-6"
                                 {% if data.get('company') is not empty %}
                                     style="display: inline-block"
@@ -96,7 +96,7 @@
                                 {% block component_paynl_kvk_coc_number_label %}
                                     <label class="form-label"
                                            for="coc_number">
-                                        {{ "coc.label"|trans|sw_sanitize }}
+                                        {{ "coc.label"|trans|sw_sanitize }}{{ isCoCNumberRequired ? '*' : '' }}
                                     </label>
                                 {% endblock %}
 
@@ -105,6 +105,7 @@
                                            class="form-control{% if violationPath %} is-invalid{% endif %}"
                                            placeholder="{{ "coc.placeholder"|trans|striptags }}"
                                            name="coc_number"
+                                           {{ isCoCNumberRequired ? 'required="required"' : '' }}
                                            value="{{ data.customFields.cocNumber }}">
                                 {% endblock %}
 
