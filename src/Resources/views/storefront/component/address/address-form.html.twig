@@ -82,7 +82,7 @@
                     <div class="form-row">
                         {% block component_paynl_kvk_coc_number %}
                             {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
-                            <div id="paynl-kvk-coc-number-field" class="form-group col-md-6"
+                            <div class="form-group col-md-6 paynl-kvk-coc-number-field"
                                 {% if data.get('company') is not empty %}
                                     style="display: inline-block"
                                 {% else %}
