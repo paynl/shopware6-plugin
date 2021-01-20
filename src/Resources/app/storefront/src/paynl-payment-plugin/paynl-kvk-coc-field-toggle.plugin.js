@@ -18,6 +18,8 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
             selectedValues.isBusiness = Boolean(el.value === 'business');
         } else if (el.classList.contains('paynl-country-select')) {
             selectedValues.isPayCountrySelected = Boolean(el.options[el.selectedIndex].getAttribute('data-paynl-kvk-coc-field'));
+        } else {
+            return;
         }
 
         this.toggleCocField(selectedValues, form);
