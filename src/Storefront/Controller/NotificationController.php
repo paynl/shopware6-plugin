@@ -33,7 +33,13 @@ class NotificationController extends StorefrontController
     public function notify(Request $request): Response
     {
         $transactionId = $request->get('order_id', '');
-        $responseText = $this->processingHelper->processNotify($transactionId);
+        $action = $request->get('action', '');
+
+        if ($action == 'pending') {
+            $responseText = 'TRUE| Pending payment';
+        } else {
+            $responseText = $this->processingHelper->processNotify($transactionId);
+        }
 
         return new Response($responseText);
     }
