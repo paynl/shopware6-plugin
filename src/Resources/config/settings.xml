@@ -53,6 +53,15 @@
             <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie alle Transaktionen im Testmodus starten möchten</helpText>
         </input-field>
         <input-field type="bool">
+            <name>cocNumberRequired</name>
+            <label>CoC number required</label>
+            <label lang="nl-NL">KvK nummer verplicht</label>
+            <label lang="de-DE">IHK-Nummer erforderlich</label>
+            <helpText>This will make the CoC number, at registration, a required field for commercial customers only</helpText>
+            <helpText lang="nl-NL">Dit maakt het KvK nummer, bij registratie, een verplicht veld voor zakelijke klanten</helpText>
+            <helpText lang="de-DE">Damit wird die IHK-Nummer bei der Registrierung ein Pflichtfeld nur für Geschäftskunden</helpText>
+        </input-field>
+        <input-field type="bool">
             <name>allowRefunds</name>
             <label>Allow refunds</label>
             <label lang="nl-NL">Restituties toestaan</label>
@@ -60,6 +69,15 @@
             <helpText>Enable this to allow refunds to be processed from the order list</helpText>
             <helpText lang="nl-NL">Schakel dit in om toe te staan dat restituties worden verwerkt vanuit de bestellijst</helpText>
             <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet werden können</helpText>
+        </input-field>
+        <input-field type="bool">
+            <name>usePAYStyles</name>
+            <label>Use styles by PAY.</label>
+            <label lang="nl-NL">Gebruik PAY. stijl</label>
+            <label lang="de-DE">Stile nach PAY. verwenden</label>
+            <helpText>Enable this to use styles by PAY. in payment method selection screen at the checkout</helpText>
+            <helpText lang="nl-NL">Enable this to use styles by PAY. on payment methods form</helpText>
+            <helpText lang="de-DE">Aktivieren Sie dies, um die Stile von PAY. im Auswahlbildschirm für Zahlungsmethoden zu verwenden, im Checkout</helpText>
         </input-field>
         <input-field type="single-select">
             <name>showDescription</name>

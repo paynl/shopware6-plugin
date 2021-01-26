@@ -1,52 +1,59 @@
-.paynl-payment-method-block .paynl-paylater-fields,
-.paynl-payment-method-block .paynl-ideal-issuers-block,
-.paynl-payment-method-block .paynl-change-payment-method {
-    display: none;
+.paynl-payment-methods-custom-styles .payment-method {
+    position: relative;
 }
 
-.paynl-payment-method-block.active .paynl-paylater-fields,
-.paynl-payment-method-block.active .paynl-ideal-issuers-block,
-.paynl-payment-method-block.active .paynl-change-payment-method {
-    display: inline-block;
-}
-
-.paynl-payment-method-label,
-.paynl-paylater-input-block,
-.paynl-payment-method-block {
+.paynl-payment-methods-custom-styles .payment-method,
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
 }
 
-.paynl-paylater-input-block {
-    margin-bottom: 8px;
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
+    padding-right: 25px;
 }
 
-.paynl-paylater-input-block input {
-    max-width: 175px;
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra .form-control.input,
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra #paynl-ideal-banks-select {
+    max-width: 200px;
 }
 
-.paynl-paylater-input-block label {
-    white-space: nowrap;
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra .form-group {
     margin-right: 5px;
 }
 
-.paynl-paylater-fields,
-.paynl-change-payment-method {
-    margin-right: 10px;
+.paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label {
+    display: flex;
+    align-items: center;
+    padding-right: 0;
 }
 
-.paynl-diguise {
+.paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label:before,
+.paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label:after {
+    top: 20%;
+}
+
+.paynl-payment-methods-custom-styles .payment-method .paynl-paynl-payment-tooltip {
+    position: absolute;
+    top: 5px;
+    right: 0;
+}
+
+.paynl-paynl-payment-tooltip.do_not_show {
+    display: none !important;
+}
+
+.paynl-payment-method-extra {
+    padding-left: 1.5rem;
     display: none;
 }
 
-#paynl-cocfield{
-    display: none;
+.paynl-payment-methods-custom-styles .paynl-payment-method-extra.active {
+    display: flex;
 }
 
-.custom-radio .paynl-payment-method-label::after,
-.custom-radio .paynl-payment-method-label::before {
-    top: 25%;
+.paynl-payment-method-extra.active {
+    display: block;
 }
 
 .custom-control.custom-select.invalid,
@@ -54,52 +61,29 @@
     border-color: #f00;
 }
 
-.paynl-paynl-payment-tooltip {
-    cursor: help;
-}
-
-.paynl-paynl-payment-tooltip:focus {
-    outline: none;
-}
-
-.tooltip-inner {
-    background-color: white;
-    color: black;
-    border: 1px solid #bcc1c7;
-    text-align: right;
-}
-
-.tooltip.bs-tooltip-left .arrow:before{
-    border-left-color: #bcc1c7;
-}
-
-.do_not_show {
-    display: none !important;
-}
-
-@media screen and (min-width: 768px) and (max-width: 991px) {
-    .confirm-payment-modal .modal-dialog {
-        max-width: 650px;
-    }
-}
-
 @media screen and (max-width: 767px) {
-    .show_only_desktop {
-        display: none !important;
+    .paynl-payment-methods-custom-styles .payment-method,
+    .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
     }
 
-    .paynl-payment-method-block {
-        flex-wrap: wrap;
-    }
-
-    .paynl-payment-method-description {
-        max-width: 100px;
-    }
-
-    .paynl-paylater-fields,
-    .paynl-ideal-issuers-block {
-        order: 3;
+    .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
         width: 100%;
-        margin-top: 10px;
+        padding-right: 0;
+    }
+
+    .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper .paynl-payment-method-extra {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label {
+        padding-right: 25px;
+    }
+
+    .paynl-paynl-payment-tooltip.show_only_desktop {
+        display: none;
     }
 }

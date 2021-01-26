@@ -1,3 +1,8 @@
+# 1.3.1
+- die Funktionalität hinzugefügt, den IHK-Nummer erforderlich oder nicht erforderlich zu machen
+- die Funktionalität hinzugefügt zum Deaktivieren/Aktivieren der PAY.styles
+- Code-Verbesserungen und Code-Refactoring
+
 # 1.3.0
 - Den Fehler bei der Berechnung des Mehrwertsteuer behoben
 - Den Fehler bei der Bearbeitung der Rückerstattung behoben

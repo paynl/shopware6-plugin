@@ -1,64 +1,53 @@
 import Plugin from 'src/plugin-system/plugin.class';
 
+const selectedValues = {
+    isBusiness: false,
+    isPayCountrySelected: false
+};
+
 export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
     init() {
-        const countrySelect = document.querySelector('.paynl-country-select');
-
-        const accountTypeSelect = document.querySelector('#accountType');
-        if (accountTypeSelect !== null) {
-            accountTypeSelect.onchange = this.onAccountTypeChange;
-            countrySelect.onchange = this.onCountryChange.bind(null, [accountTypeSelect]);
-        }
-
-        const addressAccountTypeSelect = document.querySelector('#addressaccountType');
-        if (addressAccountTypeSelect !== null) {
-            addressAccountTypeSelect.onchange = this.onAccountTypeChange;
-            countrySelect.onchange = this.onCountryChange.bind(null, [addressAccountTypeSelect]);
-        }
+        document.addEventListener('change', this.accountFormChange.bind(this));
     }
 
-    onCountryChange(args, event) {
-        const select = args[0];
-        const selectedOption = event.target.options[event.target.selectedIndex];
-        const kvkCocFieldBlock = document.getElementById('paynl-kvk-coc-number-field');
+    accountFormChange(event) {
+        const el = event.target;
+        const form = el.form;
 
-        if (selectedOption.getAttribute('data-paynl-kvk-coc-field') === null) {
-            kvkCocFieldBlock.style.display = 'none';
-
+        if (el.id === 'accountType' || el.id === 'addressaccountType') {
+            selectedValues.isBusiness = Boolean(el.value === 'business');
+            const countrySelect = form.querySelector('.paynl-country-select');
+            if (countrySelect !== null) {
+                selectedValues.isPayCountrySelected = Boolean(countrySelect.options[countrySelect.selectedIndex].getAttribute('data-paynl-kvk-coc-field'));
+            }
+        } else if (el.classList.contains('paynl-country-select')) {
+            selectedValues.isPayCountrySelected = Boolean(el.options[el.selectedIndex].getAttribute('data-paynl-kvk-coc-field'));
+            const accountTypeSelect = form.querySelector('select[name="address[accountType]"]');
+            if (accountTypeSelect !== null) {
+                selectedValues.isBusiness = Boolean(accountTypeSelect.value === 'business');
+            }
+        } else {
             return;
         }
 
-        if (select === null || select.value !== 'business') {
-            kvkCocFieldBlock.style.display = 'none';
-
-            return;
-        }
-
-        kvkCocFieldBlock.style.display = 'inline-block';
+        this.toggleCocField(selectedValues, form);
     }
 
-    onAccountTypeChange(event) {
-        const kvkCocFieldBlock = document.getElementById('paynl-kvk-coc-number-field');
+    toggleCocField(selectedValues, form) {
+        const kvkCocFieldBlock = form.querySelector('.paynl-kvk-coc-number-field');
+        if (kvkCocFieldBlock === null) {
+            return;
+        }
+        const kvkCocFieldInput = kvkCocFieldBlock.querySelector('input[name="coc_number"]');
 
-        if (event.target.value !== 'business') {
+        if (!selectedValues.isBusiness || !selectedValues.isPayCountrySelected) {
             kvkCocFieldBlock.style.display = 'none';
+            kvkCocFieldInput.setAttribute('disabled', 'disabled');
 
             return;
         }
 
-        const countrySelect = document.querySelector('.paynl-country-select');
-
-        if (countrySelect === null) {
-            return;
-        }
-        const selectedValue = countrySelect.options[countrySelect.selectedIndex];
-
-        if (selectedValue.getAttribute('data-paynl-kvk-coc-field') === null) {
-            kvkCocFieldBlock.style.display = 'none';
-
-            return;
-        }
-
-        kvkCocFieldBlock.style.display = 'inline-block';
+        kvkCocFieldBlock.style.display = 'block';
+        kvkCocFieldInput.removeAttribute('disabled');
     }
 }

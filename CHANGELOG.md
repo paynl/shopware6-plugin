@@ -1,3 +1,8 @@
+# 1.3.1
+- added the functionality of making the CoC code required or not
+- added the functionality for disabling/enabling the PAY. styles
+- code improvements and code refactoring
+
 # 1.3.0
 - fixed the bug with tax rate calculation
 - fixed the bug with the refund processing
