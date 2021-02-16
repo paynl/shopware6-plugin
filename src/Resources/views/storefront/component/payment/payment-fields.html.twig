@@ -1,6 +1,8 @@
 {% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
 
 {% block component_payment_methods %}
+    <span id="paynl-payment-plugin"></span>
+
     {% if (shopware.config.PaynlPaymentShopware6.settings.usePAYStyles) %}
         <div class="paynl-payment-methods-custom-styles">{{ parent() }}</div>
     {% else %}
@@ -32,7 +34,10 @@
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
                             <div class="form-group">
-                                <select id="paynl-ideal-banks-select" class="form-control" name="paynlIssuer">
+                                <select
+                                    class="form-control paynl-ideal-banks-select"
+                                    name="paynlIssuer"
+                                >
                                     <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                     {% for bank in payment.translated.customFields.banks %}
                                         <option value="{{ bank.id }}" {% if app.session.get('paynlIssuer') is defined and bank.id is same as(app.session.get('paynlIssuer'))%} selected {% endif %}>{{ bank.visibleName }}</option>
@@ -47,14 +52,9 @@
                             <div class="form-group">
                                 <input type="text"
                                        id="paynl-dob-{{ loop.index }}"
-                                       data-date-picker="true"
-                                       data-enable-time="false"
-                                       data-alt-format="Y-m-d"
                                        class="form-control paynl-dob"
                                        placeholder="{{ "checkout.labels.dob"|trans|striptags }}"
-                                       name="dob[{{ payment.id }}]"
-                                       data-min-date="1900-01-01"
-                                       data-max-date="today" />
+                                       name="dob[{{ payment.id }}]" />
                             </div>
                         {% endif %}
                         {% if not page.isPhoneNumberExists %}
@@ -95,6 +95,4 @@
             </div>
         {% endif %}
     {% endblock %}
-
-    <template paynl-payment-plugin></template>
 {% endblock %}
