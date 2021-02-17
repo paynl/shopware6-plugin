@@ -56,8 +56,8 @@ export default class PaynlPaymentPlugin extends Plugin {
         }
 
         if (invalid.length) {
-            invalid.map(function (el) {
-                el.classList.add('invalid');
+            invalid.forEach(function (element) {
+                element.classList.add('invalid');
             });
 
             element.preventDefault();
@@ -94,7 +94,7 @@ export default class PaynlPaymentPlugin extends Plugin {
             const invalid = extraDataBlock.querySelectorAll('.invalid');
             if (invalid.length) {
                 Object.keys(invalid).map(function (key) {
-                    invalid[key].classList.remove('invalid');
+                    return invalid[key].classList.remove('invalid');
                 });
             }
 
