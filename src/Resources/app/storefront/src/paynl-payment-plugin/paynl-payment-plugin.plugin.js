@@ -1,4 +1,5 @@
 import Plugin from 'src/plugin-system/plugin.class';
+import { Datepicker } from '@datepicker';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -9,10 +10,13 @@ export default class PaynlPaymentPlugin extends Plugin {
         const trigger = document.getElementById('paynl-payment-plugin');
 
         if (trigger) {
-            jQuery('.paynl-dob').datepicker({
-                autoclose: true,
-                format: "dd-mm-yyyy",
-                weekStart: 1 // Monday
+            const elements = document.querySelectorAll('.paynl-dob');
+            Object.keys(elements).map(function(key) {
+                return new Datepicker(elements[key], {
+                    format: 'dd-mm-yyyy',
+                    autohide: true,
+                    maxDate: new Date(),
+                });
             });
 
             const form = trigger.parentNode;
