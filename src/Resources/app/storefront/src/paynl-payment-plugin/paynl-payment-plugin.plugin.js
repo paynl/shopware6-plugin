@@ -1,5 +1,5 @@
 import Plugin from 'src/plugin-system/plugin.class';
-import { Datepicker } from '@datepicker';
+import Datepicker from '../../node_modules/vanillajs-datepicker/js/Datepicker';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
