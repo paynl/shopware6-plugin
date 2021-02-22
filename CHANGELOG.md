@@ -1,3 +1,7 @@
+# 1.3.2
+- DoB and Phonenumber fields are now required for filling in(for PayLater methods)
+- updated date-picker
+
 # 1.3.1
 - added the functionality of making the CoC code required or not
 - added the functionality for disabling/enabling the PAY. styles

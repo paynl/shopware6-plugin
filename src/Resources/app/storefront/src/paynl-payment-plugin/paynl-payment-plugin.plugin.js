@@ -1,4 +1,5 @@
 import Plugin from 'src/plugin-system/plugin.class';
+import Datepicker from '../../node_modules/vanillajs-datepicker/js/Datepicker';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -6,55 +7,67 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     paymentMethodsScriptsInit() {
-        const paymentMethodsRadio = document.getElementsByClassName('payment-method-input');
-        for (let i = 0; i < paymentMethodsRadio.length; i++) {
-            paymentMethodsRadio[i].addEventListener('change', this.onChangeCallback);
-        }
+        const trigger = document.getElementById('paynl-payment-plugin');
 
-        const form = document.getElementById('confirmPaymentForm');
-        form.addEventListener('submit', this.onSavePaymentMethod);
+        if (trigger) {
+            const elements = document.querySelectorAll('.paynl-dob');
+            Object.keys(elements).map(function(key) {
+                return new Datepicker(elements[key], {
+                    format: 'dd-mm-yyyy',
+                    autohide: true,
+                    maxDate: new Date(),
+                });
+            });
 
-        const phoneInput = form.querySelector('.paynl-phone');
-        if (phoneInput !== null) {
-            phoneInput.addEventListener('focus', this.onInputFocus);
-        }
-
-        const issuerSelect = form.querySelector('#paynl-ideal-banks-select');
-        if (issuerSelect !== null) {
-            issuerSelect.addEventListener('change', this.onIssuerChange);
+            const form = trigger.parentNode;
+            form.addEventListener('submit', this.onSavePaymentMethod);
+            form.addEventListener('change', this.onChangeCallback);
+            form.addEventListener('focus', this.removeInvalid, true);
         }
     }
 
     onSavePaymentMethod(element) {
         const data = {};
+        const invalid = [];
         const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
 
-        if (currentPaymentMethod.querySelector('#paynl-ideal-banks-select') !== null) {
-            const idealBankSelect = currentPaymentMethod.querySelector('#paynl-ideal-banks-select');
+        if (currentPaymentMethod.querySelector('.paynl-ideal-banks-select')) {
+            const idealBankSelect = currentPaymentMethod.querySelector('.paynl-ideal-banks-select');
 
-            if (idealBankSelect.value !== '') {
-                data.issuer = idealBankSelect.value;
+            if (idealBankSelect.value == '') {
+                invalid.push(idealBankSelect);
             } else {
-                element.preventDefault();
-                element.stopPropagation();
-
-                idealBankSelect.classList.add('invalid');
-
-                return;
+                data.issuer = idealBankSelect.value;
             }
         }
 
         if (currentPaymentMethod.querySelector('.paynl-dob')) {
-            const dobInput = currentPaymentMethod.querySelector('.paynl-dob');
-            if (dobInput && dobInput.value !== '') {
+            const dobInput = currentPaymentMethod.querySelector('input.paynl-dob[type="text"]');
+            if (dobInput.value == '') {
+                invalid.push(dobInput);
+            } else {
                 data.dob = dobInput.value;
             }
         }
+
         if (currentPaymentMethod.querySelector('.paynl-phone')) {
             const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
-            if (phoneInput && phoneInput.value !== '') {
+            if (phoneInput.value == '') {
+                invalid.push(phoneInput);
+            } else {
                 data.phone = phoneInput.value;
             }
+        }
+
+        if (invalid.length) {
+            invalid.forEach(function (element) {
+                element.classList.add('invalid');
+            });
+
+            element.preventDefault();
+            element.stopPropagation();
+
+            return;
         }
 
         const xhr = new XMLHttpRequest();
@@ -63,28 +76,42 @@ export default class PaynlPaymentPlugin extends Plugin {
         xhr.send(JSON.stringify(data));
     }
 
-    onChangeCallback(element) {
-        const extraDataBlocks = document.getElementsByClassName('paynl-payment-method-extra');
-        for (let i = 0; i < extraDataBlocks.length; i++) {
-            extraDataBlocks[i].classList.remove('active');
-        }
-        const currentPaymentBlock = element.target.parentNode.parentNode.parentNode;
-        const extraDataBlock = currentPaymentBlock.querySelector('.paynl-payment-method-extra');
-        extraDataBlock.classList.add('active');
+    onChangeCallback(event) {
+        // check if event is triggered by payment method change
+        if (event.target.classList.contains('payment-method-input')) {
+            // hide previous extra data block
+            const prevExtraDataBlock = event.currentTarget.querySelector('.paynl-payment-method-extra.active');
+            if (prevExtraDataBlock) {
+                prevExtraDataBlock.classList.remove('active');
+            }
 
-        if (currentPaymentBlock.querySelector('#paynl-ideal-banks-select') !== null) {
-            const idealBankSelect = document.getElementById('paynl-ideal-banks-select');
+            const currentPaymentBlock = event.target.parentNode.parentNode.parentNode;
+            const extraDataBlock = currentPaymentBlock.querySelector('.paynl-payment-method-extra');
 
-            idealBankSelect.value = '';
-            idealBankSelect.classList.remove('invalid');
+            // set issuer value to initial position
+            const issuerSelect = extraDataBlock.querySelector('.paynl-ideal-banks-select');
+            if (issuerSelect) {
+                issuerSelect.value = '';
+            }
+
+            // remove all invalid classes if exists
+            const invalid = extraDataBlock.querySelectorAll('.invalid');
+            if (invalid.length) {
+                Object.keys(invalid).map(function (key) {
+                    return invalid[key].classList.remove('invalid');
+                });
+            }
+
+            extraDataBlock.classList.add('active');
         }
     }
 
-    onInputFocus(event) {
-        event.target.classList.remove('invalid');
-    }
-
-    onIssuerChange(event) {
-        event.target.classList.remove('invalid');
+    removeInvalid(event) {
+        if (event.target.classList.contains('paynl-phone') ||
+            event.target.classList.contains('paynl-dob') ||
+            event.target.classList.contains('paynl-ideal-banks-select')
+        ) {
+            event.target.classList.remove('invalid');
+        }
     }
 }
