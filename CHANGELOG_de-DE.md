@@ -1,3 +1,7 @@
+# 1.3.2
+- Geburtsdatum und Telefonnummer sind jetzt Pflichtfelder (für Später bezahlen)
+- aktualisierter Datums-Picker
+
 # 1.3.1
 - die Funktionalität hinzugefügt, den IHK-Nummer erforderlich oder nicht erforderlich zu machen
 - die Funktionalität hinzugefügt zum Deaktivieren/Aktivieren der PAY.styles
