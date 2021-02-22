@@ -1,3 +1,9 @@
+@import './../../node_modules/vanillajs-datepicker/sass/datepicker';
+
+.datepicker-dropdown.active {
+    z-index: 1051;
+}
+
 .paynl-payment-methods-custom-styles .payment-method {
     position: relative;
 }
@@ -13,8 +19,8 @@
     padding-right: 25px;
 }
 
-.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra .form-control.input,
-.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra #paynl-ideal-banks-select {
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra input.form-control,
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra .paynl-ideal-banks-select {
     max-width: 200px;
 }
 
