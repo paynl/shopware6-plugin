@@ -18,6 +18,7 @@ use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
@@ -46,6 +47,8 @@ class InstallHelper
     private $salesChannelRepository;
     /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
     private $paymentMethodSalesChannelRepository;
+    /** @var EntityRepositoryInterface $systemConfigRepository */
+    private $systemConfigRepository;
     /** @var Connection $connection */
     private $connection;
     /** @var Api $paynlApi */
@@ -60,6 +63,9 @@ class InstallHelper
         $this->salesChannelRepository = $container->get('sales_channel.repository');
         $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
         $this->connection = $container->get(Connection::class);
+        /** @var EntityRepositoryInterface $systemConfigRepository */
+        $this->systemConfigRepository = $container->get('system_config.repository');
+
         // TODO:
         // plugin services doesn't registered on plugin install - create instances of classes
         // may be use setter injection?
@@ -315,14 +321,17 @@ class InstallHelper
         $this->mediaHelper->removeOldMedia($context);
     }
 
-    public function removeConfigurationData(): void
+    public function removeConfigurationData(Context $context): void
     {
-        $paynlPaymentConfigs = $this->configService->get('PaynlPaymentShopware6');
-        if (isset($paynlPaymentConfigs['settings'])) {
-            foreach ($paynlPaymentConfigs['settings'] as $configKey => $configName) {
-                $this->configService->delete(sprintf(Config::CONFIG_TEMPLATE, $configKey));
-            }
-        }
+        $criteria = (new Criteria())
+            ->addFilter(new ContainsFilter('configurationKey', Config::CONFIG_DOMAIN));
+        $idSearchResult = $this->systemConfigRepository->searchIds($criteria, $context);
+
+        $ids = \array_map(static function ($id) {
+            return ['id' => $id];
+        }, $idSearchResult->getIds());
+
+        $this->systemConfigRepository->delete($ids, $context);
     }
 
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
