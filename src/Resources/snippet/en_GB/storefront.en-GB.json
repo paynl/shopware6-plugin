@@ -11,7 +11,7 @@
         },
         "labels": {
             "changePayment": "Try again",
-            "dob": "Date of birth:",
+            "dob": "Date of birth 'dd-mm-yyyy':",
             "phone": "Phone:"
         }
     },
