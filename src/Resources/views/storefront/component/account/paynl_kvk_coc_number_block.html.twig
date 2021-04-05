@@ -1,0 +1,47 @@
+{% block component_paynl_kvk_coc_number %}
+    {% if (shopware.config.core.loginRegistration.showAccountTypeSelection) %}
+        <div class="form-row">
+            {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
+            {% set countriesWithKvk = [] %}
+            {% for country in page.countries %}
+                {% if country.iso in ['BE', 'NL'] %}
+                    {% set countriesWithKvk = countriesWithKvk|merge([country.id]) %}
+                {% endif %}
+            {% endfor %}
+            <div class="form-group col-md-6 paynl-kvk-coc-number-field"
+                 data-countries-with-kvk="{{ countriesWithKvk|join(',') }}"
+                 {% if (data.get('coc_number') is not empty) and (data.get('accountType') == 'business') and (data.get('billingAddress').get('countryId') in countriesWithKvk) %}
+                     style="display: block"
+                 {% else %}
+                    style="display: none"
+                 {% endif %}
+                >
+                {% if formViolations.getViolations("/cocNumber") is not empty %}
+                    {% set violationPath = "/cocNumber" %}
+                {% elseif formViolations.getViolations("/cocNumber") is not empty %}
+                    {% set violationPath = "/cocNumber" %}
+                {% endif %}
+                {% block component_paynl_kvk_coc_number_label %}
+                    <label class="form-label"
+                           for="coc_number">
+                        {{ "coc.label"|trans|sw_sanitize }}{{ isCoCNumberRequired ? '*' : '' }}
+                    </label>
+                {% endblock %}
+                {% block component_paynl_kvk_coc_number_input %}
+                    <input type="text"
+                           class="form-control{% if violationPath %} is-invalid{% endif %}"
+                           placeholder="{{ "coc.placeholder"|trans|striptags }}"
+                           name="coc_number"
+                        {{ isCoCNumberRequired ? 'required="required"' : '' }}
+                           value="{{ data.get('coc_number') }}">
+                {% endblock %}
+
+                {% block component_paynl_kvk_coc_number_input_error %}
+                    {% if violationPath %}
+                        {% sw_include '@Storefront/storefront/utilities/form-violation.html.twig' %}
+                    {% endif %}
+                {% endblock %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

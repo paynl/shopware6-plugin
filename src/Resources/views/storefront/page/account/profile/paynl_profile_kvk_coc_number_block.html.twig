@@ -1,0 +1,37 @@
+{% block paynl_kvk_edit_block %}
+    {% set kvk_countries = ['BE', 'NL'] %}
+    {% if (shopware.config.core.loginRegistration.showAccountTypeSelection) and (context.customer.company is not empty) and (context.customer.defaultBillingAddress.country.iso in kvk_countries) %}
+        <div class="form-row">
+            {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
+            <div class="form-group col-md-6 paynl-kvk-coc-number-field">
+                {% if formViolations.getViolations("/cocNumber") is not empty %}
+                    {% set violationPath = "/cocNumber" %}
+                {% elseif formViolations.getViolations("/cocNumber") is not empty %}
+                    {% set violationPath = "/cocNumber" %}
+                {% endif %}
+
+                {% block component_paynl_kvk_coc_number_label %}
+                    <label class="form-label"
+                           for="coc_number">
+                        {{ "coc.label"|trans|sw_sanitize }}{{ isCoCNumberRequired ? '*' : '' }}
+                    </label>
+                {% endblock %}
+
+                {% block component_paynl_kvk_coc_number_input %}
+                    <input type="text"
+                           class="form-control{% if violationPath %} is-invalid{% endif %}"
+                           placeholder="{{ "coc.placeholder"|trans|striptags }}"
+                           name="coc_number"
+                        {{ isCoCNumberRequired ? 'required="required"' : '' }}
+                           value="{{ context.customer.defaultBillingAddress.customFields.cocNumber }}">
+                {% endblock %}
+
+                {% block component_paynl_kvk_coc_number_input_error %}
+                    {% if violationPath %}
+                        {% sw_include '@Storefront/storefront/utilities/form-violation.html.twig' %}
+                    {% endif %}
+                {% endblock %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
