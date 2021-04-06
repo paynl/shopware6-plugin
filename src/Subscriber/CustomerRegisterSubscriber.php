@@ -53,6 +53,10 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
         if ($this->counter < 1) {
             $this->counter++;
             $request = $this->requestStack->getMasterRequest();
+            if (is_null($request)) {
+                return;
+            }
+
             $cocNumber = $request->get('coc_number');
             $addressIdArray = $event->getIds();
             $context = $event->getContext();
