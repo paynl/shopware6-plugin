@@ -3,4 +3,4 @@ import PaynlKvkCocFieldTogglePlugin from './paynl-payment-plugin/paynl-kvk-coc-f
 
 const PluginManager = window.PluginManager;
 PluginManager.register('PaynlPaymentPlugin', PaynlPaymentPlugin, '#paynl-payment-plugin');
-PluginManager.register('PaynlKvkCocFieldTogglePlugin', PaynlKvkCocFieldTogglePlugin, '.paynl-country-select');
+PluginManager.register('PaynlKvkCocFieldTogglePlugin', PaynlKvkCocFieldTogglePlugin, '.country-select, .contact-select');
