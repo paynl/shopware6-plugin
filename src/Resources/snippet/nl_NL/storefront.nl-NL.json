@@ -11,7 +11,7 @@
         },
         "labels": {
             "changePayment": "Probeer opnieuw",
-            "dob": "Geboortedatum:",
+            "dob": "Geboortedatum dd-mm-yyyy:",
             "phone": "Telefoon:"
         }
     },
