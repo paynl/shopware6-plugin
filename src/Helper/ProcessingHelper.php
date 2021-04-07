@@ -235,10 +235,9 @@ class ProcessingHelper
                     [
                         new EqualsFilter('actionName', $orderTransactionTransitionName),
                         new EqualsFilter('stateMachineId', $stateMachineId),
-                        new NotFilter(
-                        NotFilter::CONNECTION_AND, [
-                                new EqualsFilter('toStateId', $stateMachineStateId),
-                            ])
+                        new NotFilter(NotFilter::CONNECTION_AND, [
+                            new EqualsFilter('toStateId', $stateMachineStateId),
+                        ])
                     ]
                 )),
                 Context::createDefaultContext()
