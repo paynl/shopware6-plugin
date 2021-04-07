@@ -1,9 +1,14 @@
 {% block paynl_kvk_edit_block %}
     {% set kvk_countries = ['BE', 'NL'] %}
-    {% if (shopware.config.core.loginRegistration.showAccountTypeSelection) and (context.customer.company is not empty) and (context.customer.defaultBillingAddress.country.iso in kvk_countries) %}
+    {% if (shopware.config.core.loginRegistration.showAccountTypeSelection) %}
         <div class="form-row">
             {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
-            <div class="form-group col-md-6 paynl-kvk-coc-number-field">
+            <div class="form-group col-md-6 paynl-kvk-coc-number-field"
+                {% if (context.customer.company is not empty) and (context.customer.defaultBillingAddress.country.iso in kvk_countries) %}
+                    style="display: block"
+                {% else %}
+                    style="display: none"
+                {% endif %}>
                 {% if formViolations.getViolations("/cocNumber") is not empty %}
                     {% set violationPath = "/cocNumber" %}
                 {% elseif formViolations.getViolations("/cocNumber") is not empty %}

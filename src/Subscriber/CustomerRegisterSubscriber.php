@@ -4,12 +4,14 @@ namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
+use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\CustomerEvents;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -26,6 +28,11 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     private $customerAddressRepository;
 
     /**
+     * @var EntityRepositoryInterface
+     */
+    private $customerRepository;
+
+    /**
      * @var CustomerHelper
      */
     private $customerHelper;
@@ -36,10 +43,12 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     public function __construct(
         RequestStack $requestStack,
         EntityRepositoryInterface $customerAddressRepository,
+        EntityRepositoryInterface $customerRepository,
         CustomerHelper $customerHelper
     ) {
         $this->requestStack = $requestStack;
         $this->customerAddressRepository = $customerAddressRepository;
+        $this->customerRepository = $customerRepository;
         $this->customerHelper = $customerHelper;
     }
 
@@ -80,11 +89,17 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
             }
             $cocNumber = $request->get('coc_number');
             $context = $event->getContext();
-            $criteria = new Criteria();
+            $customerCriteria = new Criteria();
             $payloads = $event->getPayloads();
-            $criteria->addFilter(new EqualsFilter('customerId', $payloads[0]['id']));
+            $customerCriteria->addFilter(new EqualsFilter('id', $payloads[0]['id']));
+            /** @var CustomerEntity $customerAddress */
+            $customer = $this->customerRepository->search($customerCriteria, $context)->first();
+            if ($customer instanceof CustomerEntity) {
+                $criteria = new Criteria();
+                $criteria->addFilter(new EqualsFilter('id', $customer->getDefaultBillingAddressId()));
 
-            $this->updateCustomerCocNumber($cocNumber, $criteria, $context);
+                $this->updateCustomerCocNumber($cocNumber, $criteria, $context);
+            }
         }
 
         return;
