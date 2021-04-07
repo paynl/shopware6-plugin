@@ -32,6 +32,8 @@ class ProcessingHelper
     private $paynlTransactionRepository;
     /** @var EntityRepositoryInterface  */
     private $orderTransactionRepository;
+    /** @var EntityRepositoryInterface  */
+    private $stateMachineStateRepository;
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
@@ -39,11 +41,13 @@ class ProcessingHelper
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
         EntityRepositoryInterface $orderTransactionRepository,
+        EntityRepositoryInterface $stateMachineStateRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
+        $this->stateMachineStateRepository = $stateMachineStateRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
@@ -221,10 +225,17 @@ class ProcessingHelper
         $swOrderTransactionTechnicalName = $orderTransaction->getStateMachineState()->getTechnicalName();
         $stateMachineStateId = $orderTransaction->getStateId();
 
+        $criteria = new Criteria();
+        $swTransitionsStates = $this->stateMachineStateRepository->search(
+            $criteria->addFilter(
+                new EqualsFilter('technicalName', $swOrderTransactionTechnicalName)),
+                Context::createDefaultContext()
+        )->getEntities()->getKeys();
+
         if (
             !empty($orderTransactionTransitionName)
             && ($orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName())
-            && ($orderTransactionTransitionName !== $swOrderTransactionTechnicalName)
+            && (!in_array($orderTransaction->getStateId(), $swTransitionsStates))
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
@@ -236,6 +247,8 @@ class ProcessingHelper
             $stateMachineStateEntity = $stateMachine->get('toPlace');
             $stateMachineStateId = $stateMachineStateEntity->getUniqueIdentifier();
         }
+
+        file_put_contents('tr.txt', 'all good here' . $orderTransactionTransitionName);
 
         $this->updatePaynlTransactionStatus(
             $paynlTransactionEntity->getId(),

@@ -14,6 +14,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <argument type="service" id="order_transaction.repository"/>
+            <argument type="service" id="state_machine_state.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
         </service>
 
