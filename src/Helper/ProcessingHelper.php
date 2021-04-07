@@ -248,8 +248,6 @@ class ProcessingHelper
             $stateMachineStateId = $stateMachineStateEntity->getUniqueIdentifier();
         }
 
-        file_put_contents('tr.txt', 'all good here' . $orderTransactionTransitionName);
-
         $this->updatePaynlTransactionStatus(
             $paynlTransactionEntity->getId(),
             $paynlTransactionStatusCode,
