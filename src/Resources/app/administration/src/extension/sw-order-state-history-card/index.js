@@ -4,14 +4,14 @@ Component.override('sw-order-state-history-card', {
     inject: ['PaynlPaymentService'],
 
     methods: {
-        onLeaveModalConfirm(docIds) {
+        onLeaveModalConfirm(docIds, sendMail = true) {
             this.showModal = false;
             let currentActionName = this.currentActionName;
             if (this.currentStateType === 'orderTransactionState') {
                 this.orderStateMachineService.transitionOrderTransactionState(
                     this.transaction.id,
                     this.currentActionName,
-                    { documentIds: docIds }
+                    { documentIds: docIds, sendMail }
                 ).then(() => {
                     this.$emit('order-state-change');
                     this.loadHistory();
@@ -23,7 +23,7 @@ Component.override('sw-order-state-history-card', {
                 this.orderStateMachineService.transitionOrderState(
                     this.order.id,
                     this.currentActionName,
-                    { documentIds: docIds }
+                    { documentIds: docIds, sendMail }
                 ).then(() => {
                     this.$emit('order-state-change');
                     this.loadHistory();
@@ -34,7 +34,7 @@ Component.override('sw-order-state-history-card', {
                 this.orderStateMachineService.transitionOrderDeliveryState(
                     this.delivery.id,
                     this.currentActionName,
-                    { documentIds: docIds }
+                    { documentIds: docIds, sendMail }
                 ).then(() => {
                     this.$emit('order-state-change');
                     this.loadHistory();
