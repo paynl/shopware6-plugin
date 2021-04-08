@@ -14,6 +14,8 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateCollection;
@@ -32,6 +34,8 @@ class ProcessingHelper
     private $paynlTransactionRepository;
     /** @var EntityRepositoryInterface  */
     private $orderTransactionRepository;
+    /** @var EntityRepositoryInterface  */
+    private $stateMachineTransitionRepository;
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
@@ -39,11 +43,13 @@ class ProcessingHelper
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
         EntityRepositoryInterface $orderTransactionRepository,
+        EntityRepositoryInterface $stateMachineTransitionRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
+        $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
@@ -218,13 +224,29 @@ class ProcessingHelper
 
         /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
-        $swOrderTransactionTechnicalName = $orderTransaction->getStateMachineState()->getTechnicalName();
         $stateMachineStateId = $orderTransaction->getStateId();
+
+        $criteria = new Criteria();
+        $stateMachineId = $orderTransaction->getStateMachineState()->getStateMachineId();
+        $allowedNewTransitionsStatesCount = $this->stateMachineTransitionRepository->search(
+            $criteria->addFilter(
+                new MultiFilter(
+                    MultiFilter::CONNECTION_AND,
+                    [
+                        new EqualsFilter('actionName', $orderTransactionTransitionName),
+                        new EqualsFilter('stateMachineId', $stateMachineId),
+                        new NotFilter(NotFilter::CONNECTION_AND, [
+                            new EqualsFilter('toStateId', $stateMachineStateId),
+                        ])
+                    ]
+                )),
+                Context::createDefaultContext()
+        )->count();
 
         if (
             !empty($orderTransactionTransitionName)
             && ($orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName())
-            && ($orderTransactionTransitionName !== $swOrderTransactionTechnicalName)
+            && ($allowedNewTransitionsStatesCount > 0)
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
