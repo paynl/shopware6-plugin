@@ -222,7 +222,7 @@ class ProcessingHelper
 
         if (
             !empty($orderTransactionTransitionName)
-            && ($orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName())
+            && $orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName()
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
