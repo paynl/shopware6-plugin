@@ -218,13 +218,11 @@ class ProcessingHelper
 
         /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
-        $swOrderTransactionTechnicalName = $orderTransaction->getStateMachineState()->getTechnicalName();
         $stateMachineStateId = $orderTransaction->getStateId();
 
         if (
             !empty($orderTransactionTransitionName)
             && ($orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName())
-            && ($orderTransactionTransitionName !== $swOrderTransactionTechnicalName)
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
