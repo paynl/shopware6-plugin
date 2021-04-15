@@ -313,11 +313,6 @@ class InstallHelper
 
     public function removePaymentMethodsMedia(Context $context): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
-        if (empty($paynlPaymentMethods)) {
-            return;
-        }
-
         $this->mediaHelper->removeOldMedia($context);
     }
 
