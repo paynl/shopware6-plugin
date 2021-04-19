@@ -1,3 +1,10 @@
+# 1.3.3
+- fixed deletion of plugin credentials after plugin Uninstall
+- fixed emails sending after order status change
+- fixed CustomerRegisterSubscriber so that it works properly with CLI
+- KVK/CoC input field was moved from 'Address' to 'Personal' block
+- templates improvements
+
 # 1.3.2
 - DoB and Phonenumber fields are now required for filling in(for PayLater methods)
 - updated date-picker

@@ -11,7 +11,7 @@
         },
         "labels": {
             "changePayment": "Erneut versuchen",
-            "dob": "Geburtsdatum:",
+            "dob": "Geburtsdatum dd-mm-yyyy:",
             "phone": "Telefon:"
         }
     },

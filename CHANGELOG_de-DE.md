@@ -1,3 +1,10 @@
+# 1.3.3
+- Löschung der Plugin-Anmeldedaten nach Plugin-Deinstallation behoben
+- E-Mail-Versand nach Änderung des Bestellstatus behoben
+- CustomerRegisterSubscriber korrigiert, so dass es korrekt mit CLI funktioniert
+- KVK/CoC-Eingabefeld wurde von 'Adresse' in den 'Persönlich'-Block verschoben
+- Templates Verbesserungen
+
 # 1.3.2
 - Geburtsdatum und Telefonnummer sind jetzt Pflichtfelder (für Später bezahlen)
 - aktualisierter Datums-Picker
