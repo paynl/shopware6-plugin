@@ -1,3 +1,6 @@
+# 1.3.4
+- Behebt ein Problem das auftritt wenn ein Benutzer ein neues Kennwort anfordert
+
 # 1.3.3
 - Löschung der Plugin-Anmeldedaten nach Plugin-Deinstallation behoben
 - E-Mail-Versand nach Änderung des Bestellstatus behoben
