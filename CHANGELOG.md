@@ -1,3 +1,6 @@
+# 1.3.4
+- Fixed an issue which occurred when a user requested a new password for his account
+
 # 1.3.3
 - fixed deletion of plugin credentials after plugin Uninstall
 - fixed emails sending after order status change
