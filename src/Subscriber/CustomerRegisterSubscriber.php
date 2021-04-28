@@ -91,7 +91,11 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
             $context = $event->getContext();
             $customerCriteria = new Criteria();
             $payloads = $event->getPayloads();
-            $customerCriteria->addFilter(new EqualsFilter('id', $payloads[0]['id']));
+            $customerId = $payloads[0]['id'] ?? null;
+            if (is_null($customerId)) {
+                return;
+            }
+            $customerCriteria->addFilter(new EqualsFilter('id', $customerId));
             /** @var CustomerEntity $customerAddress */
             $customer = $this->customerRepository->search($customerCriteria, $context)->first();
             if ($customer instanceof CustomerEntity) {
