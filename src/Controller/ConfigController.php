@@ -77,7 +77,6 @@ class ConfigController extends AbstractController
         $isValidCredentials = $this->api->isValidCredentials($data['tokenCode'], $data['apiToken'], $data['serviceId']);
         if ($isValidCredentials) {
             $this->config->storeConfigData($data);
-            $this->config->setDefaultConfigFields(true);
 
             if ($this->config->getSinglePaymentMethodInd()) {
                 $this->installHelper->addSinglePaymentMethod($context);
@@ -87,7 +86,6 @@ class ConfigController extends AbstractController
                 );
             } else {
                 $this->installHelper->removeSinglePaymentMethod($context);
-                $this->installHelper->setDefaultPaymentMethod($context);
             }
 
             return $this->json([

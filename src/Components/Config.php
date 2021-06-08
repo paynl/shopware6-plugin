@@ -95,10 +95,4 @@ class Config
     {
         return $this->get('showDescription', 'show_payment_method_info');
     }
-
-    public function setDefaultConfigFields(bool $active): void
-    {
-        $this->config->set(self::SHOW_PHONE_FIELD_CONFIG_KEY, $active);
-        $this->config->set(self::SHOW_DOB_FIELD_CONFIG_KEY, $active);
-    }
 }
