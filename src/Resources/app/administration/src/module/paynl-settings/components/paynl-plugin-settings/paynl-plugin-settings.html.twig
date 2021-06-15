@@ -17,7 +17,7 @@
                 class="sw-settings-login-registration__save-action"
                 :isLoading="isLoading"
                 :processSuccess="isSaveSuccessful"
-                :disabled="isLoading"
+                :disabled="isDisabled"
                 variant="primary"
                 @process-finish="saveFinish"
                 @click="onSave">
@@ -30,7 +30,7 @@
                 class="sw-settings-login-registration__save-action"
                 :isLoading="isInstallLoading"
                 :processSuccess="isInstallSuccessful"
-                :disabled="isInstallLoading"
+                :disabled="isInstallLoading || !acl.can('paynl_settings.editor')"
                 variant="primary"
                 @process-finish="installFinish"
                 @click="onInstallPaymentMethods">
@@ -49,10 +49,12 @@
                     @config-changed="onConfigChange"
                     salesChannelSwitchable
                     domain="PaynlPaymentShopware6.settings">
-                <template #card-element="{ element, config }">
+
+                <template #card-element="{ element, config }" data-new-data="acl.can('paynl_settings.editor')">
                     <sw-form-field-renderer
-                            v-bind="bindField(element, config)"
-                            v-model="config[element.name]"/>
+                        :disabled="isDisabled"
+                        v-bind="bindField(element, config)"
+                        v-model="config[element.name]"/>
                 </template>
             </sw-system-config>
         </sw-card-view>

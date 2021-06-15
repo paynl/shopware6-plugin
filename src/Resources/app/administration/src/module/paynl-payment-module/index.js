@@ -21,12 +21,16 @@ Module.register('paynl-payment-module', {
     routes: {
         list: {
             component: 'paynl-transactions-list-component',
-            path: 'list'
+            path: 'list',
+            meta: {
+                privilege: 'paynl_transactions.reader'
+            }
         }
     },
     navigation: [{
         parent: 'sw-order',
         label: "module.navigation.label",
         path: 'paynl.payment.module.list',
+        privilege: 'paynl_transactions.reader',
     }]
 });

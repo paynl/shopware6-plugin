@@ -1,4 +1,6 @@
 import './components/paynl-plugin-settings';
+import './components/paynl-settings-icon';
+import './acl';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
@@ -8,7 +10,7 @@ const { Module } = Shopware;
 Module.register('paynl-settings', {
     type: "plugin",
     name: "paynlSettings.general.name",
-    title: "paynlSettings.general.title",
+    title: "paynlSettings.general.mainMenuItemGeneral",
     description: "paynlSettings.general.description",
     color: '#23ac70',
     snippets: {
@@ -25,8 +27,17 @@ Module.register('paynl-settings', {
             component: 'paynl-plugin-settings',
             path: 'view',
             meta: {
-                parentPath: 'sw.settings.index'
+                parentPath: 'sw.settings.index',
+                privilege: 'paynl.settings.viewer',
             }
         }
+    },
+
+    settingsItem: {
+        group: 'plugins',
+        to: 'paynl.settings.view',
+        backgroundEnabled: false,
+        iconComponent: 'paynl-settings-icon',
+        privilege: 'paynl_settings.viewer',
     }
 });

@@ -9,7 +9,12 @@ Component.register('paynl-plugin-settings', {
         Mixin.getByName('notification')
     ],
 
-    inject: [ 'PaynlPaymentService' ],
+    inject: [
+        'PaynlPaymentService',
+        'acl'
+    ],
+
+    props: ['disabled'],
 
     data() {
         return {
@@ -55,7 +60,17 @@ Component.register('paynl-plugin-settings', {
     computed: {
         credentialsEmpty: function() {
             return !this.tokenCodeFilled || !this.apiTokenFilled || !this.serviceIdFilled;
+        },
+
+        isDisabled: function () {
+            return this.isLoading || !this.acl.can('paynl_settings.editor');
         }
+    },
+
+    mounted() {
+        this.$nextTick(function () {
+            this.disabled();
+        })
     },
 
     methods: {
@@ -65,6 +80,16 @@ Component.register('paynl-plugin-settings', {
 
         installFinish() {
             this.isInstallSuccessful = false;
+        },
+
+        disabled() {
+            // Here we need to disable SalesChannels input
+            // this.$refs.systemConfig.children[0].salesChannelSelect.children[0].disabled = true;
+
+            // this.$refs.systemConfig.$el.children[1].children[0].disabled = true;
+            this.$refs.systemConfig.$el.getElementsByClassName('sw-sales-channel-switch')[0].disabled = true;
+
+            // return this.isLoading || !this.acl.can('paynl_settings.editor');
         },
 
         onConfigChange(config) {
