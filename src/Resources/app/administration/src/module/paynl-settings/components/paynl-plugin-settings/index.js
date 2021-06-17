@@ -69,7 +69,9 @@ Component.register('paynl-plugin-settings', {
 
     mounted() {
         this.$nextTick(function () {
-            this.disabled();
+            if (this.isDisabled) {
+                this.disableSalesChannel();
+            }
         })
     },
 
@@ -82,14 +84,24 @@ Component.register('paynl-plugin-settings', {
             this.isInstallSuccessful = false;
         },
 
-        disabled() {
-            // Here we need to disable SalesChannels input
-            // this.$refs.systemConfig.children[0].salesChannelSelect.children[0].disabled = true;
+        disableSalesChannel() {
+            var $this = this;
+            var waitSalesChannelInit = setInterval(function() {
+                let systemConfig = $this.$refs.systemConfig;
+                if (systemConfig.$children === undefined || systemConfig.$children[0] === undefined) {
+                    return;
+                }
 
-            // this.$refs.systemConfig.$el.children[1].children[0].disabled = true;
-            this.$refs.systemConfig.$el.getElementsByClassName('sw-sales-channel-switch')[0].disabled = true;
+                let systemConfigSettings = systemConfig.$children[0];
+                if (systemConfigSettings.$children === undefined || systemConfigSettings.$children[0] === undefined) {
+                    return;
+                }
 
-            // return this.isLoading || !this.acl.can('paynl_settings.editor');
+                let salesChannelSwitch = systemConfigSettings.$children[0];
+                salesChannelSwitch._props.disabled = true;
+
+                clearInterval(waitSalesChannelInit);
+            }, 100); // check every 100ms
         },
 
         onConfigChange(config) {

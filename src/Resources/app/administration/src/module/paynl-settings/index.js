@@ -28,7 +28,7 @@ Module.register('paynl-settings', {
             path: 'view',
             meta: {
                 parentPath: 'sw.settings.index',
-                privilege: 'paynl.settings.viewer',
+                privilege: 'paynl_settings.viewer',
             }
         }
     },
