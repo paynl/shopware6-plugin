@@ -1,3 +1,10 @@
+# 1.3.5
+- Fixed the bug with shipping cost for not logged-in customers
+- Fixed the bug with changing payment status for non PAY. payment methods
+- Fixed the bug with changing default payment method after saving configs or reinstalling payment methods
+- Fixed the bug with auto activating Phone number and Birthday fields after saving plugin settings
+- Code improvement after code quality analysis
+
 # 1.3.4
 - Fixed an issue which occurred when a user requested a new password for his account
 
