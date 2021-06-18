@@ -28,7 +28,7 @@ Module.register('paynl-settings', {
             path: 'view',
             meta: {
                 parentPath: 'sw.settings.index',
-                privilege: 'paynl_settings.viewer',
+                privilege: 'paynl.viewer',
             }
         }
     },
@@ -38,6 +38,6 @@ Module.register('paynl-settings', {
         to: 'paynl.settings.view',
         backgroundEnabled: false,
         iconComponent: 'paynl-settings-icon',
-        privilege: 'paynl_settings.viewer',
+        privilege: 'paynl.viewer',
     }
 });

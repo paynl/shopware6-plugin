@@ -1,13 +1,13 @@
 Shopware.Service('privileges').addPrivilegeMappingEntry({
     category: 'permissions',
-    parent: 'paynl_settings',
-    key: 'paynl_settings',
+    parent: 'paynl',
+    key: 'paynl',
     roles: {
         viewer: {
             privileges: [
-                'paynl_settings:read',
+                'paynl:read',
                 'sales_channel:read',
-                'system_config:read'
+                'system_config:read',
             ],
             dependencies: []
         },
@@ -24,8 +24,8 @@ Shopware.Service('privileges').addPrivilegeMappingEntry({
                 'media_folder_configuration:read',
                 'payment_method:create',
                 'payment_method:update',
-                'paynl_settings:update',
-                'paynl_settings:create',
+                'paynl:update',
+                'paynl:create',
                 'system_config:create',
                 'system_config:update',
                 'system_config:delete',
@@ -37,7 +37,7 @@ Shopware.Service('privileges').addPrivilegeMappingEntry({
                 'sales_channel_payment_method:update',
             ],
             dependencies: [
-                'paynl_settings.viewer'
+                'paynl.viewer'
             ]
         }
     }

@@ -63,13 +63,13 @@ Component.register('paynl-plugin-settings', {
         },
 
         isDisabled: function () {
-            return this.isLoading || !this.acl.can('paynl_settings.editor');
+            return this.isLoading || !this.acl.can('paynl.editor');
         }
     },
 
     mounted() {
         this.$nextTick(function () {
-            if (this.isDisabled) {
+            if (!this.acl.can('paynl.editor')) {
                 this.disableSalesChannel();
             }
         })
@@ -88,7 +88,10 @@ Component.register('paynl-plugin-settings', {
             var $this = this;
             var waitSalesChannelInit = setInterval(function() {
                 let systemConfig = $this.$refs.systemConfig;
-                if (systemConfig.$children === undefined || systemConfig.$children[0] === undefined) {
+                if (systemConfig === undefined
+                    || systemConfig.$children === undefined
+                    || systemConfig.$children[0] === undefined
+                ) {
                     return;
                 }
 
@@ -98,7 +101,7 @@ Component.register('paynl-plugin-settings', {
                 }
 
                 let salesChannelSwitch = systemConfigSettings.$children[0];
-                salesChannelSwitch._props.disabled = true;
+                salesChannelSwitch.disabled = true;
 
                 clearInterval(waitSalesChannelInit);
             }, 100); // check every 100ms

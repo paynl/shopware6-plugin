@@ -33,10 +33,13 @@
     "sw-privileges": {
         "permissions": {
             "parents": {
-                "paynl_settings": "Paynl Plugin"
+                "paynl": "Paynl Plugin"
             },
-            "paynl_settings": {
+            "paynl": {
                 "label": "Paynl Plugin settings"
+            },
+            "paynl_transactions": {
+                "label": "Paynl Transactions"
             }
         }
     }
