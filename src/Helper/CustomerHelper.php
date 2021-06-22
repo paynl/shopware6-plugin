@@ -52,6 +52,8 @@ class CustomerHelper
             $gender = 'F';
         }
 
+        $customerVatIds = $customer->getVatIds();
+
         $formattedAddress = [
             'enduser' => [
                 'initials' => $customer->getFirstName(),
@@ -63,7 +65,7 @@ class CustomerHelper
             ],
             'company' => [
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
-                'vatNumber' => $customer->getDefaultBillingAddress()->getVatId(),
+                'vatNumber' => reset($customerVatIds),
             ],
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
