@@ -58,11 +58,13 @@ class StatusTransitionController extends AbstractController
                 )
                 ->first();
 
-            $this->processingHelper->processChangePaynlStatus(
-                $paynlTransaction->getId(),
-                $paynlTransaction->getPaynlTransactionId(),
-                $currentActionName
-            );
+            if ($paynlTransaction instanceof PaynlTransactionEntity) {
+                $this->processingHelper->processChangePaynlStatus(
+                    $paynlTransaction->getId(),
+                    $paynlTransaction->getPaynlTransactionId(),
+                    $currentActionName
+                );
+            }
 
             return new JsonResponse($request->request->all());
         } catch (Error\Api $exception) {
