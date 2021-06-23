@@ -5,6 +5,9 @@ Shopware.Service('privileges').addPrivilegeMappingEntry({
     roles: {
         viewer: {
             privileges: [
+                'order:read',
+                'customer:read',
+                'state_machine_state:read',
                 'paynl_transactions:read',
             ],
             dependencies: []
