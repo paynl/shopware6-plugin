@@ -14,3 +14,17 @@ Shopware.Service('privileges').addPrivilegeMappingEntry({
         },
     }
 });
+
+Shopware.Service('privileges').addPrivilegeMappingEntry({
+    category: 'permissions',
+    parent: 'orders',
+    key: 'order',
+    roles: {
+        viewer: {
+            privileges: [
+                'paynl_transactions:read'
+            ],
+            dependencies: []
+        },
+    }
+});
