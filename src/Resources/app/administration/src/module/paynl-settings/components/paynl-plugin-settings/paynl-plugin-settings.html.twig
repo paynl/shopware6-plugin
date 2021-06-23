@@ -30,7 +30,7 @@
                 class="sw-settings-login-registration__save-action"
                 :isLoading="isInstallLoading"
                 :processSuccess="isInstallSuccessful"
-                :disabled="isInstallLoading || !acl.can('paynl_settings.editor')"
+                :disabled="isDisabled"
                 variant="primary"
                 @process-finish="installFinish"
                 @click="onInstallPaymentMethods">
