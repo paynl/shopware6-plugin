@@ -53,22 +53,22 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
 
         $orderTransactionStateId = $connection->executeQuery($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $paidStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'paid',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $transitions = [
             ['from_state_id' => $authorizeStateMachineStateId],
@@ -83,7 +83,7 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
         ];
 
         foreach ($transitions as $transition) {
-            $connection->executeUpdate(
+            $connection->executeStatement(
                 $updateTransitionSQL,
                 array_merge($transition, $defaultData)
             );

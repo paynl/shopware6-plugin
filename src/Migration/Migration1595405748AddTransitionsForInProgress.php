@@ -47,26 +47,26 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
             'UPDATE `action_name` = :action_name, `updated_at` = CURRENT_TIME();'
         ]);
 
-        $orderTransactionStateId = $connection->fetchColumn($orderTransactionStateSQL, [
+        $orderTransactionStateId = $connection->fetchOne($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
         ]);
 
-        $authorizeStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+        $authorizeStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
             'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
-        $partlyCapturedStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+        $partlyCapturedStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
             'technical_name' => 'partly_captured',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
-        $verifyStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+        $verifyStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
             'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
-        $inProgressStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+        $inProgressStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
             'technical_name' => 'in_progress',
             'state_machine_id' => $orderTransactionStateId,
         ]);
@@ -95,7 +95,7 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
         ];
 
         foreach ($transitions as $transition) {
-            $connection->executeQuery(
+            $connection->executeStatement(
                 $insertTransitionSQL,
                 array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
             );

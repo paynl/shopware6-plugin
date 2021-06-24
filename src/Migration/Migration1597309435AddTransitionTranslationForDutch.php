@@ -55,11 +55,11 @@ class Migration1597309435AddTransitionTranslationForDutch extends MigrationStep
             'UPDATE `updated_at` = CURRENT_TIME();'
         ]);
 
-        $languageDutchId = $connection->fetchColumn($languageSQL, [
+        $languageDutchId = $connection->fetchOne($languageSQL, [
             'name' => 'Dutch'
         ]);
 
-        $orderTransactionStateId = $connection->fetchColumn($orderTransactionStateSQL, [
+        $orderTransactionStateId = $connection->fetchOne($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
         ]);
 
@@ -86,12 +86,12 @@ class Migration1597309435AddTransitionTranslationForDutch extends MigrationStep
 
         if (!empty($languageDutchId)) {
             foreach ($statusesArray as $status => $translations) {
-                $stateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
+                $stateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
                     'technical_name' => $status,
                     'state_machine_id' => $orderTransactionStateId
                 ]);
 
-                $connection->executeQuery($stateMachineStateTranslation, [
+                $connection->executeStatement($stateMachineStateTranslation, [
                     'language_id' => $translations['dutch']['id'],
                     'state_machine_state_id' => $stateMachineStateId,
                     'name' => $translations['dutch']['name'],
