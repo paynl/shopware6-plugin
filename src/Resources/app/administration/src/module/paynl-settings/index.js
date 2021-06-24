@@ -1,4 +1,5 @@
 import './components/paynl-plugin-settings';
+import './components/paynl-settings-icon';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
@@ -10,6 +11,7 @@ Module.register('paynl-settings', {
     name: "paynlSettings.general.name",
     title: "paynlSettings.general.title",
     description: "paynlSettings.general.description",
+    icon: 'default-action-settings',
     color: '#23ac70',
     snippets: {
         'de-DE': deDE,
@@ -28,5 +30,12 @@ Module.register('paynl-settings', {
                 parentPath: 'sw.settings.index'
             }
         }
-    }
+    },
+
+    settingsItem: {
+        group: 'plugins',
+        to: 'paynl.settings.view',
+        iconComponent: 'paynl-settings-icon',
+        backgroundEnabled: true,
+    },
 });
