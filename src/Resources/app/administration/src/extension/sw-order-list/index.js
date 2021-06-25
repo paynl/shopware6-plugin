@@ -27,11 +27,12 @@ Component.override('sw-order-list', {
         },
 
         isPaynlTransactionAllowedForRefund(statusName) {
-            if (!this.acl.can('order.editor')) {
-                return true;
-            }
+            let isUserAllowedToEditOrder = this.acl.can('order.editor');
 
-            return !(statusName === "paid" || statusName === "paid_partially" || statusName === "refunded_partially");
+            let statusAllowedForRefund = ['paid', 'paid_partially', 'paid_partially'];
+            let isStatusAllowedForRefund = statusAllowedForRefund.includes(statusName);
+
+            return !(isUserAllowedToEditOrder && isStatusAllowedForRefund);
         }
     }
 });
