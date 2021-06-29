@@ -17,12 +17,12 @@
                         <a target="_blank" class="sw-data-grid__cell-value" href="https://admin.pay.nl">
                             <sw-icon name="default-web-link" color="#1abc9c"></sw-icon>
                         </a>
-                        <router-link v-if="isShowCustomerLink"
+                        <router-link v-if="isUserCustomersViewer"
                                      class="sw-data-grid__cell-value"
                                      :to="{ name: 'sw.customer.detail.base', params: { id: item.customerId } }">
                             <sw-icon name="default-avatar-single" color="#fc427b"></sw-icon>
                         </router-link>
-                        <router-link v-if="isShowOrderLink"
+                        <router-link v-if="isUserOrdersViewer"
                                      class="sw-data-grid__cell-value"
                                      :to="{ name: 'sw.order.detail.base', params: { id: item.orderId }}">
                             <sw-icon name="default-shopping-basket" color="#3498db"></sw-icon>

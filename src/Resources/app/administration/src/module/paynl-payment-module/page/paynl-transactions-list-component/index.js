@@ -16,8 +16,8 @@ Component.register('paynl-transactions-list-component', {
         return {
             repository: null,
             transactions: null,
-            isShowCustomerLink: this.isShowCustomerLink(),
-            isShowOrderLink: this.isShowOrderLink(),
+            isUserCustomersViewer: this.isUserCustomersViewer(),
+            isUserOrdersViewer: this.isUserOrdersViewer(),
         };
     },
 
@@ -129,11 +129,11 @@ Component.register('paynl-transactions-list-component', {
             return dateGroup['year'] + '-' + dateGroup['month'] + '-' + dateGroup['day'] + ' ' + dateGroup['hours'] + ':' + dateGroup['minutes'];
         },
 
-        isShowCustomerLink() {
+        isUserCustomersViewer() {
             return this.acl.can('customer.viewer');
         },
 
-        isShowOrderLink() {
+        isUserOrdersViewer() {
             return this.acl.can('order.viewer');
         }
     }
