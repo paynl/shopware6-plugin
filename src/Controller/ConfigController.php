@@ -33,7 +33,7 @@ class ConfigController extends AbstractController
 
     /**
      * @Route(
-     *     "/api/v{version}/paynl/install-payment-methods",
+     *     "/api/paynl/install-payment-methods",
      *     name="api.action.PaynlPayment.installPaymentMethods",
      *     methods={"GET"}
      *     )
