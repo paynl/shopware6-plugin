@@ -70,6 +70,9 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\RefundController" public="true">

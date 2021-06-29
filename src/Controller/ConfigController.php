@@ -59,7 +59,7 @@ class ConfigController extends AbstractController
 
     /**
      * @Route(
-     *     "/api/v{version}/paynl/store-settings",
+     *     "/api/paynl/store-settings",
      *     name="api.action.PaynlPayment.storeSettings",
      *     methods={"POST"}
      *     )
