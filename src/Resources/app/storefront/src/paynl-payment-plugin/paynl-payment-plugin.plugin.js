@@ -94,6 +94,11 @@ export default class PaynlPaymentPlugin extends Plugin {
                 issuerSelect.value = '';
             }
 
+            const paymentMethodBankName = event.currentTarget.querySelector('#paymentMethodBankName');
+            if (paymentMethodBankName) {
+                paymentMethodBankName.innerHTML = '';
+            }
+
             // remove all invalid classes if exists
             const invalid = extraDataBlock.querySelectorAll('.invalid');
             if (invalid.length) {
