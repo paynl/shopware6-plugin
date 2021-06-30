@@ -1,5 +1,6 @@
 import './page/components/paynl-transactions-list';
 import './page/paynl-transactions-list-component';
+import './acl';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
@@ -21,12 +22,16 @@ Module.register('paynl-payment-module', {
     routes: {
         list: {
             component: 'paynl-transactions-list-component',
-            path: 'list'
+            path: 'list',
+            meta: {
+                privilege: 'paynl_transactions.viewer'
+            }
         }
     },
     navigation: [{
         parent: 'sw-order',
         label: "module.navigation.label",
         path: 'paynl.payment.module.list',
+        privilege: 'paynl_transactions.viewer',
     }]
 });
