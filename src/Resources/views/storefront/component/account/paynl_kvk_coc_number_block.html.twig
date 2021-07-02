@@ -1,7 +1,7 @@
 {% block component_paynl_kvk_coc_number %}
-    {% if (shopware.config.core.loginRegistration.showAccountTypeSelection) %}
+    {% if (config('core.loginRegistration.showAccountTypeSelection') %}
         <div class="form-row">
-            {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
+            {% set isCoCNumberRequired = config('PaynlPaymentShopware6.settings.cocNumberRequired') %}
             {% set countriesWithKvk = [] %}
             {% for country in page.countries %}
                 {% if country.iso in ['BE', 'NL'] %}

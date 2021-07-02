@@ -3,7 +3,7 @@
     {% set display_kvk_block = (context.customer.company is not empty) and (context.customer.defaultBillingAddress.country.iso in kvk_countries) %}
     {% if (config('core.loginRegistration.showAccountTypeSelection')) and display_kvk_block %}
         <div class="form-row">
-            {% set isCoCNumberRequired = shopware.config.PaynlPaymentShopware6.settings.cocNumberRequired %}
+            {% set isCoCNumberRequired = config('PaynlPaymentShopware6.settings.cocNumberRequired') %}
             <div class="form-group col-md-6 paynl-kvk-coc-number-field"
                 {% if display_kvk_block %}
                     style="display: block"

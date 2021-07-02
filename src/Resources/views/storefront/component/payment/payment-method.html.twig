@@ -3,7 +3,7 @@
 {% block component_payment_methods %}
     <span id="paynl-payment-plugin"></span>
 
-    {% if (shopware.config.PaynlPaymentShopware6.settings.usePAYStyles) %}
+    {% if (config('PaynlPaymentShopware6.settings.usePAYStyles')) %}
         <div class="paynl-payment-methods-custom-styles">{{ parent() }}</div>
     {% else %}
         {{ parent() }}
@@ -24,7 +24,7 @@
                 {% endif %}
             {% endif %}
 
-            {% if (shopware.config.PaynlPaymentShopware6.settings.usePAYStyles == false) %}
+            {% if (config('PaynlPaymentShopware6.settings.usePAYStyles') == false) %}
                 {% if payment.translated.description %}
                     <p class="{{ page.showDescription }}">{{ payment.translated.description|raw }}</p>
                 {% endif %}
@@ -94,7 +94,7 @@
                     {% endif %}
                 </div>
 
-                {% if (shopware.config.PaynlPaymentShopware6.settings.usePAYStyles) %}
+                {% if (config('PaynlPaymentShopware6.settings.usePAYStyles')) %}
                     {% if payment.translated.description %}
                         <div class="paynl-paynl-payment-tooltip {{ page.showDescription }}" tabindex="0"  data-toggle="tooltip" data-placement="left" title="{{ payment.translated.description|raw }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
