@@ -1,5 +1,5 @@
 {% block component_paynl_kvk_coc_number %}
-    {% if (config('core.loginRegistration.showAccountTypeSelection') %}
+    {% if (config('core.loginRegistration.showAccountTypeSelection')) %}
         <div class="form-row">
             {% set isCoCNumberRequired = config('PaynlPaymentShopware6.settings.cocNumberRequired') %}
             {% set countriesWithKvk = [] %}
