@@ -73,4 +73,39 @@ class StatusTransitionController extends AbstractController
             ], 400);
         }
     }
+
+    /**
+     * @Route("/api/v{version}/paynl/change-transaction-status",
+     *     name="api.PaynlPayment.changeTransactionStatus",
+     *     methods={"POST"}
+     *     )
+     */
+    public function oldChangeTransactionStatus(Request $request): JsonResponse
+    {
+        $orderTransactionId = $request->get('transactionId', '');
+        $currentActionName = $request->get('currentActionName', '');
+        try {
+            /** @var PaynlTransactionEntity $paynlTransaction */
+            $paynlTransaction = $this->paynlTransactionRepository
+                ->search(
+                    (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId)),
+                    Context::createDefaultContext()
+                )
+                ->first();
+
+            if ($paynlTransaction instanceof PaynlTransactionEntity) {
+                $this->processingHelper->processChangePaynlStatus(
+                    $paynlTransaction->getId(),
+                    $paynlTransaction->getPaynlTransactionId(),
+                    $currentActionName
+                );
+            }
+
+            return new JsonResponse($request->request->all());
+        } catch (Error\Api $exception) {
+            return new JsonResponse([
+                'errorMessage' => $exception->getMessage()
+            ], 400);
+        }
+    }
 }
