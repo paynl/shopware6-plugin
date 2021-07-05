@@ -10,18 +10,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class AddDataToPage implements EventSubscriberInterface
 {
     /**
-     * @var string
-     */
-    private $shopwareVersion;
-
-    /**
      * @var SystemConfigService
      */
     private $systemConfigService;
 
-    public function __construct(string $shopwareVersion, SystemConfigService $systemConfigService)
+    public function __construct(SystemConfigService $systemConfigService)
     {
-        $this->shopwareVersion = $shopwareVersion;
         $this->systemConfigService = $systemConfigService;
     }
 

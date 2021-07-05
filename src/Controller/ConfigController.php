@@ -32,29 +32,17 @@ class ConfigController extends AbstractController
     }
 
     /**
+     * Shopware versions >= 6.4
+     *
      * @Route(
      *     "/api/paynl/install-payment-methods",
-     *     name="api.action.PaynlPayment.installPaymentMethods",
+     *     name="api.action.PaynlPayment.installPaymentMethods-SW-64",
      *     methods={"GET"}
      *     )
      */
-    public function installPaymentMethods(Request $request, Context $context): JsonResponse
+    public function installPaymentMethodsSW64(Request $request, Context $context): JsonResponse
     {
-        if ($this->config->getSinglePaymentMethodInd()) {
-            return new JsonResponse([]);
-        }
-
-        try {
-            $this->installHelper->addPaymentMethods($context);
-            $this->installHelper->activatePaymentMethods($context);
-
-            return $this->json([
-                'success' => true,
-                'message' => "paynlValidation.messages.paymentMethodsSuccessfullyInstalled"
-            ]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+        return $this->getInstallPaymentMethodsResponse($request, $context);
     }
 
     /**
@@ -64,7 +52,38 @@ class ConfigController extends AbstractController
      *     methods={"GET"}
      *     )
      */
-    public function oldInstallPaymentMethods(Request $request, Context $context): JsonResponse
+    public function installPaymentMethods(Request $request, Context $context): JsonResponse
+    {
+        return $this->getInstallPaymentMethodsResponse($request, $context);
+    }
+
+    /**
+     * Shopware versions >= 6.4
+     *
+     * @Route(
+     *     "/api/paynl/store-settings",
+     *     name="api.action.PaynlPayment.storeSettings-SW-64",
+     *     methods={"POST"}
+     *     )
+     */
+    public function storeSettingsSW64(Request $request, Context $context): JsonResponse
+    {
+        return $this->getStoreSettingsResponse($request, $context);
+    }
+
+    /**
+     * @Route(
+     *     "/api/v{version}/paynl/store-settings",
+     *     name="api.action.PaynlPayment.storeSettings",
+     *     methods={"POST"}
+     *     )
+     */
+    public function storeSettings(Request $request, Context $context): JsonResponse
+    {
+        return $this->getStoreSettingsResponse($request, $context);
+    }
+
+    private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
         if ($this->config->getSinglePaymentMethodInd()) {
             return new JsonResponse([]);
@@ -83,57 +102,7 @@ class ConfigController extends AbstractController
         }
     }
 
-    /**
-     * @Route(
-     *     "/api/paynl/store-settings",
-     *     name="api.action.PaynlPayment.storeSettings",
-     *     methods={"POST"}
-     *     )
-     */
-    public function storeSettings(Request $request, Context $context): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        if (empty($data['tokenCode']) || empty($data['apiToken']) || empty($data['serviceId'])) {
-            return $this->json([
-                'success' => false,
-                'message' => "paynlValidation.messages.emptyCredentialsError"
-            ]);
-        }
-
-        $isValidCredentials = $this->api->isValidCredentials($data['tokenCode'], $data['apiToken'], $data['serviceId']);
-        if ($isValidCredentials) {
-            $this->config->storeConfigData($data);
-
-            if ($this->config->getSinglePaymentMethodInd()) {
-                $this->installHelper->addSinglePaymentMethod($context);
-                $this->installHelper->setDefaultPaymentMethod(
-                    $context,
-                    md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID)
-                );
-            } else {
-                $this->installHelper->removeSinglePaymentMethod($context);
-            }
-
-            return $this->json([
-                'success' => true,
-                'message' => "paynlValidation.messages.settingsSavedSuccessfully"
-            ]);
-        }
-
-        return $this->json([
-            'success' => false,
-            'message' => "paynlValidation.messages.wrongCredentials"
-        ]);
-    }
-
-    /**
-     * @Route(
-     *     "/api/v{version}/paynl/store-settings",
-     *     name="api.action.PaynlPayment.storeSettings",
-     *     methods={"POST"}
-     *     )
-     */
-    public function oldStoreSettings(Request $request, Context $context): JsonResponse
+    private function getStoreSettingsResponse(Request $request, Context $context): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if (empty($data['tokenCode']) || empty($data['apiToken']) || empty($data['serviceId'])) {

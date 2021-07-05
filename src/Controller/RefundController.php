@@ -45,31 +45,64 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
+     * @Route("/api/paynl/get-refund-data", name="api.PaynlPayment.getRefundDataSW64", methods={"GET"})
      */
-    public function getRefundData(Request $request): JsonResponse
+    public function getRefundDataSW64(Request $request): JsonResponse
     {
-        $paynlTransactionId = $request->get('transactionId');
-        try {
-            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
-            $refundedAmount = $apiTransaction->getRefundedAmount();
-            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
-
-            return new JsonResponse([
-                'refundedAmount' => $refundedAmount,
-                'availableForRefund' => $availableForRefund
-            ]);
-        } catch (Error\Api $exception) {
-            return new JsonResponse([
-                'errorMessage' => $exception->getMessage()
-            ], 400);
-        }
+        return $this->getRefundDataResponse($request);
     }
 
     /**
      * @Route("/api/v{version}/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
      */
-    public function oldGetRefundData(Request $request): JsonResponse
+    public function getRefundData(Request $request): JsonResponse
+    {
+        return $this->getRefundDataResponse($request);
+    }
+
+    /**
+     * @Route("/api/paynl/refund", name="frontend.PaynlPayment.refundSW64", methods={"POST"})
+     */
+    public function refundSW64(Request $request): JsonResponse
+    {
+        return $this->getRefundResponse($request);
+    }
+
+    /**
+     * @Route("/api/v{version}/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
+     */
+    public function refund(Request $request): JsonResponse
+    {
+        return $this->getRefundResponse($request);
+    }
+
+    private function getRefundResponse(Request $request): JsonResponse
+    {
+        $post = $request->request->all();
+        $paynlTransactionId = $post['transactionId'];
+        $amount = (string)$post['amount'];
+        $description = $post['description'];
+        $products = $post['products'];
+        $messages = [];
+
+        try {
+            // TODO: need newer version of PAYNL/SDK
+            $this->paynlApi->refund($paynlTransactionId, $amount, $description);
+            $this->restock($products);
+
+            $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
+            $messages[] = [
+                'type' => 'success',
+                'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
+            ];
+        } catch (\Throwable $e) {
+            $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
+        }
+
+        return new JsonResponse($messages);
+    }
+
+    private function getRefundDataResponse(Request $request): JsonResponse
     {
         $paynlTransactionId = $request->get('transactionId');
         try {
@@ -86,64 +119,6 @@ class RefundController extends AbstractController
                 'errorMessage' => $exception->getMessage()
             ], 400);
         }
-    }
-
-    /**
-     * @Route("/api/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
-     */
-    public function refund(Request $request): JsonResponse
-    {
-        $post = $request->request->all();
-        $paynlTransactionId = $post['transactionId'];
-        $amount = (string)$post['amount'];
-        $description = $post['description'];
-        $products = $post['products'];
-        $messages = [];
-
-        try {
-            // TODO: need newer version of PAYNL/SDK
-            $this->paynlApi->refund($paynlTransactionId, $amount, $description);
-            $this->restock($products);
-
-            $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
-            $messages[] = [
-                'type' => 'success',
-                'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
-            ];
-        } catch (\Throwable $e) {
-            $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
-        }
-
-        return new JsonResponse($messages);
-    }
-
-    /**
-     * @Route("/api/v{version}/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
-     */
-    public function oldRefund(Request $request): JsonResponse
-    {
-        $post = $request->request->all();
-        $paynlTransactionId = $post['transactionId'];
-        $amount = (string)$post['amount'];
-        $description = $post['description'];
-        $products = $post['products'];
-        $messages = [];
-
-        try {
-            // TODO: need newer version of PAYNL/SDK
-            $this->paynlApi->refund($paynlTransactionId, $amount, $description);
-            $this->restock($products);
-
-            $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
-            $messages[] = [
-                'type' => 'success',
-                'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
-            ];
-        } catch (\Throwable $e) {
-            $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
-        }
-
-        return new JsonResponse($messages);
     }
 
     /**

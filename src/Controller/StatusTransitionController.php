@@ -41,37 +41,13 @@ class StatusTransitionController extends AbstractController
 
     /**
      * @Route("/api/paynl/change-transaction-status",
-     *     name="api.PaynlPayment.changeTransactionStatus",
+     *     name="api.PaynlPayment.changeTransactionStatusSW64",
      *     methods={"POST"}
      *     )
      */
-    public function changeTransactionStatus(Request $request): JsonResponse
+    public function changeTransactionStatusSW64(Request $request): JsonResponse
     {
-        $orderTransactionId = $request->get('transactionId', '');
-        $currentActionName = $request->get('currentActionName', '');
-        try {
-            /** @var PaynlTransactionEntity $paynlTransaction */
-            $paynlTransaction = $this->paynlTransactionRepository
-                ->search(
-                    (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId)),
-                    Context::createDefaultContext()
-                )
-                ->first();
-
-            if ($paynlTransaction instanceof PaynlTransactionEntity) {
-                $this->processingHelper->processChangePaynlStatus(
-                    $paynlTransaction->getId(),
-                    $paynlTransaction->getPaynlTransactionId(),
-                    $currentActionName
-                );
-            }
-
-            return new JsonResponse($request->request->all());
-        } catch (Error\Api $exception) {
-            return new JsonResponse([
-                'errorMessage' => $exception->getMessage()
-            ], 400);
-        }
+        return $this->getChangeTransactionStatusResponse($request);
     }
 
     /**
@@ -80,7 +56,12 @@ class StatusTransitionController extends AbstractController
      *     methods={"POST"}
      *     )
      */
-    public function oldChangeTransactionStatus(Request $request): JsonResponse
+    public function changeTransactionStatus(Request $request): JsonResponse
+    {
+        return $this->getChangeTransactionStatusResponse($request);
+    }
+
+    private function getChangeTransactionStatusResponse(Request $request): JsonResponse
     {
         $orderTransactionId = $request->get('transactionId', '');
         $currentActionName = $request->get('currentActionName', '');
