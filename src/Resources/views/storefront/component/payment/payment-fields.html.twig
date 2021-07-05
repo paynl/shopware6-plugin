@@ -1,9 +1,12 @@
+{# compatible with < sw6.4 #}
 {% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
+
+{% set settingUsePAYStyles = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.usePAYStyles %}
 
 {% block component_payment_methods %}
     <span id="paynl-payment-plugin"></span>
 
-    {% if (config('PaynlPaymentShopware6.settings.usePAYStyles')) %}
+    {% if (settingUsePAYStyles) %}
         <div class="paynl-payment-methods-custom-styles">{{ parent() }}</div>
     {% else %}
         {{ parent() }}
@@ -14,7 +17,7 @@
     {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
         <div class="payment-method-description">
             <strong>{{ payment.translated.name }}</strong>
-            {% if (config('PaynlPaymentShopware6.settings.usePAYStyles') == false) %}
+            {% if (settingUsePAYStyles == false) %}
                 {% if payment.translated.description %}
                     <p class="{{ page.showDescription }}">{{ payment.translated.description|raw }}</p>
                 {% endif %}
@@ -84,7 +87,7 @@
                     {% endif %}
                 </div>
 
-                {% if (config('PaynlPaymentShopware6.settings.usePAYStyles')) %}
+                {% if (settingUsePAYStyles) %}
                     {% if payment.translated.description %}
                         <div class="paynl-paynl-payment-tooltip {{ page.showDescription }}" tabindex="0"  data-toggle="tooltip" data-placement="left" title="{{ payment.translated.description|raw }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
