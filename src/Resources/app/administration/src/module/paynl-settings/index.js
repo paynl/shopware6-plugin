@@ -9,7 +9,7 @@ const { Module } = Shopware;
 Module.register('paynl-settings', {
     type: "plugin",
     name: "paynlSettings.general.name",
-    title: "paynlSettings.general.title",
+    title: "paynlSettings.general.mainMenuItemGeneral",
     description: "paynlSettings.general.description",
     icon: 'default-action-settings',
     color: '#23ac70',
