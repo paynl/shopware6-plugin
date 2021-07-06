@@ -14,9 +14,15 @@ class AddDataToPage implements EventSubscriberInterface
      */
     private $systemConfigService;
 
-    public function __construct(SystemConfigService $systemConfigService)
+    /**
+     * @var string
+     */
+    private $shopwareVersion;
+
+    public function __construct(SystemConfigService $systemConfigService, string $shopwareVersion)
     {
         $this->systemConfigService = $systemConfigService;
+        $this->shopwareVersion = $shopwareVersion;
     }
 
     public static function getSubscribedEvents(): array
@@ -29,7 +35,7 @@ class AddDataToPage implements EventSubscriberInterface
     public function addCustomData(FooterPageletLoadedEvent $event): void
     {
         $configs = $this->systemConfigService->all();
-        $customData = new CustomPageDataValueObject($configs);
+        $customData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
 
         $event->getPagelet()->addExtension('PAY_custom_data', $customData);
     }

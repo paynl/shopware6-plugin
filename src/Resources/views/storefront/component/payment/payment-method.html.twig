@@ -73,7 +73,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if page.paymentMethods|length > 1 %}
+                    {% if (page.paymentMethods|length > 1) or (page.footer.extensions.PAY_custom_data.isSW64) %}
                         <div class="form-group">
                             <button class="btn btn-primary paynl-change-payment-method"
                                     type="submit">

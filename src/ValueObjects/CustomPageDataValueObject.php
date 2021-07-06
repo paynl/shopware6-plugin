@@ -11,13 +11,24 @@ class CustomPageDataValueObject extends Struct
      */
     private $configs;
 
-    public function __construct(array $configs)
+    /**
+     * @var string
+     */
+    private $shopwareVersion;
+
+    public function __construct(array $configs, string $shopwareVersion)
     {
         $this->configs = $configs;
+        $this->shopwareVersion = $shopwareVersion;
     }
 
     public function getConfigs(): array
     {
         return $this->configs;
+    }
+
+    public function isSW64(): bool
+    {
+        return version_compare($this->shopwareVersion, '6.4', '>=');
     }
 }
