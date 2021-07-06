@@ -33,7 +33,7 @@
     {% block pay_component_payment_extra %}
         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
             <div class="paynl-payment-method-extra-wrapper">
-                <div class="paynl-payment-method-extra {% if payment.id is same as(defaultPaymentMethodId) %} active{% endif %}">
+                <div class="paynl-payment-method-extra {% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
                             <div class="form-group">
