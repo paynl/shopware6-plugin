@@ -50,6 +50,12 @@
             <tag name="shopware.payment.method.async" />
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\AddDataToPage" >
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument>%kernel.shopware_version%</argument>
+            <tag name="kernel.event_subscriber" />
+        </service>
+
         <!--Controllers-->
         <service id="PaynlPayment\Shopware6\Storefront\Controller\NotificationController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>

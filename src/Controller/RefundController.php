@@ -45,31 +45,38 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
+     * @Route("/api/paynl/get-refund-data", name="api.PaynlPayment.getRefundDataSW64", methods={"GET"})
      */
-    public function getRefundData(Request $request): JsonResponse
+    public function getRefundDataSW64(Request $request): JsonResponse
     {
-        $paynlTransactionId = $request->get('transactionId');
-        try {
-            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
-            $refundedAmount = $apiTransaction->getRefundedAmount();
-            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
-
-            return new JsonResponse([
-                'refundedAmount' => $refundedAmount,
-                'availableForRefund' => $availableForRefund
-            ]);
-        } catch (Error\Api $exception) {
-            return new JsonResponse([
-                'errorMessage' => $exception->getMessage()
-            ], 400);
-        }
+        return $this->getRefundDataResponse($request);
     }
 
     /**
-     * @Route("/api/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
+     * @Route("/api/v{version}/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
+     */
+    public function getRefundData(Request $request): JsonResponse
+    {
+        return $this->getRefundDataResponse($request);
+    }
+
+    /**
+     * @Route("/api/paynl/refund", name="frontend.PaynlPayment.refundSW64", methods={"POST"})
+     */
+    public function refundSW64(Request $request): JsonResponse
+    {
+        return $this->getRefundResponse($request);
+    }
+
+    /**
+     * @Route("/api/v{version}/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
      */
     public function refund(Request $request): JsonResponse
+    {
+        return $this->getRefundResponse($request);
+    }
+
+    private function getRefundResponse(Request $request): JsonResponse
     {
         $post = $request->request->all();
         $paynlTransactionId = $post['transactionId'];
@@ -93,6 +100,25 @@ class RefundController extends AbstractController
         }
 
         return new JsonResponse($messages);
+    }
+
+    private function getRefundDataResponse(Request $request): JsonResponse
+    {
+        $paynlTransactionId = $request->get('transactionId');
+        try {
+            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
+            $refundedAmount = $apiTransaction->getRefundedAmount();
+            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+
+            return new JsonResponse([
+                'refundedAmount' => $refundedAmount,
+                'availableForRefund' => $availableForRefund
+            ]);
+        } catch (Error\Api $exception) {
+            return new JsonResponse([
+                'errorMessage' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     /**

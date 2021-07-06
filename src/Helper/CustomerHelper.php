@@ -52,7 +52,7 @@ class CustomerHelper
             $gender = 'F';
         }
 
-        $customerVatIds = $customer->getVatIds();
+        $customerVatIds = (array)$customer->getVatIds();
 
         $formattedAddress = [
             'enduser' => [

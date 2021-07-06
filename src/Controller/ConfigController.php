@@ -32,13 +32,58 @@ class ConfigController extends AbstractController
     }
 
     /**
+     * Shopware versions >= 6.4
+     *
      * @Route(
      *     "/api/paynl/install-payment-methods",
+     *     name="api.action.PaynlPayment.installPaymentMethodsSW64",
+     *     methods={"GET"}
+     *     )
+     */
+    public function installPaymentMethodsSW64(Request $request, Context $context): JsonResponse
+    {
+        return $this->getInstallPaymentMethodsResponse($request, $context);
+    }
+
+    /**
+     * @Route(
+     *     "/api/v{version}/paynl/install-payment-methods",
      *     name="api.action.PaynlPayment.installPaymentMethods",
      *     methods={"GET"}
      *     )
      */
     public function installPaymentMethods(Request $request, Context $context): JsonResponse
+    {
+        return $this->getInstallPaymentMethodsResponse($request, $context);
+    }
+
+    /**
+     * Shopware versions >= 6.4
+     *
+     * @Route(
+     *     "/api/paynl/store-settings",
+     *     name="api.action.PaynlPayment.storeSettingsSW64",
+     *     methods={"POST"}
+     *     )
+     */
+    public function storeSettingsSW64(Request $request, Context $context): JsonResponse
+    {
+        return $this->getStoreSettingsResponse($request, $context);
+    }
+
+    /**
+     * @Route(
+     *     "/api/v{version}/paynl/store-settings",
+     *     name="api.action.PaynlPayment.storeSettings",
+     *     methods={"POST"}
+     *     )
+     */
+    public function storeSettings(Request $request, Context $context): JsonResponse
+    {
+        return $this->getStoreSettingsResponse($request, $context);
+    }
+
+    private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
         if ($this->config->getSinglePaymentMethodInd()) {
             return new JsonResponse([]);
@@ -57,14 +102,7 @@ class ConfigController extends AbstractController
         }
     }
 
-    /**
-     * @Route(
-     *     "/api/paynl/store-settings",
-     *     name="api.action.PaynlPayment.storeSettings",
-     *     methods={"POST"}
-     *     )
-     */
-    public function storeSettings(Request $request, Context $context): JsonResponse
+    private function getStoreSettingsResponse(Request $request, Context $context): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if (empty($data['tokenCode']) || empty($data['apiToken']) || empty($data['serviceId'])) {

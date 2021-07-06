@@ -1,7 +1,9 @@
 {% block component_paynl_kvk_coc_number %}
-    {% if (config('core.loginRegistration.showAccountTypeSelection') %}
+    {% set configs = page.footer.extensions.PAY_custom_data.configs %}
+
+    {% if (configs.core.loginRegistration.showAccountTypeSelection) %}
         <div class="form-row">
-            {% set isCoCNumberRequired = config('PaynlPaymentShopware6.settings.cocNumberRequired') %}
+            {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.settings.cocNumberRequired %}
             {% set countriesWithKvk = [] %}
             {% for country in page.countries %}
                 {% if country.iso in ['BE', 'NL'] %}
@@ -10,12 +12,12 @@
             {% endfor %}
             <div class="form-group col-md-6 paynl-kvk-coc-number-field"
                  data-countries-with-kvk="{{ countriesWithKvk|join(',') }}"
-                 {% if (data.get('coc_number') is not empty) and (data.get('accountType') == 'business') and (data.get('billingAddress').get('countryId') in countriesWithKvk) %}
-                     style="display: block"
-                 {% else %}
+                {% if (data.get('coc_number') is not empty) and (data.get('accountType') == 'business') and (data.get('billingAddress').get('countryId') in countriesWithKvk) %}
+                    style="display: block"
+                {% else %}
                     style="display: none"
-                 {% endif %}
-                >
+                {% endif %}
+            >
                 {% if formViolations.getViolations("/cocNumber") is not empty %}
                     {% set violationPath = "/cocNumber" %}
                 {% elseif formViolations.getViolations("/cocNumber") is not empty %}
