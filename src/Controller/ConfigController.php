@@ -36,7 +36,7 @@ class ConfigController extends AbstractController
      *
      * @Route(
      *     "/api/paynl/install-payment-methods",
-     *     name="api.action.PaynlPayment.installPaymentMethods-SW-64",
+     *     name="api.action.PaynlPayment.installPaymentMethodsSW64",
      *     methods={"GET"}
      *     )
      */
@@ -62,7 +62,7 @@ class ConfigController extends AbstractController
      *
      * @Route(
      *     "/api/paynl/store-settings",
-     *     name="api.action.PaynlPayment.storeSettings-SW-64",
+     *     name="api.action.PaynlPayment.storeSettingsSW64",
      *     methods={"POST"}
      *     )
      */
