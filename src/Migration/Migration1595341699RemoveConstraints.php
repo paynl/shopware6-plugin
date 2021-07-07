@@ -23,7 +23,7 @@ class Migration1595341699RemoveConstraints extends MigrationStep
             DROP FOREIGN key `fk.paynl_transaction.order_state_id`,
             DROP INDEX `fk.paynl_transaction.order_state_id`;';
 
-        $connection->executeStatement($query);
+        $connection->exec($query);
     }
 
     public function updateDestructive(Connection $connection): void
