@@ -67,6 +67,10 @@
     border-color: #f00;
 }
 
+.paynl-payment-methods-custom-styles .payment-method-description {
+    width: 100%;
+}
+
 @media screen and (max-width: 767px) {
     .paynl-payment-methods-custom-styles .payment-method,
     .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {

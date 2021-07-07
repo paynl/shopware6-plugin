@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Migration;
+namespace PaynlPayment\Shopware6\Migration\V63;
 
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Migration\MigrationStep;
@@ -54,7 +54,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ';
 
-        $connection->executeStatement($query);
+        $connection->executeUpdate($query);
     }
 
     public function updateDestructive(Connection $connection): void

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Migration;
+namespace PaynlPayment\Shopware6\Migration\V63;
 
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -122,15 +122,15 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $orderTransactionStateId = $connection->executeQuery($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $languageEnglishId = $connection->executeQuery($languageSQL, [
             'name' => 'English'
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $languageDeutschId = $connection->executeQuery($languageSQL, [
             'name' => 'Deutsch'
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $statusesArray = [
             'verify' => [
@@ -166,7 +166,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ];
 
         foreach ($statusesArray as $status => $translations) {
-            $connection->executeStatement($sqlStateMachineState, [
+            $connection->executeQuery($sqlStateMachineState, [
                 'id' => Uuid::randomBytes(),
                 'technical_name' => $status,
                 'state_machine_id' => $orderTransactionStateId,
@@ -176,16 +176,16 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             $stateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
                 'technical_name' => $status,
                 'state_machine_id' => $orderTransactionStateId
-            ])->fetchOne();
+            ])->fetchColumn();
 
-            $connection->executeStatement($stateMachineStateTranslation, [
+            $connection->executeQuery($stateMachineStateTranslation, [
                 'language_id' => $translations['english']['id'],
                 'state_machine_state_id' => $stateMachineStateId,
                 'name' => $translations['english']['name'],
                 'created_at' => $date
             ]);
 
-            $connection->executeStatement($stateMachineStateTranslation, [
+            $connection->executeQuery($stateMachineStateTranslation, [
                 'language_id' => $translations['german']['id'],
                 'state_machine_state_id' => $stateMachineStateId,
                 'name' => $translations['german']['name'],
@@ -197,32 +197,32 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         $paidStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'paid',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $openStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'open',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $partlyCapturedStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'partly_captured',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $cancelledCapturedStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'cancelled',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $transitions = [
             [
@@ -267,13 +267,13 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'created_at' => $date
         ];
         foreach ($transitions as $transition) {
-            $connection->executeStatement(
+            $connection->executeQuery(
                 $insertTransitionSQL,
                 array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
             );
         }
 
-        $connection->executeStatement($insertMailTemplateTypeSql, [
+        $connection->executeQuery($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.authorize',
             'available_entities' => $availableEntriesJson,
@@ -283,23 +283,23 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         // Adding mail template types
         $mailTempaleAuthorizeTypeId = $connection->executeQuery($mailTempaleTypeId, [
             'technical_name' => 'order_transaction.state.authorize'
-        ])->fetchOne();
+        ])->fetchColumn();
 
-        $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
+        $connection->executeQuery($insertMailTemplateTypeTranslationSQL, [
             'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
             'language_id' => $languageEnglishId,
             'name' => 'Enter payment state: Authorize',
             'created_at' => $date,
         ]);
 
-        $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
+        $connection->executeQuery($insertMailTemplateTypeTranslationSQL, [
             'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
             'language_id' => $languageDeutschId,
             'name' => 'Zahlungsstatus eingeben: Autorisieren',
             'created_at' => $date,
         ]);
 
-        $connection->executeStatement($insertMailTemplateTypeSql, [
+        $connection->executeQuery($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.verify',
             'available_entities' => $availableEntriesJson,
@@ -308,23 +308,23 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $mailTempaleVerifyTypeId = $connection->executeQuery($mailTempaleTypeId, [
             'technical_name' => 'order_transaction.state.verify'
-        ])->fetchOne();
+        ])->fetchColumn();
 
-        $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
+        $connection->executeQuery($insertMailTemplateTypeTranslationSQL, [
             'mail_template_type_id' => $mailTempaleVerifyTypeId,
             'language_id' => $languageEnglishId,
             'name' => 'Enter payment state: Verify',
             'created_at' => $date,
         ]);
 
-        $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
+        $connection->executeQuery($insertMailTemplateTypeTranslationSQL, [
             'mail_template_type_id' => $mailTempaleVerifyTypeId,
             'language_id' => $languageDeutschId,
             'name' => 'Zahlungsstatus eingeben: Verify',
             'created_at' => $date,
         ]);
 
-        $connection->executeStatement($insertMailTemplateTypeSql, [
+        $connection->executeQuery($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.partly_captured',
             'available_entities' => $availableEntriesJson,
@@ -333,16 +333,16 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $mailTempalePartlyCapturedTypeId = $connection->executeQuery($mailTempaleTypeId, [
             'technical_name' => 'order_transaction.state.partly_captured'
-        ])->fetchOne();
+        ])->fetchColumn();
 
-        $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
+        $connection->executeQuery($insertMailTemplateTypeTranslationSQL, [
             'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
             'language_id' => $languageEnglishId,
             'name' => 'Enter payment state: Partly captured',
             'created_at' => $date,
         ]);
 
-        $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
+        $connection->executeQuery($insertMailTemplateTypeTranslationSQL, [
             'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
             'language_id' => $languageDeutschId,
             'name' => 'Zahlungsstatus eingeben: Partly captured',
