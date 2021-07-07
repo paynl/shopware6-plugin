@@ -1,3 +1,6 @@
+# 1.4.0
+- Plugin ist jetzt kompatibel mit Shopware 6.4
+
 # 1.3.5
 - Bug bei den Versandkosten für nicht eingeloggte Kunden behoben
 - Bug beim Ändern des Bezahlstatus für nicht PAY.-Zahlungsarten behoben
