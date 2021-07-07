@@ -1,22 +1,22 @@
-{# compatible with < sw6.4 #}
-{% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
+{# compatible with >= sw6.4 #}
+{% sw_extends '@Storefront/storefront/component/payment/payment-method.html.twig' %}
 
 {% set settingUsePAYStyles = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.usePAYStyles %}
-
-{% block component_payment_methods %}
-    <span id="paynl-payment-plugin"></span>
-
-    {% if (settingUsePAYStyles) %}
-        <div class="paynl-payment-methods-custom-styles">{{ parent() }}</div>
-    {% else %}
-        {{ parent() }}
-    {% endif %}
-{% endblock %}
 
 {% block component_payment_method_description %}
     {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
         <div class="payment-method-description">
             <strong>{{ payment.translated.name }}</strong>
+            {% if not paymentMethodInvalid and payment.customFields.displayBanks %}
+                {% if app.session.get('paynlIssuer') and context.paymentMethod.translated.customFields.banks %}
+                    {% for bank in context.paymentMethod.translated.customFields.banks %}
+                        {% if bank.id is same as(app.session.get('paynlIssuer')) %}
+                            <span id="paymentMethodBankName">({{ bank.visibleName }})</span>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+
             {% if (settingUsePAYStyles == false) %}
                 {% if payment.translated.description %}
                     <p class="{{ page.showDescription }}">{{ payment.translated.description|raw }}</p>
@@ -33,7 +33,7 @@
     {% block pay_component_payment_extra %}
         {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
             <div class="paynl-payment-method-extra-wrapper">
-                <div class="paynl-payment-method-extra {% if payment.id is same as(defaultPaymentMethodId) %} active{% endif %}">
+                <div class="paynl-payment-method-extra {% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
                             <div class="form-group">
@@ -73,7 +73,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if page.paymentMethods|length > 1 %}
+                    {% if (page.paymentMethods|length > 1) or (page.footer.extensions.PAY_custom_data.isSW64) %}
                         <div class="form-group">
                             <button class="btn btn-primary paynl-change-payment-method"
                                     type="submit">

@@ -40,4 +40,17 @@ class PaynlPaymentShopware6 extends Plugin
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($deactivateContext->getContext());
     }
+
+    public function getMigrationNamespace(): string
+    {
+        if ($this->container) {
+            $shopwareVersion = $this->container->getParameter('kernel.shopware_version');
+
+            if (version_compare($shopwareVersion, '6.4', '<')) {
+                return 'PaynlPayment\Shopware6\Migration\V63';
+            }
+        }
+
+        return parent::getMigrationNamespace();
+    }
 }

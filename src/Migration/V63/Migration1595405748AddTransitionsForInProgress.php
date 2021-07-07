@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Migration;
+namespace PaynlPayment\Shopware6\Migration\V63;
 
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -47,26 +47,26 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
             'UPDATE `action_name` = :action_name, `updated_at` = CURRENT_TIME();'
         ]);
 
-        $orderTransactionStateId = $connection->fetchOne($orderTransactionStateSQL, [
+        $orderTransactionStateId = $connection->fetchColumn($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
         ]);
 
-        $authorizeStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
+        $authorizeStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
             'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
-        $partlyCapturedStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
+        $partlyCapturedStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
             'technical_name' => 'partly_captured',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
-        $verifyStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
+        $verifyStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
             'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
         ]);
 
-        $inProgressStateMachineStateId = $connection->fetchOne($stateMachineStateSQL, [
+        $inProgressStateMachineStateId = $connection->fetchColumn($stateMachineStateSQL, [
             'technical_name' => 'in_progress',
             'state_machine_id' => $orderTransactionStateId,
         ]);
@@ -95,7 +95,7 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
         ];
 
         foreach ($transitions as $transition) {
-            $connection->executeStatement(
+            $connection->executeQuery(
                 $insertTransitionSQL,
                 array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
             );

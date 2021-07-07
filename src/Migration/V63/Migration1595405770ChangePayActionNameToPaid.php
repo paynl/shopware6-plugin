@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Migration;
+namespace PaynlPayment\Shopware6\Migration\V63;
 
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -53,22 +53,22 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
 
         $orderTransactionStateId = $connection->executeQuery($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $paidStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'paid',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchOne();
+        ])->fetchColumn();
 
         $transitions = [
             ['from_state_id' => $authorizeStateMachineStateId],
@@ -83,7 +83,7 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
         ];
 
         foreach ($transitions as $transition) {
-            $connection->executeStatement(
+            $connection->executeQuery(
                 $updateTransitionSQL,
                 array_merge($transition, $defaultData)
             );
