@@ -54,7 +54,7 @@ class Migration1572594721AddPaynlTransactionsTable extends MigrationStep
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ';
 
-        $connection->executeStatement($query);
+        $connection->exec($query);
     }
 
     public function updateDestructive(Connection $connection): void
