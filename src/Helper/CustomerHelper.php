@@ -52,8 +52,6 @@ class CustomerHelper
             $gender = 'F';
         }
 
-        $customerVatIds = (array)$customer->getVatIds();
-
         $formattedAddress = [
             'enduser' => [
                 'initials' => $customer->getFirstName(),
@@ -65,7 +63,7 @@ class CustomerHelper
             ],
             'company' => [
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
-                'vatNumber' => reset($customerVatIds),
+                'vatNumber' => $this->getCustomerVatNumber($customer),
             ],
             'address' => $this->getShippingAddress($customer),
             'invoiceAddress' => $this->getInvoiceAddress($customer, $gender)
@@ -189,5 +187,20 @@ class CustomerHelper
             'country' => $country->getIso(),
             'gender' => $gender
         ];
+    }
+
+    private function getCustomerVatNumber(CustomerEntity $customer): string
+    {
+        if (method_exists($customer, 'getVatIds')) {
+            $customerVatIds = (array)$customer->getVatIds();
+
+            return (string)reset($customerVatIds);
+        }
+
+        if (method_exists($customer->getDefaultBillingAddress(), 'getVatId')) {
+            return (string)$customer->getDefaultBillingAddress()->getVatId();
+        }
+
+        return '';
     }
 }
