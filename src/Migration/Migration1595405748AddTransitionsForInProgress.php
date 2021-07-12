@@ -95,7 +95,7 @@ class Migration1595405748AddTransitionsForInProgress extends MigrationStep
         ];
 
         foreach ($transitions as $transition) {
-            $connection->executeQuery(
+            $connection->executeUpdate(
                 $insertTransitionSQL,
                 array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
             );

@@ -1,3 +1,6 @@
+# 1.4.0
+- Plugin is now Shopware 6.4 compatible
+
 # 1.3.5
 - Fixed the bug with shipping cost for not logged-in customers
 - Fixed the bug with changing payment status for non PAY. payment methods

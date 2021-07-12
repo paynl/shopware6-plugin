@@ -40,12 +40,28 @@ class StatusTransitionController extends AbstractController
     }
 
     /**
+     * @Route("/api/paynl/change-transaction-status",
+     *     name="api.PaynlPayment.changeTransactionStatusSW64",
+     *     methods={"POST"}
+     *     )
+     */
+    public function changeTransactionStatusSW64(Request $request): JsonResponse
+    {
+        return $this->getChangeTransactionStatusResponse($request);
+    }
+
+    /**
      * @Route("/api/v{version}/paynl/change-transaction-status",
      *     name="api.PaynlPayment.changeTransactionStatus",
      *     methods={"POST"}
      *     )
      */
     public function changeTransactionStatus(Request $request): JsonResponse
+    {
+        return $this->getChangeTransactionStatusResponse($request);
+    }
+
+    private function getChangeTransactionStatusResponse(Request $request): JsonResponse
     {
         $orderTransactionId = $request->get('transactionId', '');
         $currentActionName = $request->get('currentActionName', '');
