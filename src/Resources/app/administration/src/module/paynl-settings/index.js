@@ -12,6 +12,7 @@ Module.register('paynl-settings', {
     name: "paynlSettings.general.name",
     title: "paynlSettings.general.mainMenuItemGeneral",
     description: "paynlSettings.general.description",
+    icon: 'default-action-settings',
     color: '#23ac70',
     snippets: {
         'de-DE': deDE,
@@ -36,7 +37,7 @@ Module.register('paynl-settings', {
     settingsItem: {
         group: 'plugins',
         to: 'paynl.settings.view',
-        backgroundEnabled: false,
+        backgroundEnabled: true,
         iconComponent: 'paynl-settings-icon',
         privilege: 'paynl.viewer',
     }

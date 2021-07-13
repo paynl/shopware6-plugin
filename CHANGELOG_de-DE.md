@@ -1,3 +1,13 @@
+# 1.4.0
+- Plugin ist jetzt kompatibel mit Shopware 6.4
+
+# 1.3.5
+- Bug bei den Versandkosten für nicht eingeloggte Kunden behoben
+- Bug beim Ändern des Bezahlstatus für nicht PAY.-Zahlungsarten behoben
+- Bug bei der Änderung der Standard-Zahlungsmethode nach dem Speichern der Konfiguration oder der Neuinstallation von Zahlungsmethoden behoben
+- Bug bei der automatischen Aktivierung der Felder "Telefonnummer" und "Geburtstag" nach dem Speichern der Plugin-Einstellungen behoben
+- Code-Verbesserung durch Code-Qualitätsanalyse
+
 # 1.3.4
 - Behebt ein Problem das auftritt wenn ein Benutzer ein neues Kennwort anfordert
 

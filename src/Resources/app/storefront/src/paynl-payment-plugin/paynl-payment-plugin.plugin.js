@@ -11,7 +11,7 @@ export default class PaynlPaymentPlugin extends Plugin {
 
         if (trigger) {
             const elements = document.querySelectorAll('.paynl-dob');
-            Object.keys(elements).map(function(key) {
+            Object.keys(elements).forEach(function(key) {
                 return new Datepicker(elements[key], {
                     format: 'dd-mm-yyyy',
                     autohide: true,
@@ -94,10 +94,15 @@ export default class PaynlPaymentPlugin extends Plugin {
                 issuerSelect.value = '';
             }
 
+            const paymentMethodBankName = event.currentTarget.querySelector('#paymentMethodBankName');
+            if (paymentMethodBankName) {
+                paymentMethodBankName.innerHTML = '';
+            }
+
             // remove all invalid classes if exists
             const invalid = extraDataBlock.querySelectorAll('.invalid');
             if (invalid.length) {
-                Object.keys(invalid).map(function (key) {
+                Object.keys(invalid).forEach(function (key) {
                     return invalid[key].classList.remove('invalid');
                 });
             }
