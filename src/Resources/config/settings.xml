@@ -132,9 +132,6 @@
             <label>Payment screen language</label>
             <label lang="nl-NL">Payment screen language</label>
             <label lang="de-DE">Payment screen language</label>
-            <placeholder>Payment screen language</placeholder>
-            <placeholder lang="nl-NL">Payment screen language</placeholder>
-            <placeholder lang="de-DE">Payment screen language</placeholder>
             <options>
                 <option>
                     <id>nl</id>

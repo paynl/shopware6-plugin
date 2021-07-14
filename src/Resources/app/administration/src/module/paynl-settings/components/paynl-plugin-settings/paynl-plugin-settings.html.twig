@@ -52,6 +52,14 @@
 
                 <template #card-element="{ element, config }" data-new-data="acl.can('paynl_settings.editor')">
                     <sw-form-field-renderer
+                        v-if="element.type.startsWith('single-select')"
+                        :disabled="isDisabled"
+                        v-bind="getElementBind(bindOriginalField(element, config))"
+                        v-model="config[element.name]"/>
+                    />
+
+                    <sw-form-field-renderer
+                        v-else
                         :disabled="isDisabled"
                         v-bind="bindField(element, config)"
                         v-model="config[element.name]"/>
