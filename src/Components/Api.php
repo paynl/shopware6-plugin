@@ -186,6 +186,10 @@ class Api
             unset($transactionInitialData['paymentMethod']);
         }
 
+        if ($this->config->getPaymentScreenLanguage()) {
+            $transactionInitialData['enduser']['language'] = $this->config->getPaymentScreenLanguage();
+        }
+
         return $transactionInitialData;
     }
 
