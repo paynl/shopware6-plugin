@@ -145,6 +145,42 @@
                     <name lang="nl-NL">English</name>
                     <name lang="de-DE">English</name>
                 </option>
+                <option>
+                    <id>es</id>
+                    <name>Spanish</name>
+                    <name lang="nl-NL">Spanish</name>
+                    <name lang="de-DE">Spanish</name>
+                </option>
+                <option>
+                    <id>it</id>
+                    <name>Italian</name>
+                    <name lang="nl-NL">Italian</name>
+                    <name lang="de-DE">Italian</name>
+                </option>
+                <option>
+                    <id>fr</id>
+                    <name>French</name>
+                    <name lang="nl-NL">French</name>
+                    <name lang="de-DE">French</name>
+                </option>
+                <option>
+                    <id>de</id>
+                    <name>German</name>
+                    <name lang="nl-NL">German</name>
+                    <name lang="de-DE">German</name>
+                </option>
+                <option>
+                    <id>cart</id>
+                    <name>SW language</name>
+                    <name lang="nl-NL">SW language</name>
+                    <name lang="de-DE">SW language</name>
+                </option>
+                <option>
+                    <id>auto</id>
+                    <name>Automatic (Browser language)</name>
+                    <name lang="nl-NL">Automatic (Browser language)</name>
+                    <name lang="de-DE">Automatic (Browser language)</name>
+                </option>
             </options>
         </input-field>
     </card>

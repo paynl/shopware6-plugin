@@ -78,6 +78,9 @@ class InstallHelper
         /** @var EntityRepositoryInterface $customerRepository */
         $customerRepository = $container->get('customer.repository');
         $customerHelper = new CustomerHelper($config, $customerAddressRepository, $customerRepository);
+        /** @var EntityRepositoryInterface $languageRepository */
+        $languageRepository = $container->get('language.repository');
+        $transactionLanguageHelper = new TransactionLanguageHelper($config, $languageRepository);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         /** @var EntityRepositoryInterface $orderRepository */
@@ -86,7 +89,16 @@ class InstallHelper
         $translator = $container->get('translator');
         /** @var Session $session */
         $session = $container->get('session');
-        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $orderRepository, $translator, $session);
+        $this->paynlApi = new Api(
+            $config,
+            $customerHelper,
+            $transactionLanguageHelper,
+            $productRepository,
+            $orderRepository,
+            $translator,
+            $session
+        );
+
         $this->mediaHelper = new MediaHelper($container);
     }
 

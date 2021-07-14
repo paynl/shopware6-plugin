@@ -21,6 +21,11 @@
             <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="language.repository"/>
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\Config">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -29,6 +34,7 @@
         <service id="PaynlPayment\Shopware6\Components\Api">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper"/>
             <argument type="service" id="product.repository"/>
             <argument type="service" id="order.repository"/>
             <argument type="service" id="translator" />

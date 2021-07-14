@@ -9,6 +9,7 @@ use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
@@ -40,6 +41,8 @@ class Api
     private $config;
     /** @var CustomerHelper */
     private $customerHelper;
+    /** @var TransactionLanguageHelper */
+    private $transactionLanguageHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
     /** @var EntityRepositoryInterface */
@@ -52,6 +55,7 @@ class Api
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
+        TransactionLanguageHelper $transactionLanguageHelper,
         EntityRepositoryInterface $productRepository,
         EntityRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
@@ -59,6 +63,7 @@ class Api
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
+        $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
@@ -132,7 +137,6 @@ class Api
         string $pluginVersion
     ): array {
         $bank = (int)$this->session->get('paynlIssuer');
-
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
@@ -187,7 +191,7 @@ class Api
         }
 
         if ($this->config->getPaymentScreenLanguage()) {
-            $transactionInitialData['enduser']['language'] = $this->config->getPaymentScreenLanguage();
+            $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($transaction->getOrder());
         }
 
         return $transactionInitialData;
