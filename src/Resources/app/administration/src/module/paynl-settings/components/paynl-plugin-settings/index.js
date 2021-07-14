@@ -9,7 +9,12 @@ Component.register('paynl-plugin-settings', {
         Mixin.getByName('notification')
     ],
 
-    inject: [ 'PaynlPaymentService' ],
+    inject: [
+        'PaynlPaymentService',
+        'acl'
+    ],
+
+    props: ['disabled'],
 
     data() {
         return {
@@ -55,7 +60,19 @@ Component.register('paynl-plugin-settings', {
     computed: {
         credentialsEmpty: function() {
             return !this.tokenCodeFilled || !this.apiTokenFilled || !this.serviceIdFilled;
+        },
+
+        isDisabled: function () {
+            return this.isLoading || !this.acl.can('paynl.editor');
         }
+    },
+
+    mounted() {
+        this.$nextTick(function () {
+            if (!this.acl.can('paynl.editor')) {
+                this.disableSalesChannel();
+            }
+        })
     },
 
     methods: {
@@ -65,6 +82,29 @@ Component.register('paynl-plugin-settings', {
 
         installFinish() {
             this.isInstallSuccessful = false;
+        },
+
+        disableSalesChannel() {
+            var $this = this;
+            var waitSalesChannelInit = setInterval(function() {
+                let systemConfig = $this.$refs.systemConfig;
+                if (systemConfig === undefined
+                    || systemConfig.$children === undefined
+                    || systemConfig.$children[0] === undefined
+                ) {
+                    return;
+                }
+
+                let systemConfigSettings = systemConfig.$children[0];
+                if (systemConfigSettings.$children === undefined || systemConfigSettings.$children[0] === undefined) {
+                    return;
+                }
+
+                let salesChannelSwitch = systemConfigSettings.$children[0];
+                salesChannelSwitch.disabled = true;
+
+                clearInterval(waitSalesChannelInit);
+            }, 100); // check every 100ms
         },
 
         onConfigChange(config) {
