@@ -46,7 +46,8 @@ Component.register('paynl-plugin-settings', {
                 usePAYStyles: null,
                 showDescription: null,
                 additionalAddressFields: null,
-                femaleSalutations: null
+                femaleSalutations: null,
+                paymentScreenLanguage: null,
             }
         };
     },
@@ -124,6 +125,7 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: this.config['PaynlPaymentShopware6.settings.additionalAddressFields'],
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
+                paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
             };
 
             this.showCredentilasErrors = false;

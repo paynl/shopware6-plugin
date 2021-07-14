@@ -127,5 +127,28 @@
             <helpText lang="de-DE">Weibliche Anreden, verwendet, um das Geschlecht des Kunden zu bestimmen</helpText>
             <helpText lang="nl-NL">Vrouwelijke begroetingen, gebruikt om het geslacht van de klant te bepalen</helpText>
         </input-field>
+        <input-field type="single-select">
+            <name>paymentScreenLanguage</name>
+            <label>Payment screen language</label>
+            <label lang="nl-NL">Payment screen language</label>
+            <label lang="de-DE">Payment screen language</label>
+            <placeholder>Payment screen language</placeholder>
+            <placeholder lang="nl-NL">Payment screen language</placeholder>
+            <placeholder lang="de-DE">Payment screen language</placeholder>
+            <options>
+                <option>
+                    <id>nl</id>
+                    <name>Dutch</name>
+                    <name lang="nl-NL">Dutch</name>
+                    <name lang="de-DE">Dutch</name>
+                </option>
+                <option>
+                    <id>en</id>
+                    <name>English</name>
+                    <name lang="nl-NL">English</name>
+                    <name lang="de-DE">English</name>
+                </option>
+            </options>
+        </input-field>
     </card>
 </config>
