@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Helper;
 
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\LanguageEnum;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -11,7 +12,7 @@ use Shopware\Core\Framework\Context;
 
 class TransactionLanguageHelper
 {
-    const DEFAULT_LANGUAGE = 'en';
+    const DEFAULT_LANGUAGE = LanguageEnum::NL;
 
     /**
      * @var Config
@@ -23,13 +24,15 @@ class TransactionLanguageHelper
      */
     private $languageRepository;
 
-    public function __construct(Config $config, EntityRepositoryInterface $languageRepository)
-    {
+    public function __construct(
+        Config $config,
+        EntityRepositoryInterface $languageRepository
+    ) {
         $this->config = $config;
         $this->languageRepository = $languageRepository;
     }
 
-    public function getLanguageForOrder(OrderEntity $order)
+    public function getLanguageForOrder(OrderEntity $order): string
     {
         $languageSetting = $this->config->getPaymentScreenLanguage();
 
@@ -42,7 +45,7 @@ class TransactionLanguageHelper
         }
     }
 
-    private function getBrowserLanguage()
+    private function getBrowserLanguage(): string
     {
         if (isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])) {
             return $this->parseDefaultLanguage($_SERVER["HTTP_ACCEPT_LANGUAGE"]);
@@ -51,12 +54,14 @@ class TransactionLanguageHelper
         }
     }
 
-    private function parseDefaultLanguage($http_accept, $deflang = 'nl')
+    private function parseDefaultLanguage($httpAccept): string
     {
-        if (isset($http_accept) && strlen($http_accept) > 1) {
+        $defLang = self::DEFAULT_LANGUAGE;
+
+        if (isset($httpAccept) && strlen($httpAccept) > 1) {
             $lang = array();
             # Split possible languages into array
-            $x = explode(",", $http_accept);
+            $x = explode(",", $httpAccept);
             foreach ($x as $val) {
                 #check for q-value and create associative array. No q-value means 1 by rule
                 if (preg_match("/(.*);q=([0-1]{0,1}.[0-9]{0,4})/i", $val,
@@ -83,46 +88,54 @@ class TransactionLanguageHelper
                 if (in_array($languagecode, $arrAvailableLanguages)) {
                     if ($value > $qval) {
                         $qval = (float)$value;
-                        $deflang = $key;
+                        $defLang = $key;
                     }
                 }
             }
         }
 
-        return strtolower(substr($deflang, 0, 2));
+        return strtolower(substr($defLang, 0, 2));
     }
 
-    public function getLanguages()
+    public function getLanguages(): array
     {
         return [
             [
-                'id' => 'nl',
+                'id' => LanguageEnum::NL,
                 'label' => 'Dutch'
             ],
             [
-                'id' => 'en',
+                'id' => LanguageEnum::EN,
                 'label' => 'English'
             ],
             [
-                'id' => 'es',
+                'id' => LanguageEnum::ES,
                 'label' => 'Spanish'
             ],
             [
-                'id' => 'it',
+                'id' => LanguageEnum::IT,
                 'label' => 'Italian'
             ],
             [
-                'id' => 'fr',
+                'id' => LanguageEnum::FR,
                 'label' => 'French'
             ],
             [
-                'id' => 'de',
+                'id' => LanguageEnum::DE,
                 'label' => 'German'
-            ]
+            ],
+            [
+                'id' => 'cart',
+                'label' => 'Shopware language'
+            ],
+            [
+                'id' => 'auto',
+                'label' => 'Automatic (Browser language)'
+            ],
         ];
     }
 
-    private function getLanguageById(string $languageId)
+    private function getLanguageById(string $languageId): string
     {
         if (empty($languageId)) {
             return self::DEFAULT_LANGUAGE;

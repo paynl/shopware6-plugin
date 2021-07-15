@@ -7,7 +7,8 @@ Component.register('paynl-plugin-settings', {
     template,
 
     mixins: [
-        Mixin.getByName('notification')
+        Mixin.getByName('notification'),
+        Mixin.getByName('sw-inline-snippet')
     ],
 
     inject: [
@@ -36,6 +37,7 @@ Component.register('paynl-plugin-settings', {
             allowRefundsFilled: false,
             femaleSalutationsFilled: false,
             showCredentilasErrors: false,
+            paymentScreenLanguageItems: [],
             settingsData: {
                 tokenCode: null,
                 allowRefunds: null,
@@ -51,6 +53,10 @@ Component.register('paynl-plugin-settings', {
                 paymentScreenLanguage: null,
             }
         };
+    },
+
+    created() {
+        this.createdComponent();
     },
 
     metaInfo() {
@@ -78,6 +84,27 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
+        createdComponent() {
+            let me = this;
+
+            this.PaynlPaymentService.getPaymentScreenLanguages()
+                .then((result) => {
+                    result.data.forEach((element) => {
+                        let translationKey = 'paynlSettings.paymentScreenLanguages.items.' + element.id + '.label';
+                        let translationValue = me.$t(translationKey);
+
+                        if (translationValue === translationKey) {
+                            translationValue = element.label;
+                        }
+
+                        me.paymentScreenLanguageItems.push({
+                            "label": translationValue,
+                            "value": element.id,
+                        })
+                    });
+                });
+        },
+
         saveFinish() {
             this.isSaveSuccessful = false;
         },
