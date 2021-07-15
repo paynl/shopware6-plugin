@@ -28,5 +28,19 @@
             "settingsSavedSuccessfully": "Configuratie succesvol opgeslagen.",
             "wrongCredentials": "Onjuiste inloggegevens!"
         }
+    },
+
+    "sw-privileges": {
+        "permissions": {
+            "parents": {
+                "paynl": "PAY. Plugin"
+            },
+            "paynl": {
+                "label": "PAY. Plugin instellingen"
+            },
+            "paynl_transactions": {
+                "label": "PAY. Transacties"
+            }
+        }
     }
 }

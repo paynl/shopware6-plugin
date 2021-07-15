@@ -1,5 +1,6 @@
 import './components/paynl-plugin-settings';
 import './components/paynl-settings-icon';
+import './acl';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
@@ -27,7 +28,8 @@ Module.register('paynl-settings', {
             component: 'paynl-plugin-settings',
             path: 'view',
             meta: {
-                parentPath: 'sw.settings.index'
+                parentPath: 'sw.settings.index',
+                privilege: 'paynl.viewer',
             }
         }
     },
@@ -35,7 +37,8 @@ Module.register('paynl-settings', {
     settingsItem: {
         group: 'plugins',
         to: 'paynl.settings.view',
-        iconComponent: 'paynl-settings-icon',
         backgroundEnabled: true,
-    },
+        iconComponent: 'paynl-settings-icon',
+        privilege: 'paynl.viewer',
+    }
 });

@@ -9,6 +9,7 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -287,6 +288,25 @@ class ProcessingHelper
         string $orderTransactionId,
         string $orderTransactionTransitionName
     ): StateMachineStateCollection {
+        $context = Context::createDefaultContext();
+
+        $transactionCriteria = (new Criteria([$orderTransactionId]))
+            ->addAssociation('stateMachineState');
+        /** @var null|OrderTransactionEntity $transaction */
+        $transaction = $this->orderTransactionRepository->search($transactionCriteria, $context)->first();
+
+        if (!empty($transaction)
+            && $orderTransactionTransitionName === StateMachineTransitionActions::ACTION_PAID
+            && $transaction->getStateMachineState()->getTechnicalName() === OrderTransactionStates::STATE_PARTIALLY_PAID
+        ) {
+            // If the previous state is "paid_partially", "paid" is currently not allowed as direct transition,
+            // see https://github.com/shopwareLabs/SwagPayPal/blob/b63efb9/src/Util/PaymentStatusUtil.php#L79
+            $this->manageOrderTransactionStateTransition(
+                $orderTransactionId,
+                StateMachineTransitionActions::ACTION_DO_PAY
+            );
+        }
+
         return $this->stateMachineRegistry->transition(
             new Transition(
                 OrderTransactionDefinition::ENTITY_NAME,
@@ -294,7 +314,7 @@ class ProcessingHelper
                 $orderTransactionTransitionName,
                 'stateId'
             ),
-            Context::createDefaultContext()
+            $context
         );
     }
 

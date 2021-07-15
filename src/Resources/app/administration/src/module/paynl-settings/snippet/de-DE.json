@@ -28,5 +28,19 @@
             "settingsSavedSuccessfully": "Konfigurationen wurden erfolgreich gespeichert.",
             "wrongCredentials": "Falsche Anmeldeinformationen!"
         }
+    },
+
+    "sw-privileges": {
+        "permissions": {
+            "parents": {
+                "paynl": "PAY. Plugin"
+            },
+            "paynl": {
+                "label": "PAY. Plugin-Einstellungen"
+            },
+            "paynl_transactions": {
+                "label": "PAY. Transaktionen"
+            }
+        }
     }
 }

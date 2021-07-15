@@ -6,6 +6,8 @@ const { Criteria } = Shopware.Data;
 Component.override('sw-order-list', {
     template,
 
+    inject: ['acl'],
+
     computed: {
         orderCriteria() {
             const criteria = this.$super('orderCriteria');
@@ -25,11 +27,12 @@ Component.override('sw-order-list', {
         },
 
         isPaynlTransactionAllowedForRefund(statusName) {
-            if (statusName === "paid" || statusName === "paid_partially" || statusName === "refunded_partially") {
-                return false;
-            }
+            let isUserAllowedToEditOrder = this.acl.can('order.editor');
 
-            return true;
+            let statusAllowedForRefund = ['paid', 'paid_partially', 'paid_partially'];
+            let isStatusAllowedForRefund = statusAllowedForRefund.includes(statusName);
+
+            return !(isUserAllowedToEditOrder && isStatusAllowedForRefund);
         }
     }
 });

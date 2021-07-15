@@ -7,6 +7,7 @@ Component.register('paynl-transactions-list-component', {
     template,
 
     inject: [
+        'acl',
         'repositoryFactory',
         'stateStyleDataProviderService'
     ],
@@ -14,7 +15,9 @@ Component.register('paynl-transactions-list-component', {
     data() {
         return {
             repository: null,
-            transactions: null
+            transactions: null,
+            isUserCustomersViewer: this.isUserCustomersViewer(),
+            isUserOrdersViewer: this.isUserOrdersViewer(),
         };
     },
 
@@ -124,6 +127,14 @@ Component.register('paynl-transactions-list-component', {
             let dateGroup = regex.exec(date)['groups'];
 
             return dateGroup['year'] + '-' + dateGroup['month'] + '-' + dateGroup['day'] + ' ' + dateGroup['hours'] + ':' + dateGroup['minutes'];
+        },
+
+        isUserCustomersViewer() {
+            return this.acl.can('customer.viewer');
+        },
+
+        isUserOrdersViewer() {
+            return this.acl.can('order.viewer');
         }
     }
 });
