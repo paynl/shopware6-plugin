@@ -38,20 +38,18 @@ class TransactionLanguageHelper
 
         if ($languageSetting == 'auto') {
             return $this->getBrowserLanguage();
-        } elseif ($languageSetting == 'cart') {
-            return $this->getLanguageById($order->getLanguageId());
-        } else {
-            return $languageSetting;
         }
+
+        if ($languageSetting == 'cart') {
+            return $this->getLanguageById($order->getLanguageId());
+        }
+
+        return $languageSetting;
     }
 
     private function getBrowserLanguage(): string
     {
-        if (isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])) {
-            return $this->parseDefaultLanguage($_SERVER["HTTP_ACCEPT_LANGUAGE"]);
-        } else {
-            return $this->parseDefaultLanguage(null);
-        }
+        return $this->parseDefaultLanguage($_SERVER["HTTP_ACCEPT_LANGUAGE"] ?? null);
     }
 
     private function parseDefaultLanguage($httpAccept): string
@@ -59,7 +57,7 @@ class TransactionLanguageHelper
         $defLang = self::DEFAULT_LANGUAGE;
 
         if (isset($httpAccept) && strlen($httpAccept) > 1) {
-            $lang = array();
+            $lang = [];
             # Split possible languages into array
             $x = explode(",", $httpAccept);
             foreach ($x as $val) {
@@ -73,7 +71,7 @@ class TransactionLanguageHelper
             }
 
             $arrLanguages = $this->getLanguages();
-            $arrAvailableLanguages = array();
+            $arrAvailableLanguages = [];
             foreach ($arrLanguages as $language) {
                 if ($language['id'] != 'auto') {
                     $arrAvailableLanguages[] = $language['id'];
@@ -81,15 +79,17 @@ class TransactionLanguageHelper
             }
 
             #return default language (highest q-value)
-            $qval = 0.0;
+            $qVal = 0.0;
             foreach ($lang as $key => $value) {
-                $languagecode = strtolower(substr($key, 0, 2));
+                $languageCode = strtolower(substr($key, 0, 2));
 
-                if (in_array($languagecode, $arrAvailableLanguages)) {
-                    if ($value > $qval) {
-                        $qval = (float)$value;
-                        $defLang = $key;
-                    }
+                if (!in_array($languageCode, $arrAvailableLanguages)) {
+                    continue;
+                }
+
+                if ($value > $qVal) {
+                    $qVal = (float)$value;
+                    $defLang = $key;
                 }
             }
         }

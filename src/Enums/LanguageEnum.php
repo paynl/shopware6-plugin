@@ -1,8 +1,6 @@
 <?php
 
-
 namespace PaynlPayment\Shopware6\Enums;
-
 
 class LanguageEnum
 {
