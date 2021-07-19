@@ -13,6 +13,7 @@ use Shopware\Core\Framework\Context;
 class TransactionLanguageHelper
 {
     const DEFAULT_LANGUAGE = LanguageEnum::NL;
+    const HTTP_ACCEPT_LANGUAGE_Q_VALUE_PATTERN = "/(.*);q=([0-1]{0,1}.[0-9]{0,4})/i";
 
     /**
      * @var Config
@@ -62,12 +63,13 @@ class TransactionLanguageHelper
             $x = explode(",", $httpAccept);
             foreach ($x as $val) {
                 #check for q-value and create associative array. No q-value means 1 by rule
-                if (preg_match("/(.*);q=([0-1]{0,1}.[0-9]{0,4})/i", $val,
-                    $matches)) {
+                if (preg_match(self::HTTP_ACCEPT_LANGUAGE_Q_VALUE_PATTERN, $val, $matches)) {
                     $lang[$matches[1]] = (float)$matches[2] . '';
-                } else {
-                    $lang[$val] = 1.0;
+
+                    continue;
                 }
+
+                $lang[$val] = 1.0;
             }
 
             $arrLanguages = $this->getLanguages();
