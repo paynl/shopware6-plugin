@@ -2,12 +2,13 @@
     "checkout": {
         "statuses": {
             "cancelled": "Zahlung storniert",
-            "denied": "Zahlung abgelehnt",
+            "denied": "Bezahlung verweigert ",
             "in_progress": "Die Zahlung wird durch den Verwalter überprüft.",
             "paid": "Zahlung erfolgreich!"
         },
         "messages": {
-            "failedTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere aus oder versuchen Sie es erneut."
+            "cancelledTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere aus oder versuchen Sie es erneut.",
+            "deniedTransaction": "Zahlung vom Zahlungsanbieter verweigert (andere Zahlungsmethode wählen)."
         },
         "labels": {
             "changePayment": "Erneut versuchen",

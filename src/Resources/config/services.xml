@@ -136,6 +136,11 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\CheckoutFinishLoadedSubscriber" public="true">
+            <argument type="service" id="paynl_transactions.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Subscriber\CustomerRegisterSubscriber">
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
             <argument type="service" id="customer_address.repository"/>

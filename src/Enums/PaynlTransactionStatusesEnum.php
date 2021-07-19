@@ -26,6 +26,11 @@ class PaynlTransactionStatusesEnum
     const STATUS_PARTIAL_REFUND = -82;
     const STATUS_PARTIAL_PAYMENT = 80;
 
+    const DENIED_STATUSES = [
+        self::STATUS_DENIED_63,
+        self::STATUS_DENIED_64,
+    ];
+
     const STATUSES_ARRAY = [
         self::STATUS_CANCEL => StateMachineTransitionActions::ACTION_CANCEL,
         self::STATUS_EXPIRED => StateMachineTransitionActions::ACTION_CANCEL,
