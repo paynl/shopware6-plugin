@@ -1,6 +1,9 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
 
 {% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
+{% if (page.PAY_transaction_state_id in constant('PaynlPayment\\Shopware6\\Enums\\PaynlTransactionStatusesEnum::DENIED_STATUSES')) %}
+    {% set status = 'denied' %}
+{% endif %}
 
 {% block page_checkout_finish_data %}
     {% if (context.paymentMethod.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
@@ -29,6 +32,8 @@
                         {% endblock %}
 
                         {% if (status == 'cancelled' or status == 'denied') %}
+                            {% set transactionMessage = "checkout.messages.#{status}Transaction"|trans() %}
+
                             <div class="flashbags">
                                 <div role="alert" class="alert alert-danger alert-has-icon">
                                         <span class="icon icon-blocked">
@@ -38,7 +43,7 @@
                                         </span>
                                     <div class="alert-content-container">
                                         <div class="alert-content">
-                                            {{ "checkout.messages.failedTransaction"|trans() }}
+                                            {{ transactionMessage }}
                                         </div>
                                     </div>
                                 </div>
