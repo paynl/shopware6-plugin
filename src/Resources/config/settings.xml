@@ -127,5 +127,61 @@
             <helpText lang="de-DE">Weibliche Anreden, verwendet, um das Geschlecht des Kunden zu bestimmen</helpText>
             <helpText lang="nl-NL">Vrouwelijke begroetingen, gebruikt om het geslacht van de klant te bepalen</helpText>
         </input-field>
+        <input-field type="single-select">
+            <name>paymentScreenLanguage</name>
+            <label>Payment screen language</label>
+            <label lang="nl-NL">Payment screen language</label>
+            <label lang="de-DE">Payment screen language</label>
+            <options>
+                <option>
+                    <id>nl</id>
+                    <name>Dutch</name>
+                    <name lang="nl-NL">Dutch</name>
+                    <name lang="de-DE">Dutch</name>
+                </option>
+                <option>
+                    <id>en</id>
+                    <name>English</name>
+                    <name lang="nl-NL">English</name>
+                    <name lang="de-DE">English</name>
+                </option>
+                <option>
+                    <id>es</id>
+                    <name>Spanish</name>
+                    <name lang="nl-NL">Spanish</name>
+                    <name lang="de-DE">Spanish</name>
+                </option>
+                <option>
+                    <id>it</id>
+                    <name>Italian</name>
+                    <name lang="nl-NL">Italian</name>
+                    <name lang="de-DE">Italian</name>
+                </option>
+                <option>
+                    <id>fr</id>
+                    <name>French</name>
+                    <name lang="nl-NL">French</name>
+                    <name lang="de-DE">French</name>
+                </option>
+                <option>
+                    <id>de</id>
+                    <name>German</name>
+                    <name lang="nl-NL">German</name>
+                    <name lang="de-DE">German</name>
+                </option>
+                <option>
+                    <id>cart</id>
+                    <name>SW language</name>
+                    <name lang="nl-NL">SW language</name>
+                    <name lang="de-DE">SW language</name>
+                </option>
+                <option>
+                    <id>auto</id>
+                    <name>Automatic (Browser language)</name>
+                    <name lang="nl-NL">Automatic (Browser language)</name>
+                    <name lang="de-DE">Automatic (Browser language)</name>
+                </option>
+            </options>
+        </input-field>
     </card>
 </config>

@@ -1,4 +1,5 @@
 const { Component, Mixin } = Shopware;
+const { object, types } = Shopware.Utils;
 
 import template from './paynl-plugin-settings.html.twig';
 
@@ -6,7 +7,8 @@ Component.register('paynl-plugin-settings', {
     template,
 
     mixins: [
-        Mixin.getByName('notification')
+        Mixin.getByName('notification'),
+        Mixin.getByName('sw-inline-snippet')
     ],
 
     inject: [
@@ -35,6 +37,7 @@ Component.register('paynl-plugin-settings', {
             allowRefundsFilled: false,
             femaleSalutationsFilled: false,
             showCredentilasErrors: false,
+            paymentScreenLanguageItems: [],
             settingsData: {
                 tokenCode: null,
                 allowRefunds: null,
@@ -46,9 +49,14 @@ Component.register('paynl-plugin-settings', {
                 usePAYStyles: null,
                 showDescription: null,
                 additionalAddressFields: null,
-                femaleSalutations: null
+                femaleSalutations: null,
+                paymentScreenLanguage: null,
             }
         };
+    },
+
+    created() {
+        this.createdComponent();
     },
 
     metaInfo() {
@@ -76,6 +84,27 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
+        createdComponent() {
+            let me = this;
+
+            this.PaynlPaymentService.getPaymentScreenLanguages()
+                .then((result) => {
+                    result.data.forEach((element) => {
+                        let translationKey = 'paynlSettings.paymentScreenLanguages.items.' + element.id + '.label';
+                        let translationValue = me.$t(translationKey);
+
+                        if (translationValue === translationKey) {
+                            translationValue = element.label;
+                        }
+
+                        me.paymentScreenLanguageItems.push({
+                            "label": translationValue,
+                            "value": element.id,
+                        })
+                    });
+                });
+        },
+
         saveFinish() {
             this.isSaveSuccessful = false;
         },
@@ -124,6 +153,7 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: this.config['PaynlPaymentShopware6.settings.additionalAddressFields'],
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
+                paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
             };
 
             this.showCredentilasErrors = false;
@@ -274,6 +304,57 @@ Component.register('paynl-plugin-settings', {
             }
 
             return element;
-        }
+        },
+
+        bindOriginalField(element, config) {
+            let originalElement;
+
+            element = this.bindField(element, config);
+
+            this.$refs.systemConfig.config.forEach((configElement) => {
+                configElement.elements.forEach((child) => {
+                    if (child.name === element.name) {
+                        originalElement = child;
+                        return;
+                    }
+                });
+            });
+
+            return originalElement || element;
+        },
+
+        getElementBind(element) {
+            const bind = object.deepCopyObject(element);
+
+            // Add inherited values
+            if (this.currentSalesChannelId !== null
+                && this.inherit
+                && this.actualConfigData.hasOwnProperty('null')
+                && this.actualConfigData.null[bind.name] !== null) {
+                if (bind.type === 'single-select' || bind.config.componentName === 'sw-entity-single-select') {
+                    // Add inherited placeholder option
+                    bind.placeholder = this.$tc('sw-settings.system-config.inherited');
+                } else if (bind.type === 'bool') {
+                    // Add inheritedValue for checkbox fields to restore the inherited state
+                    bind.config.inheritedValue = this.actualConfigData.null[bind.name] || false;
+                } else if (bind.type === 'password') {
+                    // Add inherited placeholder and mark placeholder as password so the rendering element
+                    // can choose to hide it
+                    bind.placeholderIsPassword = true;
+                    bind.placeholder = `${this.actualConfigData.null[bind.name]}`;
+                } else if (bind.type !== 'multi-select' && !types.isUndefined(this.actualConfigData.null[bind.name])) {
+                    // Add inherited placeholder
+                    bind.placeholder = `${this.actualConfigData.null[bind.name]}`;
+                }
+            }
+
+            // Add select properties
+            if (['single-select', 'multi-select'].includes(bind.type)) {
+                bind.config.labelProperty = 'name';
+                bind.config.valueProperty = 'id';
+            }
+
+            return bind;
+        },
     }
 });

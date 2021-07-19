@@ -52,6 +52,26 @@
 
                 <template #card-element="{ element, config }" data-new-data="acl.can('paynl_settings.editor')">
                     <sw-form-field-renderer
+                        v-if="element.name.startsWith('PaynlPaymentShopware6.settings.paymentScreenLanguage')"
+                        :config="{
+                                componentName: 'sw-single-select',
+                                label: getInlineSnippet(getElementBind(bindOriginalField(element, config)).config.label),
+                                helpText: getInlineSnippet(getElementBind(bindOriginalField(element, config)).config.helpText),
+                                options: paymentScreenLanguageItems,
+                            }"
+                        :disabled="isDisabled"
+                        v-model="config[element.name]"/>
+                    />
+
+                    <sw-form-field-renderer
+                        v-else-if="element.type.startsWith('single-select')"
+                        :disabled="isDisabled"
+                        v-bind="getElementBind(bindOriginalField(element, config))"
+                        v-model="config[element.name]"/>
+                    />
+
+                    <sw-form-field-renderer
+                        v-else
                         :disabled="isDisabled"
                         v-bind="bindField(element, config)"
                         v-model="config[element.name]"/>

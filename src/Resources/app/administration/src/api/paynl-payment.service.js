@@ -45,6 +45,14 @@ class PaynlPaymentService extends ApiService {
                 return ApiService.handleResponse(response);
             });
     }
+
+    getPaymentScreenLanguages() {
+        return this.httpClient
+            .get(`${this.getApiBasePath()}/get-payment-screen-languages`, {headers: this.getBasicHeaders()})
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
 }
 
 Application.addServiceProvider('PaynlPaymentService', (container) => {
