@@ -24,6 +24,7 @@ use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -80,7 +81,9 @@ class InstallHelper
         $customerHelper = new CustomerHelper($config, $customerAddressRepository, $customerRepository);
         /** @var EntityRepositoryInterface $languageRepository */
         $languageRepository = $container->get('language.repository');
-        $transactionLanguageHelper = new TransactionLanguageHelper($config, $languageRepository);
+        /** @var RequestStack $requestStack */
+        $requestStack = $container->get('request_stack');
+        $transactionLanguageHelper = new TransactionLanguageHelper($config, $languageRepository, $requestStack);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         /** @var EntityRepositoryInterface $orderRepository */

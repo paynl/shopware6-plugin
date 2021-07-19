@@ -9,6 +9,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\Framework\Context;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class TransactionLanguageHelper
 {
@@ -25,12 +26,19 @@ class TransactionLanguageHelper
      */
     private $languageRepository;
 
+    /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
     public function __construct(
         Config $config,
-        EntityRepositoryInterface $languageRepository
+        EntityRepositoryInterface $languageRepository,
+        RequestStack $requestStack
     ) {
         $this->config = $config;
         $this->languageRepository = $languageRepository;
+        $this->requestStack = $requestStack;
     }
 
     public function getLanguageForOrder(OrderEntity $order): string
@@ -50,14 +58,19 @@ class TransactionLanguageHelper
 
     private function getBrowserLanguage(): string
     {
-        return $this->parseDefaultLanguage($_SERVER["HTTP_ACCEPT_LANGUAGE"] ?? null);
+        $request = $this->requestStack->getMasterRequest();
+        if (is_null($request)) {
+            return self::DEFAULT_LANGUAGE;
+        }
+
+        return $this->parseDefaultLanguage((string)$request->server->get('HTTP_ACCEPT_LANGUAGE'));
     }
 
-    private function parseDefaultLanguage($httpAccept): string
+    private function parseDefaultLanguage(string $httpAccept): string
     {
         $defLang = self::DEFAULT_LANGUAGE;
 
-        if (isset($httpAccept) && strlen($httpAccept) > 1) {
+        if (strlen($httpAccept) > 1) {
             $lang = [];
             # Split possible languages into array
             $x = explode(",", $httpAccept);
