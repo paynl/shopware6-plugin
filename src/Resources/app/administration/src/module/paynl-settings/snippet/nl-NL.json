@@ -17,28 +17,28 @@
         "paymentScreenLanguages": {
             "items": {
                 "nl": {
-                    "label": "Dutch"
+                    "label": "Nederlands"
                 },
                 "en": {
-                    "label": "English"
+                    "label": "Engels"
                 },
                 "es": {
-                    "label": "Spanish"
+                    "label": "Spaans"
                 },
                 "it": {
-                    "label": "Italian"
+                    "label": "Italiaans"
                 },
                 "fr": {
-                    "label": "French"
+                    "label": "Frans"
                 },
                 "de": {
-                    "label": "German"
+                    "label": "Duits"
                 },
                 "cart": {
-                    "label": "Shopware language"
+                    "label": "Shopware taal"
                 },
                 "auto": {
-                    "label": "Automatic (Browser language)"
+                    "label": "Automatisch (browser taal)"
                 }
             }
         }
