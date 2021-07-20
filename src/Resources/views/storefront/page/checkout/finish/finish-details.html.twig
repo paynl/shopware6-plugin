@@ -32,8 +32,6 @@
                         {% endblock %}
 
                         {% if (status == 'cancelled' or status == 'denied') %}
-                            {% set transactionMessage = "checkout.messages.#{status}Transaction"|trans() %}
-
                             <div class="flashbags">
                                 <div role="alert" class="alert alert-danger alert-has-icon">
                                         <span class="icon icon-blocked">
@@ -43,7 +41,7 @@
                                         </span>
                                     <div class="alert-content-container">
                                         <div class="alert-content">
-                                            {{ transactionMessage }}
+                                            {{ "checkout.messages.#{status}Transaction"|trans() }}
                                         </div>
                                     </div>
                                 </div>

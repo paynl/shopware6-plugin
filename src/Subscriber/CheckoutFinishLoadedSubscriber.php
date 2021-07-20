@@ -46,8 +46,8 @@ class CheckoutFinishLoadedSubscriber implements EventSubscriberInterface
             )
             ->first();
 
-        $paynlStateId = $paynlTransaction instanceof PaynlTransactionEntity ? $paynlTransaction->getStateId() : '';
-        $paynlStateId = '';
-        $event->getPage()->assign(['PAY_transaction_state_id' => $paynlStateId]);
+        if ($paynlTransaction instanceof PaynlTransactionEntity) {
+            $event->getPage()->assign(['PAY_transaction_state_id' => $paynlTransaction->getStateId()]);
+        }
     }
 }
