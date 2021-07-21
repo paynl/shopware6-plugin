@@ -277,7 +277,7 @@ class PaynlTransactionEntity extends Entity
      */
     public function getStateId(): string
     {
-        return $this->stateId;
+        return (string)$this->stateId;
     }
 
     /**
