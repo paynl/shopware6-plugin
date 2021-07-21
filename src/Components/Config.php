@@ -95,4 +95,9 @@ class Config
     {
         return $this->get('showDescription', 'show_payment_method_info');
     }
+
+    public function getPaymentScreenLanguage(): string
+    {
+        return $this->get('paymentScreenLanguage', '');
+    }
 }
