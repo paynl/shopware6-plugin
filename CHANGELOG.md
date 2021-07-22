@@ -1,3 +1,9 @@
+# 1.4.1
+- Improved user permissions
+- Fixed partially paid bug
+- Fixed payment denied notice
+- Added payment screen language settings
+
 # 1.4.0
 - Plugin is now Shopware 6.4 compatible
 

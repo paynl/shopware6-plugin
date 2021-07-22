@@ -1,3 +1,9 @@
+# 1.4.1
+- Verbesserte Benutzerrechte
+- Fehler bei teilweiser Bezahlung behoben
+- Hinweis fur verweigerte Zahlung behoben
+- Spracheinstellungen für den Zahlungsbildschirm hinzugefügt
+
 # 1.4.0
 - Plugin ist jetzt kompatibel mit Shopware 6.4
 
