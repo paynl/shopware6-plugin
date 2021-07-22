@@ -56,6 +56,12 @@
             <tag name="kernel.event_subscriber" />
         </service>
 
+        <!--Payment handler-->
+        <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlInstorePaymentHandler">
+            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <tag name="shopware.payment.method.sync" />
+        </service>
+
         <!--Controllers-->
         <service id="PaynlPayment\Shopware6\Storefront\Controller\NotificationController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>

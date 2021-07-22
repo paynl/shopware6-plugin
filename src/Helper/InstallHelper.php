@@ -9,8 +9,10 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
+use PaynlPayment\Shopware6\Service\PaynlPaymentSyncHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
@@ -55,6 +57,8 @@ class InstallHelper
     private $paynlApi;
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
+    /** @var PaymentHandlerFactory */
+    private $paymentHandlerFactory;
 
     public function __construct(ContainerInterface $container)
     {
@@ -88,6 +92,7 @@ class InstallHelper
         $session = $container->get('session');
         $this->paynlApi = new Api($config, $customerHelper, $productRepository, $orderRepository, $translator, $session);
         $this->mediaHelper = new MediaHelper($container);
+        $this->paymentHandlerFactory = new PaymentHandlerFactory();
     }
 
     public function addPaymentMethods(Context $context): void
@@ -274,9 +279,11 @@ class InstallHelper
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
+        $paymentMethodHandler = $this->paymentHandlerFactory->get($paymentMethodValueObject->getId());
+
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
-            'handlerIdentifier' => PaynlPaymentHandler::class,
+            'handlerIdentifier' => $paymentMethodHandler,
             'name' => $paymentMethodValueObject->getVisibleName(),
             'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
