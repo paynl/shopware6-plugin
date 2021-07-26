@@ -93,7 +93,7 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/paynl/get-payment-screen-languages",
      *     name="api.action.PaynlPayment.getPaymentScreenLanguagesSW64",
-     *     methods={"GET"}
+     *     methods={"POST"}
      *     )
      */
     public function getPaymentScreenLanguagesSW64(): JsonResponse
@@ -105,7 +105,7 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/v{version}/paynl/get-payment-screen-languages",
      *     name="api.action.PaynlPayment.getPaymentScreenLanguages",
-     *     methods={"GET"}
+     *     methods={"POST"}
      *     )
      */
     public function getPaymentScreenLanguages(): JsonResponse
@@ -168,7 +168,7 @@ class ConfigController extends AbstractController
         ]);
     }
 
-    public function getPaymentScreenLanguagesResponse(): JsonResponse
+    private function getPaymentScreenLanguagesResponse(): JsonResponse
     {
         return $this->json([
             'success' => false,

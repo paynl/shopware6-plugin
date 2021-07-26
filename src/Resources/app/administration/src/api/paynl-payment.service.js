@@ -48,7 +48,7 @@ class PaynlPaymentService extends ApiService {
 
     getPaymentScreenLanguages() {
         return this.httpClient
-            .get(`${this.getApiBasePath()}/get-payment-screen-languages`, {headers: this.getBasicHeaders()})
+            .post(`${this.getApiBasePath()}/get-payment-screen-languages`, {}, {headers: this.getBasicHeaders()})
             .then((response) => {
                 return ApiService.handleResponse(response);
             });
