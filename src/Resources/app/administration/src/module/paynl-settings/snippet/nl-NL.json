@@ -13,34 +13,6 @@
         "settingsForm": {
             "save": "Opslaan",
             "installPaymentMethods": "Betaalmethoden installeren"
-        },
-        "paymentScreenLanguages": {
-            "items": {
-                "nl": {
-                    "label": "Nederlands"
-                },
-                "en": {
-                    "label": "Engels"
-                },
-                "es": {
-                    "label": "Spaans"
-                },
-                "it": {
-                    "label": "Italiaans"
-                },
-                "fr": {
-                    "label": "Frans"
-                },
-                "de": {
-                    "label": "Duits"
-                },
-                "cart": {
-                    "label": "Shopware taal"
-                },
-                "auto": {
-                    "label": "Automatisch (browser taal)"
-                }
-            }
         }
     },
     "paynlValidation": {

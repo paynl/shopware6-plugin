@@ -13,34 +13,6 @@
         "settingsForm": {
             "save": "Save",
             "installPaymentMethods": "Install payment methods"
-        },
-        "paymentScreenLanguages": {
-            "items": {
-                "nl": {
-                    "label": "Dutch"
-                },
-                "en": {
-                    "label": "English"
-                },
-                "es": {
-                    "label": "Spanish"
-                },
-                "it": {
-                    "label": "Italian"
-                },
-                "fr": {
-                    "label": "French"
-                },
-                "de": {
-                    "label": "German"
-                },
-                "cart": {
-                    "label": "Shopware language"
-                },
-                "auto": {
-                    "label": "Automatic (Browser language)"
-                }
-            }
         }
     },
     "paynlValidation": {
