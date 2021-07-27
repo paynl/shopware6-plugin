@@ -87,32 +87,6 @@ class ConfigController extends AbstractController
         return $this->getStoreSettingsResponse($request, $context);
     }
 
-    /**
-     * Shopware versions >= 6.4
-     *
-     * @Route(
-     *     "/api/paynl/get-payment-screen-languages",
-     *     name="api.action.PaynlPayment.getPaymentScreenLanguagesSW64",
-     *     methods={"GET"}
-     *     )
-     */
-    public function getPaymentScreenLanguagesSW64(): JsonResponse
-    {
-        return $this->getPaymentScreenLanguagesResponse();
-    }
-
-    /**
-     * @Route(
-     *     "/api/v{version}/paynl/get-payment-screen-languages",
-     *     name="api.action.PaynlPayment.getPaymentScreenLanguages",
-     *     methods={"GET"}
-     *     )
-     */
-    public function getPaymentScreenLanguages(): JsonResponse
-    {
-        return $this->getPaymentScreenLanguagesResponse();
-    }
-
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
         if ($this->config->getSinglePaymentMethodInd()) {
@@ -165,14 +139,6 @@ class ConfigController extends AbstractController
         return $this->json([
             'success' => false,
             'message' => "paynlValidation.messages.wrongCredentials"
-        ]);
-    }
-
-    public function getPaymentScreenLanguagesResponse(): JsonResponse
-    {
-        return $this->json([
-            'success' => false,
-            'data' => $this->transactionLanguageHelper->getLanguages()
         ]);
     }
 }
