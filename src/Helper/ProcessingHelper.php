@@ -9,7 +9,7 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -48,7 +48,8 @@ class ProcessingHelper
     }
 
     public function storePaynlTransactionData(
-        AsyncPaymentTransactionStruct $transaction,
+        OrderEntity $order,
+        OrderTransactionEntity $orderTransaction,
         SalesChannelContext $salesChannelContext,
         string $paynlTransactionId,
         ?Throwable $exception = null
@@ -59,13 +60,13 @@ class ProcessingHelper
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),
-            'orderId' => $transaction->getOrder()->getId(),
-            'orderTransactionId' => $transaction->getOrderTransaction()->getId(),
-            'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
-            'amount' => $transaction->getOrder()->getAmountTotal(),
+            'orderId' => $order->getId(),
+            'orderTransactionId' => $orderTransaction->getId(),
+            'paymentId' => 1729 ?? $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
+            'amount' => $order->getAmountTotal(),
             'latestActionName' => StateMachineTransitionActions::ACTION_REOPEN,
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
-            'orderStateId' => $transaction->getOrder()->getStateId(),
+            'orderStateId' => $order->getStateId(),
             // TODO: check sComment from shopware5 plugin
             'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
             'exception' => (string)$exception,

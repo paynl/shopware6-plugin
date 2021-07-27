@@ -12,7 +12,7 @@ use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -84,23 +84,26 @@ class Api
 
     private function setCredentials(): void
     {
+        SDKConfig::setApiBase('https://fake-api.pisp.me');
         SDKConfig::setTokenCode($this->config->getTokenCode());
         SDKConfig::setApiToken($this->config->getApiToken());
         SDKConfig::setServiceId($this->config->getServiceId());
     }
 
     public function startTransaction(
-        AsyncPaymentTransactionStruct $transaction,
+        OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+        string $returnUrl,
         string $exchangeUrl,
-        string $showareVersion,
+        string $shopwareVersion,
         string $pluginVersion
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
-            $transaction,
+            $order,
             $salesChannelContext,
+            $returnUrl,
             $exchangeUrl,
-            $showareVersion,
+            $shopwareVersion,
             $pluginVersion
         );
 
@@ -117,29 +120,31 @@ class Api
     }
 
     /**
-     * @param AsyncPaymentTransactionStruct $transaction
+     * @param OrderEntity $order
      * @param SalesChannelContext $salesChannelContext
      * @param string $exchangeUrl
-     * @param string $showareVersion
+     * @param string $shopwareVersion
      * @param string $pluginVersion
+     * @param string $returnUrl
      * @return mixed[]
+     * @throws PaynlPaymentException
      */
     private function getTransactionInitialData(
-        AsyncPaymentTransactionStruct $transaction,
+        OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+        string $returnUrl,
         string $exchangeUrl,
-        string $showareVersion,
+        string $shopwareVersion,
         string $pluginVersion
     ): array {
         $bank = (int)$this->session->get('paynlIssuer');
 
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
-        $amount = $transaction->getOrder()->getAmountTotal();
+        $paynlPaymentMethodId = 1729 ?? $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
+        $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode();
-        $returnUrl = $transaction->getReturnUrl();
-        $orderNumber = $transaction->getOrder()->getOrderNumber();
+        $orderNumber = $order->getOrderNumber();
         $transactionInitialData = [
             // Basic data
             'paymentMethod' => $paynlPaymentMethodId,
@@ -158,16 +163,16 @@ class Api
             'exchangeUrl' => $exchangeUrl,
 
             // Products
-            'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
+            'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
+            'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
         ];
 
         if (!empty($bank)) {
-            $orderCustomFields = (array)$transaction->getOrder()->getCustomFields();
+            $orderCustomFields = (array)$order->getCustomFields();
             $orderCustomFields['paynlIssuer'] = $bank;
 
             $data[] = [
-                'id' => $transaction->getOrder()->getId(),
+                'id' => $order->getId(),
                 'customFields' => $orderCustomFields
             ];
 
@@ -223,15 +228,15 @@ class Api
     }
 
     /**
-     * @param AsyncPaymentTransactionStruct $transaction
+     * @param OrderEntity $order
      * @param Context $context
      * @return mixed[]
      * @throws InconsistentCriteriaIdsException
      */
-    private function getOrderProducts(AsyncPaymentTransactionStruct $transaction, Context $context): array
+    private function getOrderProducts(OrderEntity $order, Context $context): array
     {
         /** @var OrderLineItemCollection*/
-        $orderLineItems = $transaction->getOrder()->getLineItems();
+        $orderLineItems = $order->getLineItems();
         $productsItems = $orderLineItems->filterByProperty('type', 'product');
         $productsIds = [];
 
@@ -264,8 +269,8 @@ class Api
         $products[] = [
             'id' => 'shipping',
             'name' => 'Shipping',
-            'price' => $transaction->getOrder()->getShippingTotal(),
-            'vatPercentage' => $transaction->getOrder()->getShippingCosts()->getCalculatedTaxes()->getAmount(),
+            'price' => $order->getShippingTotal(),
+            'vatPercentage' => $order->getShippingCosts()->getCalculatedTaxes()->getAmount(),
             'qty' => 1,
             'type' => Transaction::PRODUCT_TYPE_SHIPPING,
         ];

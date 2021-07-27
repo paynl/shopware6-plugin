@@ -58,7 +58,10 @@
 
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlInstorePaymentHandler">
-            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="router.default"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
         </service>
 
@@ -103,6 +106,17 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="paynl_transactions.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Controller\TransactionController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
