@@ -2,12 +2,13 @@
     "checkout": {
         "statuses": {
             "cancelled": "Betaling geannuleerd",
-            "denied": "Betaling geweigerd",
+            "denied": "Betaling afgewezen",
             "in_progress": "De betaling wordt geverifieerd door de beheerder.",
             "paid": "Betaling geslaagd!"
         },
         "messages": {
-            "failedTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere betaaloptie of probeer opnieuw."
+            "cancelledTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere betaaloptie of probeer opnieuw.",
+            "deniedTransaction": "Afgewezen door de betaaloptie (kies andere betaalmethode)."
         },
         "labels": {
             "changePayment": "Probeer opnieuw",
