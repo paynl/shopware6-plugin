@@ -78,7 +78,7 @@ export default class PaynlPaymentPlugin extends Plugin {
 
     onChangeCallback(event) {
         // check if event is triggered by payment method change
-        if (event.target.classList.contains('payment-method-input')) {
+        if (event.target.className.indexOf('payment-method-input') !== -1) {
             // hide previous extra data block
             const prevExtraDataBlock = event.currentTarget.querySelector('.paynl-payment-method-extra.active');
             if (prevExtraDataBlock) {
@@ -87,6 +87,9 @@ export default class PaynlPaymentPlugin extends Plugin {
 
             const currentPaymentBlock = event.target.parentNode.parentNode.parentNode;
             const extraDataBlock = currentPaymentBlock.querySelector('.paynl-payment-method-extra');
+            if (!extraDataBlock) {
+                return;
+            }
 
             // set issuer value to initial position
             const issuerSelect = extraDataBlock.querySelector('.paynl-ideal-banks-select');
