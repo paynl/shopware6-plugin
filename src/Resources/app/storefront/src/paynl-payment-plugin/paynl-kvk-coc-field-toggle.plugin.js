@@ -25,6 +25,10 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
         }
 
         const kvkBlock = form.querySelector('.paynl-kvk-coc-number-field');
+        if (!kvkBlock) {
+            return;
+        }
+
         const kvkCountriesIds = kvkBlock.getAttribute('data-countries-with-kvk').split(',');
         if (el.id === 'accountType' || el.id === 'addressaccountType') {
             selectedValues.isBusiness = Boolean(el.value === 'business');
