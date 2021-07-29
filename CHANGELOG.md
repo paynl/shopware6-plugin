@@ -1,3 +1,7 @@
+# 1.4.2
+- Fixed the bug on choosing native payment methods
+- Fixed "paynl-kvk-coc-number-field" JS bug
+
 # 1.4.1
 - Improved user permissions
 - Fixed partially paid bug
