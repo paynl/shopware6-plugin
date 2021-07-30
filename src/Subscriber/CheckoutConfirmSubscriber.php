@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
+use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
@@ -12,6 +13,13 @@ use Symfony\Component\HttpFoundation\Session\Session;
 
 class CheckoutConfirmSubscriber implements EventSubscriberInterface
 {
+    private $paymentMethodCustomFields;
+
+    public function __construct(PaymentMethodCustomFields $paymentMethodCustomFields)
+    {
+        $this->paymentMethodCustomFields = $paymentMethodCustomFields;
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -67,25 +75,12 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
 
     private function addPaymentMethodsCustomFields(PageLoadedEvent $event): void
     {
-        $pageData = $event->getPage()->getVars();
-        $isBirthdayExists = $pageData['isBirthdayExists'] ?? true;
-        $isPhoneNumberExists = $pageData['isPhoneNumberExists'] ?? true;
-
         $paymentMethods = $event->getPage()->getPaymentMethods();
         /** @var PaymentMethodEntity $paymentMethod */
         foreach ($paymentMethods as $paymentMethod) {
-            $customFields = $paymentMethod->getCustomFields();
-            $isPaynlPaymentMethod = $customFields['paynl_payment'] ?? false;
-            if (!$isPaynlPaymentMethod) {
-                continue;
-            }
+            $this->paymentMethodCustomFields->generateCustomFields($event, $paymentMethod);
 
-            $isPaymentDisplayBanks = $customFields['displayBanks'] ?? false;
-            $isPaymentPayLater = $customFields['isPayLater'] ?? false;
-            $hasPaymentLaterInputs = $isPaymentPayLater && (!$isBirthdayExists || !$isPhoneNumberExists);
-            $customFields['hasAdditionalInfoInput'] = $isPaymentDisplayBanks || $hasPaymentLaterInputs;
-
-            $paymentMethod->setCustomFields($customFields);
+            $paymentMethod->setCustomFields($this->paymentMethodCustomFields->getCustomFields());
         }
     }
 }
