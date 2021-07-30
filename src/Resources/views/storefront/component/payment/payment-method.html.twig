@@ -9,7 +9,7 @@
            name="paymentMethodId"
            value="{{ payment.id }}"
            {% if payment.id is same as(selectedPaymentMethodId) %}checked="checked"{% endif %}
-           class="custom-control-input {% if payment.customFields.paynl_payment %}paynl-{% endif %}payment-method-input">
+           class="custom-control-input {% if payment.customFields.hasAdditionalInfoInput %}paynl-{% endif %}payment-method-input">
 {% endblock %}
 
 {% block component_payment_method_description %}
@@ -82,7 +82,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if (page.paymentMethods|length > 1) or (page.footer.extensions.PAY_custom_data.isSW64) %}
+                    {% if (page.paymentMethods|length > 1 and not page.footer.extensions.PAY_custom_data.isSW64) or (page.footer.extensions.PAY_custom_data.isSW64 and payment.customFields.hasAdditionalInfoInput) %}
                         <div class="form-group">
                             <button class="btn btn-primary paynl-change-payment-method"
                                     type="submit">
