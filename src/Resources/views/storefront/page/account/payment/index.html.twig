@@ -1,0 +1,27 @@
+{% sw_extends '@Storefront/storefront/page/account/payment/index.html.twig' %}
+
+{% set formAjaxSubmitOptions = {
+    changeTriggerSelectors: ['.paynl-payment-method-auto-submit']
+} %}
+
+{% block page_account_payment_form %}
+    <form action="{{ path('frontend.account.payment.save') }}"
+          method="post"
+          data-form-csrf-handler="true"
+          data-form-auto-submit="true"
+          data-form-auto-submit-options='{{ formAjaxSubmitOptions|json_encode }}'>
+
+        {% block page_account_payment_form_csrf %}
+            {{ parent() }}
+        {% endblock %}
+
+        <input type="hidden" name="redirectTo" value="frontend.account.payment.page">
+        {% block page_account_payment_fields %}
+            {{ parent() }}
+        {% endblock %}
+
+        {% block page_account_payment_actions %}
+            {{ parent() }}
+        {% endblock %}
+    </form>
+{% endblock %}

@@ -34,14 +34,7 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
      */
     public function onConfirmPageLoaded(CheckoutConfirmPageLoadedEvent $event)
     {
-        $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
-        $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
-
-        $event->getPage()->assign([
-            'isBirthdayExists' => !empty($birthday),
-            'isPhoneNumberExists' => !empty($phoneNumber)
-        ]);
-
+        $this->checkCustomerData($event);
         $this->addPaymentMethodsCustomFields($event);
     }
 
@@ -50,19 +43,20 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
      */
     public function onEditOrderPageLoaded(AccountEditOrderPageLoadedEvent $event)
     {
-        $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
-        $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
-
-        $event->getPage()->assign([
-            'isBirthdayExists' => !empty($birthday),
-            'isPhoneNumberExists' => !empty($phoneNumber)
-        ]);
+        $this->checkCustomerData($event);
+        $this->addPaymentMethodsCustomFields($event);
     }
 
     /**
      * @param AccountPaymentMethodPageLoadedEvent $event
      */
     public function onAccountPageLoaded(AccountPaymentMethodPageLoadedEvent $event)
+    {
+        $this->checkCustomerData($event);
+        $this->addPaymentMethodsCustomFields($event);
+    }
+
+    private function checkCustomerData(PageLoadedEvent $event): void
     {
         $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
         $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
