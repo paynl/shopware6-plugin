@@ -3,6 +3,15 @@
 
 {% set settingUsePAYStyles = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.usePAYStyles %}
 
+{% block component_payment_method_input %}
+    <input type="radio"
+           id="paymentMethod{{ payment.id }}"
+           name="paymentMethodId"
+           value="{{ payment.id }}"
+           {% if payment.id is same as(selectedPaymentMethodId) %}checked="checked"{% endif %}
+           class="custom-control-input {% if payment.customFields.paynl_payment %}paynl-{% endif %}payment-method-input">
+{% endblock %}
+
 {% block component_payment_method_description %}
     {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
         <div class="payment-method-description">
