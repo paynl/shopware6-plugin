@@ -123,13 +123,26 @@ class CustomerHelper
         $this->customerRepository->update([$customerData], $context);
     }
 
-    public function savePaynlIdealBank(CustomerEntity $customer, string $idealBankId, Context $context): void
-    {
-        if (empty($idealBankId)) {
+    public function savePaynlIssuer(
+        CustomerEntity $customer,
+        string $paymentMethodId,
+        string $issuer,
+        Context $context
+    ): void {
+        if (empty($issuer)) {
             return;
         }
 
-        $this->addCustomFieldData(CustomerCustomFieldsEnum::IDEAL_BANK_SELECTED, $idealBankId, $customer, $context);
+        $customerCustomFields = $customer->getCustomFields();
+        $selectedPaymentMethodsData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
+        $selectedPaymentMethodsData[$paymentMethodId]['issuer'] = $issuer;
+
+        $this->addCustomFieldData(
+            CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA,
+            $selectedPaymentMethodsData,
+            $customer,
+            $context
+        );
     }
 
     private function addCustomFieldData(string $name, $data, CustomerEntity $customer, Context $context): void

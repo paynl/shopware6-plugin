@@ -19,9 +19,10 @@
         <div class="payment-method-description">
             <strong>{{ payment.translated.name }}</strong>
             {% if not paymentMethodInvalid and payment.customFields.displayBanks %}
-                {% if app.session.get('paynlIssuer') and context.paymentMethod.translated.customFields.banks %}
+                {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
+                {% if paynlIssuerSelected and context.paymentMethod.translated.customFields.banks %}
                     {% for bank in context.paymentMethod.translated.customFields.banks %}
-                        {% if bank.id is same as(app.session.get('paynlIssuer')) %}
+                        {% if bank.id is same as(paynlIssuerSelected) %}
                             <span id="paymentMethodBankName">({{ bank.visibleName }})</span>
                         {% endif %}
                     {% endfor %}
@@ -47,6 +48,7 @@
                 <div class="paynl-payment-method-extra {% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
+                            {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id] %}
                             <div class="form-group">
                                 <select
                                     class="form-control paynl-ideal-banks-select"
@@ -54,7 +56,7 @@
                                 >
                                     <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                     {% for bank in payment.translated.customFields.banks %}
-                                        <option value="{{ bank.id }}" {% if app.session.get('paynlIssuer') is defined and bank.id is same as(app.session.get('paynlIssuer'))%} selected {% endif %}>{{ bank.visibleName }}</option>
+                                        <option value="{{ bank.id }}" {% if paynlIssuerSelected and bank.id is same as(paynlIssuerSelected)%} selected {% endif %}>{{ bank.visibleName }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
