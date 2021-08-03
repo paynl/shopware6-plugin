@@ -63,6 +63,9 @@
             <tag name="kernel.event_subscriber" />
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields" >
+        </service>
+
         <!--Controllers-->
         <service id="PaynlPayment\Shopware6\Storefront\Controller\NotificationController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
@@ -141,6 +144,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CheckoutConfirmSubscriber" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
