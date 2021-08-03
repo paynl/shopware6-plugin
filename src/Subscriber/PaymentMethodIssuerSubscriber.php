@@ -48,8 +48,10 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
+        $context = $event->getContext();
 
         $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
+        $this->customerHelper->savePaynlIdealBank($customer, (string)$requestDataBagArray['paynlIssuer'], $context);
     }
 
     /**

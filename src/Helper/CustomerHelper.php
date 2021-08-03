@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Helper;
 
 use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
@@ -120,6 +121,26 @@ class CustomerHelper
         ];
 
         $this->customerRepository->update([$customerData], $context);
+    }
+
+    public function savePaynlIdealBank(CustomerEntity $customer, string $idealBankId, Context $context): void
+    {
+        if (empty($idealBankId)) {
+            return;
+        }
+
+        $this->addCustomFieldData(CustomerCustomFieldsEnum::IDEAL_BANK_SELECTED, $idealBankId, $customer, $context);
+    }
+
+    private function addCustomFieldData(string $name, $data, CustomerEntity $customer, Context $context): void
+    {
+        $customerCustomData = $customer->getCustomFields() ?: [];
+        $customerCustomData[$name] = $data;
+
+        $this->customerRepository->upsert([[
+            'id' => $customer->getId(),
+            'customFields' => $customerCustomData
+        ]], $context);
     }
 
     /**
