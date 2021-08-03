@@ -8,8 +8,11 @@
     <form action="{{ path('frontend.account.payment.save') }}"
           method="post"
           data-form-csrf-handler="true"
+          {% if page.footer.extensions.PAY_custom_data.isSW64 %}
           data-form-auto-submit="true"
-          data-form-auto-submit-options='{{ formAjaxSubmitOptions|json_encode }}'>
+          data-form-auto-submit-options='{{ formAjaxSubmitOptions|json_encode }}'
+          {% endif %}
+          >
 
         {% block page_account_payment_form_csrf %}
             {{ parent() }}
