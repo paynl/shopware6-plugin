@@ -1,3 +1,7 @@
+# 1.4.3
+- Improved choosing payment methods
+- Improved saving payment methods additional information
+
 # 1.4.2
 - Fixed the bug on choosing native payment methods
 - Fixed "paynl-kvk-coc-number-field" JS bug
