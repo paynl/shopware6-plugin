@@ -48,7 +48,7 @@
                 <div class="paynl-payment-method-extra {% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
-                            {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id] %}
+                            {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
                             <div class="form-group">
                                 <select
                                     class="form-control paynl-ideal-banks-select"
