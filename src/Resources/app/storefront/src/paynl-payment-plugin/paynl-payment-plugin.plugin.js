@@ -91,12 +91,6 @@ export default class PaynlPaymentPlugin extends Plugin {
                 return;
             }
 
-            // set issuer value to initial position
-            const issuerSelect = extraDataBlock.querySelector('.paynl-ideal-banks-select');
-            if (issuerSelect) {
-                issuerSelect.value = '';
-            }
-
             const paymentMethodBankName = event.currentTarget.querySelector('#paymentMethodBankName');
             if (paymentMethodBankName) {
                 paymentMethodBankName.innerHTML = '';
