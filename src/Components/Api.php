@@ -7,6 +7,7 @@ use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
+use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
@@ -136,7 +137,6 @@ class Api
         string $showareVersion,
         string $pluginVersion
     ): array {
-        $bank = (int)$this->session->get('paynlIssuer');
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $transaction->getOrder()->getAmountTotal();
@@ -166,6 +166,11 @@ class Api
             'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
         ];
 
+        $customer = $salesChannelContext->getCustomer();
+        $customerCustomFields = $customer->getCustomFields();
+        $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->session->get('paynlIssuer'));
+
         if (!empty($bank)) {
             $orderCustomFields = (array)$transaction->getOrder()->getCustomFields();
             $orderCustomFields['paynlIssuer'] = $bank;
@@ -180,7 +185,6 @@ class Api
             $transactionInitialData['bank'] = $bank;
         }
 
-        $customer = $salesChannelContext->getCustomer();
         if ($customer instanceof CustomerEntity) {
             $addresses = $this->customerHelper->formatAddresses($customer);
             $transactionInitialData = array_merge($transactionInitialData, $addresses);

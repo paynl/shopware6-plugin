@@ -133,26 +133,12 @@ class CustomerHelper
             return;
         }
 
-        $customerCustomFields = $customer->getCustomFields();
-        $selectedPaymentMethodsData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $selectedPaymentMethodsData[$paymentMethodId]['issuer'] = $issuer;
-
-        $this->addCustomFieldData(
-            CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA,
-            $selectedPaymentMethodsData,
-            $customer,
-            $context
-        );
-    }
-
-    private function addCustomFieldData(string $name, $data, CustomerEntity $customer, Context $context): void
-    {
-        $customerCustomData = $customer->getCustomFields() ?: [];
-        $customerCustomData[$name] = $data;
+        $customFields = $customer->getCustomFields();
+        $customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]['issuer'] = $issuer;
 
         $this->customerRepository->upsert([[
             'id' => $customer->getId(),
-            'customFields' => $customerCustomData
+            'customFields' => $customFields
         ]], $context);
     }
 
