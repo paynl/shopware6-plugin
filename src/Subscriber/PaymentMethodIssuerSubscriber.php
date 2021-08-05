@@ -67,8 +67,6 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
      */
     public function onPaymentMethodChanged(CustomerChangedPaymentMethodEvent $event)
     {
-        $this->session->set('paynlIssuer', $event->getRequestDataBag()->get('paynlIssuer'));
-
         if (!$event->getRequestDataBag()->has('paymentMethodId')) {
             return;
         }
@@ -114,6 +112,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $paymentMethodCustomFields = $paymentMethod->getCustomFields();
         $paymentMethodDisplayBanks = $paymentMethodCustomFields[PaymentMethodCustomFields::DISPLAY_BANKS_FIELD] ?? null;
         if (!$paymentMethodDisplayBanks) {
+            $this->session->remove('paynlIssuer');
             return;
         }
 

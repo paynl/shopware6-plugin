@@ -36,6 +36,7 @@
                 <div class="paynl-payment-method-extra {% if payment.id is same as(defaultPaymentMethodId) %} active{% endif %}">
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
+                            {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
                             <div class="form-group">
                                 <select
                                     class="form-control paynl-ideal-banks-select"
@@ -43,7 +44,7 @@
                                 >
                                     <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                     {% for bank in payment.translated.customFields.banks %}
-                                        <option value="{{ bank.id }}" {% if app.session.get('paynlIssuer') is defined and bank.id is same as(app.session.get('paynlIssuer'))%} selected {% endif %}>{{ bank.visibleName }}</option>
+                                        <option value="{{ bank.id }}" {% if paynlIssuerSelected and bank.id is same as(paynlIssuerSelected) %} selected {% endif %}>{{ bank.visibleName }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
