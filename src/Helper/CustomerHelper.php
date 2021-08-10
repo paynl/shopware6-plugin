@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Helper;
 
 use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
@@ -120,6 +121,25 @@ class CustomerHelper
         ];
 
         $this->customerRepository->update([$customerData], $context);
+    }
+
+    public function savePaynlIssuer(
+        CustomerEntity $customer,
+        string $paymentMethodId,
+        string $issuer,
+        Context $context
+    ): void {
+        if (empty($issuer)) {
+            return;
+        }
+
+        $customFields = $customer->getCustomFields();
+        $customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]['issuer'] = $issuer;
+
+        $this->customerRepository->upsert([[
+            'id' => $customer->getId(),
+            'customFields' => $customFields
+        ]], $context);
     }
 
     /**
