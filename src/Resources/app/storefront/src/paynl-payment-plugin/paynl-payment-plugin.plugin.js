@@ -1,5 +1,4 @@
 import Plugin from 'src/plugin-system/plugin.class';
-import Datepicker from '../../node_modules/vanillajs-datepicker/js/Datepicker';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -10,15 +9,6 @@ export default class PaynlPaymentPlugin extends Plugin {
         const trigger = document.getElementById('paynl-payment-plugin');
 
         if (trigger) {
-            const elements = document.querySelectorAll('.paynl-dob');
-            Object.keys(elements).forEach(function(key) {
-                return new Datepicker(elements[key], {
-                    format: 'dd-mm-yyyy',
-                    autohide: true,
-                    maxDate: new Date(),
-                });
-            });
-
             const form = trigger.parentNode;
             form.addEventListener('submit', this.onSavePaymentMethod);
             form.addEventListener('change', this.onChangeCallback);
