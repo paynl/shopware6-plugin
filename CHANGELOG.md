@@ -1,3 +1,5 @@
+# 1.4.4
+
 # 1.4.3
 - Improved choosing payment methods
 - Improved saving payment methods additional information

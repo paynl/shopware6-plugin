@@ -1,3 +1,5 @@
+# 1.4.4
+
 # 1.4.2
 - Der Fehler bei der Auswahl nativer Zahlungsmethoden wurde behoben
 - Fehler im Registrierungsformular für die Handelskammer behoben
