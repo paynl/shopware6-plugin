@@ -34,7 +34,7 @@ class PaymentMethodCustomFields
 
     public function generateCustomFields(PageLoadedEvent $event, PaymentMethodEntity $paymentMethod): void
     {
-        $this->customFields = $paymentMethod->getCustomFields();
+        $this->customFields = $paymentMethod->getTranslation('customFields');
 
         $isPaynlPaymentMethod = $this->getCustomField(self::PAYNL_PAYMENT_FIELD);
         if (!$isPaynlPaymentMethod) {
