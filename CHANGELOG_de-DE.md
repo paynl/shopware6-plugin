@@ -1,4 +1,6 @@
 # 1.4.4
+- Standardkalender ist zurückgekehrt
+- Fehler beim Ändern der Zahlungsmethode behoben, für die deutsche Version der Website
 
 # 1.4.2
 - Der Fehler bei der Auswahl nativer Zahlungsmethoden wurde behoben

@@ -1,4 +1,6 @@
 # 1.4.4
+- The default calendar has returned
+- Fixed the bug on change payment methods for the German version of the site
 
 # 1.4.3
 - Improved choosing payment methods
