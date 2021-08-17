@@ -105,7 +105,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $paymentMethodCustomFields = $paymentMethod->getCustomFields();
+        $paymentMethodCustomFields = $paymentMethod->getTranslation('customFields');
         $paymentMethodDisplayBanks = $paymentMethodCustomFields[PaymentMethodCustomFields::DISPLAY_BANKS_FIELD] ?? null;
         if (!$paymentMethodDisplayBanks) {
             $this->session->remove('paynlIssuer');
