@@ -1,4 +1,5 @@
 import Plugin from 'src/plugin-system/plugin.class';
+import IMask from '../../node_modules/imask/dist/imask';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -9,11 +10,50 @@ export default class PaynlPaymentPlugin extends Plugin {
         const trigger = document.getElementById('paynl-payment-plugin');
 
         if (trigger) {
+            this.initDateOfBirthMask();
+
             const form = trigger.parentNode;
             form.addEventListener('submit', this.onSavePaymentMethod);
             form.addEventListener('change', this.onChangeCallback);
             form.addEventListener('focus', this.removeInvalid, true);
         }
+    }
+
+    initDateOfBirthMask() {
+        const elements = document.querySelectorAll('.paynl-dob');
+        Object.keys(elements).forEach(function(key) {
+            return IMask(elements[key], {
+                mask: Date,  // enable date mask
+
+                // other options are optional
+                pattern: 'd-`m-`Y',  // Pattern mask with defined blocks, default is 'd{.}`m{.}`Y'
+                // define date -> str convertion
+                format: function (date) {
+                    var day = date.getDate();
+                    var month = date.getMonth() + 1;
+                    var year = date.getFullYear();
+
+                    if (day < 10) day = "0" + day;
+                    if (month < 10) month = "0" + month;
+
+                    return [day, month, year].join('-');
+                },
+                // define str -> date convertion
+                parse: function (str) {
+                    var dayMonthYear = str.split('-');
+                    return new Date(dayMonthYear[2], dayMonthYear[1] - 1, dayMonthYear[0]);
+                },
+
+                // optional interval options
+                max: new Date(),  // defaults to `1900-01-01`
+
+                // also Pattern options can be set
+                lazy: true,
+
+                // and other common options
+                overwrite: true  // defaults to `false`
+            });
+        });
     }
 
     onSavePaymentMethod(element) {
@@ -33,7 +73,9 @@ export default class PaynlPaymentPlugin extends Plugin {
 
         if (currentPaymentMethod.querySelector('.paynl-dob')) {
             const dobInput = currentPaymentMethod.querySelector('input.paynl-dob[type="text"]');
-            if (dobInput.value == '') {
+            const dateRegExp = /(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[012])-[0-9]{4}/;
+
+            if (dateRegExp.test(dobInput.value) === false) {
                 invalid.push(dobInput);
             } else {
                 data.dob = dobInput.value;
@@ -95,6 +137,16 @@ export default class PaynlPaymentPlugin extends Plugin {
             }
 
             extraDataBlock.classList.add('active');
+        }
+
+        if (event.target.className.indexOf('paynl-dob') !== -1) {
+            let paynlDateOfBirthInput = event.target;
+            if (!paynlDateOfBirthInput.previousElementSibling) {
+                return;
+            }
+
+            let datePickerDateOfBirth = paynlDateOfBirthInput.previousElementSibling;
+            datePickerDateOfBirth.value = paynlDateOfBirthInput.value;
         }
     }
 
