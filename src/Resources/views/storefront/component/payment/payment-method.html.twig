@@ -65,7 +65,10 @@
 
                     {% if payment.translated.customFields.isPayLater %}
                         {% if not page.isBirthdayExists %}
-                            {% set pickerOptions = {locale: app.request.locale} %}
+                            {% set pickerOptions = {
+                                locale: app.request.locale,
+                                dateFormat: "d-m-Y"
+                            } %}
 
                             <div class="form-group">
                                 <input type="text"
