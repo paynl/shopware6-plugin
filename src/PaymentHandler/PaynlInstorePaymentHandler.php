@@ -64,10 +64,15 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
             $hash = $instoreResult->getHash();
 
             for ($i = 0; $i < 60; $i++) {
+                sleep(5);
                 $status = \Paynl\Instore::status(['hash' => $hash]);
-                if ($status->getTransactionState() != 'init') {
-                    switch ($status->getTransactionState()) {
+                $status = 'approved';
+//                if ($status->getTransactionState() != 'init') {
+                if ($status != 'init') {
+                    switch ($status) {
+//                    switch ($status->getTransactionState()) {
                         case 'approved':
+                            return;
                             break;
                         case 'cancelled':
                         case 'expired':

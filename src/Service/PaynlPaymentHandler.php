@@ -91,11 +91,14 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $paynlTransactionId = '';
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $order = $transaction->getOrder();
+        $orderTransaction = $transaction->getOrderTransaction();
 
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
-                $transaction,
+                $order,
                 $salesChannelContext,
+                $exchangeUrl,
                 $exchangeUrl,
                 $this->shopwareVersion,
                 $this->getPluginVersionFromComposer()
@@ -104,7 +107,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
-                $transaction,
+                $order,
+                $orderTransaction,
                 $salesChannelContext,
                 $paynlTransactionId,
                 $exception
@@ -112,7 +116,12 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             throw $exception;
         }
 
-        $this->processingHelper->storePaynlTransactionData($transaction, $salesChannelContext, $paynlTransactionId);
+        $this->processingHelper->storePaynlTransactionData(
+            $order,
+            $orderTransaction,
+            $salesChannelContext,
+            $paynlTransactionId
+        );
 
         if (!empty($paynlTransaction->getRedirectUrl())) {
             return $paynlTransaction->getRedirectUrl();

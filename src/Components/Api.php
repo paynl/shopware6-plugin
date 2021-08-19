@@ -200,7 +200,7 @@ class Api
         }
 
         if ($this->config->getPaymentScreenLanguage()) {
-            $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($transaction->getOrder());
+            $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($order);
         }
 
         return $transactionInitialData;

@@ -4,3 +4,4 @@ vendor/
 cghooks.lock
 /src/Resources/public/administration/
 /src/Resources/app/storefront/dist/
+/src/Resources/app/storefront/node_modules
