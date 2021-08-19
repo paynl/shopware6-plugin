@@ -2,14 +2,24 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
+use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
+use Shopware\Storefront\Page\PageLoadedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class CheckoutConfirmSubscriber implements EventSubscriberInterface
 {
+    private $paymentMethodCustomFields;
+
+    public function __construct(PaymentMethodCustomFields $paymentMethodCustomFields)
+    {
+        $this->paymentMethodCustomFields = $paymentMethodCustomFields;
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -24,13 +34,8 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
      */
     public function onConfirmPageLoaded(CheckoutConfirmPageLoadedEvent $event)
     {
-        $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
-        $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
-
-        $event->getPage()->assign([
-            'isBirthdayExists' => !empty($birthday),
-            'isPhoneNumberExists' => !empty($phoneNumber)
-        ]);
+        $this->checkCustomerData($event);
+        $this->addPaymentMethodsCustomFields($event);
     }
 
     /**
@@ -38,6 +43,21 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
      */
     public function onEditOrderPageLoaded(AccountEditOrderPageLoadedEvent $event)
     {
+        $this->checkCustomerData($event);
+        $this->addPaymentMethodsCustomFields($event);
+    }
+
+    /**
+     * @param AccountPaymentMethodPageLoadedEvent $event
+     */
+    public function onAccountPageLoaded(AccountPaymentMethodPageLoadedEvent $event)
+    {
+        $this->checkCustomerData($event);
+        $this->addPaymentMethodsCustomFields($event);
+    }
+
+    private function checkCustomerData(PageLoadedEvent $event): void
+    {
         $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
         $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
 
@@ -47,17 +67,14 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
         ]);
     }
 
-    /**
-     * @param AccountPaymentMethodPageLoadedEvent $event
-     */
-    public function onAccountPageLoaded(AccountPaymentMethodPageLoadedEvent $event)
+    private function addPaymentMethodsCustomFields(PageLoadedEvent $event): void
     {
-        $birthday = $event->getSalesChannelContext()->getCustomer()->getBirthday();
-        $phoneNumber = $event->getSalesChannelContext()->getCustomer()->getDefaultBillingAddress()->getPhoneNumber();
+        $paymentMethods = $event->getPage()->getPaymentMethods();
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethods as $paymentMethod) {
+            $this->paymentMethodCustomFields->generateCustomFields($event, $paymentMethod);
 
-        $event->getPage()->assign([
-            'isBirthdayExists' => !empty($birthday),
-            'isPhoneNumberExists' => !empty($phoneNumber)
-        ]);
+            $paymentMethod->setCustomFields($this->paymentMethodCustomFields->getCustomFields());
+        }
     }
 }

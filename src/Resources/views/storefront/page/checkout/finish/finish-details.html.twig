@@ -1,6 +1,9 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
 
 {% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
+{% if (page.PAY_transaction_state_id in constant('PaynlPayment\\Shopware6\\Enums\\PaynlTransactionStatusesEnum::DENIED_STATUSES')) %}
+    {% set status = 'denied' %}
+{% endif %}
 
 {% block page_checkout_finish_data %}
     {{ dump() }}
@@ -39,7 +42,7 @@
                                         </span>
                                     <div class="alert-content-container">
                                         <div class="alert-content">
-                                            {{ "checkout.messages.failedTransaction"|trans() }}
+                                            {{ "checkout.messages.#{status}Transaction"|trans() }}
                                         </div>
                                     </div>
                                 </div>

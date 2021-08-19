@@ -5,6 +5,7 @@ namespace PaynlPayment\Shopware6\Controller;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
+use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,15 +21,18 @@ class ConfigController extends AbstractController
     public $installHelper;
     private $config;
     private $api;
+    private $transactionLanguageHelper;
 
     public function __construct(
         InstallHelper $installHelper,
         Config $config,
-        Api $api
+        Api $api,
+        TransactionLanguageHelper $transactionLanguageHelper
     ) {
         $this->installHelper = $installHelper;
         $this->config = $config;
         $this->api = $api;
+        $this->transactionLanguageHelper = $transactionLanguageHelper;
     }
 
     /**

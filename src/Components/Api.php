@@ -7,8 +7,10 @@ use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
+use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
@@ -40,6 +42,8 @@ class Api
     private $config;
     /** @var CustomerHelper */
     private $customerHelper;
+    /** @var TransactionLanguageHelper */
+    private $transactionLanguageHelper;
     /** @var EntityRepositoryInterface */
     private $productRepository;
     /** @var EntityRepositoryInterface */
@@ -52,6 +56,7 @@ class Api
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
+        TransactionLanguageHelper $transactionLanguageHelper,
         EntityRepositoryInterface $productRepository,
         EntityRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
@@ -59,6 +64,7 @@ class Api
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
+        $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
@@ -137,8 +143,6 @@ class Api
         string $shopwareVersion,
         string $pluginVersion
     ): array {
-        $bank = (int)$this->session->get('paynlIssuer');
-
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $paynlPaymentMethodId = 1729 ?? $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
         $amount = $order->getAmountTotal();
@@ -167,6 +171,11 @@ class Api
             'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
         ];
 
+        $customer = $salesChannelContext->getCustomer();
+        $customerCustomFields = $customer->getCustomFields();
+        $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->session->get('paynlIssuer'));
+
         if (!empty($bank)) {
             $orderCustomFields = (array)$order->getCustomFields();
             $orderCustomFields['paynlIssuer'] = $bank;
@@ -181,7 +190,6 @@ class Api
             $transactionInitialData['bank'] = $bank;
         }
 
-        $customer = $salesChannelContext->getCustomer();
         if ($customer instanceof CustomerEntity) {
             $addresses = $this->customerHelper->formatAddresses($customer);
             $transactionInitialData = array_merge($transactionInitialData, $addresses);
@@ -189,6 +197,10 @@ class Api
 
         if ($this->config->getSinglePaymentMethodInd()) {
             unset($transactionInitialData['paymentMethod']);
+        }
+
+        if ($this->config->getPaymentScreenLanguage()) {
+            $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($transaction->getOrder());
         }
 
         return $transactionInitialData;

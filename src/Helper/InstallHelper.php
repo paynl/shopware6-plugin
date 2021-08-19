@@ -26,6 +26,7 @@ use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -82,6 +83,11 @@ class InstallHelper
         /** @var EntityRepositoryInterface $customerRepository */
         $customerRepository = $container->get('customer.repository');
         $customerHelper = new CustomerHelper($config, $customerAddressRepository, $customerRepository);
+        /** @var EntityRepositoryInterface $languageRepository */
+        $languageRepository = $container->get('language.repository');
+        /** @var RequestStack $requestStack */
+        $requestStack = $container->get('request_stack');
+        $transactionLanguageHelper = new TransactionLanguageHelper($config, $languageRepository, $requestStack);
         /** @var EntityRepositoryInterface $productRepository */
         $productRepository = $container->get('product.repository');
         /** @var EntityRepositoryInterface $orderRepository */
@@ -90,7 +96,16 @@ class InstallHelper
         $translator = $container->get('translator');
         /** @var Session $session */
         $session = $container->get('session');
-        $this->paynlApi = new Api($config, $customerHelper, $productRepository, $orderRepository, $translator, $session);
+        $this->paynlApi = new Api(
+            $config,
+            $customerHelper,
+            $transactionLanguageHelper,
+            $productRepository,
+            $orderRepository,
+            $translator,
+            $session
+        );
+
         $this->mediaHelper = new MediaHelper($container);
         $this->paymentHandlerFactory = new PaymentHandlerFactory();
     }

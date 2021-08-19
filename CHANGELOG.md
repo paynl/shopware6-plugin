@@ -1,3 +1,21 @@
+# 1.4.4
+- The default calendar has returned
+- Fixed the bug on change payment methods for the German version of the site
+
+# 1.4.3
+- Improved choosing payment methods
+- Improved saving payment methods additional information
+
+# 1.4.2
+- Fixed the bug on choosing native payment methods
+- Fixed "paynl-kvk-coc-number-field" JS bug
+
+# 1.4.1
+- Improved user permissions
+- Fixed partially paid bug
+- Fixed payment denied notice
+- Added payment screen language settings
+
 # 1.4.0
 - Plugin is now Shopware 6.4 compatible
 

@@ -1,3 +1,17 @@
+# 1.4.4
+- Standardkalender ist zurückgekehrt
+- Fehler beim Ändern der Zahlungsmethode behoben, für die deutsche Version der Website
+
+# 1.4.2
+- Der Fehler bei der Auswahl nativer Zahlungsmethoden wurde behoben
+- Fehler im Registrierungsformular für die Handelskammer behoben
+
+# 1.4.1
+- Verbesserte Benutzerrechte
+- Fehler bei teilweiser Bezahlung behoben
+- Hinweis fur verweigerte Zahlung behoben
+- Spracheinstellungen für den Zahlungsbildschirm hinzugefügt
+
 # 1.4.0
 - Plugin ist jetzt kompatibel mit Shopware 6.4
 
