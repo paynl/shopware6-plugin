@@ -21,6 +21,10 @@ export default class PaynlPaymentPlugin extends Plugin {
 
     initDateOfBirthMask() {
         const elements = document.querySelectorAll('.paynl-dob');
+        const iMaskMinDate = new Date();
+        iMaskMinDate.setDate(iMaskMinDate.getDate() - 1);
+        iMaskMinDate.setFullYear(iMaskMinDate.getFullYear() - 100);
+
         Object.keys(elements).forEach(function(key) {
             return IMask(elements[key], {
                 mask: Date,  // enable date mask
@@ -45,6 +49,7 @@ export default class PaynlPaymentPlugin extends Plugin {
                 },
 
                 // optional interval options
+                min: iMaskMinDate,
                 max: new Date(),  // defaults to `1900-01-01`
 
                 // also Pattern options can be set
