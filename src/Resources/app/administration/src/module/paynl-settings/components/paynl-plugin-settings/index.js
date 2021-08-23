@@ -154,31 +154,17 @@ Component.register('paynl-plugin-settings', {
             this.isSaveSuccessful = false;
             this.isLoading = true;
 
-            this.PaynlPaymentService.storeSettings(this.settingsData)
-                .then((response) => {
-                    if (response.success === true) {
-                        this.createNotificationSuccess({
-                            title: this.$tc('paynlDefault.success'),
-                            message: this.$tc(response.message)
-                        });
-                    } else {
-                        this.createNotificationError({
-                            title: this.$tc('paynlDefault.error'),
-                            message: this.$tc(response.message)
-                        });
-                    }
+            this.$refs.systemConfig.saveAll().then(() => {
+                this.isLoading = false;
+                this.isSaveSuccessful = true;
 
-                    this.isLoading = false;
-                    this.isSaveSuccessful = true;
-                })
-                .catch((error) => {
-                    this.createNotificationError({
-                        title: this.$tc('paynlDefault.error'),
-                        message: error
-                    });
-
-                    this.isLoading = false;
+                this.createNotificationSuccess({
+                    title: this.$tc('paynlDefault.success'),
+                    message: this.$tc('paynlValidation.messages.settingsSavedSuccessfully')
                 });
+            }).catch(() => {
+                this.isLoading = false;
+            });
         },
 
         onInstallPaymentMethods() {
@@ -192,57 +178,42 @@ Component.register('paynl-plugin-settings', {
             }
 
             this.isInstallLoading = true;
+            this.isSaveSuccessful = false;
+            this.isLoading = true;
 
-            this.PaynlPaymentService.storeSettings(this.settingsData)
-                .then((response) => {
-                    if (response.success === true) {
+            this.$refs.systemConfig.saveAll().then(() => {
+                this.isLoading = false;
+                this.isSaveSuccessful = true;
+
+                this.createNotificationSuccess({
+                    title: this.$tc('paynlDefault.success'),
+                    message: this.$tc('paynlValidation.messages.settingsSavedSuccessfully')
+                });
+
+                this.isInstallSuccessful = false;
+
+                this.PaynlPaymentService.installPaymentMethods()
+                    .then((response) => {
                         this.createNotificationSuccess({
                             title: this.$tc('paynlDefault.success'),
                             message: this.$tc(response.message)
                         });
 
-                        this.isInstallSuccessful = false;
-
-                        this.PaynlPaymentService.installPaymentMethods()
-                            .then((response) => {
-                                this.createNotificationSuccess({
-                                    title: this.$tc('paynlDefault.success'),
-                                    message: this.$tc(response.message)
-                                });
-
-                                this.isInstallSuccessful = true;
-                                this.isInstallLoading = false;
-                            })
-                            .catch(() => {
-                                this.createNotificationError({
-                                    title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
-                                    message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
-                                });
-
-                                this.isInstallSuccessful = true;
-                                this.isInstallLoading = false;
-                            });
-                    } else {
+                        this.isInstallSuccessful = true;
+                        this.isInstallLoading = false;
+                    })
+                    .catch(() => {
                         this.createNotificationError({
-                            title: this.$tc('paynlDefault.error'),
-                            message: this.$tc(response.message)
+                            title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
+                            message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
                         });
 
                         this.isInstallSuccessful = true;
                         this.isInstallLoading = false;
-                    }
-
-                    this.isLoading = false;
-                    this.isSaveSuccessful = true;
-                })
-                .catch((error) => {
-                    this.createNotificationError({
-                        title: this.$tc('paynlDefault.error'),
-                        message: error
                     });
-
-                    this.isLoading = false;
-                });
+            }).catch(() => {
+                this.isLoading = false;
+            });
         },
 
         setCredentialsFilled() {
