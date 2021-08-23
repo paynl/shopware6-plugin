@@ -34,7 +34,7 @@ class PaymentMethodCustomFields
 
     public function generateCustomFields(PageLoadedEvent $event, PaymentMethodEntity $paymentMethod): void
     {
-        $this->customFields = $paymentMethod->getCustomFields();
+        $this->customFields = $paymentMethod->getTranslation('customFields');
 
         $isPaynlPaymentMethod = $this->getCustomField(self::PAYNL_PAYMENT_FIELD);
         if (!$isPaynlPaymentMethod) {
@@ -47,7 +47,7 @@ class PaymentMethodCustomFields
 
         $isPaymentDisplayBanks = $this->getCustomField(self::DISPLAY_BANKS_FIELD);
         $isPaymentPayLater = $this->getCustomField(self::IS_PAY_LATER_FIELD);
-        $hasPaymentLaterInputs = $isPaymentPayLater && (($isBirthdayExists || $isPhoneNumberExists) === false);
+        $hasPaymentLaterInputs = $isPaymentPayLater && (($isBirthdayExists && $isPhoneNumberExists) === false);
 
         $hasAdditionalInfoInput = $isPaymentDisplayBanks || $hasPaymentLaterInputs;
         $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasAdditionalInfoInput);

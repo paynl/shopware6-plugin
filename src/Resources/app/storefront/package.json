@@ -1,11 +1,11 @@
 {
-  "name": "paynlpayment",
-  "version": "1.0.0",
-  "description": "Pay.nl Shopware Plugin",
-  "main": "./src/main.js",
-  "author": "Pay.nl dev team",
-  "license": "MIT",
-  "dependencies": {
-    "vanillajs-datepicker": "^1.1.2"
-  }
+    "name": "paynlpayment",
+    "version": "1.0.0",
+    "description": "Pay.nl Shopware Plugin",
+    "main": "./src/main.js",
+    "author": "Pay.nl dev team",
+    "license": "MIT",
+    "dependencies": {
+        "imask": "^6.1.0"
+    }
 }
