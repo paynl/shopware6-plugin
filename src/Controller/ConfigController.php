@@ -89,12 +89,14 @@ class ConfigController extends AbstractController
 
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
-        if ($this->config->getSinglePaymentMethodInd()) {
+        $salesChannelId = $request->get('salesChannelId');
+
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             return new JsonResponse([]);
         }
 
         try {
-            $this->installHelper->addPaymentMethods($context);
+            $this->installHelper->addPaymentMethods($context, $salesChannelId);
             $this->installHelper->activatePaymentMethods($context);
 
             return $this->json([

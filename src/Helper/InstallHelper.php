@@ -5,6 +5,7 @@ namespace PaynlPayment\Shopware6\Helper;
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -73,7 +74,7 @@ class InstallHelper
         /** @var SystemConfigService $configService */
         $configService = $container->get(SystemConfigService::class);
         $this->configService = $configService;
-        $config = new Config($configService);
+        $config = new Config($configService, new ConfigReader($configService));
         /** @var EntityRepositoryInterface $customerAddressRepository */
         $customerAddressRepository = $container->get('customer_address.repository');
         /** @var EntityRepositoryInterface $customerRepository */
@@ -105,19 +106,19 @@ class InstallHelper
         $this->mediaHelper = new MediaHelper($container);
     }
 
-    public function addPaymentMethods(Context $context): void
+    public function addPaymentMethods(Context $context, string $salesChannelId = ''): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods($salesChannelId);
         if (empty($paynlPaymentMethods)) {
             throw new PaynlPaymentException("Cannot get any payment method.");
         }
 
-        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+        $this->upsertPaymentMethods($paynlPaymentMethods, $context, $salesChannelId);
     }
 
     public function updatePaymentMethods(Context $context): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
+        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods('');
         if (empty($paynlPaymentMethods)) {
             return;
         }
@@ -231,8 +232,11 @@ class InstallHelper
         $this->paymentMethodRepository->update($paymentMethodsNewData, $context);
     }
 
-    private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
-    {
+    private function upsertPaymentMethods(
+        array $paynlPaymentMethods,
+        Context $context,
+        string $salesChannelId = ''
+    ): void {
         $paymentMethods = [];
         $salesChannelsData = [];
 
@@ -244,7 +248,9 @@ class InstallHelper
                 $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
             }
             $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
+
+            $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
+            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodHashId, $salesChannelId);
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
 
@@ -267,9 +273,14 @@ class InstallHelper
      * @param string $paymentMethodId
      * @return mixed[]
      */
-    private function getSalesChannelsData(Context $context, string $paymentMethodId): array
+    private function getSalesChannelsData(Context $context, string $paymentMethodId, string $salesChannelId = ''): array
     {
-        $channelsIds = $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds();
+        $criteria = new Criteria();
+        if (!empty($salesChannelId)) {
+            $criteria->addFilter(new EqualsFilter('id', $salesChannelId));
+        }
+
+        $channelsIds = $this->salesChannelRepository->searchIds($criteria, $context)->getIds();
         $salesChannelsData = [];
         foreach ($channelsIds as $channelId) {
             $salesChannelsData[] = [

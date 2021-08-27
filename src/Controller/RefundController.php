@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Controller;
 
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
@@ -26,6 +27,7 @@ class RefundController extends AbstractController
     private $paynlConfig;
     private $transactionRepository;
     private $productRepository;
+    private $paynlTransactionRepository;
 
     /** @var ProcessingHelper */
     private $processingHelper;
@@ -35,13 +37,15 @@ class RefundController extends AbstractController
         Config $paynlConfig,
         EntityRepositoryInterface $transactionRepository,
         EntityRepositoryInterface $productRepository,
-        ProcessingHelper $processingHelper
+        ProcessingHelper $processingHelper,
+        EntityRepositoryInterface $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
         $this->transactionRepository = $transactionRepository;
         $this->productRepository = $productRepository;
         $this->processingHelper = $processingHelper;
+        $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
     /**
@@ -85,9 +89,12 @@ class RefundController extends AbstractController
         $products = $post['products'];
         $messages = [];
 
+        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+
         try {
             // TODO: need newer version of PAYNL/SDK
-            $this->paynlApi->refund($paynlTransactionId, $amount, $description);
+            $this->paynlApi->refund($paynlTransactionId, $amount, $description, $salesChannelId);
             $this->restock($products);
 
             $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
@@ -105,8 +112,11 @@ class RefundController extends AbstractController
     private function getRefundDataResponse(Request $request): JsonResponse
     {
         $paynlTransactionId = $request->get('transactionId');
+        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+
         try {
-            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
+            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
             $refundedAmount = $apiTransaction->getRefundedAmount();
             $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
 
@@ -146,5 +156,13 @@ class RefundController extends AbstractController
         if (!empty($data)) {
             $this->productRepository->update($data, $context);
         }
+    }
+
+    private function getPaynlTransactionEntityByPaynlTransactionId(string $paynlTransactionId): PaynlTransactionEntity
+    {
+        $criteria = (new Criteria());
+        $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
+
+        return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
 }

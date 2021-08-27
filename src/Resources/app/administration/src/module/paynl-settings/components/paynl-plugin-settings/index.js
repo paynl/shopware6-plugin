@@ -192,7 +192,9 @@ Component.register('paynl-plugin-settings', {
 
                 this.isInstallSuccessful = false;
 
-                this.PaynlPaymentService.installPaymentMethods()
+                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?? '';
+
+                this.PaynlPaymentService.installPaymentMethods(salesChannelId)
                     .then((response) => {
                         this.createNotificationSuccess({
                             title: this.$tc('paynlDefault.success'),
