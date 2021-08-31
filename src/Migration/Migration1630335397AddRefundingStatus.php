@@ -5,6 +5,7 @@ namespace PaynlPayment\Shopware6\Migration;
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Migration\MigrationStep;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 
 class Migration1630335397AddRefundingStatus extends MigrationStep
 {
@@ -16,14 +17,14 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
     const PAID_PARTIALLY_STATUS = 'paid_partially';
     const REFUNDED_STATUS = 'refunded';
     const REFUNDED_PARTIALLY_STATUS = 'refunded_partially';
-    const FAILED_STATUS = 'failed';
+    const CANCELLED_STATUS = 'cancelled';
 
     /** @var Connection */
     private $connection;
 
     public function getCreationTimestamp(): int
     {
-        return 1630335397;
+        return 1630407150;
     }
 
     public function update(Connection $connection): void
@@ -105,10 +106,16 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
     {
         $refundingStateMachineStateId = $this->getStateMachineStateId(self::REFUNDING_STATUS, $stateMachineStateId);
         $paidStateMachineStateId = $this->getStateMachineStateId(self::PAID_STATUS, $stateMachineStateId);
-        $paidPartiallyStateMachineStateId = $this->getStateMachineStateId(self::PAID_PARTIALLY_STATUS, $stateMachineStateId);
+        $cancelledStateMachineStateId = $this->getStateMachineStateId(self::CANCELLED_STATUS, $stateMachineStateId);
         $refundedStateMachineStateId = $this->getStateMachineStateId(self::REFUNDED_STATUS, $stateMachineStateId);
-        $refundedPartiallyStateMachineStateId = $this->getStateMachineStateId(self::REFUNDED_PARTIALLY_STATUS, $stateMachineStateId);
-        $failedStateMachineStateId = $this->getStateMachineStateId(self::FAILED_STATUS, $stateMachineStateId);
+        $paidPartiallyStateMachineStateId = $this->getStateMachineStateId(
+            self::PAID_PARTIALLY_STATUS,
+            $stateMachineStateId
+        );
+        $refundedPartiallyStateMachineStateId = $this->getStateMachineStateId(
+            self::REFUNDED_PARTIALLY_STATUS,
+            $stateMachineStateId
+        );
 
         $transitions = [
             [
@@ -122,19 +129,34 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
                 'to_state_id' => $refundingStateMachineStateId,
             ],
             [
-                'action_name' => self::REFUNDED_STATUS,
+                'action_name' => self::REFUNDING_STATUS,
+                'from_state_id' => $refundedPartiallyStateMachineStateId,
+                'to_state_id' => $refundingStateMachineStateId,
+            ],
+            [
+                'action_name' => self::REFUNDING_STATUS,
+                'from_state_id' => $cancelledStateMachineStateId,
+                'to_state_id' => $refundingStateMachineStateId,
+            ],
+            [
+                'action_name' => self::REFUNDING_STATUS,
+                'from_state_id' => $refundingStateMachineStateId,
+                'to_state_id' => $refundingStateMachineStateId,
+            ],
+            [
+                'action_name' => StateMachineTransitionActions::ACTION_REFUND,
                 'from_state_id' => $refundingStateMachineStateId,
                 'to_state_id' => $refundedStateMachineStateId,
             ],
             [
-                'action_name' => self::REFUNDED_PARTIALLY_STATUS,
+                'action_name' => StateMachineTransitionActions::ACTION_REFUND_PARTIALLY,
                 'from_state_id' => $refundingStateMachineStateId,
                 'to_state_id' => $refundedPartiallyStateMachineStateId,
             ],
             [
-                'action_name' => self::FAILED_STATUS,
+                'action_name' => StateMachineTransitionActions::ACTION_CANCEL,
                 'from_state_id' => $refundingStateMachineStateId,
-                'to_state_id' => $failedStateMachineStateId,
+                'to_state_id' => $cancelledStateMachineStateId,
             ],
         ];
 

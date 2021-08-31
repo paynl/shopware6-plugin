@@ -217,10 +217,6 @@ class ProcessingHelper
         $orderTransactionTransitionName =
             $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
-        if ($paynlTransactionStatusCode === PaynlTransactionStatusesEnum::STATUS_REFUNDING) {
-            return;
-        }
-
         /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
