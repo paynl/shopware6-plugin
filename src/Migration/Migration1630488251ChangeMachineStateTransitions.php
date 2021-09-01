@@ -46,7 +46,6 @@ class Migration1630488251ChangeMachineStateTransitions extends MigrationStep
 
     private function getTransitions($stateMachineStateId): array
     {
-        $refundingStateMachineStateId = $this->getStateMachineStateId(self::REFUNDING_STATUS, $stateMachineStateId);
         $cancelledStateMachineStateId = $this->getStateMachineStateId(self::CANCELLED_STATUS, $stateMachineStateId);
         $refundedStateMachineStateId = $this->getStateMachineStateId(self::REFUNDED_STATUS, $stateMachineStateId);
         $refundedPartiallyStateMachineStateId = $this->getStateMachineStateId(
@@ -54,12 +53,7 @@ class Migration1630488251ChangeMachineStateTransitions extends MigrationStep
             $stateMachineStateId
         );
 
-        $transitions = [
-            // From Cancelled to Refunding
-            [
-                'from_state_id' => $cancelledStateMachineStateId,
-                'to_state_id' => $refundingStateMachineStateId,
-            ],
+        return [
             // From Cancelled to Refunded
             [
                 'from_state_id' => $cancelledStateMachineStateId,
@@ -71,8 +65,6 @@ class Migration1630488251ChangeMachineStateTransitions extends MigrationStep
                 'to_state_id' => $refundedPartiallyStateMachineStateId,
             ],
         ];
-
-        return $transitions;
     }
 
     private function getStateMachineStateId(string $technicalName, $stateMachineId)

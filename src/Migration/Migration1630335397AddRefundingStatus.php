@@ -136,12 +136,6 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
                 'from_state_id' => $refundedPartiallyStateMachineStateId,
                 'to_state_id' => $refundingStateMachineStateId,
             ],
-            //From Cancelled to Refunding
-            [
-                'action_name' => self::REFUNDING_STATUS,
-                'from_state_id' => $cancelledStateMachineStateId,
-                'to_state_id' => $refundingStateMachineStateId,
-            ],
             //From Refunding to Refunding
             [
                 'action_name' => self::REFUNDING_STATUS,
