@@ -118,41 +118,49 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
         );
 
         $transitions = [
+            //From Paid to Refunding
             [
                 'action_name' => self::REFUNDING_STATUS,
                 'from_state_id' => $paidStateMachineStateId,
                 'to_state_id' => $refundingStateMachineStateId,
             ],
+            //From Paid partially to Refunding
             [
                 'action_name' => self::REFUNDING_STATUS,
                 'from_state_id' => $paidPartiallyStateMachineStateId,
                 'to_state_id' => $refundingStateMachineStateId,
             ],
+            //From Refunded partially to Refunding
             [
                 'action_name' => self::REFUNDING_STATUS,
                 'from_state_id' => $refundedPartiallyStateMachineStateId,
                 'to_state_id' => $refundingStateMachineStateId,
             ],
+            //From Cancelled to Refunding
             [
                 'action_name' => self::REFUNDING_STATUS,
                 'from_state_id' => $cancelledStateMachineStateId,
                 'to_state_id' => $refundingStateMachineStateId,
             ],
+            //From Refunding to Refunding
             [
                 'action_name' => self::REFUNDING_STATUS,
                 'from_state_id' => $refundingStateMachineStateId,
                 'to_state_id' => $refundingStateMachineStateId,
             ],
+            //From Refunding to Refunded
             [
                 'action_name' => StateMachineTransitionActions::ACTION_REFUND,
                 'from_state_id' => $refundingStateMachineStateId,
                 'to_state_id' => $refundedStateMachineStateId,
             ],
+            //From Refunding to Refunded partially
             [
                 'action_name' => StateMachineTransitionActions::ACTION_REFUND_PARTIALLY,
                 'from_state_id' => $refundingStateMachineStateId,
                 'to_state_id' => $refundedPartiallyStateMachineStateId,
             ],
+            //From Refunding to Cancelled
             [
                 'action_name' => StateMachineTransitionActions::ACTION_CANCEL,
                 'from_state_id' => $refundingStateMachineStateId,
@@ -165,7 +173,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
 
     private function getOrderTransactionStateSql(): string
     {
-        $orderTransactionStateSQL = join(' ', [
+        return join(' ', [
             'SELECT',
             'id',
             'FROM',
@@ -174,13 +182,11 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'technical_name = :technical_name',
             'LIMIT 1'
         ]);
-
-        return $orderTransactionStateSQL;
     }
 
     private function getLanguageSql(): string
     {
-        $languageSQL = join(' ', [
+        return join(' ', [
             'SELECT',
             'id',
             'FROM',
@@ -189,13 +195,11 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'name = :name',
             'LIMIT 1'
         ]);
-
-        return $languageSQL;
     }
 
     private function getInsertStateMachineStateSql(): string
     {
-        $sqlStateMachineState = join(' ', [
+        return join(' ', [
             'INSERT INTO',
             'state_machine_state',
             '(id, technical_name, state_machine_id, created_at, updated_at)',
@@ -204,13 +208,11 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'ON DUPLICATE KEY',
             'UPDATE `updated_at` = CURRENT_TIME();'
         ]);
-
-        return $sqlStateMachineState;
     }
 
     private function getSelectStateMachineState(): string
     {
-        $stateMachineStateSQL = join(' ', [
+        return join(' ', [
             'SELECT',
             'id',
             'FROM',
@@ -220,13 +222,11 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'AND',
             'state_machine_id = :state_machine_id'
         ]);
-
-        return $stateMachineStateSQL;
     }
 
     private function getStateMachineStateTranslationSql(): string
     {
-        $stateMachineStateTranslation = join(' ', [
+        return join(' ', [
             'INSERT INTO',
             'state_machine_state_translation',
             '(`language_id`, `state_machine_state_id`, `name`, `custom_fields`, `created_at`, `updated_at`)',
@@ -235,13 +235,11 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'ON DUPLICATE KEY',
             'UPDATE `updated_at` = CURRENT_TIME();'
         ]);
-
-        return $stateMachineStateTranslation;
     }
 
     private function getInsertTransitionSql(): string
     {
-        $insertTransitionSQL = join(' ', [
+        return join(' ', [
             'INSERT INTO',
             'state_machine_transition',
             '(id, action_name, state_machine_id, from_state_id, to_state_id, custom_fields, created_at, updated_at)',
@@ -250,8 +248,6 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'ON DUPLICATE KEY',
             'UPDATE `action_name` = :action_name, `updated_at` = CURRENT_TIME();'
         ]);
-
-        return $insertTransitionSQL;
     }
 
     private function getStateMachineStateId(string $technicalName, $stateMachineId)
