@@ -404,6 +404,9 @@ class InstallHelper
         $stateMachineStatePartlyCapturedId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED
         ])->fetchColumn();
+        $stateMachineStateRefundingId = $this->connection->executeQuery($stateMachineStateSQl, [
+            'technical_name' => StateMachineStateEnum::ACTION_REFUNDING
+        ])->fetchColumn();
 
         // Remove state machine transition
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
@@ -417,6 +420,10 @@ class InstallHelper
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
             'to_state_id' => $stateMachineStatePartlyCapturedId,
             'from_state_id' => $stateMachineStatePartlyCapturedId
+        ]);
+        $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
+            'to_state_id' => $stateMachineStateRefundingId,
+            'from_state_id' => $stateMachineStateRefundingId
         ]);
     }
 }
