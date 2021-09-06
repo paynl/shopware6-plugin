@@ -74,7 +74,7 @@ class Api
     /**
      * @return mixed[]
      */
-    public function getPaymentMethods(string $salesChannelId): array
+    public function getPaymentMethods(string $salesChannelId = ''): array
     {
         // plugin doesn't configured, nothing to do
         if (empty($this->config->getTokenCode($salesChannelId))
@@ -138,7 +138,8 @@ class Api
         string $pluginVersion
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelContext->getSalesChannelId());
@@ -201,13 +202,13 @@ class Api
         return $transactionInitialData;
     }
 
-    public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId): int
+    public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId, string $salesChannelId): int
     {
-        if ($this->config->getSinglePaymentMethodInd('')) {
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             return 0;
         }
 
-        $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId);
+        $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId, $salesChannelId);
         if (is_null($paynlPaymentMethod)) {
             throw new PaynlPaymentException('Could not detect payment method.');
         }
@@ -222,9 +223,9 @@ class Api
      * @param string $shopwarePaymentMethodId
      * @return mixed[]|null
      */
-    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId): ?array
+    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId, string $salesChannelId): ?array
     {
-        $paymentMethods = $this->getPaymentMethods('');
+        $paymentMethods = $this->getPaymentMethods($salesChannelId);
         foreach ($paymentMethods as $paymentMethod) {
             if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) { //NOSONAR
                 return $paymentMethod;

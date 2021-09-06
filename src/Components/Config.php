@@ -23,22 +23,7 @@ class Config
         $this->configReader = $configReader;
     }
 
-    /**
-     * @param string $key
-     * @param mixed $defaultValue
-     * @return array|mixed|null
-     */
-    private function get(string $key, $defaultValue = null)
-    {
-        $value = $this->config->get(sprintf(self::CONFIG_TEMPLATE, $key));
-        if (is_null($value) && !is_null($defaultValue)) {
-            return $defaultValue;
-        }
-
-        return $value;
-    }
-
-    public function getRequestParameter(string $salesChannel, string $key)
+    private function get(string $salesChannel, string $key)
     {
         $this->configuration = $this->configReader->read($salesChannel);
 
@@ -47,39 +32,32 @@ class Config
 
     public function getTokenCode(string $salesChannelId): string
     {
-        //729ae7edd72f45c28035d0b08698623b
-        return (string)$this->getRequestParameter($salesChannelId, 'tokenCode');
-
-        return (string)$this->get('tokenCode');
+        return (string)$this->get($salesChannelId, 'tokenCode');
     }
 
     public function getApiToken(string $salesChannelId): string
     {
-        return (string)$this->getRequestParameter($salesChannelId, 'apiToken');
-
-        return (string)$this->get('apiToken');
+        return (string)$this->get($salesChannelId, 'apiToken');
     }
 
     public function getServiceId(string $salesChannelId): string
     {
-        return (string)$this->getRequestParameter($salesChannelId, 'serviceId');
-
-        return (string)$this->get('serviceId');
+        return (string)$this->get($salesChannelId, 'serviceId');
     }
 
     public function getSinglePaymentMethodInd(string $salesChannelId): bool
     {
-        return (bool)$this->get('useSinglePaymentMethod');
+        return (bool)$this->get($salesChannelId,'useSinglePaymentMethod');
     }
 
     public function getTestMode(string $salesChannelId): int
     {
-        return (int)$this->get('testMode');
+        return (int)$this->get($salesChannelId, 'testMode');
     }
 
     public function isRefundAllowed(string $salesChannelId): bool
     {
-        return (bool)$this->get('allowRefunds', false);
+        return (bool)$this->get($salesChannelId, 'allowRefunds');
     }
 
     /**
@@ -87,7 +65,7 @@ class Config
      */
     public function getFemaleSalutations(string $salesChannelId): array
     {
-        $salutations = $this->get('femaleSalutations', self::FEMALE_SALUTATIONS);
+        $salutations = $this->get($salesChannelId, 'femaleSalutations') ?: self::FEMALE_SALUTATIONS;
         $arrSalutations = explode(',', $salutations);
 
         return array_map('trim', $arrSalutations);
@@ -95,7 +73,7 @@ class Config
 
     public function getUseAdditionalAddressFields(string $salesChannelId): int
     {
-        return (int)$this->get('additionalAddressFields');
+        return (int)$this->get($salesChannelId, 'additionalAddressFields');
     }
 
     /**
@@ -110,11 +88,11 @@ class Config
 
     public function getShowDescription(string $salesChannelId): string
     {
-        return $this->get('showDescription', 'show_payment_method_info');
+        return $this->get($salesChannelId, 'showDescription') ?: 'show_payment_method_info';
     }
 
     public function getPaymentScreenLanguage(string $salesChannelId): string
     {
-        return $this->get('paymentScreenLanguage', '');
+        return (string)$this->get($salesChannelId, 'paymentScreenLanguage');
     }
 }
