@@ -295,7 +295,7 @@ class Api
     public function refund(string $transactionID, $amount, string $description = ''): Result\Refund
     {
         if (!$this->config->isRefundAllowed()) {
-            $message = 'PAY-PLUGIN-001: Your did not activate refund option in plugin, check %s';
+            $message = 'PAY-PLUGIN-001: You did not activate refund option in plugin, check %s';
             $url = sprintf(
                 '<a target="_blank" href="https://docs.pay.nl/plugins?language=en#shopware-six-errordefinitions">
 %s</a>',

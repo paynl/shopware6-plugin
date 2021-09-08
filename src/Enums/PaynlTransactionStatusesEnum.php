@@ -39,7 +39,7 @@ class PaynlTransactionStatusesEnum
         self::STATUS_DENIED_63 => StateMachineTransitionActions::ACTION_CANCEL,
         self::STATUS_DENIED_64 => StateMachineTransitionActions::ACTION_CANCEL,
 
-        self::STATUS_REFUNDING => StateMachineTransitionActions::ACTION_REFUND,
+        self::STATUS_REFUNDING => StateMachineStateEnum::ACTION_REFUNDING,
         self::STATUS_REFUND => StateMachineTransitionActions::ACTION_REFUND,
 
         self::STATUS_PENDING_20 => StateMachineTransitionActions::ACTION_DO_PAY,

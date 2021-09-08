@@ -1,3 +1,6 @@
+# 1.4.5
+- Erstattungsstatus hinzugefügt
+
 # 1.4.4
 - Standardkalender ist zurückgekehrt
 - Fehler beim Ändern der Zahlungsmethode behoben, für die deutsche Version der Website
