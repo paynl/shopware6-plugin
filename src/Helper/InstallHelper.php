@@ -165,29 +165,35 @@ class InstallHelper
 
     public function addSinglePaymentMethod(Context $context): void
     {
-        $this->switchAllPaymentMethods($context, false);
-        $update = $this->updateSinglePaymentMethod($context, true);
+        $this->deleteSalesChannelPaymentMethods($context);
+        $this->updateSinglePaymentMethod($context, true);
 
-        if (!$update) {
-            $paymentMethodData[] = [
-                API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
-                API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
-                API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
-                API::PAYMENT_METHOD_BRAND => [
-                    API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
-                ]
-            ];
+        $paymentMethodData[] = [
+            API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
+            API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
+            API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
+            API::PAYMENT_METHOD_BRAND => [
+                API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
+            ]
+        ];
 
-            $this->upsertPaymentMethods($paymentMethodData, $context);
-        }
+        $this->upsertPaymentMethods($paymentMethodData, $context);
     }
 
     public function removeSinglePaymentMethod(Context $context): void
     {
-        $update = $this->updateSinglePaymentMethod($context, false);
+        $singlePaymentMethod = $this->getSinglePaymentMethod($context);
 
-        if ($update) {
-            $this->switchAllPaymentMethods($context, true);
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('salesChannelId', $this->getSalesChannelId()));
+        $criteria->addFilter(new EqualsFilter('paymentMethodId', $singlePaymentMethod->getId()));
+
+        $salesChannelSinglePaymentMethod = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
+        $isSalesChannelSinglePaymentMethodExist = (bool)$salesChannelSinglePaymentMethod->getIds();
+
+        //add payment methods for sales channel
+        if ($isSalesChannelSinglePaymentMethodExist) {
+            $this->installPaymentMethods($context);
         }
     }
 
@@ -246,6 +252,14 @@ class InstallHelper
         }
 
         $this->salesChannelRepository->upsert($salesChannelsToUpdate, $context);
+    }
+
+    private function getSinglePaymentMethod(Context $context): ?PaymentMethodEntity
+    {
+        return $this->paymentMethodRepository->search(
+            new Criteria([md5(self::SINGLE_PAYMENT_METHOD_ID)]),
+            $context
+        )->first();
     }
 
     private function switchAllPaymentMethods(Context $context, bool $active): void

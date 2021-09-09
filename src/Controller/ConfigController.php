@@ -121,6 +121,32 @@ class ConfigController extends AbstractController
     private function getStoreSettingsResponse(Request $request, Context $context): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        $salesChannelId = $data['salesChannelId'] ?? '';
+        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannelIds($context)->getIds()
+            : [$salesChannelId];
+
+        foreach ($salesChannelsIds as $salesChannelId) {
+            $this->installHelper->setSalesChannelId($salesChannelId);
+
+            if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
+                $this->installHelper->addSinglePaymentMethod($context);
+                $this->installHelper->setDefaultPaymentMethod(
+                    $context,
+                    md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID)
+                );
+
+                continue;
+            }
+
+            $this->installHelper->removeSinglePaymentMethod($context);
+        }
+
+        return $this->json(['success' => true]);
+    }
+
+    private function getStoreSettingsResponseOld(Request $request, Context $context): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
         if (empty($data['tokenCode']) || empty($data['apiToken']) || empty($data['serviceId'])) {
             return $this->json([
                 'success' => false,
