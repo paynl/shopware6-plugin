@@ -121,21 +121,6 @@ class InstallHelper
         $this->salesChannelId = $salesChannelId;
     }
 
-    public function addPaymentMethods(Context $context, string $salesChannelId = ''): void
-    {
-        $salesChannelIds = $salesChannelId ? [$salesChannelId] : $this->getSalesChannelIds($context);
-
-        /** @var SalesChannelEntity $salesChannel */
-        foreach ($salesChannelIds as $salesChannel) {
-            $paynlPaymentMethods = $this->paynlApi->getPaymentMethods($salesChannel->getId());
-            if (empty($paynlPaymentMethods)) {
-                throw new PaynlPaymentException("Cannot get any payment method.");
-            }
-
-            $this->upsertPaymentMethods($paynlPaymentMethods, $context, $salesChannel->getId());
-        }
-    }
-
     public function installPaymentMethods(Context $context): void
     {
         if (empty($this->getSalesChannelId())
@@ -143,6 +128,7 @@ class InstallHelper
         ) {
             throw new PaynlPaymentException('Sales channel is empty');
         }
+        $this->removeOldMedia($context);
 
         $paymentMethods = $this->paynlApi->getPaymentMethods($this->getSalesChannelId());
         if (empty($paymentMethods)) {
@@ -150,7 +136,7 @@ class InstallHelper
         }
 
         $this->deleteSalesChannelPaymentMethods($context);
-        $this->upsertPaymentMethods($paymentMethods, $context, $this->getSalesChannelId());
+        $this->upsertPaymentMethods($paymentMethods, $context);
     }
 
     public function updatePaymentMethods(Context $context): void
@@ -283,11 +269,8 @@ class InstallHelper
         $this->paymentMethodRepository->update($paymentMethodsNewData, $context);
     }
 
-    private function upsertPaymentMethods(
-        array $paynlPaymentMethods,
-        Context $context,
-        string $salesChannelId = ''
-    ): void {
+    private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
+    {
         $paymentMethods = [];
         $salesChannelsData = [];
 
@@ -301,12 +284,32 @@ class InstallHelper
             $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
 
             $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
-            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodHashId, $salesChannelId);
+            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodHashId, $this->getSalesChannelId());
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
 
         $this->paymentMethodRepository->upsert($paymentMethods, $context);
         $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
+    }
+
+    private function removeOldMedia(Context $context): void
+    {
+        $paynlPaymentMethodsIds = array_values($this->getPaynlPaymentMethods($context)->getIds());
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('salesChannelId', $this->getSalesChannelId()));
+        foreach ($paynlPaymentMethodsIds as $paynlPaymentMethodId) {
+            $criteria->addFilter(new EqualsFilter('paymentMethodId', $paynlPaymentMethodId));
+        }
+
+        $salesChannelPaymentMethodIds = $this->salesChannelPaymentMethodRepository->searchIds($criteria, $context);
+    }
+
+    private function getPaynlPaymentMethods(Context $context)
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+
+        return $this->paymentMethodRepository->search($criteria, $context);
     }
 
     private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
@@ -390,7 +393,7 @@ class InstallHelper
 
     public function removePaymentMethodsMedia(Context $context): void
     {
-        $this->mediaHelper->removeOldMedia($context);
+        $this->mediaHelper->removeOldMediaAll($context);
     }
 
     public function removeConfigurationData(Context $context): void

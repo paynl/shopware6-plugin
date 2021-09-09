@@ -98,7 +98,24 @@ class MediaHelper
         return !empty($media);
     }
 
-    public function removeOldMedia(Context $context): void
+    public function removeOldMedia(Context $context, array $ids = []): void
+    {
+        $criteria = (new Criteria())->addFilter(
+            new ContainsFilter('fileName', self::MEDIA_NAME_PREFIX)
+        );
+        $mediaIds = $this->mediaRepository->searchIds($criteria, $context)->getIds();
+        $mediaIds = array_map(static function ($id) {
+            return ['id' => $id];
+        }, $mediaIds);
+
+        if (empty($mediaIds)) {
+            return;
+        }
+
+        $this->mediaRepository->delete($mediaIds, $context);
+    }
+
+    public function removeOldMediaAll(Context $context): void
     {
         $criteria = (new Criteria())->addFilter(
             new ContainsFilter('fileName', self::MEDIA_NAME_PREFIX)
