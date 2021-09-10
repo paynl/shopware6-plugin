@@ -11,6 +11,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\OrFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -98,11 +99,14 @@ class MediaHelper
         return !empty($media);
     }
 
-    public function removeOldMedia(Context $context, array $ids = []): void
+    public function removeOldMedia(Context $context, array $ids): void
     {
-        $criteria = (new Criteria())->addFilter(
-            new ContainsFilter('fileName', self::MEDIA_NAME_PREFIX)
-        );
+        if (empty($ids)) {
+            return;
+        }
+
+        $criteria = new Criteria($ids);
+
         $mediaIds = $this->mediaRepository->searchIds($criteria, $context)->getIds();
         $mediaIds = array_map(static function ($id) {
             return ['id' => $id];

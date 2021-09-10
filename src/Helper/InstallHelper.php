@@ -21,6 +21,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\OrFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -206,7 +207,6 @@ class InstallHelper
 
     public function setDefaultPaymentMethod(Context $context, ?string $paymentMethodId = null): void
     {
-        $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
         $salesChannelsToUpdate = [];
 
         if ($paymentMethodId === null) {
@@ -229,13 +229,10 @@ class InstallHelper
             $paymentMethodId = $paymentMethod->getId();
         }
 
-        /** @var SalesChannelEntity $salesChannel */
-        foreach ($salesChannels as $salesChannel) {
-            $salesChannelsToUpdate[] = [
-                'id' => $salesChannel->getId(),
-                'paymentMethodId'=> $paymentMethodId
-            ];
-        }
+        $salesChannelsToUpdate[] = [
+            'id' => $this->getSalesChannelId(),
+            'paymentMethodId'=> $paymentMethodId
+        ];
 
         $this->salesChannelRepository->upsert($salesChannelsToUpdate, $context);
     }
@@ -274,7 +271,7 @@ class InstallHelper
         $paymentMethods = [];
         $salesChannelsData = [];
 
-        $this->mediaHelper->removeOldMedia($context);
+//        $this->mediaHelper->removeOldMedia($context);
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
@@ -292,16 +289,53 @@ class InstallHelper
         $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
     }
 
+    /**
+     * @param Context $context
+     * @TODO to refactor the method
+     */
     private function removeOldMedia(Context $context): void
     {
         $paynlPaymentMethodsIds = array_values($this->getPaynlPaymentMethods($context)->getIds());
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('salesChannelId', $this->getSalesChannelId()));
+        $orFilter = [];
         foreach ($paynlPaymentMethodsIds as $paynlPaymentMethodId) {
-            $criteria->addFilter(new EqualsFilter('paymentMethodId', $paynlPaymentMethodId));
+            $orFilter[] = new EqualsFilter('paymentMethodId', $paynlPaymentMethodId);
+        }
+        $criteria->addFilter(new OrFilter($orFilter));
+
+        $paymentMethodIds = $this->salesChannelPaymentMethodRepository->searchIds($criteria, $context)->getData();
+        $salesChannelPaymentMethodIds = [];
+        foreach ($paymentMethodIds as $paymentMethod) {
+            if ($paymentMethod['sales_channel_id'] === $this->getSalesChannelId()) {
+                $salesChannelPaymentMethodIds[] = $paymentMethod['payment_method_id'];
+            }
         }
 
-        $salesChannelPaymentMethodIds = $this->salesChannelPaymentMethodRepository->searchIds($criteria, $context);
+        $paymentMethodIds = array_filter($paymentMethodIds, function ($value) {
+            if ($value['sales_channel_id'] === $this->getSalesChannelId()) {
+                return false;
+            }
+
+            return true;
+        });
+
+        $paymentMethodIds = array_column($paymentMethodIds, 'payment_method_id');
+
+        $paymentMethodIdsForRemove = array_diff($salesChannelPaymentMethodIds, $paymentMethodIds);
+        if (empty($paymentMethodIdsForRemove)) {
+            return;
+        }
+
+        $paymentMethods = $this->paymentMethodRepository->search(new Criteria($paymentMethodIdsForRemove), $context);
+        $paymentMethodMediaIds = [];
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethods as $paymentMethod) {
+            if (!empty($paymentMethod->getMediaId())) {
+                $paymentMethodMediaIds[] = $paymentMethod->getMediaId();
+            }
+        }
+
+        $this->mediaHelper->removeOldMedia($context, $paymentMethodMediaIds);
     }
 
     private function getPaynlPaymentMethods(Context $context)
