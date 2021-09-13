@@ -1,4 +1,8 @@
+# 1.4.6
+- Fixed editing profile template
+
 # 1.4.5
+- Added the Refunding status
 
 # 1.4.4
 - The default calendar has returned

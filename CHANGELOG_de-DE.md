@@ -1,4 +1,8 @@
+# 1.4.6
+- Problem mit Profilvorlagen behoben
+
 # 1.4.5
+- Erstattungsstatus hinzugefügt
 
 # 1.4.4
 - Standardkalender ist zurückgekehrt

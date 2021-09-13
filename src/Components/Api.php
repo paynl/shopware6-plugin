@@ -300,7 +300,7 @@ class Api
         string $description = ''
     ): Result\Refund {
         if (!$this->config->isRefundAllowed($salesChannelId)) {
-            $message = 'PAY-PLUGIN-001: Your did not activate refund option in plugin, check %s';
+            $message = 'PAY-PLUGIN-001: You did not activate refund option in plugin, check %s';
             $url = sprintf(
                 '<a target="_blank" href="https://docs.pay.nl/plugins?language=en#shopware-six-errordefinitions">
 %s</a>',
@@ -309,7 +309,7 @@ class Api
 
             throw new \Exception(sprintf($message, $url));
         }
-        $this->setCredentials($salesChannelId);
+        $this->setCredentials();
 
         try {
             return \Paynl\Transaction::refund($transactionID, $amount, $description);

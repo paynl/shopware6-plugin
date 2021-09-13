@@ -1,32 +1,28 @@
 {% sw_extends '@Storefront/storefront/page/account/profile/index.html.twig' %}
 
-{% block page_account_main_content %}
-    {% block page_account_profile %}
-            {% block page_account_profile_personal_form %}
-                <form id="profilePersonalForm"
-                      method="post"
-                      data-form-csrf-handler="true"
-                      action="{{ path('frontend.account.profile.save') }}"
-                      data-form-validation="true">
+{% block page_account_profile_personal_form %}
+    <form id="profilePersonalForm"
+          method="post"
+          data-form-csrf-handler="true"
+          action="{{ path('frontend.account.profile.save') }}"
+          data-form-validation="true">
 
-                    {% block page_account_profile_personal_form_csrf %}
-                        {{ parent() }}
-                    {% endblock %}
-
-                    {% block page_account_profile_personal_fields %}
-                        {{ parent() }}
-                    {% endblock %}
-
-                    {% sw_include '@Storefront/storefront/page/account/profile/paynl_profile_kvk_coc_number_block.html.twig' %}
-
-                    {% block page_account_profile_personal_required %}
-                        {{ parent() }}
-                    {% endblock %}
-
-                    {% block page_account_profile_personal_action_buttons %}
-                        {{ parent() }}
-                    {% endblock %}
-                </form>
-            {% endblock %}
+        {% block page_account_profile_personal_form_csrf %}
+            {{ parent() }}
         {% endblock %}
+
+        {% block page_account_profile_personal_fields %}
+            {{ parent() }}
+        {% endblock %}
+
+        {% sw_include '@Storefront/storefront/page/account/profile/paynl_profile_kvk_coc_number_block.html.twig' %}
+
+        {% block page_account_profile_personal_required %}
+            {{ parent() }}
+        {% endblock %}
+
+        {% block page_account_profile_personal_action_buttons %}
+            {{ parent() }}
+        {% endblock %}
+    </form>
 {% endblock %}
