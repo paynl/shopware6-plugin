@@ -74,7 +74,7 @@ class Api
     /**
      * @return mixed[]
      */
-    public function getPaymentMethods(string $salesChannelId = ''): array
+    public function getPaymentMethods(string $salesChannelId): array
     {
         // plugin doesn't configured, nothing to do
         if (empty($this->config->getTokenCode($salesChannelId))
@@ -115,7 +115,7 @@ class Api
         return Transaction::start($transactionInitialData);
     }
 
-    public function getTransaction(string $transactionId, string $salesChannelId = ''): ResultTransaction
+    public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
     {
         $this->setCredentials($salesChannelId);
 
@@ -296,8 +296,8 @@ class Api
     public function refund(
         string $transactionID,
         $amount,
-        string $description = '',
-        string $salesChannelId = ''
+        string $salesChannelId,
+        string $description = ''
     ): Result\Refund {
         if (!$this->config->isRefundAllowed($salesChannelId)) {
             $message = 'PAY-PLUGIN-001: Your did not activate refund option in plugin, check %s';

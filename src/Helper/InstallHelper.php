@@ -142,12 +142,10 @@ class InstallHelper
 
     public function updatePaymentMethods(Context $context): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods('');
-        if (empty($paynlPaymentMethods)) {
-            return;
+        foreach ($this->getSalesChannelIds($context) as $salesChannelId) {
+            $this->setSalesChannelId($salesChannelId);
+            $this->installPaymentMethods($context);
         }
-
-        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
     }
 
     public function addSinglePaymentMethod(Context $context): void
