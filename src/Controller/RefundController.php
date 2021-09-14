@@ -94,7 +94,7 @@ class RefundController extends AbstractController
 
         try {
             // TODO: need newer version of PAYNL/SDK
-            $this->paynlApi->refund($paynlTransactionId, $amount, $description, $salesChannelId);
+            $this->paynlApi->refund($paynlTransactionId, $amount, $salesChannelId, $description);
             $this->restock($products);
 
             $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);

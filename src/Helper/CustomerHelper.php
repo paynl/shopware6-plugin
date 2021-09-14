@@ -44,10 +44,10 @@ class CustomerHelper
      * @param CustomerEntity $customer
      * @return mixed[]
      */
-    public function formatAddresses(CustomerEntity $customer, SalesChannelContext $salesChannelContext): array
+    public function formatAddresses(CustomerEntity $customer, string $salesChannelId): array
     {
         $gender = 'M';
-        $femaleSalutations = $this->config->getFemaleSalutations($salesChannelContext->getSalesChannel()->getId());
+        $femaleSalutations = $this->config->getFemaleSalutations($salesChannelId);
         /** @var SalutationEntity $salutation */
         $salutation = $customer->getSalutation();
         if (in_array(trim($salutation->getSalutationKey()), $femaleSalutations)) {
@@ -67,8 +67,8 @@ class CustomerHelper
                 'name' => $customer->getDefaultBillingAddress()->getCompany(),
                 'vatNumber' => $this->getCustomerVatNumber($customer),
             ],
-            'address' => $this->getShippingAddress($customer, $salesChannelContext),
-            'invoiceAddress' => $this->getInvoiceAddress($customer, $gender, $salesChannelContext)
+            'address' => $this->getShippingAddress($customer, $salesChannelId),
+            'invoiceAddress' => $this->getInvoiceAddress($customer, $gender, $salesChannelId)
         ];
 
         $cocNumber = $customer->getDefaultBillingAddress()->getCustomFields()['cocNumber'] ?? null;
@@ -147,7 +147,7 @@ class CustomerHelper
      * @param CustomerEntity $customer
      * @return mixed[]
      */
-    private function getShippingAddress(CustomerEntity $customer, SalesChannelContext $salesChannelContext): array
+    private function getShippingAddress(CustomerEntity $customer, string $salesChannelId): array
     {
         $houseNumberExtension = '';
         /** @var CustomerAddressEntity $customerShippingAddress */
@@ -155,7 +155,7 @@ class CustomerHelper
         /** @var CountryEntity $country */
         $country = $customerShippingAddress->getCountry();
         $street = $customerShippingAddress->getStreet();
-        if (!$this->config->getUseAdditionalAddressFields($salesChannelContext->getSalesChannel()->getId())) {
+        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
@@ -180,18 +180,15 @@ class CustomerHelper
      * @param string $gender
      * @return mixed[]
      */
-    private function getInvoiceAddress(
-        CustomerEntity $customer,
-        string $gender,
-        SalesChannelContext $salesChannelContext
-    ): array {
+    private function getInvoiceAddress(CustomerEntity $customer, string $gender, string $salesChannelId): array
+    {
         $houseNumberExtension = '';
         /** @var CustomerAddressEntity $customerBillingAddress */
         $customerBillingAddress = $customer->getDefaultBillingAddress();
         /** @var CountryEntity $country */
         $country = $customerBillingAddress->getCountry();
         $street = $customerBillingAddress->getStreet();
-        if (!$this->config->getUseAdditionalAddressFields($salesChannelContext->getSalesChannel()->getId())) {
+        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';

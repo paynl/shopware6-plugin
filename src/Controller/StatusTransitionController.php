@@ -74,11 +74,14 @@ class StatusTransitionController extends AbstractController
                 )
                 ->first();
 
+            $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+
             if ($paynlTransaction instanceof PaynlTransactionEntity) {
                 $this->processingHelper->processChangePaynlStatus(
                     $paynlTransaction->getId(),
                     $paynlTransaction->getPaynlTransactionId(),
-                    $currentActionName
+                    $currentActionName,
+                    $salesChannelId
                 );
             }
 

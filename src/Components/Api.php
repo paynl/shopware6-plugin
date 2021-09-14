@@ -126,7 +126,7 @@ class Api
      * @param AsyncPaymentTransactionStruct $transaction
      * @param SalesChannelContext $salesChannelContext
      * @param string $exchangeUrl
-     * @param string $showareVersion
+     * @param string $shopwareVersion
      * @param string $pluginVersion
      * @return mixed[]
      */
@@ -134,15 +134,15 @@ class Api
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $exchangeUrl,
-        string $showareVersion,
+        string $shopwareVersion,
         string $pluginVersion
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $salesChannelId = $salesChannelContext->getSalesChannelId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        $testMode = $this->config->getTestMode($salesChannelContext->getSalesChannelId());
+        $testMode = $this->config->getTestMode($salesChannelId);
         $returnUrl = $transaction->getReturnUrl();
         $orderNumber = $transaction->getOrder()->getOrderNumber();
         $transactionInitialData = [
@@ -164,7 +164,7 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
+            'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
         ];
 
         $customer = $salesChannelContext->getCustomer();
@@ -187,15 +187,15 @@ class Api
         }
 
         if ($customer instanceof CustomerEntity) {
-            $addresses = $this->customerHelper->formatAddresses($customer, $salesChannelContext);
+            $addresses = $this->customerHelper->formatAddresses($customer, $salesChannelId);
             $transactionInitialData = array_merge($transactionInitialData, $addresses);
         }
 
-        if ($this->config->getSinglePaymentMethodInd($salesChannelContext->getSalesChannelId())) {
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             unset($transactionInitialData['paymentMethod']);
         }
 
-        if ($this->config->getPaymentScreenLanguage($salesChannelContext->getSalesChannelId())) {
+        if ($this->config->getPaymentScreenLanguage($salesChannelId)) {
             $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($transaction->getOrder());
         }
 
@@ -309,7 +309,7 @@ class Api
 
             throw new \Exception(sprintf($message, $url));
         }
-        $this->setCredentials();
+        $this->setCredentials($salesChannelId);
 
         try {
             return \Paynl\Transaction::refund($transactionID, $amount, $description);

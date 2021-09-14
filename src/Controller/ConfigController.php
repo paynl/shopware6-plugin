@@ -112,8 +112,7 @@ class ConfigController extends AbstractController
     private function installPaymentMethodsSalesChannels(Context $context, array $salesChannels)
     {
         foreach ($salesChannels as $salesChannelId) {
-            $this->installHelper->setSalesChannelId($salesChannelId);
-            $this->installHelper->installPaymentMethods($context);
+            $this->installHelper->installPaymentMethods($salesChannelId, $context);
             $this->installHelper->activatePaymentMethods($context);
         }
     }
@@ -126,57 +125,18 @@ class ConfigController extends AbstractController
             : [$salesChannelId];
 
         foreach ($salesChannelsIds as $salesChannelId) {
-            $this->installHelper->setSalesChannelId($salesChannelId);
-
             if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
-                $this->installHelper->addSinglePaymentMethod($context);
-                $this->installHelper->setDefaultPaymentMethod(
-                    $context,
-                    md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID)
-                );
+                $this->installHelper->addSinglePaymentMethod($salesChannelId, $context);
+
+                $paymentMethodId = md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID);
+                $this->installHelper->setDefaultPaymentMethod($salesChannelId, $context, $paymentMethodId);
 
                 continue;
             }
 
-            $this->installHelper->removeSinglePaymentMethod($context);
+            $this->installHelper->removeSinglePaymentMethod($salesChannelId, $context);
         }
 
         return $this->json(['success' => true]);
-    }
-
-    private function getStoreSettingsResponseOld(Request $request, Context $context): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        if (empty($data['tokenCode']) || empty($data['apiToken']) || empty($data['serviceId'])) {
-            return $this->json([
-                'success' => false,
-                'message' => "paynlValidation.messages.emptyCredentialsError"
-            ]);
-        }
-
-        $isValidCredentials = $this->api->isValidCredentials($data['tokenCode'], $data['apiToken'], $data['serviceId']);
-        if ($isValidCredentials) {
-            $this->config->storeConfigData($data);
-
-            if ($this->config->getSinglePaymentMethodInd()) {
-                $this->installHelper->addSinglePaymentMethod($context);
-                $this->installHelper->setDefaultPaymentMethod(
-                    $context,
-                    md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID)
-                );
-            } else {
-                $this->installHelper->removeSinglePaymentMethod($context);
-            }
-
-            return $this->json([
-                'success' => true,
-                'message' => "paynlValidation.messages.settingsSavedSuccessfully"
-            ]);
-        }
-
-        return $this->json([
-            'success' => false,
-            'message' => "paynlValidation.messages.wrongCredentials"
-        ]);
     }
 }
