@@ -155,7 +155,8 @@ Component.register('paynl-plugin-settings', {
             this.isLoading = true;
 
             this.$refs.systemConfig.saveAll().then(() => {
-                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?? '';
+                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?
+                    this.$refs.systemConfig.currentSalesChannelId : '';
 
                 this.PaynlPaymentService.storeSettings({salesChannelId: salesChannelId})
                     .then(() => {
@@ -210,7 +211,8 @@ Component.register('paynl-plugin-settings', {
 
                 this.isInstallSuccessful = false;
 
-                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?? '';
+                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?
+                    this.$refs.systemConfig.currentSalesChannelId : '';
 
                 this.PaynlPaymentService.installPaymentMethods(salesChannelId)
                     .then((response) => {

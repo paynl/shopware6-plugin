@@ -25,9 +25,9 @@ class Config
 
     private function get(string $salesChannel, string $key)
     {
-        $this->configuration = $this->configReader->read($salesChannel);
+        $configuration = $this->configReader->read($salesChannel);
 
-        return $this->configuration->get(sprintf(self::CONFIG_TEMPLATE, $key), $this->configuration->get($key));
+        return $configuration->get(sprintf(self::CONFIG_TEMPLATE, $key), $configuration->get($key));
     }
 
     public function getTokenCode(string $salesChannelId): string
