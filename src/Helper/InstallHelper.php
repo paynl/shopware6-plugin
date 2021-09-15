@@ -14,14 +14,13 @@ use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
-use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\OrFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -258,41 +257,14 @@ class InstallHelper
      */
     private function removeOldMedia(string $salesChannelId, Context $context): void
     {
-        $paynlPaymentMethodsIds = array_values($this->getPaynlPaymentMethods($context)->getIds());
-        $criteria = new Criteria();
-        $orFilter = [];
-        foreach ($paynlPaymentMethodsIds as $paynlPaymentMethodId) {
-            $orFilter[] = new EqualsFilter('paymentMethodId', $paynlPaymentMethodId);
-        }
-        $criteria->addFilter(new OrFilter($orFilter));
-
-        $paymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context)->getData();
-        $salesChannelPaymentMethodIds = [];
-        foreach ($paymentMethodIds as $paymentMethod) {
-            if ($paymentMethod['sales_channel_id'] === $salesChannelId) {
-                $salesChannelPaymentMethodIds[] = $paymentMethod['payment_method_id'];
-            }
-        }
-
-        $paymentMethodIds = array_filter($paymentMethodIds, function ($value) use ($salesChannelId) {
-            if ($value['sales_channel_id'] === $salesChannelId) {
-                return false;
-            }
-
-            return true;
-        });
-
-        $paymentMethodIds = array_column($paymentMethodIds, 'payment_method_id');
-
-        $paymentMethodIdsForRemove = array_diff($salesChannelPaymentMethodIds, $paymentMethodIds);
-        if (empty($paymentMethodIdsForRemove)) {
+        $paymentMethodIdsForRemoveMedia = $this->getPaymentMethodsForRemoveMedia($salesChannelId, $context);
+        if (empty($paymentMethodIdsForRemoveMedia)) {
             return;
         }
 
-        $paymentMethods = $this->paymentMethodRepository->search(new Criteria($paymentMethodIdsForRemove), $context);
         $paymentMethodMediaIds = [];
         /** @var PaymentMethodEntity $paymentMethod */
-        foreach ($paymentMethods as $paymentMethod) {
+        foreach ($paymentMethodIdsForRemoveMedia as $paymentMethod) {
             if (!empty($paymentMethod->getMediaId())) {
                 $paymentMethodMediaIds[] = $paymentMethod->getMediaId();
             }
@@ -301,10 +273,38 @@ class InstallHelper
         $this->mediaHelper->removeOldMedia($context, $paymentMethodMediaIds);
     }
 
-    private function getPaynlPaymentMethods(Context $context)
+    private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context)
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addAssociation('salesChannels');
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context);
+
+        $orFilter = [];
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethods as $paymentMethod) {
+            /** @var SalesChannelEntity $salesChannel */
+            foreach ($paymentMethod->getSalesChannels() as $salesChannel) {
+                if ($salesChannel->getId() === $salesChannelId) {
+                    continue;
+                }
+                $orFilter[] = new EqualsFilter('id', $paymentMethod->getId());
+            }
+        }
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addAssociation('salesChannels');
+        $criteria->addFilter(
+            new NotFilter(
+                NotFilter::CONNECTION_OR,
+                $orFilter
+            )
+        );
+        $criteria->addFilter(
+            new EqualsFilter('salesChannels.id', $salesChannelId)
+        );
 
         return $this->paymentMethodRepository->search($criteria, $context);
     }
