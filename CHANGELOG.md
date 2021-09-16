@@ -1,3 +1,5 @@
+# 1.4.7
+
 # 1.4.6
 - Fixed editing profile template
 
