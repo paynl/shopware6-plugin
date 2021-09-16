@@ -18,6 +18,7 @@ use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
@@ -253,7 +254,6 @@ class InstallHelper
 
     /**
      * @param Context $context
-     * @TODO to refactor the method
      */
     private function removeOldMedia(string $salesChannelId, Context $context): void
     {
@@ -273,7 +273,7 @@ class InstallHelper
         $this->mediaHelper->removeOldMedia($context, $paymentMethodMediaIds);
     }
 
-    private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context)
+    private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
@@ -494,9 +494,12 @@ class InstallHelper
         if (empty($salesChannelId)) {
             return;
         }
+
+        // Filter for getting paynl payment methods by salesChannelId
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
-
+        $criteria->addAssociation('paymentMethod');
+        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', PaynlPaymentHandler::class));
 
         $salesChannelPaymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
         if (empty($salesChannelPaymentMethodIds)) {
@@ -513,12 +516,12 @@ class InstallHelper
         $this->paymentMethodSalesChannelRepository->delete(array_values($ids), $context);
     }
 
-    public function getSalesChannelIds(Context $context)
+    public function getSalesChannelIds(Context $context): ?EntitySearchResult
     {
         return $this->salesChannelRepository->search(new Criteria(), $context);
     }
 
-    private function getSalesChannelById(string $id, Context $context)
+    private function getSalesChannelById(string $id, Context $context): ?EntitySearchResult
     {
         return $this->salesChannelRepository->search(new Criteria([$id]), $context)->first();
     }
