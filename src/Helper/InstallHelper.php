@@ -521,7 +521,12 @@ class InstallHelper
         return $this->salesChannelRepository->search(new Criteria(), $context);
     }
 
-    private function getSalesChannelById(string $id, Context $context): ?EntitySearchResult
+    /**
+     * @param string $id
+     * @param Context $context
+     * @return mixed|null
+     */
+    private function getSalesChannelById(string $id, Context $context)
     {
         return $this->salesChannelRepository->search(new Criteria([$id]), $context)->first();
     }
