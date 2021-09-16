@@ -127,7 +127,7 @@ class InstallHelper
 
     public function updatePaymentMethods(Context $context): void
     {
-        foreach ($this->getSalesChannelIds($context) as $salesChannelId) {
+        foreach ($this->getSalesChannels($context)->getIds() as $salesChannelId) {
             $this->installPaymentMethods($salesChannelId, $context);
         }
     }
@@ -516,7 +516,7 @@ class InstallHelper
         $this->paymentMethodSalesChannelRepository->delete(array_values($ids), $context);
     }
 
-    public function getSalesChannelIds(Context $context): ?EntitySearchResult
+    public function getSalesChannels(Context $context): ?EntitySearchResult
     {
         return $this->salesChannelRepository->search(new Criteria(), $context);
     }

@@ -90,7 +90,7 @@ class ConfigController extends AbstractController
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
         $salesChannelId = $request->get('salesChannelId');
-        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannelIds($context)->getIds()
+        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
             : [$salesChannelId];
 
         if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
@@ -121,7 +121,7 @@ class ConfigController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $salesChannelId = $data['salesChannelId'] ?? '';
-        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannelIds($context)->getIds()
+        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
             : [$salesChannelId];
 
         foreach ($salesChannelsIds as $salesChannelId) {
