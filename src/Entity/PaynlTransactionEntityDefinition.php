@@ -68,8 +68,7 @@ class PaynlTransactionEntityDefinition extends EntityDefinition
                 'order',
                 'order_id',
                 OrderDefinition::class,
-                'id',
-                true
+                'id'
             ),
             new ManyToOneAssociationField(
                 'customer',

@@ -162,6 +162,7 @@ class RefundController extends AbstractController
     {
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
+        $criteria->addAssociation('order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }

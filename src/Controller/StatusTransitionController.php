@@ -69,7 +69,9 @@ class StatusTransitionController extends AbstractController
             /** @var PaynlTransactionEntity $paynlTransaction */
             $paynlTransaction = $this->paynlTransactionRepository
                 ->search(
-                    (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId)),
+                    (new Criteria())
+                        ->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId))
+                        ->addAssociation('order'),
                     Context::createDefaultContext()
                 )
                 ->first();
