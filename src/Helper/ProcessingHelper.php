@@ -352,6 +352,7 @@ class ProcessingHelper
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
         $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
+        $criteria->addAssociation('order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
