@@ -152,6 +152,9 @@ class InstallHelper
     public function removeSinglePaymentMethod(string $salesChannelId, Context $context): void
     {
         $singlePaymentMethod = $this->getSinglePaymentMethod($context);
+        if (empty($singlePaymentMethod)) {
+            return;
+        }
 
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
