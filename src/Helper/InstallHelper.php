@@ -75,7 +75,7 @@ class InstallHelper
         /** @var SystemConfigService $configService */
         $configService = $container->get(SystemConfigService::class);
         $this->configService = $configService;
-        $config = new Config($configService, new ConfigReader($configService));
+        $config = new Config(new ConfigReader($configService));
         /** @var EntityRepositoryInterface $customerAddressRepository */
         $customerAddressRepository = $container->get('customer_address.repository');
         /** @var EntityRepositoryInterface $customerRepository */
@@ -244,7 +244,7 @@ class InstallHelper
             $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
 
             $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
-            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodHashId, $salesChannelId);
+            $salesChannelData = $this->getSalesChannelsData($paymentMethodHashId, $salesChannelId, $context);
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
 
@@ -324,12 +324,10 @@ class InstallHelper
      * @param string $paymentMethodId
      * @return mixed[]
      */
-    private function getSalesChannelsData(Context $context, string $paymentMethodId, string $salesChannelId = ''): array
+    private function getSalesChannelsData(string $paymentMethodId, string $salesChannelId, Context $context): array
     {
         $criteria = new Criteria();
-        if (!empty($salesChannelId)) {
-            $criteria->addFilter(new EqualsFilter('id', $salesChannelId));
-        }
+        $criteria->addFilter(new EqualsFilter('id', $salesChannelId));
 
         $channelsIds = $this->salesChannelRepository->searchIds($criteria, $context)->getIds();
         $salesChannelsData = [];

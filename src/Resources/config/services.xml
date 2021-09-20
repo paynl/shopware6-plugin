@@ -33,7 +33,6 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Config">
-            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader"/>
         </service>
 

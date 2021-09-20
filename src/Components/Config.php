@@ -3,7 +3,6 @@
 namespace PaynlPayment\Shopware6\Components;
 
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReaderInterface;
-use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class Config
 {
@@ -14,12 +13,10 @@ class Config
     const SHOW_PHONE_FIELD_CONFIG_KEY = 'core.loginRegistration.showPhoneNumberField';
     const SHOW_DOB_FIELD_CONFIG_KEY = 'core.loginRegistration.showBirthdayField';
 
-    private $config;
     private $configReader;
 
-    public function __construct(SystemConfigService $systemConfigService, ConfigReaderInterface $configReader)
+    public function __construct(ConfigReaderInterface $configReader)
     {
-        $this->config = $systemConfigService;
         $this->configReader = $configReader;
     }
 
@@ -74,16 +71,6 @@ class Config
     public function getUseAdditionalAddressFields(string $salesChannelId): int
     {
         return (int)$this->get($salesChannelId, 'additionalAddressFields');
-    }
-
-    /**
-     * @param mixed[] $config
-     */
-    public function storeConfigData(array $config): void
-    {
-        foreach ($config as $configKey => $configValue) {
-            $this->config->set(sprintf(self::CONFIG_TEMPLATE, $configKey), $configValue);
-        }
     }
 
     public function getShowDescription(string $salesChannelId): string

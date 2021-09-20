@@ -93,7 +93,7 @@ class ConfigController extends AbstractController
         $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
             : [$salesChannelId];
 
-        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
+        if ($this->isSinglePaymentMethod($salesChannelsIds)) {
             return new JsonResponse([]);
         }
 
@@ -115,6 +115,17 @@ class ConfigController extends AbstractController
             $this->installHelper->installPaymentMethods($salesChannelId, $context);
             $this->installHelper->activatePaymentMethods($context);
         }
+    }
+
+    private function isSinglePaymentMethod(array $salesChannelsIds): bool
+    {
+        foreach ($salesChannelsIds as $salesChannelsId) {
+            if (!$this->config->getSinglePaymentMethodInd($salesChannelsId)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function getStoreSettingsResponse(Request $request, Context $context): JsonResponse
