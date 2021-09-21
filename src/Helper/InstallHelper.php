@@ -416,10 +416,6 @@ class InstallHelper
         $upsertData = [];
         /** @var PaymentMethodEntity $paymentMethod */
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            if ($active && $paymentMethod->getId() === md5(self::SINGLE_PAYMENT_METHOD_ID)) {
-                continue;
-            }
-
             $upsertData[] = [
                 'id' => $paymentMethod->getId(),
                 'active' => $active,
