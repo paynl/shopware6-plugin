@@ -57,12 +57,13 @@ class ProcessingHelper
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
+        $salesChannelId = $salesChannelContext->getSalesChannelId();
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),
             'orderId' => $transaction->getOrder()->getId(),
             'orderTransactionId' => $transaction->getOrderTransaction()->getId(),
-            'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId),
+            'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId),
             'amount' => $transaction->getOrder()->getAmountTotal(),
             'latestActionName' => StateMachineTransitionActions::ACTION_REOPEN,
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
@@ -74,9 +75,9 @@ class ProcessingHelper
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
     }
 
-    public function getPaynlApiTransaction(string $transactionId): ResultTransaction
+    public function getPaynlApiTransaction(string $transactionId, string $salesChannelId): ResultTransaction
     {
-        return $this->paynlApi->getTransaction($transactionId);
+        return $this->paynlApi->getTransaction($transactionId, $salesChannelId);
     }
 
     /**
@@ -85,8 +86,9 @@ class ProcessingHelper
      */
     public function notifyActionUpdateTransactionByPaynlTransactionId(string $paynlTransactionId): string
     {
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId);
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
+        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
         $apiTransactionData = $paynlApiTransaction->getData();
@@ -107,7 +109,11 @@ class ProcessingHelper
     public function returnUrlActionUpdateTransactionByOrderId(string $orderId): void
     {
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByOrderId($orderId);
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionEntity->getPaynlTransactionId());
+
+        $paynlTransactionId = $paynlTransactionEntity->getPaynlTransactionId();
+        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
+
+        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
     }
@@ -121,7 +127,9 @@ class ProcessingHelper
     {
         /** @var PaynlTransactionEntity $transactionEntity */
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId);
+        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
+
+        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
     }
@@ -147,12 +155,17 @@ class ProcessingHelper
      * @param string $paynlId
      * @param string $paynlTransactionId
      * @param string $currentActionName
+     * @param string $salesChannelId
      * @return void
      * @throws \Paynl\Error\Error
      */
-    public function processChangePaynlStatus(string $paynlId, string $paynlTransactionId, string $currentActionName): void
-    {
-        $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId);
+    public function processChangePaynlStatus(
+        string $paynlId,
+        string $paynlTransactionId,
+        string $currentActionName,
+        string $salesChannelId
+    ): void {
+        $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
         if ($paynlTransaction->isBeingVerified()
             && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
             $this->updatePaynlTransactionStatus(
@@ -326,6 +339,7 @@ class ProcessingHelper
     {
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
+        $criteria->addAssociation('order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
@@ -338,6 +352,7 @@ class ProcessingHelper
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
         $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
+        $criteria->addAssociation('order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }

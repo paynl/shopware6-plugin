@@ -89,13 +89,16 @@ class ConfigController extends AbstractController
 
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
-        if ($this->config->getSinglePaymentMethodInd()) {
+        $salesChannelId = $request->get('salesChannelId');
+        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
+            : [$salesChannelId];
+
+        if ($this->isSinglePaymentMethod($salesChannelsIds)) {
             return new JsonResponse([]);
         }
 
         try {
-            $this->installHelper->addPaymentMethods($context);
-            $this->installHelper->activatePaymentMethods($context);
+            $this->installPaymentMethodsSalesChannels($context, $salesChannelsIds);
 
             return $this->json([
                 'success' => true,
@@ -106,39 +109,45 @@ class ConfigController extends AbstractController
         }
     }
 
+    private function installPaymentMethodsSalesChannels(Context $context, array $salesChannels)
+    {
+        foreach ($salesChannels as $salesChannelId) {
+            $this->installHelper->installPaymentMethods($salesChannelId, $context);
+            $this->installHelper->activatePaymentMethods($context);
+        }
+    }
+
+    private function isSinglePaymentMethod(array $salesChannelsIds): bool
+    {
+        foreach ($salesChannelsIds as $salesChannelsId) {
+            if (!$this->config->getSinglePaymentMethodInd($salesChannelsId)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private function getStoreSettingsResponse(Request $request, Context $context): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (empty($data['tokenCode']) || empty($data['apiToken']) || empty($data['serviceId'])) {
-            return $this->json([
-                'success' => false,
-                'message' => "paynlValidation.messages.emptyCredentialsError"
-            ]);
-        }
+        $salesChannelId = $data['salesChannelId'] ?? '';
+        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
+            : [$salesChannelId];
 
-        $isValidCredentials = $this->api->isValidCredentials($data['tokenCode'], $data['apiToken'], $data['serviceId']);
-        if ($isValidCredentials) {
-            $this->config->storeConfigData($data);
+        foreach ($salesChannelsIds as $salesChannelId) {
+            if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
+                $this->installHelper->addSinglePaymentMethod($salesChannelId, $context);
 
-            if ($this->config->getSinglePaymentMethodInd()) {
-                $this->installHelper->addSinglePaymentMethod($context);
-                $this->installHelper->setDefaultPaymentMethod(
-                    $context,
-                    md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID)
-                );
-            } else {
-                $this->installHelper->removeSinglePaymentMethod($context);
+                $paymentMethodId = md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID);
+                $this->installHelper->setDefaultPaymentMethod($salesChannelId, $context, $paymentMethodId);
+
+                continue;
             }
 
-            return $this->json([
-                'success' => true,
-                'message' => "paynlValidation.messages.settingsSavedSuccessfully"
-            ]);
+            $this->installHelper->removeSinglePaymentMethod($salesChannelId, $context);
         }
 
-        return $this->json([
-            'success' => false,
-            'message' => "paynlValidation.messages.wrongCredentials"
-        ]);
+        return $this->json(['success' => true]);
     }
 }
