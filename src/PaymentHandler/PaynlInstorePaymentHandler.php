@@ -8,16 +8,11 @@ use Exception;
 use Paynl\Result\Instore\Payment;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
-use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
@@ -45,11 +40,9 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
     }
 
     /**
-     * @param AsyncPaymentTransactionStruct $transaction
+     * @param SyncPaymentTransactionStruct $transaction
      * @param RequestDataBag $dataBag
      * @param SalesChannelContext $salesChannelContext
-     * @return RedirectResponse
-     * @throws AsyncPaymentProcessException
      * @throws Throwable
      */
     public function pay(
@@ -64,16 +57,11 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
             $hash = $instoreResult->getHash();
 
             for ($i = 0; $i < 60; $i++) {
-                sleep(5);
                 $status = \Paynl\Instore::status(['hash' => $hash]);
-                $status = 'approved';
-//                if ($status->getTransactionState() != 'init') {
-                if ($status != 'init') {
-                    switch ($status) {
-//                    switch ($status->getTransactionState()) {
+                if ($status->getTransactionState() != 'init') {
+                    switch ($status->getTransactionState()) {
                         case 'approved':
                             return;
-                            break;
                         case 'cancelled':
                         case 'expired':
                         case 'error':
@@ -81,14 +69,10 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
                     }
                 }
 
-                dump($status->getData());
-
                 sleep(1);
             }
-            dd('test');
 
         } catch (Exception $e) {
-            dd($e);
             throw new SyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
@@ -115,11 +99,9 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
                 $this->shopwareVersion,
                 $this->getPluginVersionFromComposer(),
             );
-            dump($paynlTransaction);
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
-            dump($exception);
             $this->processingHelper->storePaynlTransactionData(
                 $order,
                 $orderTransaction,
