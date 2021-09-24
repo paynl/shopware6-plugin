@@ -2,6 +2,7 @@ const { Component, Mixin } = Shopware;
 const { object, types } = Shopware.Utils;
 
 import template from './paynl-plugin-settings.html.twig';
+import './style.scss';
 
 Component.register('paynl-plugin-settings', {
     template,
@@ -50,7 +51,11 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: null,
                 femaleSalutations: null,
                 paymentScreenLanguage: null,
-            }
+                paymentInstoreTerminal: null
+            },
+            collapsibleState: {
+                'payment_instore': true,
+            },
         };
     },
 
@@ -79,6 +84,30 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
+        isCollapsible(card) {
+            return card.name in this.collapsibleState;
+        },
+
+        displayField(element, config, card) {
+            if (!(card.name in this.collapsibleState)) {
+                return true;
+            }
+
+            return !this.collapsibleState[card.name];
+        },
+
+        isCollapsed(card) {
+            return this.collapsibleState[card.name];
+        },
+
+        toggleCollapsible(card) {
+            if (!(card.name in this.collapsibleState)) {
+                return;
+            }
+
+            this.collapsibleState[card.name] = !this.collapsibleState[card.name];
+        },
+
         saveFinish() {
             this.isSaveSuccessful = false;
         },
@@ -128,6 +157,7 @@ Component.register('paynl-plugin-settings', {
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
                 paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
+                paymentInstoreTerminal: this.config['PaynlPaymentShopware6.settings.paymentInstoreTerminal'],
             };
 
             this.showCredentilasErrors = false;
