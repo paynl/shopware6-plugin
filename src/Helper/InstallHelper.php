@@ -112,6 +112,7 @@ class InstallHelper
 
     public function addPaymentMethods(Context $context): void
     {
+        dd($this->paynlApi->getTerminals());
         $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
         if (empty($paynlPaymentMethods)) {
             throw new PaynlPaymentException("Cannot get any payment method.");

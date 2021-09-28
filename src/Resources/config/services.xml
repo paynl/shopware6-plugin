@@ -64,6 +64,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields" >
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
         </service>
 
         <!--Payment handler-->

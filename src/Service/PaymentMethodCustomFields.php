@@ -2,6 +2,8 @@
 
 namespace PaynlPayment\Shopware6\Service;
 
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\PaymentHandler\PaynlInstorePaymentHandler;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Storefront\Page\PageLoadedEvent;
 
@@ -11,8 +13,17 @@ class PaymentMethodCustomFields
     const DISPLAY_BANKS_FIELD = 'displayBanks';
     const IS_PAY_LATER_FIELD = 'isPayLater';
     const HAS_ADDITIONAL_INFO_INPUT_FIELD = 'hasAdditionalInfoInput';
+    const TERMINALS = 'terminals';
+
+    private $paynlApi;
 
     private $customFields;
+
+    public function __construct(Api $api)
+    {
+        $this->paynlApi = $api;
+    }
+
 
     public function getCustomField(string $name)
     {
@@ -41,6 +52,7 @@ class PaymentMethodCustomFields
             return;
         }
 
+
         $pageData = $event->getPage()->getVars();
         $isBirthdayExists = $pageData['isBirthdayExists'] ?? true;
         $isPhoneNumberExists = $pageData['isPhoneNumberExists'] ?? true;
@@ -51,5 +63,17 @@ class PaymentMethodCustomFields
 
         $hasAdditionalInfoInput = $isPaymentDisplayBanks || $hasPaymentLaterInputs;
         $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasAdditionalInfoInput);
+
+        $this->generateInstoreTerminals($paymentMethod);
+    }
+
+    private function generateInstoreTerminals(PaymentMethodEntity $paymentMethod): void
+    {
+        if ($paymentMethod->getHandlerIdentifier() !== PaynlInstorePaymentHandler::class) {
+            return;
+        }
+
+        $terminals = $this->paynlApi->getTerminals();
+        $this->setCustomField(self::TERMINALS, $terminals);
     }
 }

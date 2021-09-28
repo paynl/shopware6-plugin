@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Components;
 
 use Paynl\Config as SDKConfig;
+use Paynl\Instore;
 use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
@@ -90,7 +91,7 @@ class Api
 
     private function setCredentials(): void
     {
-        SDKConfig::setApiBase('https://fake-api.pisp.me');
+//        SDKConfig::setApiBase('https://fake-api.pisp.me');
         SDKConfig::setTokenCode($this->config->getTokenCode());
         SDKConfig::setApiToken($this->config->getApiToken());
         SDKConfig::setServiceId($this->config->getServiceId());
@@ -331,5 +332,12 @@ class Api
         } catch (Exception $exception) {
             return false;
         }
+    }
+
+    public function getTerminals(): array
+    {
+        $this->setCredentials();
+
+        return (array)Instore::getAllTerminals()->getList();
     }
 }
