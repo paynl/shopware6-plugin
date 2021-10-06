@@ -1,4 +1,6 @@
 # 1.4.7
+- Added the multichannel support
+- Removed the save button for IDEAL payment method
 
 # 1.4.6
 - Fixed editing profile template
