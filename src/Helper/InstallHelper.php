@@ -5,6 +5,7 @@ namespace PaynlPayment\Shopware6\Helper;
 use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -13,13 +14,14 @@ use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
-use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -73,7 +75,7 @@ class InstallHelper
         /** @var SystemConfigService $configService */
         $configService = $container->get(SystemConfigService::class);
         $this->configService = $configService;
-        $config = new Config($configService);
+        $config = new Config(new ConfigReader($configService));
         /** @var EntityRepositoryInterface $customerAddressRepository */
         $customerAddressRepository = $container->get('customer_address.repository');
         /** @var EntityRepositoryInterface $customerRepository */
@@ -105,51 +107,65 @@ class InstallHelper
         $this->mediaHelper = new MediaHelper($container);
     }
 
-    public function addPaymentMethods(Context $context): void
+    public function installPaymentMethods(string $salesChannelId, Context $context): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
-        if (empty($paynlPaymentMethods)) {
-            throw new PaynlPaymentException("Cannot get any payment method.");
+        if (empty($salesChannelId)
+            || empty($this->getSalesChannelById($salesChannelId, $context))
+        ) {
+            throw new PaynlPaymentException('Sales channel is empty');
+        }
+        $this->removeOldMedia($salesChannelId, $context);
+
+        $paymentMethods = $this->paynlApi->getPaymentMethods($salesChannelId);
+        if (empty($paymentMethods)) {
+            throw new PaynlPaymentException('Cannot get any payment method.');
         }
 
-        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
+        $this->deleteSalesChannelPaymentMethods($salesChannelId, $context);
+        $this->upsertPaymentMethods($paymentMethods, $salesChannelId, $context);
     }
 
     public function updatePaymentMethods(Context $context): void
     {
-        $paynlPaymentMethods = $this->paynlApi->getPaymentMethods();
-        if (empty($paynlPaymentMethods)) {
+        foreach ($this->getSalesChannels($context)->getIds() as $salesChannelId) {
+            $this->installPaymentMethods($salesChannelId, $context);
+        }
+    }
+
+    public function addSinglePaymentMethod(string $salesChannelId, Context $context): void
+    {
+        $this->deleteSalesChannelPaymentMethods($salesChannelId, $context);
+        $this->updateSinglePaymentMethod($context, true);
+
+        $paymentMethodData[] = [
+            API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
+            API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
+            API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
+            API::PAYMENT_METHOD_BRAND => [
+                API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
+            ]
+        ];
+
+        $this->upsertPaymentMethods($paymentMethodData, $salesChannelId, $context);
+    }
+
+    public function removeSinglePaymentMethod(string $salesChannelId, Context $context): void
+    {
+        $singlePaymentMethod = $this->getSinglePaymentMethod($context);
+        if (empty($singlePaymentMethod)) {
             return;
         }
 
-        $this->upsertPaymentMethods($paynlPaymentMethods, $context);
-    }
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
+        $criteria->addFilter(new EqualsFilter('paymentMethodId', $singlePaymentMethod->getId()));
 
-    public function addSinglePaymentMethod(Context $context): void
-    {
-        $this->switchAllPaymentMethods($context, false);
-        $update = $this->updateSinglePaymentMethod($context, true);
+        $salesChannelSinglePaymentMethod = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
+        $isSalesChannelSinglePaymentMethodExist = (bool)$salesChannelSinglePaymentMethod->getIds();
 
-        if (!$update) {
-            $paymentMethodData[] = [
-                API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
-                API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
-                API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
-                API::PAYMENT_METHOD_BRAND => [
-                    API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
-                ]
-            ];
-
-            $this->upsertPaymentMethods($paymentMethodData, $context);
-        }
-    }
-
-    public function removeSinglePaymentMethod(Context $context): void
-    {
-        $update = $this->updateSinglePaymentMethod($context, false);
-
-        if ($update) {
-            $this->switchAllPaymentMethods($context, true);
+        //add payment methods for sales channel
+        if ($isSalesChannelSinglePaymentMethodExist) {
+            $this->installPaymentMethods($salesChannelId, $context);
         }
     }
 
@@ -174,9 +190,11 @@ class InstallHelper
         return true;
     }
 
-    public function setDefaultPaymentMethod(Context $context, ?string $paymentMethodId = null): void
-    {
-        $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
+    public function setDefaultPaymentMethod(
+        string $salesChannelId,
+        Context $context,
+        ?string $paymentMethodId = null
+    ): void {
         $salesChannelsToUpdate = [];
 
         if ($paymentMethodId === null) {
@@ -199,44 +217,27 @@ class InstallHelper
             $paymentMethodId = $paymentMethod->getId();
         }
 
-        /** @var SalesChannelEntity $salesChannel */
-        foreach ($salesChannels as $salesChannel) {
-            $salesChannelsToUpdate[] = [
-                'id' => $salesChannel->getId(),
-                'paymentMethodId'=> $paymentMethodId
-            ];
-        }
+        $salesChannelsToUpdate[] = [
+            'id' => $salesChannelId,
+            'paymentMethodId'=> $paymentMethodId
+        ];
 
         $this->salesChannelRepository->upsert($salesChannelsToUpdate, $context);
     }
 
-    private function switchAllPaymentMethods(Context $context, bool $active): void
+    private function getSinglePaymentMethod(Context $context): ?PaymentMethodEntity
     {
-        /** @var PaymentMethodCollection $paymentMethods */
-        $paymentMethods = $this->paymentMethodRepository->search(new Criteria(), $context);
-        $paymentMethodsNewData = [];
-
-        /** @var PaymentMethodEntity $paymentMethod */
-        foreach ($paymentMethods as $paymentMethod) {
-            if ($paymentMethod->getId() === md5(self::SINGLE_PAYMENT_METHOD_ID)) {
-                continue;
-            }
-
-            $paymentMethodsNewData[] = [
-                'id' => $paymentMethod->getId(),
-                'active' => $active
-            ];
-        }
-
-        $this->paymentMethodRepository->update($paymentMethodsNewData, $context);
+        return $this->paymentMethodRepository->search(
+            new Criteria([md5(self::SINGLE_PAYMENT_METHOD_ID)]),
+            $context
+        )->first();
     }
 
-    private function upsertPaymentMethods(array $paynlPaymentMethods, Context $context): void
+    private function upsertPaymentMethods(array $paynlPaymentMethods, string $salesChannelId, Context $context): void
     {
         $paymentMethods = [];
         $salesChannelsData = [];
 
-        $this->mediaHelper->removeOldMedia($context);
         foreach ($paynlPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
@@ -244,12 +245,71 @@ class InstallHelper
                 $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
             }
             $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-            $salesChannelData = $this->getSalesChannelsData($context, $paymentMethodValueObject->getHashedId());
+
+            $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
+            $salesChannelData = $this->getSalesChannelsData($paymentMethodHashId, $salesChannelId, $context);
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
 
         $this->paymentMethodRepository->upsert($paymentMethods, $context);
         $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
+    }
+
+    /**
+     * @param Context $context
+     */
+    private function removeOldMedia(string $salesChannelId, Context $context): void
+    {
+        $paymentMethodIdsForRemoveMedia = $this->getPaymentMethodsForRemoveMedia($salesChannelId, $context);
+        if (empty($paymentMethodIdsForRemoveMedia)) {
+            return;
+        }
+
+        $paymentMethodMediaIds = [];
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethodIdsForRemoveMedia as $paymentMethod) {
+            if (!empty($paymentMethod->getMediaId())) {
+                $paymentMethodMediaIds[] = $paymentMethod->getMediaId();
+            }
+        }
+
+        $this->mediaHelper->removeOldMedia($context, $paymentMethodMediaIds);
+    }
+
+    private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addAssociation('salesChannels');
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context);
+
+        $orFilter = [];
+        /** @var PaymentMethodEntity $paymentMethod */
+        foreach ($paymentMethods as $paymentMethod) {
+            /** @var SalesChannelEntity $salesChannel */
+            foreach ($paymentMethod->getSalesChannels() as $salesChannel) {
+                if ($salesChannel->getId() === $salesChannelId) {
+                    continue;
+                }
+                $orFilter[] = new EqualsFilter('id', $paymentMethod->getId());
+            }
+        }
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addAssociation('salesChannels');
+        $criteria->addFilter(
+            new NotFilter(
+                NotFilter::CONNECTION_OR,
+                $orFilter
+            )
+        );
+        $criteria->addFilter(
+            new EqualsFilter('salesChannels.id', $salesChannelId)
+        );
+
+        return $this->paymentMethodRepository->search($criteria, $context);
     }
 
     private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
@@ -267,9 +327,12 @@ class InstallHelper
      * @param string $paymentMethodId
      * @return mixed[]
      */
-    private function getSalesChannelsData(Context $context, string $paymentMethodId): array
+    private function getSalesChannelsData(string $paymentMethodId, string $salesChannelId, Context $context): array
     {
-        $channelsIds = $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds();
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('id', $salesChannelId));
+
+        $channelsIds = $this->salesChannelRepository->searchIds($criteria, $context)->getIds();
         $salesChannelsData = [];
         foreach ($channelsIds as $channelId) {
             $salesChannelsData[] = [
@@ -328,7 +391,7 @@ class InstallHelper
 
     public function removePaymentMethodsMedia(Context $context): void
     {
-        $this->mediaHelper->removeOldMedia($context);
+        $this->mediaHelper->removeOldMediaAll($context);
     }
 
     public function removeConfigurationData(Context $context): void
@@ -353,10 +416,6 @@ class InstallHelper
         $upsertData = [];
         /** @var PaymentMethodEntity $paymentMethod */
         foreach ($paynlPaymentMethods as $paymentMethod) {
-            if ($active && $paymentMethod->getId() === md5(self::SINGLE_PAYMENT_METHOD_ID)) {
-                continue;
-            }
-
             $upsertData[] = [
                 'id' => $paymentMethod->getId(),
                 'active' => $active,
@@ -425,5 +484,47 @@ class InstallHelper
             'to_state_id' => $stateMachineStateRefundingId,
             'from_state_id' => $stateMachineStateRefundingId
         ]);
+    }
+
+    private function deleteSalesChannelPaymentMethods(string $salesChannelId, Context $context): void
+    {
+        if (empty($salesChannelId)) {
+            return;
+        }
+
+        // Filter for getting paynl payment methods by salesChannelId
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
+        $criteria->addAssociation('paymentMethod');
+        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', PaynlPaymentHandler::class));
+
+        $salesChannelPaymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
+        if (empty($salesChannelPaymentMethodIds)) {
+            return;
+        }
+
+        $ids = array_map(function ($element) {
+            return [
+                'salesChannelId' => $element['sales_channel_id'],
+                'paymentMethodId' => $element['payment_method_id']
+            ];
+        }, $salesChannelPaymentMethodIds->getData());
+
+        $this->paymentMethodSalesChannelRepository->delete(array_values($ids), $context);
+    }
+
+    public function getSalesChannels(Context $context): ?EntitySearchResult
+    {
+        return $this->salesChannelRepository->search(new Criteria(), $context);
+    }
+
+    /**
+     * @param string $id
+     * @param Context $context
+     * @return mixed|null
+     */
+    private function getSalesChannelById(string $id, Context $context)
+    {
+        return $this->salesChannelRepository->search(new Criteria([$id]), $context)->first();
     }
 }

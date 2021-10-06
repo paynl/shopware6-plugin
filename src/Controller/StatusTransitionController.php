@@ -69,16 +69,21 @@ class StatusTransitionController extends AbstractController
             /** @var PaynlTransactionEntity $paynlTransaction */
             $paynlTransaction = $this->paynlTransactionRepository
                 ->search(
-                    (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId)),
+                    (new Criteria())
+                        ->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId))
+                        ->addAssociation('order'),
                     Context::createDefaultContext()
                 )
                 ->first();
+
+            $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 
             if ($paynlTransaction instanceof PaynlTransactionEntity) {
                 $this->processingHelper->processChangePaynlStatus(
                     $paynlTransaction->getId(),
                     $paynlTransaction->getPaynlTransactionId(),
-                    $currentActionName
+                    $currentActionName,
+                    $salesChannelId
                 );
             }
 

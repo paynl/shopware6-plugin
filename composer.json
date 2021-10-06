@@ -1,7 +1,7 @@
 {
     "name": "paynl/shopware6-plugin",
     "description": "Pay.nl Shopware Plugin",
-    "version": "v1.4.6",
+    "version": "v1.4.7",
     "type": "shopware-platform-plugin",
     "extra": {
         "shopware-plugin-class": "PaynlPayment\\Shopware6\\PaynlPaymentShopware6",
