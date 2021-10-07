@@ -2,7 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Components;
 
-use Shopware\Core\System\SystemConfig\SystemConfigService;
+use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReaderInterface;
 
 class Config
 {
@@ -13,91 +13,73 @@ class Config
     const SHOW_PHONE_FIELD_CONFIG_KEY = 'core.loginRegistration.showPhoneNumberField';
     const SHOW_DOB_FIELD_CONFIG_KEY = 'core.loginRegistration.showBirthdayField';
 
-    private $config;
+    private $configReader;
 
-    public function __construct(SystemConfigService $systemConfigService)
+    public function __construct(ConfigReaderInterface $configReader)
     {
-        $this->config = $systemConfigService;
+        $this->configReader = $configReader;
     }
 
-    /**
-     * @param string $key
-     * @param mixed $defaultValue
-     * @return array|mixed|null
-     */
-    private function get(string $key, $defaultValue = null)
+    private function get(string $salesChannel, string $key)
     {
-        $value = $this->config->get(sprintf(self::CONFIG_TEMPLATE, $key));
-        if (is_null($value) && !is_null($defaultValue)) {
-            return $defaultValue;
-        }
+        $configuration = $this->configReader->read($salesChannel);
 
-        return $value;
+        return $configuration->get(sprintf(self::CONFIG_TEMPLATE, $key), $configuration->get($key));
     }
 
-    public function getTokenCode(): string
+    public function getTokenCode(string $salesChannelId): string
     {
-        return (string)$this->get('tokenCode');
+        return (string)$this->get($salesChannelId, 'tokenCode');
     }
 
-    public function getApiToken(): string
+    public function getApiToken(string $salesChannelId): string
     {
-        return (string)$this->get('apiToken');
+        return (string)$this->get($salesChannelId, 'apiToken');
     }
 
-    public function getServiceId(): string
+    public function getServiceId(string $salesChannelId): string
     {
-        return (string)$this->get('serviceId');
+        return (string)$this->get($salesChannelId, 'serviceId');
     }
 
-    public function getSinglePaymentMethodInd(): bool
+    public function getSinglePaymentMethodInd(string $salesChannelId): bool
     {
-        return (bool)$this->get('useSinglePaymentMethod');
+        return (bool)$this->get($salesChannelId,'useSinglePaymentMethod');
     }
 
-    public function getTestMode(): int
+    public function getTestMode(string $salesChannelId): int
     {
-        return (int)$this->get('testMode');
+        return (int)$this->get($salesChannelId, 'testMode');
     }
 
-    public function isRefundAllowed(): bool
+    public function isRefundAllowed(string $salesChannelId): bool
     {
-        return (bool)$this->get('allowRefunds', false);
+        return (bool)$this->get($salesChannelId, 'allowRefunds');
     }
 
     /**
      * @return string[]
      */
-    public function getFemaleSalutations(): array
+    public function getFemaleSalutations(string $salesChannelId): array
     {
-        $salutations = $this->get('femaleSalutations', self::FEMALE_SALUTATIONS);
+        $salutations = $this->get($salesChannelId, 'femaleSalutations') ?: self::FEMALE_SALUTATIONS;
         $arrSalutations = explode(',', $salutations);
 
         return array_map('trim', $arrSalutations);
     }
 
-    public function getUseAdditionalAddressFields(): int
+    public function getUseAdditionalAddressFields(string $salesChannelId): int
     {
-        return (int)$this->get('additionalAddressFields');
+        return (int)$this->get($salesChannelId, 'additionalAddressFields');
     }
 
-    /**
-     * @param mixed[] $config
-     */
-    public function storeConfigData(array $config): void
+    public function getShowDescription(string $salesChannelId): string
     {
-        foreach ($config as $configKey => $configValue) {
-            $this->config->set(sprintf(self::CONFIG_TEMPLATE, $configKey), $configValue);
-        }
+        return $this->get($salesChannelId, 'showDescription') ?: 'show_payment_method_info';
     }
 
-    public function getShowDescription(): string
+    public function getPaymentScreenLanguage(string $salesChannelId): string
     {
-        return $this->get('showDescription', 'show_payment_method_info');
-    }
-
-    public function getPaymentScreenLanguage(): string
-    {
-        return $this->get('paymentScreenLanguage', '');
+        return (string)$this->get($salesChannelId, 'paymentScreenLanguage');
     }
 }

@@ -6,9 +6,9 @@ class PaynlPaymentService extends ApiService {
         super(httpClient, loginService, apiEndpoint);
     }
 
-    installPaymentMethods() {
+    installPaymentMethods(saleChannelId = '') {
         return this.httpClient
-            .get(`${this.getApiBasePath()}/install-payment-methods`, {headers: this.getBasicHeaders()})
+            .get(`${this.getApiBasePath()}/install-payment-methods?salesChannelId=${saleChannelId}`, {headers: this.getBasicHeaders()})
             .then((response) => {
                 return ApiService.handleResponse(response);
             });

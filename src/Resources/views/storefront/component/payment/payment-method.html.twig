@@ -50,11 +50,8 @@
                         {% if payment.translated.customFields.banks is not empty %}
                             {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
                             <div class="form-group">
-                                <select
-                                    class="form-control paynl-ideal-banks-select"
-                                    name="paynlIssuer"
-                                >
-                                    <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
+                                <select class="form-control paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlIssuer">
+                                    <option value="" {{ paynlIssuerSelected ?  'disabled="disabled"' : ''}}>{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                     {% for bank in payment.translated.customFields.banks %}
                                         <option value="{{ bank.id }}" {% if paynlIssuerSelected and bank.id is same as(paynlIssuerSelected)%} selected {% endif %}>{{ bank.visibleName }}</option>
                                     {% endfor %}

@@ -45,11 +45,9 @@ class PaymentMethodCustomFields
         $isBirthdayExists = $pageData['isBirthdayExists'] ?? true;
         $isPhoneNumberExists = $pageData['isPhoneNumberExists'] ?? true;
 
-        $isPaymentDisplayBanks = $this->getCustomField(self::DISPLAY_BANKS_FIELD);
         $isPaymentPayLater = $this->getCustomField(self::IS_PAY_LATER_FIELD);
         $hasPaymentLaterInputs = $isPaymentPayLater && (($isBirthdayExists && $isPhoneNumberExists) === false);
 
-        $hasAdditionalInfoInput = $isPaymentDisplayBanks || $hasPaymentLaterInputs;
-        $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasAdditionalInfoInput);
+        $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasPaymentLaterInputs);
     }
 }

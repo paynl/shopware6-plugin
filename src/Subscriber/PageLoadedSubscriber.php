@@ -31,22 +31,28 @@ class PageLoadedSubscriber implements EventSubscriberInterface
 
     public function onCheckoutConfirmPageLoaded(CheckoutConfirmPageLoadedEvent $checkoutConfirmPageLoadedEvent)
     {
+        $salesChannelId = $checkoutConfirmPageLoadedEvent->getSalesChannelContext()->getSalesChannel()->getId();
+
         $checkoutConfirmPageLoadedEvent->getPage()->assign([
-            'showDescription' => $this->config->getShowDescription()
+            'showDescription' => $this->config->getShowDescription($salesChannelId)
         ]);
     }
 
     public function onAccountPaymentMethodPageLoaded(AccountPaymentMethodPageLoadedEvent $accountPaymentMethodPageLoadedEvent)
     {
+        $salesChannelId = $accountPaymentMethodPageLoadedEvent->getSalesChannelContext()->getSalesChannel()->getId();
+
         $accountPaymentMethodPageLoadedEvent->getPage()->assign([
-            'showDescription' => $this->config->getShowDescription()
+            'showDescription' => $this->config->getShowDescription($salesChannelId)
         ]);
     }
 
     public function onAccountOrderEditPageLoaded(AccountEditOrderPageLoadedEvent $accountEditOrderPageLoadedEvent)
     {
+        $salesChannelId = $accountEditOrderPageLoadedEvent->getSalesChannelContext()->getSalesChannel()->getId();
+
         $accountEditOrderPageLoadedEvent->getPage()->assign([
-            'showDescription' => $this->config->getShowDescription()
+            'showDescription' => $this->config->getShowDescription($salesChannelId)
         ]);
     }
 }

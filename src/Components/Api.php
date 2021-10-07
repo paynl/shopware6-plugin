@@ -74,25 +74,25 @@ class Api
     /**
      * @return mixed[]
      */
-    public function getPaymentMethods(): array
+    public function getPaymentMethods(string $salesChannelId): array
     {
         // plugin doesn't configured, nothing to do
-        if (empty($this->config->getTokenCode())
-            || empty($this->config->getApiToken())
-            || empty($this->config->getServiceId())) {
+        if (empty($this->config->getTokenCode($salesChannelId))
+            || empty($this->config->getApiToken($salesChannelId))
+            || empty($this->config->getServiceId($salesChannelId))) {
             return [];
         }
 
-        $this->setCredentials();
+        $this->setCredentials($salesChannelId);
 
         return Paymentmethods::getList();
     }
 
-    private function setCredentials(): void
+    private function setCredentials(string $salesChannelId): void
     {
-        SDKConfig::setTokenCode($this->config->getTokenCode());
-        SDKConfig::setApiToken($this->config->getApiToken());
-        SDKConfig::setServiceId($this->config->getServiceId());
+        SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
+        SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
+        SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
     }
 
     public function startTransaction(
@@ -110,14 +110,14 @@ class Api
             $pluginVersion
         );
 
-        $this->setCredentials();
+        $this->setCredentials($salesChannelContext->getSalesChannelId());
 
         return Transaction::start($transactionInitialData);
     }
 
-    public function getTransaction(string $transactionId): ResultTransaction
+    public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
     {
-        $this->setCredentials();
+        $this->setCredentials($salesChannelId);
 
         return Transaction::get($transactionId);
     }
@@ -126,7 +126,7 @@ class Api
      * @param AsyncPaymentTransactionStruct $transaction
      * @param SalesChannelContext $salesChannelContext
      * @param string $exchangeUrl
-     * @param string $showareVersion
+     * @param string $shopwareVersion
      * @param string $pluginVersion
      * @return mixed[]
      */
@@ -134,14 +134,15 @@ class Api
         AsyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $exchangeUrl,
-        string $showareVersion,
+        string $shopwareVersion,
         string $pluginVersion
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId);
+        $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId);
         $amount = $transaction->getOrder()->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
-        $testMode = $this->config->getTestMode();
+        $testMode = $this->config->getTestMode($salesChannelId);
         $returnUrl = $transaction->getReturnUrl();
         $orderNumber = $transaction->getOrder()->getOrderNumber();
         $transactionInitialData = [
@@ -163,7 +164,7 @@ class Api
 
             // Products
             'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
-            'object' => sprintf('Shopware v%s %s', $showareVersion, $pluginVersion),
+            'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
         ];
 
         $customer = $salesChannelContext->getCustomer();
@@ -186,28 +187,28 @@ class Api
         }
 
         if ($customer instanceof CustomerEntity) {
-            $addresses = $this->customerHelper->formatAddresses($customer);
+            $addresses = $this->customerHelper->formatAddresses($customer, $salesChannelId);
             $transactionInitialData = array_merge($transactionInitialData, $addresses);
         }
 
-        if ($this->config->getSinglePaymentMethodInd()) {
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             unset($transactionInitialData['paymentMethod']);
         }
 
-        if ($this->config->getPaymentScreenLanguage()) {
+        if ($this->config->getPaymentScreenLanguage($salesChannelId)) {
             $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($transaction->getOrder());
         }
 
         return $transactionInitialData;
     }
 
-    public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId): int
+    public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId, string $salesChannelId): int
     {
-        if ($this->config->getSinglePaymentMethodInd()) {
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             return 0;
         }
 
-        $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId);
+        $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId, $salesChannelId);
         if (is_null($paynlPaymentMethod)) {
             throw new PaynlPaymentException('Could not detect payment method.');
         }
@@ -222,9 +223,9 @@ class Api
      * @param string $shopwarePaymentMethodId
      * @return mixed[]|null
      */
-    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId): ?array
+    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId, string $salesChannelId): ?array
     {
-        $paymentMethods = $this->getPaymentMethods();
+        $paymentMethods = $this->getPaymentMethods($salesChannelId);
         foreach ($paymentMethods as $paymentMethod) {
             if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) { //NOSONAR
                 return $paymentMethod;
@@ -292,9 +293,13 @@ class Api
      * @return Result\Refund
      * @throws \Exception
      */
-    public function refund(string $transactionID, $amount, string $description = ''): Result\Refund
-    {
-        if (!$this->config->isRefundAllowed()) {
+    public function refund(
+        string $transactionID,
+        $amount,
+        string $salesChannelId,
+        string $description = ''
+    ): Result\Refund {
+        if (!$this->config->isRefundAllowed($salesChannelId)) {
             $message = 'PAY-PLUGIN-001: You did not activate refund option in plugin, check %s';
             $url = sprintf(
                 '<a target="_blank" href="https://docs.pay.nl/plugins?language=en#shopware-six-errordefinitions">
@@ -304,7 +309,7 @@ class Api
 
             throw new \Exception(sprintf($message, $url));
         }
-        $this->setCredentials();
+        $this->setCredentials($salesChannelId);
 
         try {
             return \Paynl\Transaction::refund($transactionID, $amount, $description);
