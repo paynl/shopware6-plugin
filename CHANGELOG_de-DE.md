@@ -1,3 +1,13 @@
+# 1.4.7
+- Multisaleschannel-Unterstützung hinzugefügt
+- Schaltfläche "Speichern" für iDEAL-Zahlungsmethode entfernt
+
+# 1.4.6
+- Problem mit Profilvorlagen behoben
+
+# 1.4.5
+- Erstattungsstatus hinzugefügt
+
 # 1.4.4
 - Standardkalender ist zurückgekehrt
 - Fehler beim Ändern der Zahlungsmethode behoben, für die deutsche Version der Website

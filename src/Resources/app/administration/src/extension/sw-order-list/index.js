@@ -29,7 +29,7 @@ Component.override('sw-order-list', {
         isPaynlTransactionAllowedForRefund(statusName) {
             let isUserAllowedToEditOrder = this.acl.can('order.editor');
 
-            let statusAllowedForRefund = ['paid', 'paid_partially', 'paid_partially'];
+            let statusAllowedForRefund = ['paid', 'paid_partially', 'refunded_partially'];
             let isStatusAllowedForRefund = statusAllowedForRefund.includes(statusName);
 
             return !(isUserAllowedToEditOrder && isStatusAllowedForRefund);

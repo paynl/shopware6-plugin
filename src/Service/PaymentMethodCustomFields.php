@@ -45,6 +45,7 @@ class PaymentMethodCustomFields
 
     public function generateCustomFields(PageLoadedEvent $event, PaymentMethodEntity $paymentMethod): void
     {
+        $salesChannelId = $event->getSalesChannelContext()->getSalesChannelId();
         $this->customFields = $paymentMethod->getTranslation('customFields');
 
         $isPaynlPaymentMethod = $this->getCustomField(self::PAYNL_PAYMENT_FIELD);
@@ -52,28 +53,25 @@ class PaymentMethodCustomFields
             return;
         }
 
-
         $pageData = $event->getPage()->getVars();
         $isBirthdayExists = $pageData['isBirthdayExists'] ?? true;
         $isPhoneNumberExists = $pageData['isPhoneNumberExists'] ?? true;
 
-        $isPaymentDisplayBanks = $this->getCustomField(self::DISPLAY_BANKS_FIELD);
         $isPaymentPayLater = $this->getCustomField(self::IS_PAY_LATER_FIELD);
         $hasPaymentLaterInputs = $isPaymentPayLater && (($isBirthdayExists && $isPhoneNumberExists) === false);
 
-        $hasAdditionalInfoInput = $isPaymentDisplayBanks || $hasPaymentLaterInputs;
-        $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasAdditionalInfoInput);
+        $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasPaymentLaterInputs);
 
-        $this->generateInstoreTerminals($paymentMethod);
+        $this->generateInstoreTerminals($paymentMethod, $salesChannelId);
     }
 
-    private function generateInstoreTerminals(PaymentMethodEntity $paymentMethod): void
+    private function generateInstoreTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void
     {
         if ($paymentMethod->getHandlerIdentifier() !== PaynlInstorePaymentHandler::class) {
             return;
         }
 
-        $terminals = $this->paynlApi->getTerminals();
+        $terminals = $this->paynlApi->getTerminals($salesChannelId);
         $this->setCustomField(self::TERMINALS, $terminals);
     }
 }

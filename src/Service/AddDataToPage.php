@@ -34,7 +34,8 @@ class AddDataToPage implements EventSubscriberInterface
 
     public function addCustomData(FooterPageletLoadedEvent $event): void
     {
-        $configs = $this->systemConfigService->all();
+        $salesChannelId = $event->getSalesChannelContext()->getSalesChannelId();
+        $configs = $this->systemConfigService->all($salesChannelId);
         $customData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
 
         $event->getPagelet()->addExtension('PAY_custom_data', $customData);

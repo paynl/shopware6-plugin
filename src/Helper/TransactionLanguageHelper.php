@@ -43,7 +43,7 @@ class TransactionLanguageHelper
 
     public function getLanguageForOrder(OrderEntity $order): string
     {
-        $languageSetting = $this->config->getPaymentScreenLanguage();
+        $languageSetting = $this->config->getPaymentScreenLanguage($order->getSalesChannelId());
 
         if ($languageSetting == 'auto') {
             return $this->getBrowserLanguage();
