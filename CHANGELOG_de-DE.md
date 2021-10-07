@@ -1,3 +1,5 @@
+# 1.4.8
+
 # 1.4.7
 - Multisaleschannel-Unterstützung hinzugefügt
 - Schaltfläche "Speichern" für iDEAL-Zahlungsmethode entfernt

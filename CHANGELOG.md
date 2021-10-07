@@ -1,3 +1,5 @@
+# 1.4.8
+
 # 1.4.7
 - Added the multichannel support
 - Removed the save button for IDEAL payment method
