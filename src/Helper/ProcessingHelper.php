@@ -282,6 +282,7 @@ class ProcessingHelper
                 [
                     new EqualsFilter('actionName', $actionName),
                     new EqualsFilter('stateMachineId', $stateMachineId),
+                    new EqualsFilter('fromStateId', $stateMachineStateId),
                     new NotFilter(NotFilter::CONNECTION_AND, [
                         new EqualsFilter('toStateId', $stateMachineStateId),
                     ])
