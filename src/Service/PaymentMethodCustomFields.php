@@ -3,6 +3,8 @@
 namespace PaynlPayment\Shopware6\Service;
 
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use PaynlPayment\Shopware6\PaymentHandler\PaynlInstorePaymentHandler;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Storefront\Page\PageLoadedEvent;
@@ -17,11 +19,14 @@ class PaymentMethodCustomFields
 
     private $paynlApi;
 
+    private $config;
+
     private $customFields;
 
-    public function __construct(Api $api)
+    public function __construct(Api $api, Config $config)
     {
         $this->paynlApi = $api;
+        $this->config = $config;
     }
 
 
@@ -68,6 +73,16 @@ class PaymentMethodCustomFields
     private function generateInstoreTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void
     {
         if ($paymentMethod->getHandlerIdentifier() !== PaynlInstorePaymentHandler::class) {
+            return;
+        }
+
+        $paymentInstoreTerminalConfig = $this->config->getPaymentInstoreTerminal($salesChannelId);
+        $paymentInstoreDefaultOptions = [
+            SettingsHelper::TERMINAL_CHECKOUT_OPTION,
+            SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION
+        ];
+
+        if (!in_array($paymentInstoreTerminalConfig, $paymentInstoreDefaultOptions)) {
             return;
         }
 

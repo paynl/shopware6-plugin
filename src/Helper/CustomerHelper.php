@@ -129,12 +129,31 @@ class CustomerHelper
         string $issuer,
         Context $context
     ): void {
-        if (empty($issuer)) {
+        $this->savePaymentMethodSelectedData($paymentMethodId, 'issuer', $issuer, $customer, $context);
+    }
+
+    public function savePaynlInstoreTerminal(
+        CustomerEntity $customer,
+        string $paymentMethodId,
+        string $terminal,
+        Context $context
+    ): void {
+        $this->savePaymentMethodSelectedData($paymentMethodId, 'terminal', $terminal, $customer, $context);
+    }
+
+    private function savePaymentMethodSelectedData(
+        string $paymentMethodId,
+        string $name,
+        string $data,
+        CustomerEntity $customer,
+        Context $context
+    ): void {
+        if (empty($data)) {
             return;
         }
 
         $customFields = $customer->getCustomFields();
-        $customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]['issuer'] = $issuer;
+        $customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId][$name] = $data;
 
         $this->customerRepository->upsert([[
             'id' => $customer->getId(),

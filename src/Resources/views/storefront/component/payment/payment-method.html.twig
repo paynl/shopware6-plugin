@@ -46,6 +46,7 @@
         {% if (payment.customFields.paynl_payment) %}
             <div class="paynl-payment-method-extra-wrapper">
                 <div class="paynl-payment-method-extra {% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
+                    {#Banks#}
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
                             {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
@@ -60,14 +61,13 @@
                         {% endif %}
                     {% endif %}
 
+                    {#Terminals#}
                     {% if payment.customFields.terminals is not empty %}
+                        {% set paynlInstoreTerminalSelected = app.session.get('paynlInstoreTerminal') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal %}
                         <div class="form-group">
-                            <select
-                                class="form-control paynl-ideal-banks-select"
-                                name="paynlInstoreTerminal"
-                            >
+                            <select class="form-control paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlInstoreTerminal">
                                 {% for terminal in payment.customFields.terminals %}
-                                    <option value="{{ terminal.id }}">{{ terminal.name }}</option>
+                                    <option value="{{ terminal.id }}" {% if paynlInstoreTerminalSelected and terminal.id is same as(paynlInstoreTerminalSelected)%} selected {% endif %}>{{ terminal.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>

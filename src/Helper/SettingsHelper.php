@@ -7,6 +7,9 @@ use PaynlPayment\Shopware6\ValueObjects\SettingsSelectOptionValueObject;
 
 class SettingsHelper
 {
+    const TERMINAL_CHECKOUT_OPTION = 'checkout';
+    const TERMINAL_CHECKOUT_SAVE_OPTION = 'checkout_save';
+
     private $api;
 
     public function __construct(Api $api)
@@ -31,8 +34,14 @@ class SettingsHelper
     private function getDefaultInstoreTerminalsOptions(): array
     {
         return [
-            (new SettingsSelectOptionValueObject('checkout', 'Choose in checkout'))->toArray(),
-            (new SettingsSelectOptionValueObject('checkout_save', 'Choose in checkout and save'))->toArray()
+            (new SettingsSelectOptionValueObject(
+                self::TERMINAL_CHECKOUT_OPTION,
+                'Choose in checkout')
+            )->toArray(),
+            (new SettingsSelectOptionValueObject(
+                self::TERMINAL_CHECKOUT_SAVE_OPTION,
+                'Choose in checkout and save')
+            )->toArray()
         ];
     }
 }

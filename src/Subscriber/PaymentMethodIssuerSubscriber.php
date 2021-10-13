@@ -2,7 +2,10 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\SettingsHelper;
+use PaynlPayment\Shopware6\PaymentHandler\PaynlInstorePaymentHandler;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
@@ -20,6 +23,9 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /** @var Session $session */
     private $session;
 
+    /** @var Config $config */
+    private $config;
+
     /** @var EntityRepositoryInterface */
     private $paymentMethodRepository;
 
@@ -28,10 +34,12 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 
     public function __construct(
         Session $session,
+        Config $config,
         EntityRepositoryInterface $paymentMethodRepository,
         CustomerHelper $customerHelper
     ) {
         $this->session = $session;
+        $this->config = $config;
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->customerHelper = $customerHelper;
     }
@@ -54,8 +62,9 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
+        $salesChannelId = $event->getSalesChannelContext()->getSalesChannelId();
 
-        $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
+        $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
     }
 
     /**
@@ -68,12 +77,17 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
+        $salesChannelId = $event->getSalesChannelId();
 
-        $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
+        $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
     }
 
-    private function processPayLaterFields(array $requestData, ?CustomerEntity $customer, Context $context): void
-    {
+    private function processPayLaterFields(
+        array $requestData,
+        ?CustomerEntity $customer,
+        string $salesChannelId,
+        Context $context
+    ): void {
         if (!($customer instanceof CustomerEntity)) {
             return;
         }
@@ -90,16 +104,13 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         $this->savePaynlPaymentMethodIssuer($requestData, $customer, $context);
+
+        $this->savePaynlInstoreTerminal($requestData, $customer, $salesChannelId, $context);
     }
 
     private function savePaynlPaymentMethodIssuer(array $requestData, CustomerEntity $customer, Context $context): void
     {
-        /** @var PaymentMethodEntity $paymentMethod */
-        $paymentMethod = $this->paymentMethodRepository->search(
-            (new Criteria())
-                ->addFilter(new EqualsFilter('id', $requestData['paymentMethodId'])),
-            $context
-        )->first();
+        $paymentMethod = $this->getPaymentMethodById($requestData['paymentMethodId'], $context);
 
         if (empty($paymentMethod)) {
             return;
@@ -116,5 +127,43 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $paynlIssuer = (string)($requestData['paynlIssuer'] ?? '');
 
         $this->customerHelper->savePaynlIssuer($customer, $paymentMethodId, $paynlIssuer, $context);
+    }
+
+    private function savePaynlInstoreTerminal(
+        array $requestData,
+        CustomerEntity $customer,
+        string $salesChannelId,
+        Context $context
+    ): void {
+        $paymentMethodId = (string)($requestData['paymentMethodId'] ?? '');
+        $paymentMethod = $this->getPaymentMethodById($paymentMethodId, $context);
+
+        if (empty($paymentMethod) || $paymentMethod->getHandlerIdentifier() !== PaynlInstorePaymentHandler::class) {
+            $this->session->remove('paynlInstoreTerminal');
+
+            return;
+        }
+
+        $terminal = (string)($requestData['paynlInstoreTerminal'] ?? '');
+
+        $this->session->set('paynlInstoreTerminal', $terminal);
+
+        $configTerminal = $this->config->getPaymentInstoreTerminal($salesChannelId);
+        if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
+            $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethodId, $terminal, $context);
+        }
+
+    }
+
+    private function getPaymentMethodById(string $paymentMethodId, Context $context): ?PaymentMethodEntity
+    {
+        /** @var PaymentMethodEntity $paymentMethod */
+        $paymentMethod = $this->paymentMethodRepository->search(
+            (new Criteria())
+                ->addFilter(new EqualsFilter('id', $paymentMethodId)),
+            $context
+        )->first();
+
+        return $paymentMethod;
     }
 }
