@@ -71,7 +71,7 @@ class PaymentMethodCustomFields
             return;
         }
 
-        $terminals = $this->paynlApi->getTerminals($salesChannelId);
+        $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
         $this->setCustomField(self::TERMINALS, $terminals);
     }
 }

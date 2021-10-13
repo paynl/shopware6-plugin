@@ -38,6 +38,8 @@ Component.register('paynl-plugin-settings', {
             allowRefundsFilled: false,
             femaleSalutationsFilled: false,
             showCredentilasErrors: false,
+            paymentInstoreTerminals: [],
+            currentSalesChannelId: null,
             settingsData: {
                 tokenCode: null,
                 allowRefunds: null,
@@ -84,6 +86,21 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
+        initInstorePaymentTerminals(salesChannelId = '') {
+            let me = this;
+
+            this.PaynlPaymentService.getInstorePaymentTerminals(salesChannelId)
+                .then((result) => {
+                    me.paymentInstoreTerminals = [];
+                    result.data.forEach((element) => {
+                        me.paymentInstoreTerminals.push({
+                            "label": element.label,
+                            "value": element.id,
+                        })
+                    });
+                });
+        },
+
         isCollapsible(card) {
             return card.name in this.collapsibleState;
         },
@@ -140,6 +157,13 @@ Component.register('paynl-plugin-settings', {
         },
 
         onConfigChange(config) {
+            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?? '';
+
+            if (salesChannelId !== this.currentSalesChannelId) {
+                this.initInstorePaymentTerminals(salesChannelId);
+            }
+            this.currentSalesChannelId = salesChannelId;
+
             this.config = config;
 
             this.setCredentialsFilled();
