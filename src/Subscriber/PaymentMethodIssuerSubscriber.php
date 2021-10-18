@@ -146,8 +146,6 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 
         $terminal = (string)($requestData['paynlInstoreTerminal'] ?? '');
 
-        $this->session->set('paynlInstoreTerminal', $terminal);
-
         $configTerminal = $this->config->getPaymentInstoreTerminal($salesChannelId);
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethodId, $terminal, $context);

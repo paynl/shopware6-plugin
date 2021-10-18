@@ -91,8 +91,10 @@ class ProcessingHelper
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
         $apiTransactionData = $paynlApiTransaction->getData();
 
         return sprintf(
@@ -116,8 +118,10 @@ class ProcessingHelper
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
     /**
@@ -132,8 +136,27 @@ class ProcessingHelper
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+    }
+
+    /**
+     * @param string $paynlTransactionId
+     * @param string $transitionName
+     * @param int $paynlTransactionStatusCode
+     * @return void
+     */
+    public function instorePaymentUpdateState(
+        string $paynlTransactionId,
+        string $transitionName,
+        int $paynlTransactionStatusCode
+    ): void {
+        /** @var PaynlTransactionEntity $transactionEntity */
+        $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
     /**
@@ -222,28 +245,27 @@ class ProcessingHelper
 
     /**
      * @param PaynlTransactionEntity $paynlTransactionEntity
-     * @param ResultTransaction $paynlApiTransaction
+     * @param string $transitionName
+     * @param int $paynlTransactionStatusCode
+     * @return void
      */
     private function updateTransactionStatus(
         PaynlTransactionEntity $paynlTransactionEntity,
-        ResultTransaction $paynlApiTransaction
+        string $transitionName,
+        int $paynlTransactionStatusCode
     ): void {
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $orderTransactionTransitionName =
-            $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
-
         /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
 
         if (
-            !empty($orderTransactionTransitionName)
-            && $orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName()
+            !empty($transitionName)
+            && $transitionName !== $paynlTransactionEntity->getLatestActionName()
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
                 $orderTransactionId,
-                $orderTransactionTransitionName
+                $transitionName
             );
 
             /** @var StateMachineStateEntity $stateMachineStateEntity */
@@ -254,7 +276,7 @@ class ProcessingHelper
         $this->updatePaynlTransactionStatus(
             $paynlTransactionEntity->getId(),
             $paynlTransactionStatusCode,
-            $orderTransactionTransitionName,
+            $transitionName,
             $stateMachineStateId
         );
     }

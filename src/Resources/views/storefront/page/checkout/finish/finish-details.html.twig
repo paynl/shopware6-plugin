@@ -6,7 +6,6 @@
 {% endif %}
 
 {% block page_checkout_finish_data %}
-    {{ dump() }}
     {% if (context.paymentMethod.customFields.paynl_payment) %}
         <div class="card checkout-card">
             <div class="card-body">
@@ -66,12 +65,6 @@
                                 {{ parent() }}
                             {% endif %}
                         {% endblock %}
-                    </div>
-                {% endblock %}
-
-                {% block page_checkout_finish_payment_content %}
-                    <div class="payment-content" style="margin-bottom: 330px">
-                        <div>PAY.: Transaction started: {{ page.getOrder.getTransactions.last.orderId }}</div>
                     </div>
                 {% endblock %}
             </div>

@@ -65,9 +65,9 @@
                     {% if payment.customFields.terminals is not empty %}
                         {% set paynlInstoreTerminalSelected = app.session.get('paynlInstoreTerminal') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal %}
                         <div class="form-group">
-                            <select class="form-control paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlInstoreTerminal">
+                            <select class="form-control paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlInstoreTerminal" id="paynlInstoreTerminal" form="confirmOrderForm">
                                 {% for terminal in payment.customFields.terminals %}
-                                    <option value="{{ terminal.id }}" {% if paynlInstoreTerminalSelected and terminal.id is same as(paynlInstoreTerminalSelected)%} selected {% endif %}>{{ terminal.name }}</option>
+                                    <option value="{{ terminal.id }}" {% if paynlInstoreTerminalSelected and terminal.id is same as(paynlInstoreTerminalSelected)%} selected {% endif %} selected>{{ terminal.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>

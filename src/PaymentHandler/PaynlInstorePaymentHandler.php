@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
-use Paynl\Result\Instore\Payment;
+use Paynl\Instore;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
@@ -21,10 +23,14 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
 {
     /** @var RouterInterface */
     private $router;
+
     /** @var Api */
     private $paynlApi;
+
     /** @var ProcessingHelper */
     private $processingHelper;
+
+    /** @var string */
     private $shopwareVersion;
 
     public function __construct(
@@ -52,20 +58,35 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
     ): void {
         try {
             $paynlTransactionId = $this->startTransaction($transaction, $salesChannelContext);
+            $salesChannelId = $salesChannelContext->getSalesChannelId();
 
-            $instoreResult = $this->doInstorePayment($paynlTransactionId, $_COOKIE['terminal_id'] ?? '1');
+            $terminal = (string)$dataBag->get('paynlInstoreTerminal');
+            $instoreResult = $this->paynlApi->doInstorePayment($paynlTransactionId, $terminal, $salesChannelId);
             $hash = $instoreResult->getHash();
 
+            ini_set('max_execution_time', '65');
             for ($i = 0; $i < 60; $i++) {
-                $status = \Paynl\Instore::status(['hash' => $hash]);
+                $status = Instore::status(['hash' => $hash]);
                 if ($status->getTransactionState() != 'init') {
                     switch ($status->getTransactionState()) {
                         case 'approved':
+                            $this->processingHelper->instorePaymentUpdateState(
+                                $paynlTransactionId,
+                                StateMachineTransitionActions::ACTION_PAID,
+                                PaynlTransactionStatusesEnum::STATUS_PAID
+                            );
+
                             return;
                         case 'cancelled':
                         case 'expired':
                         case 'error':
-                            break;
+                            $this->processingHelper->instorePaymentUpdateState(
+                                $paynlTransactionId,
+                                StateMachineTransitionActions::ACTION_CANCEL,
+                                PaynlTransactionStatusesEnum::STATUS_CANCEL
+                            );
+
+                            return;
                     }
                 }
 
@@ -80,22 +101,32 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
         }
     }
 
+    /**
+     * @param SyncPaymentTransactionStruct $transaction
+     * @param SalesChannelContext $salesChannelContext
+     * @return string
+     * @throws Throwable
+     */
     private function startTransaction(
         SyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext
     ): string {
         $paynlTransactionId = '';
-        $exchangeUrl =
-            $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $order = $transaction->getOrder();
         $orderTransaction = $transaction->getOrderTransaction();
+
+        $returnUrl = $this->router->generate(
+            'frontend.PaynlPayment.notify',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $order,
                 $salesChannelContext,
-                $exchangeUrl,
-                $exchangeUrl,
+                $returnUrl,
+                '',
                 $this->shopwareVersion,
                 $this->getPluginVersionFromComposer(),
             );
@@ -120,11 +151,6 @@ class PaynlInstorePaymentHandler implements SynchronousPaymentHandlerInterface
         );
 
         return $paynlTransactionId;
-    }
-
-    private function doInstorePayment(string $transactionId, string $terminalId): Payment
-    {
-        return \Paynl\Instore::payment(['transactionId' => $transactionId, 'terminalId' => $terminalId]);
     }
 
     /**
