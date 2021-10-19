@@ -82,11 +82,11 @@ class PaymentMethodCustomFields
             SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION
         ];
 
-        if (!in_array($paymentInstoreTerminalConfig, $paymentInstoreDefaultOptions)) {
-            return;
+        if (empty($paymentInstoreTerminalConfig)
+            || in_array($paymentInstoreTerminalConfig, $paymentInstoreDefaultOptions)
+        ) {
+            $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
+            $this->setCustomField(self::TERMINALS, $terminals);
         }
-
-        $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
-        $this->setCustomField(self::TERMINALS, $terminals);
     }
 }

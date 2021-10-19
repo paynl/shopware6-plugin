@@ -139,8 +139,6 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $paymentMethod = $this->getPaymentMethodById($paymentMethodId, $context);
 
         if (empty($paymentMethod) || $paymentMethod->getHandlerIdentifier() !== PaynlInstorePaymentHandler::class) {
-            $this->session->remove('paynlInstoreTerminal');
-
             return;
         }
 
