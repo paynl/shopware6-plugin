@@ -66,7 +66,7 @@
                         {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.paymentInstoreTerminal %}
                         {% set paynlInstoreTerminalSelected = configInstoreTerminalOption is same as('checkout_save') ? context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal : '' %}
                         <div class="form-group">
-                            <select class="form-control paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlInstoreTerminal" id="paynlInstoreTerminal" form="confirmOrderForm">
+                            <select class="form-control paynl-ideal-banks-select" name="paynlInstoreTerminal" id="paynlInstoreTerminal" form="confirmOrderForm">
                                 {% for terminal in payment.customFields.terminals %}
                                     <option value="{{ terminal.id }}" {% if paynlInstoreTerminalSelected and terminal.id is same as(paynlInstoreTerminalSelected)%} selected {% endif %}>{{ terminal.name }}</option>
                                 {% endfor %}

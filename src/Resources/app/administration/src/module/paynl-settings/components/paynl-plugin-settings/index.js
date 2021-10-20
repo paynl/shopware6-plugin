@@ -157,7 +157,7 @@ Component.register('paynl-plugin-settings', {
         },
 
         onConfigChange(config) {
-            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?? '';
+            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ? this.$refs.systemConfig.currentSalesChannelId : '';
 
             if (salesChannelId !== this.currentSalesChannelId) {
                 this.initInstorePaymentTerminals(salesChannelId);

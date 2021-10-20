@@ -502,7 +502,7 @@ class InstallHelper
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
         $criteria->addAssociation('paymentMethod');
-        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', 'PaynlPayment'));
 
         $salesChannelPaymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
         if (empty($salesChannelPaymentMethodIds)) {
