@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PaynlPayment\Shopware6\Util\Log;
+
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
+use Monolog\Processor\IntrospectionProcessor;
+use Monolog\Processor\PsrLogMessageProcessor;
+use Monolog\Processor\WebProcessor;
+use Psr\Log\LoggerInterface;
+
+class LoggerFactory
+{
+    protected const DEFAULT_LEVEL = Logger::DEBUG;
+    private const LOG_FORMAT = "[%datetime%] %channel%.%level_name%: %extra.class%::%extra.function% (%extra.line%): %message% %context% %extra%\n";
+
+    /** @var int */
+    protected $logLevel = self::DEFAULT_LEVEL;
+
+    /** @var string */
+    private $rotatingFilePathPattern = '';
+
+    /** @var int */
+    private $defaultFileRotationCount;
+
+    public function __construct(string $rotatingFilePathPattern, int $defaultFileRotationCount = 14)
+    {
+        $this->rotatingFilePathPattern = $rotatingFilePathPattern;
+        $this->defaultFileRotationCount = $defaultFileRotationCount;
+    }
+
+    public function setLogLevel(): void
+    {
+        $this->logLevel = self::DEFAULT_LEVEL;
+    }
+
+    public function createRotating(string $filePrefix): LoggerInterface
+    {
+        $filepath = \sprintf($this->rotatingFilePathPattern, $filePrefix);
+
+        $logger = new Logger($filePrefix);
+        $handler = new RotatingFileHandler($filepath, $this->defaultFileRotationCount, $this->logLevel);
+        $handler->setFormatter(new LineFormatter(self::LOG_FORMAT));
+        $logger->pushHandler($handler);
+        $logger->pushProcessor(new PsrLogMessageProcessor(null, true));
+        $logger->pushProcessor(new IntrospectionProcessor($this->logLevel));
+        if ($this->logLevel < Logger::WARNING) {
+            $logger->pushProcessor(new WebProcessor(
+                null,
+                [
+                    'url' => 'REQUEST_URI',
+                    'http_method' => 'REQUEST_METHOD',
+                    'server' => 'SERVER_NAME',
+                ]
+            ));
+        }
+
+        return $logger;
+    }
+}
