@@ -42,5 +42,10 @@
                 "label": "PAY. Transaktionen"
             }
         }
+    },
+
+    "paynl-instore-options": {
+        "checkout": "In der Kasse auswählen",
+        "checkout_save": "An der Kasse auswählen und sparen"
     }
 }

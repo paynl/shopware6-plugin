@@ -93,8 +93,15 @@ Component.register('paynl-plugin-settings', {
                 .then((result) => {
                     me.paymentInstoreTerminals = [];
                     result.data.forEach((element) => {
+                        let translationKey = 'paynl-instore-options.' + element.id;
+                        let translationValue = me.$t(translationKey);
+
+                        if (translationValue === translationKey) {
+                            translationValue = element.label;
+                        }
+
                         me.paymentInstoreTerminals.push({
-                            "label": element.label,
+                            "label": translationValue,
                             "value": element.id,
                         })
                     });
