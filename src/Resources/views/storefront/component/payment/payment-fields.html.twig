@@ -31,9 +31,10 @@
 
 {% block component_payment_fieldset_template %}
     {% block pay_component_payment_extra %}
-        {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+        {% if (payment.customFields.paynl_payment) %}
             <div class="paynl-payment-method-extra-wrapper">
                 <div class="paynl-payment-method-extra {% if payment.id is same as(defaultPaymentMethodId) %} active{% endif %}">
+                    {#Banks#}
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
                             {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
@@ -49,6 +50,19 @@
                                 </select>
                             </div>
                         {% endif %}
+                    {% endif %}
+
+                    {#Terminals#}
+                    {% if payment.customFields.terminals is not empty and activeRoute == "frontend.checkout.confirm.page" %}
+                        {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.paymentInstoreTerminal %}
+                        {% set paynlInstoreTerminalSelected = configInstoreTerminalOption is same as('checkout_save') ? context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal : '' %}
+                        <div class="form-group">
+                            <select class="form-control paynl-ideal-banks-select" name="paynlInstoreTerminal" id="paynlInstoreTerminal" form="confirmOrderForm">
+                                {% for terminal in payment.customFields.terminals %}
+                                    <option value="{{ terminal.id }}" {% if paynlInstoreTerminalSelected and terminal.id is same as(paynlInstoreTerminalSelected)%} selected {% endif %}>{{ terminal.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     {% endif %}
 
                     {% if payment.translated.customFields.isPayLater %}
