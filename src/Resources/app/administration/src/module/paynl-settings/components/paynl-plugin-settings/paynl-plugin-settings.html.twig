@@ -63,7 +63,7 @@
                 <template #card-element="{ element, config, card }" data-new-data="acl.can('paynl_settings.editor')">
                     <div v-show="displayField(element, config, card)">
                         <sw-form-field-renderer
-                            v-if="element.name.startsWith('PaynlPaymentShopware6.settings.paymentInstoreTerminal')"
+                            v-if="element.name.startsWith('PaynlPaymentShopware6.settings.paymentInstoreTerminal') || element.name.startsWith('PaynlPaymentShopware6.settings.paymentPinTerminal')"
                             :config="{
                                 componentName: 'sw-single-select',
                                 label: getInlineSnippet(getElementBind(bindOriginalField(element, config)).config.label),

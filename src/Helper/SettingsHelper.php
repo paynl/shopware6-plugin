@@ -10,6 +10,12 @@ class SettingsHelper
     const TERMINAL_CHECKOUT_OPTION = 'checkout';
     const TERMINAL_CHECKOUT_SAVE_OPTION = 'checkout_save';
 
+    const TERMINAL_DEFAULT_OPTIONS = [
+        self::TERMINAL_CHECKOUT_OPTION,
+        self::TERMINAL_CHECKOUT_SAVE_OPTION,
+    ];
+
+    /** @var Api */
     private $api;
 
     public function __construct(Api $api)

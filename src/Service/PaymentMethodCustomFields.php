@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Service;
 
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler;
 use Psr\Cache\CacheItemPoolInterface;
@@ -17,7 +18,7 @@ class PaymentMethodCustomFields
     const IS_PAY_LATER_FIELD = 'isPayLater';
     const HAS_ADDITIONAL_INFO_INPUT_FIELD = 'hasAdditionalInfoInput';
     const TERMINALS = 'terminals';
-    const INSTORE_TERMINALS_CACHE_TAG = 'instore_terminals';
+    const PAYMENT_TERMINALS_CACHE_TAG = 'paymentTerminals';
 
     /** @var Api */
     private $paynlApi;
@@ -30,14 +31,12 @@ class PaymentMethodCustomFields
 
     private $customFields;
 
-
     public function __construct(Api $api, Config $config, CacheItemPoolInterface $cache)
     {
         $this->paynlApi = $api;
         $this->config = $config;
         $this->cache = $cache;
     }
-
 
     public function getCustomField(string $name)
     {
@@ -76,40 +75,41 @@ class PaymentMethodCustomFields
 
         $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasPaymentLaterInputs);
 
-        $this->generateInstoreTerminals($paymentMethod, $salesChannelId);
+        $this->generatePaymentTerminals($paymentMethod, $salesChannelId);
     }
 
-    private function generateInstoreTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void
+    private function generatePaymentTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void
     {
         if ($paymentMethod->getHandlerIdentifier() !== PaynlTerminalPaymentHandler::class) {
             return;
         }
 
-        $paymentInstoreTerminalConfig = $this->config->getPaymentInstoreTerminal($salesChannelId);
-        $paymentInstoreDefaultOptions = [
-            SettingsHelper::TERMINAL_CHECKOUT_OPTION,
-            SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION
-        ];
+        $paynlPaymentMethodId = (int)$this->getCustomField('paynlId');
+        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::INSTORE_PAYMENT) {
+            $paymentTerminalConfig = $this->config->getPaymentInstoreTerminal($salesChannelId);
+        }
 
-        if (empty($paymentInstoreTerminalConfig)
-            || in_array($paymentInstoreTerminalConfig, $paymentInstoreDefaultOptions)
-        ) {
-            $terminals = $this->getInstoreTerminalsCache($salesChannelId);
+        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
+            $paymentTerminalConfig = $this->config->getPaymentPinTerminal($salesChannelId);
+        }
+
+        if (empty($paymentTerminalConfig) || in_array($paymentTerminalConfig, SettingsHelper::TERMINAL_DEFAULT_OPTIONS)) {
+            $terminals = $this->getPaymentTerminalsCache($salesChannelId);
             $this->setCustomField(self::TERMINALS, $terminals);
         }
     }
 
-    public function getInstoreTerminalsCache(string $salesChannelId): array
+    private function getPaymentTerminalsCache(string $salesChannelId): array
     {
-        $instoreTerminalsCacheItem = $this->cache->getItem(self::INSTORE_TERMINALS_CACHE_TAG);
+        $terminalsCacheItem = $this->cache->getItem(self::PAYMENT_TERMINALS_CACHE_TAG);
 
-        if (!$instoreTerminalsCacheItem->isHit() || !$instoreTerminalsCacheItem->get()) {
+        if (!$terminalsCacheItem->isHit() || !$terminalsCacheItem->get()) {
             $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
-            $instoreTerminalsCacheItem->set(serialize($terminals));
+            $terminalsCacheItem->set(serialize($terminals));
 
-            $this->cache->save($instoreTerminalsCacheItem);
+            $this->cache->save($terminalsCacheItem);
         } else {
-            $terminals = unserialize($instoreTerminalsCacheItem->get());
+            $terminals = unserialize($terminalsCacheItem->get());
         }
 
         return $terminals;

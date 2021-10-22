@@ -42,5 +42,11 @@
                 "label": "PAY. Transacties"
             }
         }
+    },
+
+    "paynl-instore-options": {
+        "checkout": "Kies bij het afrekenen",
+        "checkout_save": "Kies bij het afrekenen en bespaar"
     }
+}
 }

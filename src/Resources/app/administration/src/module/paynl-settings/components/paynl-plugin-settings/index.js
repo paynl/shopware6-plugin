@@ -53,10 +53,12 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: null,
                 femaleSalutations: null,
                 paymentScreenLanguage: null,
-                paymentInstoreTerminal: null
+                paymentInstoreTerminal: null,
+                paymentPinTerminal: null
             },
             collapsibleState: {
                 'payment_instore': true,
+                'payment_pin': true,
             },
         };
     },
@@ -93,10 +95,17 @@ Component.register('paynl-plugin-settings', {
                 .then((result) => {
                     me.paymentInstoreTerminals = [];
                     result.data.forEach((element) => {
+                        let translationKey = 'paynl-instore-options.' + element.id;
+                        let translationValue = me.$t(translationKey);
+
+                        if (translationValue === translationKey) {
+                            translationValue = element.label;
+                        }
+
                         me.paymentInstoreTerminals.push({
-                            "label": element.label,
+                            "label": translationValue,
                             "value": element.id,
-                        })
+                        });
                     });
                 });
         },
@@ -157,7 +166,7 @@ Component.register('paynl-plugin-settings', {
         },
 
         onConfigChange(config) {
-            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?? '';
+            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ? this.$refs.systemConfig.currentSalesChannelId : '';
 
             if (salesChannelId !== this.currentSalesChannelId) {
                 this.initInstorePaymentTerminals(salesChannelId);
@@ -181,6 +190,7 @@ Component.register('paynl-plugin-settings', {
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
                 paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
+                paymentPinTerminal: this.config['PaynlPaymentShopware6.settings.paymentPinTerminal'],
                 paymentInstoreTerminal: this.config['PaynlPaymentShopware6.settings.paymentInstoreTerminal'],
             };
 
