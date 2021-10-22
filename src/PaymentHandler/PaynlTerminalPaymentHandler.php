@@ -8,6 +8,7 @@ use Exception;
 use Paynl\Instore;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
@@ -17,6 +18,7 @@ use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -80,9 +82,13 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->logger->debug('Start order processing', ['request' => $dataBag->all()]);
 
         try {
-            $terminal = (string)$dataBag->get('paynlInstoreTerminal');
             $salesChannelId = $salesChannelContext->getSalesChannelId();
-            $paymentMethodId = $transaction->getOrderTransaction()->getPaymentMethodId();
+            $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+            $paymentMethodId = $paymentMethod->getId();
+            $terminal = $this->getTerminalByPaymentMethod($paymentMethod, $dataBag, $salesChannelId);
+            if (empty($terminal)) {
+                return;
+            }
 
             $this->saveUsedTerminal(
                 $paymentMethodId,
@@ -102,36 +108,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             $hash = $instoreResult->getHash();
 
-            ini_set('max_execution_time', '65');
-            for ($i = 0; $i < 60; $i++) {
-                $status = Instore::status(['hash' => $hash]);
-                if ($status->getTransactionState() != 'init') {
-                    switch ($status->getTransactionState()) {
-                        case 'approved':
-                            $this->logger->debug('Instore payment status approved');
-                            $this->processingHelper->instorePaymentUpdateState(
-                                $paynlTransactionId,
-                                StateMachineTransitionActions::ACTION_PAID,
-                                PaynlTransactionStatusesEnum::STATUS_PAID
-                            );
-
-                            return;
-                        case 'cancelled':
-                        case 'expired':
-                        case 'error':
-                            $this->logger->debug('Instore payment status cancelled');
-                            $this->processingHelper->instorePaymentUpdateState(
-                                $paynlTransactionId,
-                                StateMachineTransitionActions::ACTION_CANCEL,
-                                PaynlTransactionStatusesEnum::STATUS_CANCEL
-                            );
-
-                            return;
-                    }
-                }
-
-                sleep(1);
-            }
+            $this->processTerminalState($paynlTransactionId, $hash);
 
         } catch (Exception $e) {
             $this->logger->error('Exception:' . $e->getMessage(), [
@@ -143,6 +120,70 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
             );
         }
+    }
+
+    private function processTerminalState(string $paynlTransactionId, string $instoreHash): void
+    {
+        ini_set('max_execution_time', '65');
+
+        for ($i = 0; $i < 60; $i++) {
+            $status = Instore::status(['hash' => $instoreHash]);
+            if ($status->getTransactionState() == 'init') {
+                sleep(1);
+            }
+
+            switch ($status->getTransactionState()) {
+                case 'approved':
+                    $this->logger->debug('Instore payment status approved');
+                    $this->processingHelper->instorePaymentUpdateState(
+                        $paynlTransactionId,
+                        StateMachineTransitionActions::ACTION_PAID,
+                        PaynlTransactionStatusesEnum::STATUS_PAID
+                    );
+
+                    return;
+                case 'cancelled':
+                case 'expired':
+                case 'error':
+                    $this->logger->debug('Instore payment status cancelled');
+                    $this->processingHelper->instorePaymentUpdateState(
+                        $paynlTransactionId,
+                        StateMachineTransitionActions::ACTION_CANCEL,
+                        PaynlTransactionStatusesEnum::STATUS_CANCEL
+                    );
+
+                    return;
+            }
+
+            sleep(1);
+        }
+    }
+
+    private function getTerminalByPaymentMethod(
+        PaymentMethodEntity $paymentMethod,
+        RequestDataBag $dataBag,
+        string $salesChannelId
+    ): string {
+        $paymentMethodCustomFields = $paymentMethod->getTranslation('customFields');
+        $paynlPaymentMethodId = $paymentMethodCustomFields['paynlId'] ?? null;
+
+        if ($paynlPaymentMethodId === null) {
+            return '';
+        }
+
+        if ((int)$paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::INSTORE_PAYMENT) {
+            $configTerminal = $this->config->getPaymentInstoreTerminal($salesChannelId);
+        }
+
+        if ((int)$paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
+            $configTerminal = $this->config->getPaymentInstoreTerminal($salesChannelId);
+        }
+
+        if (empty($configTerminal) || in_array($configTerminal, SettingsHelper::TERMINAL_DEFAULT_OPTIONS)) {
+            return (string)$dataBag->get("paynl-terminal-{$paynlPaymentMethodId}");
+        }
+
+        return $configTerminal;
     }
 
     /**

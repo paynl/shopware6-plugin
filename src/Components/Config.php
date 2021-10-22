@@ -87,4 +87,9 @@ class Config
     {
         return (string)$this->get($salesChannelId, 'paymentInstoreTerminal');
     }
+
+    public function getPaymentPinTerminal(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPinTerminal');
+    }
 }

@@ -369,7 +369,8 @@ class InstallHelper
             'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
-                'banks' => $paymentMethodValueObject->getBanks()
+                'banks' => $paymentMethodValueObject->getBanks(),
+                'paynlId' => $paymentMethodValueObject->getId()
             ]
         ];
         $paymentMethodId = $paymentMethodValueObject->getId();
