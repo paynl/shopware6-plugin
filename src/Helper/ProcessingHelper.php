@@ -58,7 +58,7 @@ class ProcessingHelper
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
-        $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),

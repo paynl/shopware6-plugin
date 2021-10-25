@@ -58,7 +58,7 @@ class PaymentMethodCustomFields
 
     public function generateCustomFields(PageLoadedEvent $event, PaymentMethodEntity $paymentMethod): void
     {
-        $salesChannelId = $event->getSalesChannelContext()->getSalesChannelId();
+        $salesChannelId = $event->getSalesChannelContext()->getSalesChannel()->getId();
         $this->customFields = $paymentMethod->getTranslation('customFields');
 
         $isPaynlPaymentMethod = $this->getCustomField(self::PAYNL_PAYMENT_FIELD);

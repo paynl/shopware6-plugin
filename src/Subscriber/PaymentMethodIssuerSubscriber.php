@@ -54,7 +54,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
-        $salesChannelId = $event->getSalesChannelContext()->getSalesChannelId();
+        $salesChannelId = $event->getSalesChannelContext()->getSalesChannel()->getId();
 
         $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
     }

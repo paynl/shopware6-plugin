@@ -115,7 +115,7 @@ class Api
             $pluginVersion
         );
 
-        $this->setCredentials($salesChannelContext->getSalesChannelId());
+        $this->setCredentials($salesChannelContext->getSalesChannel()->getId());
 
         return Transaction::start($transactionInitialData);
     }
@@ -146,7 +146,7 @@ class Api
         string $pluginVersion
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId);
         $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
