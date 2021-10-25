@@ -12,7 +12,6 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
-use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -212,7 +211,7 @@ class InstallHelper
                 /** @var PaymentMethodEntity $paymentMethod */
                 $paymentMethod = $this->paymentMethodRepository->search(
                     (new Criteria())
-                        ->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class))
+                        ->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment'))
                         ->addFilter(new EqualsFilter('active', 1)),
                     $context
                 )->first();
@@ -283,7 +282,7 @@ class InstallHelper
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment'));
         $criteria->addAssociation('salesChannels');
 
         $paymentMethods = $this->paymentMethodRepository->search($criteria, $context);
@@ -301,7 +300,7 @@ class InstallHelper
         }
 
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment'));
         $criteria->addAssociation('salesChannels');
         $criteria->addFilter(
             new NotFilter(
@@ -417,7 +416,7 @@ class InstallHelper
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
         $paynlPaymentMethods = $this->paymentMethodRepository->search(
-            (new Criteria())->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class)),
+            (new Criteria())->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment')),
             $context
         );
         $upsertData = [];

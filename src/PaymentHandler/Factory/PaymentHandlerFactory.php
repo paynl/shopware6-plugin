@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PaynlPayment\Shopware6\PaymentHandler\Factory;
 
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
+use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler;
-use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 
 class PaymentHandlerFactory
 {

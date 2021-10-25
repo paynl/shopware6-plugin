@@ -56,15 +56,6 @@
         </service>
 
         <!--Services-->
-        <service id="PaynlPayment\Shopware6\Service\PaynlPaymentHandler">
-            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
-            <argument type="service" id="router.default"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument>%kernel.shopware_version%</argument>
-            <tag name="shopware.payment.method.async" />
-        </service>
-
         <service id="PaynlPayment\Shopware6\Service\AddDataToPage" >
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument>%kernel.shopware_version%</argument>
@@ -78,6 +69,15 @@
         </service>
 
         <!--Payment handler-->
+        <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
+            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="router.default"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument>%kernel.shopware_version%</argument>
+            <tag name="shopware.payment.method.async" />
+        </service>
+
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">
             <argument type="service" id="router.default"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>

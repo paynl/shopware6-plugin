@@ -86,21 +86,21 @@ class ConfigController extends AbstractController
 
     /**
      * @Route(
-     *     "/api/paynl/get-instore-payment-terminals",
-     *     name="api.action.PaynlPayment.get.instore-payment-terminals",
+     *     "/api/paynl/get-payment-terminals",
+     *     name="api.action.PaynlPayment.get.payment-terminals",
      *     methods={"GET"}
      *     )
      * @Route(
-     *     "/api/v{version}/paynl/get-instore-payment-terminals",
-     *     name="api.action.PaynlPayment.get.instore-payment-terminals.legacy",
+     *     "/api/v{version}/paynl/get-payment-terminals",
+     *     name="api.action.PaynlPayment.get.payment-terminals.legacy",
      *     methods={"GET"}
      *     )
      */
-    public function getInstorePaymentTerminals(Request $request): JsonResponse
+    public function getPaymentTerminals(Request $request): JsonResponse
     {
         $salesChannelId = $request->get('salesChannelId');
 
-        $terminals = $this->settingsHelper->getInstoreTerminalsOptions($salesChannelId);
+        $terminals = $this->settingsHelper->getTerminalsOptions($salesChannelId);
 
         return $this->json(['success' => true, 'data' => $terminals]);
     }

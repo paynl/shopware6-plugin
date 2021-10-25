@@ -46,9 +46,9 @@ class PaynlPaymentService extends ApiService {
             });
     }
 
-    getInstorePaymentTerminals(saleChannelId = '') {
+    getPaymentTerminals(saleChannelId = '') {
         return this.httpClient
-            .get(`${this.getApiBasePath()}/get-instore-payment-terminals?salesChannelId=${saleChannelId}`,
+            .get(`${this.getApiBasePath()}/get-payment-terminals?salesChannelId=${saleChannelId}`,
                 {
                     headers: this.getBasicHeaders()
                 }

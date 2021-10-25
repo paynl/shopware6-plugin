@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PaynlPayment\Shopware6\Helper;
 
 use PaynlPayment\Shopware6\Components\Api;
@@ -9,6 +11,9 @@ class SettingsHelper
 {
     const TERMINAL_CHECKOUT_OPTION = 'checkout';
     const TERMINAL_CHECKOUT_SAVE_OPTION = 'checkout_save';
+
+    const TERMINAL_CHECKOUT_LABEL = 'Choose in checkout';
+    const TERMINAL_CHECKOUT_SAVE_LABEL = 'Choose in checkout and save';
 
     const TERMINAL_DEFAULT_OPTIONS = [
         self::TERMINAL_CHECKOUT_OPTION,
@@ -23,10 +28,14 @@ class SettingsHelper
         $this->api = $api;
     }
 
-    public function getInstoreTerminalsOptions(?string $salesChannelId = null): array
+    /**
+     * @param string|null $salesChannelId
+     * @return array
+     */
+    public function getTerminalsOptions(?string $salesChannelId = null): array
     {
         if (empty($salesChannelId)) {
-            return $this->getDefaultInstoreTerminalsOptions();
+            return $this->getDefaultTerminalsOptions();
         }
 
         $terminals = $this->api->getInstoreTerminals($salesChannelId);
@@ -34,19 +43,22 @@ class SettingsHelper
             return (new SettingsSelectOptionValueObject($terminal['id'], $terminal['name']))->toArray();
         }, $terminals);
 
-        return array_merge($this->getDefaultInstoreTerminalsOptions(), $terminals);
+        return array_merge($this->getDefaultTerminalsOptions(), $terminals);
     }
 
-    private function getDefaultInstoreTerminalsOptions(): array
+    /**
+     * @return array
+     */
+    private function getDefaultTerminalsOptions(): array
     {
         return [
             (new SettingsSelectOptionValueObject(
                 self::TERMINAL_CHECKOUT_OPTION,
-                'Choose in checkout')
+                self::TERMINAL_CHECKOUT_LABEL)
             )->toArray(),
             (new SettingsSelectOptionValueObject(
                 self::TERMINAL_CHECKOUT_SAVE_OPTION,
-                'Choose in checkout and save')
+                self::TERMINAL_CHECKOUT_SAVE_LABEL)
             )->toArray()
         ];
     }

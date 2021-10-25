@@ -88,10 +88,10 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
-        initInstorePaymentTerminals(salesChannelId = '') {
+        initPaymentTerminals(salesChannelId = '') {
             let me = this;
 
-            this.PaynlPaymentService.getInstorePaymentTerminals(salesChannelId)
+            this.PaynlPaymentService.getPaymentTerminals(salesChannelId)
                 .then((result) => {
                     me.paymentInstoreTerminals = [];
                     result.data.forEach((element) => {
@@ -169,7 +169,7 @@ Component.register('paynl-plugin-settings', {
             const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ? this.$refs.systemConfig.currentSalesChannelId : '';
 
             if (salesChannelId !== this.currentSalesChannelId) {
-                this.initInstorePaymentTerminals(salesChannelId);
+                this.initPaymentTerminals(salesChannelId);
             }
             this.currentSalesChannelId = salesChannelId;
 

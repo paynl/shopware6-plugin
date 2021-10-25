@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block component_payment_method_description %}
-    {% if (payment.handlerIdentifier == "PaynlPayment\\Shopware6\\Service\\PaynlPaymentHandler") %}
+    {% if (payment.translated.customFields.paynl_payment) %}
         <div class="payment-method-description">
             <strong>{{ payment.translated.name }}</strong>
             {% if (settingUsePAYStyles == false) %}

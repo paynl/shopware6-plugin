@@ -1,6 +1,8 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace PaynlPayment\Shopware6\Service;
+declare(strict_types=1);
+
+namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
 use PaynlPayment\Shopware6\Components\Api;
@@ -18,7 +20,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
+class PaynlPaymentHandler extends AbstractPaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
     /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
@@ -98,7 +100,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $order,
                 $salesChannelContext,
-                $exchangeUrl,
+                $transaction->getReturnUrl(),
                 $exchangeUrl,
                 $this->shopwareVersion,
                 $this->getPluginVersionFromComposer()
@@ -128,20 +130,5 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return '';
-    }
-
-    /**
-     * @param string $defaultValue
-     * @return string
-     */
-    private function getPluginVersionFromComposer($defaultValue = ''): string
-    {
-        $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
-        if (file_exists($composerFilePath)) {
-            $composer = json_decode(file_get_contents($composerFilePath), true);
-            return $composer['version'] ?? $defaultValue;
-        }
-
-        return $defaultValue;
     }
 }

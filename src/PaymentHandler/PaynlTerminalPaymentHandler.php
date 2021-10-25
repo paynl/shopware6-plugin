@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
+class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements SynchronousPaymentHandlerInterface
 {
     /** @var RouterInterface */
     private $router;
@@ -281,20 +281,5 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $paymentMethodCustomFields = $paymentMethod->getTranslation('customFields');
 
         return (int)$paymentMethodCustomFields['paynlId'];
-    }
-
-    /**
-     * @param string $defaultValue
-     * @return string
-     */
-    private function getPluginVersionFromComposer($defaultValue = ''): string
-    {
-        $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
-        if (file_exists($composerFilePath)) {
-            $composer = json_decode(file_get_contents($composerFilePath), true);
-            return $composer['version'] ?? $defaultValue;
-        }
-
-        return $defaultValue;
     }
 }

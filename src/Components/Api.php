@@ -340,6 +340,10 @@ class Api
         }
     }
 
+    /**
+     * @param string $salesChannelId
+     * @return array
+     */
     public function getInstoreTerminals(string $salesChannelId): array
     {
         $this->setCredentials($salesChannelId);
