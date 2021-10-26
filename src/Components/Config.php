@@ -83,6 +83,26 @@ class Config
         return (string)$this->get($salesChannelId, 'paymentScreenLanguage');
     }
 
+    public function getOrderStateWithPaidTransaction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'orderStateWithPaidTransaction');
+    }
+
+    public function getOrderStateWithFailedTransaction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'orderStateWithFailedTransaction');
+    }
+
+    public function getOrderStateWithCancelledTransaction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'orderStateWithCancelledTransaction');
+    }
+
+    public function getOrderStateWithAuthorizedTransaction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'orderStateWithAuthorizedTransaction');
+    }
+
     public function getPaymentInstoreTerminal(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'paymentInstoreTerminal');

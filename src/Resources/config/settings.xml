@@ -217,7 +217,7 @@
                     <name lang="nl-NL">In uitvoering</name>
                 </option>
                 <option>
-                    <id>done</id>
+                    <id>completed</id>
                     <name>Done</name>
                     <name lang="de-DE">Done</name>
                     <name lang="nl-NL">Done</name>
@@ -256,7 +256,7 @@
                     <name lang="nl-NL">In uitvoering</name>
                 </option>
                 <option>
-                    <id>done</id>
+                    <id>completed</id>
                     <name>Done</name>
                     <name lang="de-DE">Done</name>
                     <name lang="nl-NL">Done</name>
@@ -295,7 +295,7 @@
                     <name lang="nl-NL">In uitvoering</name>
                 </option>
                 <option>
-                    <id>done</id>
+                    <id>completed</id>
                     <name>Done</name>
                     <name lang="de-DE">Done</name>
                     <name lang="nl-NL">Done</name>
@@ -333,7 +333,7 @@
                     <name lang="nl-NL">In uitvoering</name>
                 </option>
                 <option>
-                    <id>done</id>
+                    <id>completed</id>
                     <name>Done</name>
                     <name lang="de-DE">Done</name>
                     <name lang="nl-NL">Done</name>

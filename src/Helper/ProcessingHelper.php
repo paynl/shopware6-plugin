@@ -6,6 +6,7 @@ use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -29,23 +30,31 @@ class ProcessingHelper
 {
     /** @var Api */
     private $paynlApi;
+
     /** @var EntityRepositoryInterface */
     private $paynlTransactionRepository;
+
     /** @var EntityRepositoryInterface  */
     private $orderTransactionRepository;
+
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
+
+    /** @var OrderStatusUpdater */
+    private $orderStatusUpdater;
 
     public function __construct(
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
         EntityRepositoryInterface $orderTransactionRepository,
-        StateMachineRegistry $stateMachineRegistry
+        StateMachineRegistry $stateMachineRegistry,
+        OrderStatusUpdater $orderStatusUpdater
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
+        $this->orderStatusUpdater = $orderStatusUpdater;
     }
 
     public function storePaynlTransactionData(
@@ -94,6 +103,14 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            $paynlTransactionStatusCode,
+            $salesChannelId,
+            Context::createDefaultContext()
+        );
+
         $apiTransactionData = $paynlApiTransaction->getData();
 
         return sprintf(
@@ -121,6 +138,13 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            $paynlTransactionStatusCode,
+            $salesChannelId,
+            Context::createDefaultContext()
+        );
     }
 
     /**
@@ -139,6 +163,13 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            $paynlTransactionStatusCode,
+            $salesChannelId,
+            Context::createDefaultContext()
+        );
     }
 
     /**
@@ -154,8 +185,16 @@ class ProcessingHelper
     ): void {
         /** @var PaynlTransactionEntity $transactionEntity */
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            $paynlTransactionStatusCode,
+            $salesChannelId,
+            Context::createDefaultContext()
+        );
     }
 
     /**
