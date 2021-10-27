@@ -14,12 +14,10 @@ use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
-use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
@@ -67,6 +65,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
      * @param SyncPaymentTransactionStruct $transaction
      * @param RequestDataBag $dataBag
      * @param SalesChannelContext $salesChannelContext
+     * @return void
      * @throws Throwable
      */
     public function pay(
@@ -203,9 +202,8 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     /**
      * @param PaymentMethodEntity $paymentMethod
      * @param string $terminalId
-     * @param CustomerEntity $customer
+     * @param SalesChannelContext $salesChannelContext
      * @param string $salesChannelId
-     * @param Context $context
      * @return void
      */
     private function saveUsedTerminal(

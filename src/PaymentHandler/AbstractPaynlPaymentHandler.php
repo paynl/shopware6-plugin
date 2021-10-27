@@ -10,7 +10,7 @@ abstract class AbstractPaynlPaymentHandler
      * @param string $defaultValue
      * @return string
      */
-    protected function getPluginVersionFromComposer($defaultValue = ''): string
+    protected function getPluginVersionFromComposer(string $defaultValue = ''): string
     {
         $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
         if (file_exists($composerFilePath)) {
