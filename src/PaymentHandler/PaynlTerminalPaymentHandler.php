@@ -161,8 +161,10 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
 
         for ($i = 0; $i < 60; $i++) {
             $status = Instore::status(['hash' => $instoreHash]);
-            if ($status->getTransactionState() == 'init') {
+            if ($status->getTransactionState() == PaynlInstoreTransactionStatusesEnum::INIT) {
                 sleep(1);
+
+                continue;
             }
 
             switch ($status->getTransactionState()) {
