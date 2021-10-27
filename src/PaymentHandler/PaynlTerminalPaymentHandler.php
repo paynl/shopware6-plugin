@@ -8,6 +8,7 @@ use Exception;
 use Paynl\Instore;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\PaynlInstoreTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
@@ -165,7 +166,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
             }
 
             switch ($status->getTransactionState()) {
-                case 'approved':
+                case PaynlInstoreTransactionStatusesEnum::APPROVED:
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_PAID,
@@ -173,9 +174,9 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
                     );
 
                     return;
-                case 'cancelled':
-                case 'expired':
-                case 'error':
+                case PaynlInstoreTransactionStatusesEnum::CANCELLED:
+                case PaynlInstoreTransactionStatusesEnum::EXPIRED:
+                case PaynlInstoreTransactionStatusesEnum::ERROR:
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_CANCEL,
