@@ -84,7 +84,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Util\Logger"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
         </service>
@@ -184,20 +183,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <tag name="kernel.event_subscriber"/>
             <tag name="shopware.event_subscriber"/>
-        </service>
-
-        <!--Util-->
-        <service id="PaynlPayment\Shopware6\Util\Log\LoggerFactory">
-            <argument type="string">%kernel.logs_dir%/%%s_%kernel.environment%.log</argument>
-            <argument>%shopware.logger.file_rotation_count%</argument>
-
-            <call method="setLogLevel">
-            </call>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Util\Logger" class="Monolog\Logger">
-            <factory service="PaynlPayment\Shopware6\Util\Log\LoggerFactory" method="createRotating"/>
-            <argument type="string">paynl</argument>
         </service>
     </services>
 </container>

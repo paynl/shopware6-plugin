@@ -13,7 +13,6 @@ use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
-use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
@@ -44,9 +43,6 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     /** @var CustomerHelper */
     private $customerHelper;
 
-    /** @var LoggerInterface */
-    private $logger;
-
     /** @var string */
     private $shopwareVersion;
 
@@ -56,7 +52,6 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         Api $api,
         CustomerHelper $customerHelper,
         ProcessingHelper $processingHelper,
-        LoggerInterface $logger,
         string $shopwareVersion
     ) {
         $this->router = $router;
@@ -64,7 +59,6 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         $this->paynlApi = $api;
         $this->customerHelper = $customerHelper;
         $this->processingHelper = $processingHelper;
-        $this->logger = $logger;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -79,7 +73,6 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): void {
-        $this->logger->debug('Start order processing', ['request' => $dataBag->all()]);
 
         try {
             $salesChannelId = $salesChannelContext->getSalesChannelId();
@@ -90,24 +83,13 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
             }
 
             $this->saveUsedTerminal($paymentMethod, $terminal, $salesChannelContext, $salesChannelId);
-
             $paynlTransactionId = $this->startTransaction($transaction, $salesChannelContext);
-            $this->logger->debug('Paynl transaction was created', ['transactionId' => $paynlTransactionId]);
-
             $instoreResult = $this->paynlApi->doInstorePayment($paynlTransactionId, $terminal, $salesChannelId);
-            $this->logger->debug('Instore payment was done', [
-                'request' => [$paynlTransactionId, $terminal, $salesChannelId],
-                'result' => $instoreResult->getData()
-            ]);
 
             $hash = $instoreResult->getHash();
             $this->processTerminalState($paynlTransactionId, $hash);
 
         } catch (Exception $e) {
-            $this->logger->error('Exception:' . $e->getMessage(), [
-                'orderTransactionId' => $transaction->getOrderTransaction()->getId()
-            ]);
-
             throw new SyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
@@ -184,7 +166,6 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
 
             switch ($status->getTransactionState()) {
                 case 'approved':
-                    $this->logger->debug('Instore payment status approved');
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_PAID,
@@ -195,7 +176,6 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
                 case 'cancelled':
                 case 'expired':
                 case 'error':
-                    $this->logger->debug('Instore payment status cancelled');
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_CANCEL,
@@ -255,7 +235,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     }
 
     /**
-     * @param PaymentMethodEntity $paymentMethod
+     * @param int $paynlPaymentMethodId
      * @param string $salesChannelId
      * @return string
      */
@@ -266,7 +246,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         }
 
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
-            $configTerminal = $this->config->getPaymentInstoreTerminal($salesChannelId);
+            $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
         }
 
         return $configTerminal;
