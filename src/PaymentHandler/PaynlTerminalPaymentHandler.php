@@ -174,8 +174,16 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
                     );
 
                     return;
-                case PaynlInstoreTransactionStatusesEnum::CANCELLED:
                 case PaynlInstoreTransactionStatusesEnum::EXPIRED:
+                    $this->processingHelper->instorePaymentUpdateState(
+                        $paynlTransactionId,
+                        StateMachineTransitionActions::ACTION_CANCEL,
+                        PaynlTransactionStatusesEnum::STATUS_EXPIRED
+                    );
+
+                    return;
+
+                case PaynlInstoreTransactionStatusesEnum::CANCELLED:
                 case PaynlInstoreTransactionStatusesEnum::ERROR:
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
