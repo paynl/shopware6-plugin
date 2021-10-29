@@ -186,20 +186,6 @@
     </card>
 
     <card>
-        <title>InStore payment</title>
-        <title lang="de-DE">InStore payment</title>
-
-        <name>payment_instore</name>
-
-        <input-field type="single-select">
-            <name>paymentInstoreTerminal</name>
-            <label>Selected terminal</label>
-            <label lang="nl-NL">Taal betaalscherm</label>
-            <label lang="de-DE">Sprache des Zahlungsbildschirms</label>
-        </input-field>
-    </card>
-
-    <card>
         <title>PIN payment</title>
         <title lang="de-DE">PIN payment</title>
 

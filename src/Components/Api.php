@@ -103,7 +103,8 @@ class Api
         string $returnUrl,
         string $exchangeUrl,
         string $shopwareVersion,
-        string $pluginVersion
+        string $pluginVersion,
+        ?string $terminalId = null
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
             $order,
@@ -111,7 +112,8 @@ class Api
             $returnUrl,
             $exchangeUrl,
             $shopwareVersion,
-            $pluginVersion
+            $pluginVersion,
+            $terminalId
         );
 
         $this->setCredentials($salesChannelContext->getSalesChannel()->getId());
@@ -129,11 +131,12 @@ class Api
     /**
      * @param OrderEntity $order
      * @param SalesChannelContext $salesChannelContext
+     * @param string $returnUrl
      * @param string $exchangeUrl
      * @param string $shopwareVersion
      * @param string $pluginVersion
-     * @param string $returnUrl
-     * @return mixed[]
+     * @param string|null $terminalId
+     * @return array
      * @throws PaynlPaymentException
      */
     private function getTransactionInitialData(
@@ -142,7 +145,8 @@ class Api
         string $returnUrl,
         string $exchangeUrl,
         string $shopwareVersion,
-        string $pluginVersion
+        string $pluginVersion,
+        ?string $terminalId = null
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
@@ -190,6 +194,10 @@ class Api
             $this->orderRepository->upsert($data, $salesChannelContext->getContext());
 
             $transactionInitialData['bank'] = $bank;
+        }
+
+        if (!empty($terminalId)) {
+            $transactionInitialData['bank'] = $terminalId;
         }
 
         if ($customer instanceof CustomerEntity) {
@@ -348,18 +356,5 @@ class Api
         $this->setCredentials($salesChannelId);
 
         return (array)Instore::getAllTerminals()->getList();
-    }
-
-    /**
-     * @param string $transactionId
-     * @param string $terminalId
-     * @param string $salesChannelId
-     * @return Payment
-     */
-    public function doInstorePayment(string $transactionId, string $terminalId, string $salesChannelId): Payment
-    {
-        $this->setCredentials($salesChannelId);
-
-        return Instore::payment(['transactionId' => $transactionId, 'terminalId' => $terminalId]);
     }
 }

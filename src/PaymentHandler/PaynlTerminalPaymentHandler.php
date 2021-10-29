@@ -6,10 +6,10 @@ namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
 use Paynl\Instore;
+use Paynl\Result\Transaction\Start;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\PaynlInstoreTransactionStatusesEnum;
-use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
@@ -77,16 +77,18 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         try {
             $salesChannelId = $salesChannelContext->getSalesChannelId();
             $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
-            $terminal = $this->getTerminalByPaymentMethod($paymentMethod, $dataBag, $salesChannelId);
+            $terminal = $this->getRequestTerminal($dataBag, $salesChannelId);
             if (empty($terminal)) {
                 return;
             }
 
             $this->saveUsedTerminal($paymentMethod, $terminal, $salesChannelContext, $salesChannelId);
-            $paynlTransactionId = $this->startTransaction($transaction, $salesChannelContext);
-            $instoreResult = $this->paynlApi->doInstorePayment($paynlTransactionId, $terminal, $salesChannelId);
 
-            $hash = $instoreResult->getHash();
+            $paynlTransaction = $this->startTransaction($transaction, $salesChannelContext, $terminal);
+            $paynlTransactionId = $paynlTransaction->getTransactionId();
+            $paynlTransactionData = $paynlTransaction->getData();
+
+            $hash = (string)($paynlTransactionData['terminal']['hash'] ?? '');
             $this->processTerminalState($paynlTransactionId, $hash);
 
         } catch (Exception $e) {
@@ -100,13 +102,15 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     /**
      * @param SyncPaymentTransactionStruct $transaction
      * @param SalesChannelContext $salesChannelContext
-     * @return string
+     * @param string $terminalId
+     * @return Start
      * @throws Throwable
      */
     private function startTransaction(
         SyncPaymentTransactionStruct $transaction,
-        SalesChannelContext $salesChannelContext
-    ): string {
+        SalesChannelContext $salesChannelContext,
+        string $terminalId
+    ): Start {
         $paynlTransactionId = '';
         $order = $transaction->getOrder();
         $orderTransaction = $transaction->getOrderTransaction();
@@ -124,7 +128,8 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
                 $returnUrl,
                 '',
                 $this->shopwareVersion,
-                $this->getPluginVersionFromComposer()
+                $this->getPluginVersionFromComposer(),
+                $terminalId
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
@@ -146,7 +151,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
             $paynlTransactionId
         );
 
-        return $paynlTransactionId;
+        return $paynlTransaction;
     }
 
     /**
@@ -212,8 +217,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         SalesChannelContext $salesChannelContext,
         string $salesChannelId
     ): void {
-        $paynlPaymentMethodId = $this->getPaynlPaymetMethodId($paymentMethod);
-        $configTerminal = $this->getConfigTerminal($paynlPaymentMethodId, $salesChannelId);
+        $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
         $customer = $salesChannelContext->getCustomer();
         $context = $salesChannelContext->getContext();
 
@@ -223,52 +227,18 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     }
 
     /**
-     * @param PaymentMethodEntity $paymentMethod
      * @param RequestDataBag $dataBag
      * @param string $salesChannelId
      * @return string
      */
-    private function getTerminalByPaymentMethod(
-        PaymentMethodEntity $paymentMethod,
-        RequestDataBag $dataBag,
-        string $salesChannelId
-    ): string {
-        $paynlPaymentMethodId = $this->getPaynlPaymetMethodId($paymentMethod);
-        $configTerminal = $this->getConfigTerminal($paynlPaymentMethodId, $salesChannelId);
+    private function getRequestTerminal(RequestDataBag $dataBag, string $salesChannelId): string
+    {
+        $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
 
         if (empty($configTerminal) || in_array($configTerminal, SettingsHelper::TERMINAL_DEFAULT_OPTIONS)) {
-            return (string)$dataBag->get("paynl-terminal-{$paynlPaymentMethodId}");
+            return (string)$dataBag->get('paynlInstoreTerminal');
         }
 
         return $configTerminal;
-    }
-
-    /**
-     * @param int $paynlPaymentMethodId
-     * @param string $salesChannelId
-     * @return string
-     */
-    private function getConfigTerminal(int $paynlPaymentMethodId, string $salesChannelId): string
-    {
-        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::INSTORE_PAYMENT) {
-            $configTerminal = $this->config->getPaymentInstoreTerminal($salesChannelId);
-        }
-
-        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
-            $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
-        }
-
-        return $configTerminal;
-    }
-
-    /**
-     * @param PaymentMethodEntity $paymentMethod
-     * @return int
-     */
-    private function getPaynlPaymetMethodId(PaymentMethodEntity $paymentMethod): int
-    {
-        $paymentMethodCustomFields = $paymentMethod->getTranslation('customFields');
-
-        return (int)$paymentMethodCustomFields['paynlId'];
     }
 }

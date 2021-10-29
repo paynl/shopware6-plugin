@@ -53,11 +53,9 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: null,
                 femaleSalutations: null,
                 paymentScreenLanguage: null,
-                paymentInstoreTerminal: null,
                 paymentPinTerminal: null
             },
             collapsibleState: {
-                'payment_instore': true,
                 'payment_pin': true,
             },
         };
@@ -191,7 +189,6 @@ Component.register('paynl-plugin-settings', {
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
                 paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
                 paymentPinTerminal: this.config['PaynlPaymentShopware6.settings.paymentPinTerminal'],
-                paymentInstoreTerminal: this.config['PaynlPaymentShopware6.settings.paymentInstoreTerminal'],
             };
 
             this.showCredentilasErrors = false;

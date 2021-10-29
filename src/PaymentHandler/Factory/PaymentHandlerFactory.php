@@ -13,7 +13,6 @@ class PaymentHandlerFactory
     public function get(int $paymentMethodId = 0): string
     {
         switch ($paymentMethodId) {
-            case PaynlPaymentMethodsIdsEnum::INSTORE_PAYMENT:
             case PaynlPaymentMethodsIdsEnum::PIN_PAYMENT:
                 return PaynlTerminalPaymentHandler::class;
             default:
