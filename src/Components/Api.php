@@ -10,6 +10,7 @@ use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
@@ -196,7 +197,7 @@ class Api
             $transactionInitialData['bank'] = $bank;
         }
 
-        if (!empty($terminalId)) {
+        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
             $transactionInitialData['bank'] = $terminalId;
         }
 
