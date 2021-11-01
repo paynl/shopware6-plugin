@@ -11,10 +11,12 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefi
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\RangeFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateCollection;
@@ -87,6 +89,14 @@ class ProcessingHelper
     public function notifyActionUpdateTransactionByPaynlTransactionId(string $paynlTransactionId): string
     {
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+
+        if ($this->checkDoubleOrderTransactions($paynlTransactionEntity, Context::createDefaultContext())) {
+            return sprintf("TRUE| Transaction wasn't processed because there are newer ones transactions. \n" .
+                "OrderId: %s",
+                $paynlTransactionEntity->getOrder()->getOrderNumber()
+            );
+        }
+
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
 
@@ -255,6 +265,26 @@ class ProcessingHelper
             $orderTransactionTransitionName,
             $stateMachineStateId
         );
+    }
+
+    /**
+     * @param PaynlTransactionEntity $paynlTransactionEntity
+     * @param Context $context
+     * @return bool
+     */
+    private function checkDoubleOrderTransactions(
+        PaynlTransactionEntity $paynlTransactionEntity,
+        Context $context
+    ): bool {
+        $orderId = $paynlTransactionEntity->getOrder()->getId();
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('orderId', $orderId));
+        $criteria->addFilter(new RangeFilter('createdAt', [
+            RangeFilter::GT => $paynlTransactionEntity->getCreatedAt()->format(Defaults::STORAGE_DATE_TIME_FORMAT)
+        ]));
+
+        return (bool)$this->paynlTransactionRepository->search($criteria, $context)->count();
     }
 
     /**
