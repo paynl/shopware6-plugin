@@ -84,14 +84,7 @@ class PaymentMethodCustomFields
             return;
         }
 
-        $paynlPaymentMethodId = (int)$this->getCustomField('paynlId');
-        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::INSTORE_PAYMENT) {
-            $paymentTerminalConfig = $this->config->getPaymentInstoreTerminal($salesChannelId);
-        }
-
-        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
-            $paymentTerminalConfig = $this->config->getPaymentPinTerminal($salesChannelId);
-        }
+        $paymentTerminalConfig = $this->config->getPaymentPinTerminal($salesChannelId);
 
         if (empty($paymentTerminalConfig) || in_array($paymentTerminalConfig, SettingsHelper::TERMINAL_DEFAULT_OPTIONS)) {
             $terminals = $this->getPaymentTerminalsCache($salesChannelId);

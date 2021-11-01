@@ -57,12 +57,10 @@ Component.register('paynl-plugin-settings', {
                 orderStateWithFailedTransaction: null,
                 orderStateWithCancelledTransaction: null,
                 orderStateWithAuthorizedTransaction: null,
-                paymentInstoreTerminal: null,
                 paymentPinTerminal: null
             },
             collapsibleState: {
                 'order_state_automation': true,
-                'payment_instore': true,
                 'payment_pin': true,
             },
         };
@@ -200,7 +198,6 @@ Component.register('paynl-plugin-settings', {
                 orderStateWithCancelledTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithCancelledTransaction'],
                 orderStateWithAuthorizedTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithAuthorizedTransaction'],
                 paymentPinTerminal: this.config['PaynlPaymentShopware6.settings.paymentPinTerminal'],
-                paymentInstoreTerminal: this.config['PaynlPaymentShopware6.settings.paymentInstoreTerminal'],
             };
 
             this.showCredentilasErrors = false;

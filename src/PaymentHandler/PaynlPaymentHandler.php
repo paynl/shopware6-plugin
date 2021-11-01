@@ -76,7 +76,7 @@ class PaynlPaymentHandler extends AbstractPaynlPaymentHandler implements Asynchr
      * @param AsyncPaymentTransactionStruct $transaction
      * @param Request $request
      * @param SalesChannelContext $salesChannelContext
-     * @throws InconsistentCriteriaIdsException
+     * @throws Exception
      */
     public function finalize(
         AsyncPaymentTransactionStruct $transaction,

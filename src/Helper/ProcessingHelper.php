@@ -292,7 +292,6 @@ class ProcessingHelper
         string $transitionName,
         int $paynlTransactionStatusCode
     ): void {
-        /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
 
