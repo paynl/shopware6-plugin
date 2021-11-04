@@ -100,11 +100,7 @@ class ProcessingHelper
         if ($this->checkDoubleOrderTransactions($paynlTransactionEntity, Context::createDefaultContext())) {
             $this->updateOldPaynlTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
 
-            return sprintf("TRUE| " .
-                "The current transaction is canceled, commands are ignored due to a later completed transaction. \n" .
-                "OrderId: %s",
-                $paynlTransactionEntity->getOrder()->getOrderNumber()
-            );
+            return "TRUE| The current transaction's commands are ignored due to a later completed transaction.";
         }
 
         $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
