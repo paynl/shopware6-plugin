@@ -18,7 +18,19 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\InstallHelper" public="true">
-            <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="Shopware\Core\Framework\Plugin\Util\PluginIdProvider"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
+            <argument type="service" id="payment_method.repository"/>
+            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="sales_channel_payment_method.repository"/>
+            <argument type="service" id="system_config.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Helper\MediaHelper">
+            <argument type="service" id="Shopware\Core\Content\Media\File\FileSaver"/>
+            <argument type="service" id="media.repository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper" public="true">

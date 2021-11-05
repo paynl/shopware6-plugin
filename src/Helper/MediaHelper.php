@@ -11,9 +11,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\OrFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class MediaHelper
 {
@@ -27,10 +25,12 @@ class MediaHelper
     /** @var FileSaver */
     private $fileSaver;
 
-    public function __construct(ContainerInterface $container)
-    {
-        $this->mediaRepository = $container->get('media.repository');
-        $this->fileSaver = $container->get(FileSaver::class);
+    public function __construct(
+        FileSaver $fileSaver,
+        EntityRepositoryInterface $mediaRepository
+    ) {
+        $this->fileSaver = $fileSaver;
+        $this->mediaRepository = $mediaRepository;
     }
 
     /**
