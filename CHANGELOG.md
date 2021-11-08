@@ -1,3 +1,6 @@
+# 1.4.8
+- Overwriting payments statuses was fixed
+
 # 1.4.7
 - Added the multichannel support
 - Removed the save button for IDEAL payment method
