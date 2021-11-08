@@ -1,4 +1,5 @@
 # 1.4.8
+- Überschreiben von Zahlungsstatus wurde behoben
 
 # 1.4.7
 - Multisaleschannel-Unterstützung hinzugefügt
