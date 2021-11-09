@@ -58,7 +58,7 @@ class TransactionLanguageHelper
 
     private function getBrowserLanguage(): string
     {
-        $request = $this->requestStack->getMasterRequest();
+        $request = $this->requestStack->getCurrentRequest();
         if (is_null($request)) {
             return self::DEFAULT_LANGUAGE;
         }
