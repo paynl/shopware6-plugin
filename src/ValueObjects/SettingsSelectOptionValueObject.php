@@ -6,6 +6,9 @@ namespace PaynlPayment\Shopware6\ValueObjects;
 
 class SettingsSelectOptionValueObject
 {
+    const ID = 'id';
+    const LABEL = 'label';
+
     private $id;
     private $label;
 
@@ -28,8 +31,8 @@ class SettingsSelectOptionValueObject
     public function toArray(): array
     {
         return [
-            'id' => $this->getId(),
-            'label' => $this->getLabel(),
+            self::ID => $this->getId(),
+            self::LABEL => $this->getLabel(),
         ];
     }
 }

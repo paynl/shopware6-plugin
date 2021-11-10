@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\PaymentHandler;
+namespace PaynlPayment\Shopware6\Helper;
 
-abstract class AbstractPaynlPaymentHandler
+class PluginHelper
 {
     /**
      * @param string $defaultValue
      * @return string
      */
-    protected function getPluginVersionFromComposer(string $defaultValue = ''): string
+    public function getPluginVersionFromComposer(string $defaultValue = ''): string
     {
         $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
         if (file_exists($composerFilePath)) {

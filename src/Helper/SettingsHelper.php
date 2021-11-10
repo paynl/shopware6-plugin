@@ -20,6 +20,9 @@ class SettingsHelper
         self::TERMINAL_CHECKOUT_SAVE_OPTION,
     ];
 
+    const TERMINAL_ID = 'id';
+    const TERMINAL_NAME = 'name';
+
     /** @var Api */
     private $api;
 
@@ -40,7 +43,9 @@ class SettingsHelper
 
         $terminals = $this->api->getInstoreTerminals($salesChannelId);
         $terminals = array_map(function ($terminal) {
-            return (new SettingsSelectOptionValueObject($terminal['id'], $terminal['name']))->toArray();
+            return (new SettingsSelectOptionValueObject(
+                $terminal[self::TERMINAL_ID], $terminal[self::TERMINAL_NAME]
+            ))->toArray();
         }, $terminals);
 
         return array_merge($this->getDefaultTerminalsOptions(), $terminals);

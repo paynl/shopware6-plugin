@@ -31,6 +31,9 @@
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -74,6 +77,7 @@
             <argument type="service" id="router.default"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
         </service>
@@ -84,6 +88,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
         </service>

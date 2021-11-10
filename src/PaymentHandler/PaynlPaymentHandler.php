@@ -6,12 +6,12 @@ namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-class PaynlPaymentHandler extends AbstractPaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
+class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
     /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
@@ -30,6 +30,9 @@ class PaynlPaymentHandler extends AbstractPaynlPaymentHandler implements Asynchr
     private $paynlApi;
     /** @var ProcessingHelper */
     private $processingHelper;
+    /** @var PluginHelper */
+    private $pluginHelper;
+    /** @var string */
     private $shopwareVersion;
 
     public function __construct(
@@ -37,12 +40,14 @@ class PaynlPaymentHandler extends AbstractPaynlPaymentHandler implements Asynchr
         RouterInterface $router,
         Api $api,
         ProcessingHelper $processingHelper,
+        PluginHelper $pluginHelper,
         string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
+        $this->pluginHelper = $pluginHelper;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -103,7 +108,7 @@ class PaynlPaymentHandler extends AbstractPaynlPaymentHandler implements Asynchr
                 $transaction->getReturnUrl(),
                 $exchangeUrl,
                 $this->shopwareVersion,
-                $this->getPluginVersionFromComposer()
+                $this->pluginHelper->getPluginVersionFromComposer()
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
