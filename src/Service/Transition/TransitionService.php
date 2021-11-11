@@ -11,9 +11,7 @@ use Shopware\Core\System\StateMachine\Transition;
 
 class TransitionService implements TransitionServiceInterface
 {
-    /**
-     * @var StateMachineRegistry
-     */
+    /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
     /**
@@ -21,15 +19,25 @@ class TransitionService implements TransitionServiceInterface
      */
     public function __construct(StateMachineRegistry $stateMachineRegistry)
     {
-
         $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
+    /**
+     * @param string $transition
+     * @param array $availableTransitions
+     * @return bool
+     */
     public function transitionIsAllowed(string $transition, array $availableTransitions): bool
     {
         return in_array($transition, $availableTransitions);
     }
 
+    /**
+     * @param string $definitionName
+     * @param string $entityId
+     * @param Context $context
+     * @return mixed[]
+     */
     public function getAvailableTransitions(string $definitionName, string $entityId, Context $context): array
     {
         /** @var array<StateMachineTransitionEntity> $availableTransitions */
@@ -45,8 +53,19 @@ class TransitionService implements TransitionServiceInterface
         }, $availableTransitions);
     }
 
-    public function performTransition(string $definitionName, string $entityId, string $transitionName, Context $context): void
-    {
+    /**
+     * @param string $definitionName
+     * @param string $entityId
+     * @param string $transitionName
+     * @param Context $context
+     * @return void
+     */
+    public function performTransition(
+        string $definitionName,
+        string $entityId,
+        string $transitionName,
+        Context $context
+    ): void {
         $this->stateMachineRegistry->transition(
             new Transition(
                 $definitionName,

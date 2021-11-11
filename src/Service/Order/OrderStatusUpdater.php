@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PaynlPayment\Shopware6\Service\Order;
 
 use PaynlPayment\Shopware6\Components\Config;
@@ -20,10 +22,8 @@ class OrderStatusUpdater
      * @param OrderStateService $orderHandler
      * @param StateMachineRegistry $stateMachineRegistry
      */
-    public function __construct(
-        Config $config,
-        OrderStateService $orderHandler
-    ) {
+    public function __construct(Config $config, OrderStateService $orderHandler)
+    {
         $this->config = $config;
         $this->orderHandler = $orderHandler;
     }

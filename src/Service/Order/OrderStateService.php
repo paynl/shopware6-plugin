@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PaynlPayment\Shopware6\Service\Order;
 
 use Exception;
@@ -14,9 +16,11 @@ class OrderStateService
     /** @var OrderTransitionServiceInterface */
     protected $orderTransitionService;
 
-    public function __construct(
-        OrderTransitionServiceInterface $orderTransitionService
-    ) {
+    /**
+     * @param OrderTransitionServiceInterface $orderTransitionService
+     */
+    public function __construct(OrderTransitionServiceInterface $orderTransitionService)
+    {
         $this->orderTransitionService = $orderTransitionService;
     }
 
@@ -58,9 +62,7 @@ class OrderStateService
 
             return true;
         } catch (Exception $e) {
-
+            return false;
         }
-
-        return false;
     }
 }

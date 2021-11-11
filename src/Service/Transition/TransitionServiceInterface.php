@@ -19,7 +19,7 @@ interface TransitionServiceInterface
      * @param string $definitionName
      * @param string $entityId
      * @param Context $context
-     * @return array<string>
+     * @return mixed[]
      */
     public function getAvailableTransitions(string $definitionName, string $entityId, Context $context): array;
 
