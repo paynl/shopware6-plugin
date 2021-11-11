@@ -40,6 +40,8 @@ class InstallHelper
 
     const SINGLE_PAYMENT_METHOD_ID = '123456789';
 
+    const PAYNL_PAYMENT_FILTER = 'PaynlPayment';
+
     /** @var SystemConfigService */
     private $configService;
     /** @var PluginIdProvider $pluginIdProvider */
@@ -211,7 +213,7 @@ class InstallHelper
                 /** @var PaymentMethodEntity $paymentMethod */
                 $paymentMethod = $this->paymentMethodRepository->search(
                     (new Criteria())
-                        ->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment'))
+                        ->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER))
                         ->addFilter(new EqualsFilter('active', 1)),
                     $context
                 )->first();
@@ -282,7 +284,7 @@ class InstallHelper
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
-        $criteria->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment'));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
         $criteria->addAssociation('salesChannels');
 
         $paymentMethods = $this->paymentMethodRepository->search($criteria, $context);
@@ -300,7 +302,7 @@ class InstallHelper
         }
 
         $criteria = new Criteria();
-        $criteria->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment'));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
         $criteria->addAssociation('salesChannels');
         $criteria->addFilter(
             new NotFilter(
@@ -416,7 +418,7 @@ class InstallHelper
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
         $paynlPaymentMethods = $this->paymentMethodRepository->search(
-            (new Criteria())->addFilter(new ContainsFilter('handlerIdentifier', 'PaynlPayment')),
+            (new Criteria())->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER)),
             $context
         );
         $upsertData = [];
@@ -502,7 +504,7 @@ class InstallHelper
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
         $criteria->addAssociation('paymentMethod');
-        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', 'PaynlPayment'));
+        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
 
         $salesChannelPaymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
         if (empty($salesChannelPaymentMethodIds)) {

@@ -92,22 +92,22 @@ Component.register('paynl-plugin-settings', {
 
     methods: {
         initPaymentTerminals(salesChannelId = '') {
-            let me = this;
+            let self = this;
 
             this.PaynlPaymentService.getPaymentTerminals(salesChannelId)
                 .then((result) => {
-                    me.paymentInstoreTerminals = [];
+                    self.paymentInstoreTerminals = [];
                     result.data.forEach((element) => {
                         let translationKey = 'paynl-instore-options.' + element.id;
-                        let translationValue = me.$t(translationKey);
+                        let translationValue = self.$t(translationKey);
 
                         if (translationValue === translationKey) {
                             translationValue = element.label;
                         }
 
-                        me.paymentInstoreTerminals.push({
-                            "label": translationValue,
-                            "value": element.id,
+                        self.paymentInstoreTerminals.push({
+                            'label': translationValue,
+                            'value': element.id,
                         });
                     });
                 });

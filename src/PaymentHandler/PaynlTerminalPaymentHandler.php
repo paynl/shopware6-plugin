@@ -12,6 +12,7 @@ use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\PaynlInstoreTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
@@ -25,8 +26,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements SynchronousPaymentHandlerInterface
+class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 {
+    const TERMINAL = 'terminal';
+    const HASH = 'hash';
+
+    const MAX_EXECUTION_TIME = 65;
+
     /** @var RouterInterface */
     private $router;
 
@@ -36,11 +42,14 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     /** @var Api */
     private $paynlApi;
 
+    /** @var CustomerHelper */
+    private $customerHelper;
+
     /** @var ProcessingHelper */
     private $processingHelper;
 
-    /** @var CustomerHelper */
-    private $customerHelper;
+    /** @var PluginHelper */
+    private $pluginHelper;
 
     /** @var string */
     private $shopwareVersion;
@@ -51,6 +60,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         Api $api,
         CustomerHelper $customerHelper,
         ProcessingHelper $processingHelper,
+        PluginHelper $pluginHelper,
         string $shopwareVersion
     ) {
         $this->router = $router;
@@ -58,6 +68,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         $this->paynlApi = $api;
         $this->customerHelper = $customerHelper;
         $this->processingHelper = $processingHelper;
+        $this->pluginHelper = $pluginHelper;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -75,10 +86,10 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
     ): void {
 
         try {
-            $salesChannelId = $salesChannelContext->getSalesChannelId();
+            $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
             $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
             $terminal = $this->getRequestTerminal($dataBag, $salesChannelId);
-            if (empty($terminal)) {
+            if (empty($terminal) || $paymentMethod === null) {
                 return;
             }
 
@@ -88,7 +99,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
             $paynlTransactionId = $paynlTransaction->getTransactionId();
             $paynlTransactionData = $paynlTransaction->getData();
 
-            $hash = (string)($paynlTransactionData['terminal']['hash'] ?? '');
+            $hash = (string)($paynlTransactionData[self::TERMINAL][self::HASH] ?? '');
             $this->processTerminalState($paynlTransactionId, $hash);
 
         } catch (Exception $e) {
@@ -128,7 +139,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
                 $returnUrl,
                 '',
                 $this->shopwareVersion,
-                $this->getPluginVersionFromComposer(),
+                $this->pluginHelper->getPluginVersionFromComposer(),
                 $terminalId
             );
 
@@ -161,7 +172,7 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
      */
     private function processTerminalState(string $paynlTransactionId, string $instoreHash): void
     {
-        ini_set('max_execution_time', '65');
+        set_time_limit(self::MAX_EXECUTION_TIME);
 
         for ($i = 0; $i < 60; $i++) {
             $status = Instore::status(['hash' => $instoreHash]);
@@ -220,6 +231,10 @@ class PaynlTerminalPaymentHandler extends AbstractPaynlPaymentHandler implements
         $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
         $customer = $salesChannelContext->getCustomer();
         $context = $salesChannelContext->getContext();
+
+        if ($customer === null) {
+            return;
+        }
 
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);

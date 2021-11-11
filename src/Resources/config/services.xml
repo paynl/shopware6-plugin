@@ -14,6 +14,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <argument type="service" id="order_transaction.repository"/>
+            <argument type="service" id="state_machine_transition.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater"/>
         </service>
@@ -30,6 +31,9 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="language.repository"/>
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
         </service>
 
         <!--Components-->
@@ -93,6 +97,7 @@
             <argument type="service" id="router.default"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
         </service>
@@ -103,6 +108,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
         </service>
