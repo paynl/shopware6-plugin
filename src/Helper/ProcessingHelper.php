@@ -11,10 +11,13 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefi
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\RangeFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateCollection;
@@ -33,6 +36,8 @@ class ProcessingHelper
     private $paynlTransactionRepository;
     /** @var EntityRepositoryInterface  */
     private $orderTransactionRepository;
+    /** @var EntityRepositoryInterface  */
+    private $stateMachineTransitionRepository;
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
@@ -40,11 +45,13 @@ class ProcessingHelper
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
         EntityRepositoryInterface $orderTransactionRepository,
+        EntityRepositoryInterface $stateMachineTransitionRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
+        $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
@@ -90,6 +97,13 @@ class ProcessingHelper
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+
+        if ($this->checkDoubleOrderTransactions($paynlTransactionEntity, Context::createDefaultContext())) {
+            $this->updateOldPaynlTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+
+            return "TRUE| The current transaction's commands are ignored due to a later completed transaction.";
+        }
+
         $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
@@ -101,6 +115,47 @@ class ProcessingHelper
             $apiTransactionData['paymentDetails']['stateName'],
             $apiTransactionData['paymentDetails']['state'],
             $apiTransactionData['paymentDetails']['orderNumber']
+        );
+    }
+
+    /**
+     * @param PaynlTransactionEntity $paynlTransaction
+     * @param ResultTransaction $paynlApiTransaction
+     * @return void
+     */
+    private function updateOldPaynlTransactionStatus(
+        PaynlTransactionEntity $paynlTransaction,
+        ResultTransaction $paynlApiTransaction
+    ): void {
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+
+        $criteria = new Criteria();
+        $stateMachineId = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getStateMachineId();
+        $fromStateId = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getId();
+        $transitions = $this->stateMachineTransitionRepository->search(
+            $criteria->addFilter(
+                new MultiFilter(
+                    MultiFilter::CONNECTION_AND,
+                    [
+                        new EqualsFilter('actionName', $transitionName),
+                        new EqualsFilter('stateMachineId', $stateMachineId),
+                        new EqualsFilter('fromStateId', $fromStateId),
+                    ]
+                )),
+            Context::createDefaultContext()
+        );
+
+        $stateId = $transitions->first()->get('toStateId') ?? '';
+        if (empty($stateId)) {
+            return;
+        }
+
+        $this->updatePaynlTransactionStatus(
+            $paynlTransaction->getId(),
+            $paynlTransactionStatusCode,
+            $transitionName,
+            $stateId
         );
     }
 
@@ -274,6 +329,26 @@ class ProcessingHelper
             $transitionName,
             $stateMachineStateId
         );
+    }
+
+    /**
+     * @param PaynlTransactionEntity $paynlTransactionEntity
+     * @param Context $context
+     * @return bool
+     */
+    private function checkDoubleOrderTransactions(
+        PaynlTransactionEntity $paynlTransactionEntity,
+        Context $context
+    ): bool {
+        $orderId = $paynlTransactionEntity->getOrder()->getId();
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('orderId', $orderId));
+        $criteria->addFilter(new RangeFilter('createdAt', [
+            RangeFilter::GT => $paynlTransactionEntity->getCreatedAt()->format(Defaults::STORAGE_DATE_TIME_FORMAT)
+        ]));
+
+        return (bool)$this->paynlTransactionRepository->search($criteria, $context)->count();
     }
 
     /**
