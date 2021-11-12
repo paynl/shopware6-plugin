@@ -12,6 +12,7 @@ use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
+use Symfony\Component\Filesystem\Filesystem;
 
 class PaynlPaymentShopware6 extends Plugin
 {
@@ -34,10 +35,25 @@ class PaynlPaymentShopware6 extends Plugin
     public function update(UpdateContext $updateContext): void
     {
         (new InstallHelper($this->container))->updatePaymentMethods($updateContext->getContext());
+
+        $currentVersion = $this->container->getParameter('kernel.shopware_version');
+        if (\version_compare($currentVersion, '6.4', '<')) {
+            $this->clearCache();
+        }
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($deactivateContext->getContext());
+    }
+
+    private function clearCache(): void
+    {
+        $cacheDir = $this->container->getParameter('kernel.cache_dir');
+
+        if (!empty($cacheDir)) {
+            $fs = new Filesystem();
+            $fs->remove($this->container->getParameter('kernel.cache_dir'));
+        }
     }
 }
