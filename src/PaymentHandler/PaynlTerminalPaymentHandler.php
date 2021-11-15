@@ -177,7 +177,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         for ($i = 0; $i < 60; $i++) {
             $status = Instore::status(['hash' => $instoreHash]);
             if ($status->getTransactionState() == PaynlInstoreTransactionStatusesEnum::INIT) {
-                sleep(1);
+                usleep(1000000);
 
                 continue;
             }
@@ -211,7 +211,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
                     return;
             }
 
-            sleep(1);
+            usleep(1000000);
         }
     }
 
