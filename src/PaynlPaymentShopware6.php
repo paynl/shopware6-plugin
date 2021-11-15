@@ -13,6 +13,7 @@ use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
+use Throwable;
 
 class PaynlPaymentShopware6 extends Plugin
 {
@@ -36,11 +37,15 @@ class PaynlPaymentShopware6 extends Plugin
     {
         (new InstallHelper($this->container))->updatePaymentMethods($updateContext->getContext());
 
-        $currentVersion = $this->container->getParameter('kernel.shopware_version');
-        if (\version_compare($currentVersion, '6.4', '<')) {
-            /** @var CacheController $cacheController */
-            $cacheController = $this->container->get(CacheController::class);
-            $cacheController->clearCacheAndScheduleWarmUp();
+        try {
+            $currentVersion = $this->container->getParameter('kernel.shopware_version');
+            if (\version_compare($currentVersion, '6.4', '<')) {
+                /** @var CacheController $cacheController */
+                $cacheController = $this->container->get(CacheController::class);
+                $cacheController->clearCacheAndScheduleWarmUp();
+            }
+        } catch (Throwable $exception) {
+
         }
     }
 
