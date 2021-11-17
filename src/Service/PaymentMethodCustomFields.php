@@ -98,11 +98,11 @@ class PaymentMethodCustomFields
 
         if (!$terminalsCacheItem->isHit() || !$terminalsCacheItem->get()) {
             $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
-            $terminalsCacheItem->set(serialize($terminals));
+            $terminalsCacheItem->set(json_encode($terminals));
 
             $this->cache->save($terminalsCacheItem);
         } else {
-            $terminals = unserialize($terminalsCacheItem->get());
+            $terminals = json_decode($terminalsCacheItem->get(), true);
         }
 
         return $terminals;
