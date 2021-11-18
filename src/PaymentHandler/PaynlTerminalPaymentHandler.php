@@ -22,6 +22,7 @@ use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
@@ -35,6 +36,9 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     /** @var RouterInterface */
     private $router;
+
+    /** @var Session */
+    private $session;
 
     /** @var Config */
     private $config;
@@ -56,6 +60,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     public function __construct(
         RouterInterface $router,
+        Session $session,
         Config $config,
         Api $api,
         CustomerHelper $customerHelper,
@@ -64,6 +69,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         string $shopwareVersion
     ) {
         $this->router = $router;
+        $this->session = $session;
         $this->config = $config;
         $this->paynlApi = $api;
         $this->customerHelper = $customerHelper;
@@ -238,6 +244,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);
+            $this->session->set(self::TERMINAL, $terminalId);
         }
     }
 

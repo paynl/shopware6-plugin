@@ -85,6 +85,7 @@
 
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">
             <argument type="service" id="router.default"/>
+            <argument type="service" id="session"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
