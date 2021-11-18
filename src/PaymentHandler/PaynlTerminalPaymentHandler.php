@@ -24,7 +24,6 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
@@ -38,9 +37,6 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     /** @var RouterInterface */
     private $router;
-
-    /** @var Session */
-    private $session;
 
     /** @var RequestStack */
     private $requestStack;
@@ -65,7 +61,6 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     public function __construct(
         RouterInterface $router,
-        Session $session,
         RequestStack $requestStack,
         Config $config,
         Api $api,
@@ -75,7 +70,6 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         string $shopwareVersion
     ) {
         $this->router = $router;
-        $this->session = $session;
         $this->requestStack = $requestStack;
         $this->config = $config;
         $this->paynlApi = $api;
@@ -227,6 +221,12 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             usleep(1000000);
         }
+
+        $this->processingHelper->instorePaymentUpdateState(
+            $paynlTransactionId,
+            StateMachineTransitionActions::ACTION_CANCEL,
+            PaynlTransactionStatusesEnum::STATUS_EXPIRED
+        );
     }
 
     /**
@@ -252,7 +252,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);
-            $this->session->set(self::TERMINAL, $terminalId);
+            setcookie('paynl_instore_terminal_id', $terminalId, time() + (60 * 60 * 24 * 365));
         }
     }
 
