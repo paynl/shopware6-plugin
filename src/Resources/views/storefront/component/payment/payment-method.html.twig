@@ -11,7 +11,8 @@
            name="paymentMethodId"
            value="{{ payment.id }}"
            {% if payment.id is same as(selectedPaymentMethodId) %}checked="checked"{% endif %}
-           class="custom-control-input {{ paymentMethodClass }}">
+           class="custom-control-input {{ paymentMethodClass }}"
+           {% if payment.translated.customFields.paynl_payment %}data-paynlId="{{ payment.translated.customFields.paynlId }}"{% endif %}>
 {% endblock %}
 
 {% block component_payment_method_description %}
@@ -62,9 +63,9 @@
                     {% endif %}
 
                     {#Terminals#}
-                    {% if payment.customFields.terminals is not empty %}
+                    {% if payment.customFields.terminals is not empty and activeRoute != "frontend.account.payment.page" %}
                         {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.paymentPinTerminal %}
-                        {% set paynlInstoreTerminalSelected = configInstoreTerminalOption is same as('checkout_save') ? context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal : '' %}
+                        {% set paynlInstoreTerminalSelected = configInstoreTerminalOption is same as('checkout_save') ? (context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal ?: app.request.cookies.get('paynl_instore_terminal_id') ) : '' %}
                         <div class="form-group">
                             <select class="form-control paynl-ideal-banks-select" name="paynlInstoreTerminal" form="confirmOrderForm">
                                 {% for terminal in payment.customFields.terminals %}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
+use LogicException;
 use Paynl\Instore;
 use Paynl\Result\Transaction\Start;
 use PaynlPayment\Shopware6\Components\Api;
@@ -22,6 +23,7 @@ use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
@@ -35,6 +37,9 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     /** @var RouterInterface */
     private $router;
+
+    /** @var RequestStack */
+    private $requestStack;
 
     /** @var Config */
     private $config;
@@ -56,6 +61,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     public function __construct(
         RouterInterface $router,
+        RequestStack $requestStack,
         Config $config,
         Api $api,
         CustomerHelper $customerHelper,
@@ -64,6 +70,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         string $shopwareVersion
     ) {
         $this->router = $router;
+        $this->requestStack = $requestStack;
         $this->config = $config;
         $this->paynlApi = $api;
         $this->customerHelper = $customerHelper;
@@ -86,9 +93,10 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     ): void {
 
         try {
+            $requestData = $this->fetchRequestData();
             $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
             $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
-            $terminal = $this->getRequestTerminal($dataBag, $salesChannelId);
+            $terminal = $this->getRequestTerminal($requestData, $salesChannelId);
             if (empty($terminal) || $paymentMethod === null) {
                 return;
             }
@@ -213,6 +221,12 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             usleep(1000000);
         }
+
+        $this->processingHelper->instorePaymentUpdateState(
+            $paynlTransactionId,
+            StateMachineTransitionActions::ACTION_CANCEL,
+            PaynlTransactionStatusesEnum::STATUS_EXPIRED
+        );
     }
 
     /**
@@ -238,6 +252,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);
+            setcookie('paynl_instore_terminal_id', $terminalId, time() + (60 * 60 * 24 * 365));
         }
     }
 
@@ -255,5 +270,19 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         }
 
         return $configTerminal;
+    }
+
+    /**
+     * @return RequestDataBag
+     */
+    private function fetchRequestData(): RequestDataBag
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        if (null === $request) {
+            throw new LogicException('missing current request');
+        }
+
+        return new RequestDataBag($request->request->all());
     }
 }
