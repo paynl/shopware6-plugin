@@ -310,7 +310,7 @@
         </input-field>
         <input-field type="single-select">
             <name>orderStateWithAuthorizedTransaction</name>
-            <label>Order state with a authorized transaction</label>
+            <label>Order state with an authorized transaction</label>
             <label lang="de-DE">Bestellstatus bei einer authorisierten Transaktion</label>
             <label lang="nl-NL">Bestelstatus bij een geautoriseerde transactie</label>
             <options>
