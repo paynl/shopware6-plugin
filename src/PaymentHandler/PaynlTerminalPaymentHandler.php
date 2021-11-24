@@ -32,6 +32,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 {
     const TERMINAL = 'terminal';
     const HASH = 'hash';
+    const COOKIE_PAYNL_PIN_TERMINAL_ID = 'paynl_pin_terminal_id';
 
     const MAX_EXECUTION_TIME = 65;
 
@@ -252,7 +253,8 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);
-            setcookie('paynl_instore_terminal_id', $terminalId, time() + (60 * 60 * 24 * 365));
+
+            setcookie(self::COOKIE_PAYNL_PIN_TERMINAL_ID, $terminalId, time() + (60 * 60 * 24 * 365));//NOSONAR
         }
     }
 
