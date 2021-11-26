@@ -22,6 +22,8 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     paymentPinMessageInit() {
+        const PAYNL_PIN_PAYMENT_METHOD_ID = '1927';
+
         let formOrder = DomAccess.querySelector(document, '#confirmOrderForm');
 
         formOrder.addEventListener('submit', function () {
@@ -32,7 +34,7 @@ export default class PaynlPaymentPlugin extends Plugin {
             }
 
             //PIN payment method ID
-            if (paynlPaymentMethodId === '1927') {
+            if (paynlPaymentMethodId === PAYNL_PIN_PAYMENT_METHOD_ID) {
                 let paynlProcessMessage = DomAccess.querySelector(document, '.paynl-process-message');
                 paynlProcessMessage.classList.remove('d-none');
             }

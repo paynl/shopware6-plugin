@@ -35,6 +35,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     const COOKIE_PAYNL_PIN_TERMINAL_ID = 'paynl_pin_terminal_id';
 
     const MAX_EXECUTION_TIME = 65;
+    const ONE_YEAR_IN_SEC = 60 * 60 * 24 * 365;
 
     /** @var RouterInterface */
     private $router;
@@ -254,7 +255,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
             $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);
 
-            setcookie(self::COOKIE_PAYNL_PIN_TERMINAL_ID, $terminalId, time() + (60 * 60 * 24 * 365));//NOSONAR
+            setcookie(self::COOKIE_PAYNL_PIN_TERMINAL_ID, $terminalId, time() + self::ONE_YEAR_IN_SEC); //NOSONAR
         }
     }
 
@@ -281,7 +282,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if (null === $request) {
+        if ($request === null) {
             throw new LogicException('missing current request');
         }
 
