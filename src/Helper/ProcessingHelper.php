@@ -106,6 +106,10 @@ class ProcessingHelper
         $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
         $apiTransactionData = $paynlApiTransaction->getData();
 
+        if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
+            return sprintf('TRUE| No change made (%s)', $apiTransactionData['paymentDetails']['stateName']);
+        }
+
         return sprintf(
             'TRUE| Status updated to: %s (%s) orderNumber: %s',
             $apiTransactionData['paymentDetails']['stateName'],
@@ -333,6 +337,22 @@ class ProcessingHelper
 
     /**
      * @param ResultTransaction $paynlApiTransaction
+     * @return bool
+     */
+    private function isUnprocessedTransactionState(ResultTransaction $paynlApiTransaction): bool
+    {
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transactionTransitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+
+        if (empty($transactionTransitionName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param ResultTransaction $paynlApiTransaction
      * @return int
      */
     private function getTransactionStatusFromPaynlApiTransaction(ResultTransaction $paynlApiTransaction): int
@@ -358,7 +378,11 @@ class ProcessingHelper
     ): void {
         $updateData['id'] = $paynlTransactionId;
         $updateData['stateId'] = $paynlTransactionStatusCode;
-        $updateData['latestActionName'] = $orderTransactionTransitionName;
+
+        if (!empty($orderTransactionTransitionName)) {
+            $updateData['latestActionName'] = $orderTransactionTransitionName;
+        }
+
         if (!empty($stateMachineStateId)) {
             $updateData['orderStateId'] = $stateMachineStateId;
         }
