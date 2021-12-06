@@ -10,8 +10,8 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
-use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -40,7 +40,9 @@ class InstallHelper
 
     const SINGLE_PAYMENT_METHOD_ID = '123456789';
 
-    /** @var SystemConfigService $configService */
+    const PAYNL_PAYMENT_FILTER = 'PaynlPayment';
+
+    /** @var SystemConfigService */
     private $configService;
     /** @var PluginIdProvider $pluginIdProvider */
     private $pluginIdProvider;
@@ -58,6 +60,8 @@ class InstallHelper
     private $paynlApi;
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
+    /** @var PaymentHandlerFactory */
+    private $paymentHandlerFactory;
 
     public function __construct(ContainerInterface $container)
     {
@@ -105,6 +109,7 @@ class InstallHelper
         );
 
         $this->mediaHelper = new MediaHelper($container);
+        $this->paymentHandlerFactory = new PaymentHandlerFactory();
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void
@@ -208,7 +213,7 @@ class InstallHelper
                 /** @var PaymentMethodEntity $paymentMethod */
                 $paymentMethod = $this->paymentMethodRepository->search(
                     (new Criteria())
-                        ->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class))
+                        ->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER))
                         ->addFilter(new EqualsFilter('active', 1)),
                     $context
                 )->first();
@@ -279,7 +284,7 @@ class InstallHelper
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
         $criteria->addAssociation('salesChannels');
 
         $paymentMethods = $this->paymentMethodRepository->search($criteria, $context);
@@ -297,7 +302,7 @@ class InstallHelper
         }
 
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
         $criteria->addAssociation('salesChannels');
         $criteria->addFilter(
             new NotFilter(
@@ -352,9 +357,11 @@ class InstallHelper
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
+        $paymentMethodHandler = $this->paymentHandlerFactory->get($paymentMethodValueObject->getId());
+
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
-            'handlerIdentifier' => PaynlPaymentHandler::class,
+            'handlerIdentifier' => $paymentMethodHandler,
             'name' => $paymentMethodValueObject->getVisibleName(),
             'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
@@ -363,7 +370,8 @@ class InstallHelper
             'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
-                'banks' => $paymentMethodValueObject->getBanks()
+                'banks' => $paymentMethodValueObject->getBanks(),
+                'paynlId' => $paymentMethodValueObject->getId()
             ]
         ];
         $paymentMethodId = $paymentMethodValueObject->getId();
@@ -410,7 +418,7 @@ class InstallHelper
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
         $paynlPaymentMethods = $this->paymentMethodRepository->search(
-            (new Criteria())->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class)),
+            (new Criteria())->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER)),
             $context
         );
         $upsertData = [];
@@ -496,7 +504,7 @@ class InstallHelper
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
         $criteria->addAssociation('paymentMethod');
-        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
 
         $salesChannelPaymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
         if (empty($salesChannelPaymentMethodIds)) {

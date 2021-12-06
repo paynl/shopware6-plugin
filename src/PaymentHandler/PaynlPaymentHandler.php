@@ -1,15 +1,17 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace PaynlPayment\Shopware6\Service;
+declare(strict_types=1);
+
+namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,6 +30,9 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $paynlApi;
     /** @var ProcessingHelper */
     private $processingHelper;
+    /** @var PluginHelper */
+    private $pluginHelper;
+    /** @var string */
     private $shopwareVersion;
 
     public function __construct(
@@ -35,12 +40,14 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         RouterInterface $router,
         Api $api,
         ProcessingHelper $processingHelper,
+        PluginHelper $pluginHelper,
         string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
+        $this->pluginHelper = $pluginHelper;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -74,7 +81,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
      * @param AsyncPaymentTransactionStruct $transaction
      * @param Request $request
      * @param SalesChannelContext $salesChannelContext
-     * @throws InconsistentCriteriaIdsException
+     * @throws Exception
      */
     public function finalize(
         AsyncPaymentTransactionStruct $transaction,
@@ -91,20 +98,24 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $paynlTransactionId = '';
         $exchangeUrl =
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $order = $transaction->getOrder();
+        $orderTransaction = $transaction->getOrderTransaction();
 
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
-                $transaction,
+                $order,
                 $salesChannelContext,
+                $transaction->getReturnUrl(),
                 $exchangeUrl,
                 $this->shopwareVersion,
-                $this->getPluginVersionFromComposer()
+                $this->pluginHelper->getPluginVersionFromComposer()
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
-                $transaction,
+                $order,
+                $orderTransaction,
                 $salesChannelContext,
                 $paynlTransactionId,
                 $exception
@@ -112,27 +123,17 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             throw $exception;
         }
 
-        $this->processingHelper->storePaynlTransactionData($transaction, $salesChannelContext, $paynlTransactionId);
+        $this->processingHelper->storePaynlTransactionData(
+            $order,
+            $orderTransaction,
+            $salesChannelContext,
+            $paynlTransactionId
+        );
 
         if (!empty($paynlTransaction->getRedirectUrl())) {
             return $paynlTransaction->getRedirectUrl();
         }
 
         return '';
-    }
-
-    /**
-     * @param string $defaultValue
-     * @return string
-     */
-    private function getPluginVersionFromComposer($defaultValue = ''): string
-    {
-        $composerFilePath = sprintf('%s/%s', rtrim(__DIR__, '/'), '../../composer.json');
-        if (file_exists($composerFilePath)) {
-            $composer = json_decode(file_get_contents($composerFilePath), true);
-            return $composer['version'] ?? $defaultValue;
-        }
-
-        return $defaultValue;
     }
 }

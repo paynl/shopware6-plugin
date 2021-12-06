@@ -9,8 +9,8 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -57,7 +57,8 @@ class ProcessingHelper
     }
 
     public function storePaynlTransactionData(
-        AsyncPaymentTransactionStruct $transaction,
+        OrderEntity $order,
+        OrderTransactionEntity $orderTransaction,
         SalesChannelContext $salesChannelContext,
         string $paynlTransactionId,
         ?Throwable $exception = null
@@ -65,17 +66,17 @@ class ProcessingHelper
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
-        $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),
-            'orderId' => $transaction->getOrder()->getId(),
-            'orderTransactionId' => $transaction->getOrderTransaction()->getId(),
+            'orderId' => $order->getId(),
+            'orderTransactionId' => $orderTransaction->getId(),
             'paymentId' => $this->paynlApi->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId),
-            'amount' => $transaction->getOrder()->getAmountTotal(),
+            'amount' => $order->getAmountTotal(),
             'latestActionName' => StateMachineTransitionActions::ACTION_REOPEN,
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
-            'orderStateId' => $transaction->getOrder()->getStateId(),
+            'orderStateId' => $order->getStateId(),
             // TODO: check sComment from shopware5 plugin
             'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
             'exception' => (string)$exception,
@@ -104,7 +105,10 @@ class ProcessingHelper
             return "TRUE| The current transaction's commands are ignored due to a later completed transaction.";
         }
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
         $apiTransactionData = $paynlApiTransaction->getData();
 
         if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
@@ -173,8 +177,10 @@ class ProcessingHelper
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
     /**
@@ -189,8 +195,27 @@ class ProcessingHelper
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+    }
+
+    /**
+     * @param string $paynlTransactionId
+     * @param string $transitionName
+     * @param int $paynlTransactionStatusCode
+     * @return void
+     */
+    public function instorePaymentUpdateState(
+        string $paynlTransactionId,
+        string $transitionName,
+        int $paynlTransactionStatusCode
+    ): void {
+        /** @var PaynlTransactionEntity $transactionEntity */
+        $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
     /**
@@ -279,36 +304,34 @@ class ProcessingHelper
 
     /**
      * @param PaynlTransactionEntity $paynlTransactionEntity
-     * @param ResultTransaction $paynlApiTransaction
+     * @param string $transitionName
+     * @param int $paynlTransactionStatusCode
+     * @return void
      */
     private function updateTransactionStatus(
         PaynlTransactionEntity $paynlTransactionEntity,
-        ResultTransaction $paynlApiTransaction
+        string $transitionName,
+        int $paynlTransactionStatusCode
     ): void {
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $orderTransactionTransitionName =
-            $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
-
-        /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
         $stateMachineId = $orderTransaction->getStateMachineState()->getStateMachineId();
 
         $allowedTransitionsStatesCount = $this->getAllowedTransitionsStatesCount(
-            $orderTransactionTransitionName,
+            $transitionName,
             $stateMachineId,
             $stateMachineStateId
         );
 
         if (
-            !empty($orderTransactionTransitionName)
-            && ($orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName())
+            !empty($transitionName)
+            && ($transitionName !== $paynlTransactionEntity->getLatestActionName())
             && ($allowedTransitionsStatesCount > 0)
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
                 $orderTransactionId,
-                $orderTransactionTransitionName
+                $transitionName
             );
 
             /** @var StateMachineStateEntity $stateMachineStateEntity */
@@ -319,7 +342,7 @@ class ProcessingHelper
         $this->updatePaynlTransactionStatus(
             $paynlTransactionEntity->getId(),
             $paynlTransactionStatusCode,
-            $orderTransactionTransitionName,
+            $transitionName,
             $stateMachineStateId
         );
     }

@@ -22,10 +22,17 @@
             <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\SettingsHelper" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="language.repository"/>
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
         </service>
 
         <!--Components-->
@@ -53,15 +60,6 @@
         </service>
 
         <!--Services-->
-        <service id="PaynlPayment\Shopware6\Service\PaynlPaymentHandler">
-            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
-            <argument type="service" id="router.default"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument>%kernel.shopware_version%</argument>
-            <tag name="shopware.payment.method.async" />
-        </service>
-
         <service id="PaynlPayment\Shopware6\Service\AddDataToPage" >
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument>%kernel.shopware_version%</argument>
@@ -69,6 +67,32 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields" >
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="cache.object"/>
+        </service>
+
+        <!--Payment handler-->
+        <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
+            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="router.default"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument>%kernel.shopware_version%</argument>
+            <tag name="shopware.payment.method.async" />
+        </service>
+
+        <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">
+            <argument type="service" id="router.default"/>
+            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument>%kernel.shopware_version%</argument>
+            <tag name="shopware.payment.method.sync" />
         </service>
 
         <!--Controllers-->
@@ -90,8 +114,7 @@
         <service id="PaynlPayment\Shopware6\Controller\ConfigController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\SettingsHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>

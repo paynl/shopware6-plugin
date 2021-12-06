@@ -184,4 +184,18 @@
             </options>
         </input-field>
     </card>
+
+    <card>
+        <title>PIN payment</title>
+        <title lang="de-DE">PIN payment</title>
+
+        <name>payment_pin</name>
+
+        <input-field type="single-select">
+            <name>paymentPinTerminal</name>
+            <label>Selected terminal</label>
+            <label lang="nl-NL">Taal betaalscherm</label>
+            <label lang="de-DE">Sprache des Zahlungsbildschirms</label>
+        </input-field>
+    </card>
 </config>

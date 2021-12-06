@@ -45,6 +45,18 @@ class PaynlPaymentService extends ApiService {
                 return ApiService.handleResponse(response);
             });
     }
+
+    getPaymentTerminals(saleChannelId = '') {
+        return this.httpClient
+            .get(`${this.getApiBasePath()}/get-payment-terminals?salesChannelId=${saleChannelId}`,
+                {
+                    headers: this.getBasicHeaders()
+                }
+            )
+            .then((response) => {
+                return ApiService.handleResponse(response);
+            });
+    }
 }
 
 Application.addServiceProvider('PaynlPaymentService', (container) => {
