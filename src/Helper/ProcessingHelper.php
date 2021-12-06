@@ -17,6 +17,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\RangeFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -287,10 +288,18 @@ class ProcessingHelper
         /** @var OrderTransactionEntity $orderTransaction */
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
+        $stateMachineId = $orderTransaction->getStateMachineState()->getStateMachineId();
+
+        $allowedTransitionsStatesCount = $this->getAllowedTransitionsStatesCount(
+            $orderTransactionTransitionName,
+            $stateMachineId,
+            $stateMachineStateId
+        );
 
         if (
             !empty($orderTransactionTransitionName)
-            && $orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName()
+            && ($orderTransactionTransitionName !== $paynlTransactionEntity->getLatestActionName())
+            && ($allowedTransitionsStatesCount > 0)
         ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
@@ -329,6 +338,29 @@ class ProcessingHelper
         ]));
 
         return (bool)$this->paynlTransactionRepository->search($criteria, $context)->count();
+    }
+
+    private function getAllowedTransitionsStatesCount(
+        string $actionName,
+        string $stateMachineId,
+        string $stateMachineStateId
+    ): int {
+        $filter = (new Criteria())->addFilter(
+            new MultiFilter(
+                MultiFilter::CONNECTION_AND,
+                [
+                    new EqualsFilter('actionName', $actionName),
+                    new EqualsFilter('stateMachineId', $stateMachineId),
+                    new EqualsFilter('fromStateId', $stateMachineStateId),
+                    new NotFilter(NotFilter::CONNECTION_AND, [
+                        new EqualsFilter('toStateId', $stateMachineStateId),
+                    ])
+                ]
+            ));
+
+        $context = Context::createDefaultContext();
+
+        return $this->stateMachineTransitionRepository->search($filter, $context)->count();
     }
 
     /**
