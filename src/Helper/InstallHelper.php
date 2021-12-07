@@ -7,7 +7,6 @@ use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -68,6 +67,7 @@ class InstallHelper
         Connection $connection,
         PluginIdProvider $pluginIdProvider,
         Config $config,
+        PaymentHandlerFactory $paymentHandlerFactory,
         MediaHelper $mediaHelper,
         EntityRepositoryInterface $paymentMethodRepository,
         EntityRepositoryInterface $salesChannelRepository,
@@ -84,7 +84,7 @@ class InstallHelper
         $this->salesChannelRepository = $salesChannelRepository;
         $this->paymentMethodSalesChannelRepository = $paymentMethodSalesChannelRepository;
         $this->systemConfigRepository = $systemConfigRepository;
-        $this->paymentHandlerFactory = new PaymentHandlerFactory();
+        $this->paymentHandlerFactory = $paymentHandlerFactory;
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void

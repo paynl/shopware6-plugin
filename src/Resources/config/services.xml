@@ -22,6 +22,7 @@
             <argument type="service" id="Doctrine\DBAL\Connection"/>
             <argument type="service" id="Shopware\Core\Framework\Plugin\Util\PluginIdProvider"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
             <argument type="service" id="payment_method.repository"/>
             <argument type="service" id="sales_channel.repository"/>
@@ -105,6 +106,9 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
+        </service>
+
+        <service id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory">
         </service>
 
         <!--Controllers-->
