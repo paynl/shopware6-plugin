@@ -18,6 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\RangeFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -127,6 +128,10 @@ class ProcessingHelper
         );
 
         $apiTransactionData = $paynlApiTransaction->getData();
+
+        if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
+            return sprintf('TRUE| No change made (%s)', $apiTransactionData['paymentDetails']['stateName']);
+        }
 
         return sprintf(
             'TRUE| Status updated to: %s (%s) orderNumber: %s',
@@ -350,8 +355,19 @@ class ProcessingHelper
     ): void {
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
         $stateMachineStateId = $orderTransaction->getStateId();
+        $stateMachineId = $orderTransaction->getStateMachineState()->getStateMachineId();
 
-        if (!empty($transitionName) && $transitionName !== $paynlTransactionEntity->getLatestActionName()) {
+        $allowedTransitionsStatesCount = $this->getAllowedTransitionsStatesCount(
+            $transitionName,
+            $stateMachineId,
+            $stateMachineStateId
+        );
+
+        if (
+            !empty($transitionName)
+            && ($transitionName !== $paynlTransactionEntity->getLatestActionName())
+            && ($allowedTransitionsStatesCount > 0)
+        ) {
             $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
                 $orderTransactionId,
@@ -391,6 +407,45 @@ class ProcessingHelper
         return (bool)$this->paynlTransactionRepository->search($criteria, $context)->count();
     }
 
+    private function getAllowedTransitionsStatesCount(
+        string $actionName,
+        string $stateMachineId,
+        string $stateMachineStateId
+    ): int {
+        $filter = (new Criteria())->addFilter(
+            new MultiFilter(
+                MultiFilter::CONNECTION_AND,
+                [
+                    new EqualsFilter('actionName', $actionName),
+                    new EqualsFilter('stateMachineId', $stateMachineId),
+                    new EqualsFilter('fromStateId', $stateMachineStateId),
+                    new NotFilter(NotFilter::CONNECTION_AND, [
+                        new EqualsFilter('toStateId', $stateMachineStateId),
+                    ])
+                ]
+            ));
+
+        $context = Context::createDefaultContext();
+
+        return $this->stateMachineTransitionRepository->search($filter, $context)->count();
+    }
+
+    /**
+     * @param ResultTransaction $paynlApiTransaction
+     * @return bool
+     */
+    private function isUnprocessedTransactionState(ResultTransaction $paynlApiTransaction): bool
+    {
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transactionTransitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+
+        if (empty($transactionTransitionName)) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @param ResultTransaction $paynlApiTransaction
      * @return int
@@ -418,7 +473,11 @@ class ProcessingHelper
     ): void {
         $updateData['id'] = $paynlTransactionId;
         $updateData['stateId'] = $paynlTransactionStatusCode;
-        $updateData['latestActionName'] = $orderTransactionTransitionName;
+
+        if (!empty($orderTransactionTransitionName)) {
+            $updateData['latestActionName'] = $orderTransactionTransitionName;
+        }
+
         if (!empty($stateMachineStateId)) {
             $updateData['orderStateId'] = $stateMachineStateId;
         }

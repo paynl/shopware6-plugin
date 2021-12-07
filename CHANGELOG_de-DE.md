@@ -1,4 +1,7 @@
 # 1.4.9
+- Die Möglichkeit per Kartenterminal zu bezahlen hinzugefügt
+- Aktualisierung des Zahlungsstatus behoben
+- Zahlungsbenachrichtigung behoben
 
 # 1.4.8
 - Überschreiben von Zahlungsstatus wurde behoben
