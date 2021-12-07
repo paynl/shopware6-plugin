@@ -69,7 +69,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
 
-            $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
+        $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
     }
 
     private function processPayLaterFields(array $requestData, ?CustomerEntity $customer, Context $context): void
@@ -94,12 +94,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 
     private function savePaynlPaymentMethodIssuer(array $requestData, CustomerEntity $customer, Context $context): void
     {
-        /** @var PaymentMethodEntity $paymentMethod */
-        $paymentMethod = $this->paymentMethodRepository->search(
-            (new Criteria())
-                ->addFilter(new EqualsFilter('id', $requestData['paymentMethodId'])),
-            $context
-        )->first();
+        $paymentMethod = $this->getPaymentMethodById($requestData['paymentMethodId'], $context);
 
         if (empty($paymentMethod)) {
             return;
@@ -116,5 +111,17 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $paynlIssuer = (string)($requestData['paynlIssuer'] ?? '');
 
         $this->customerHelper->savePaynlIssuer($customer, $paymentMethodId, $paynlIssuer, $context);
+    }
+
+    private function getPaymentMethodById(string $paymentMethodId, Context $context): ?PaymentMethodEntity
+    {
+        /** @var PaymentMethodEntity $paymentMethod */
+        $paymentMethod = $this->paymentMethodRepository->search(
+            (new Criteria())
+                ->addFilter(new EqualsFilter('id', $paymentMethodId)),
+            $context
+        )->first();
+
+        return $paymentMethod;
     }
 }

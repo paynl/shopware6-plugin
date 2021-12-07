@@ -2,6 +2,7 @@ const { Component, Mixin } = Shopware;
 const { object, types } = Shopware.Utils;
 
 import template from './paynl-plugin-settings.html.twig';
+import './style.scss';
 
 Component.register('paynl-plugin-settings', {
     template,
@@ -37,6 +38,8 @@ Component.register('paynl-plugin-settings', {
             allowRefundsFilled: false,
             femaleSalutationsFilled: false,
             showCredentilasErrors: false,
+            paymentInstoreTerminals: [],
+            currentSalesChannelId: null,
             settingsData: {
                 tokenCode: null,
                 allowRefunds: null,
@@ -50,7 +53,11 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: null,
                 femaleSalutations: null,
                 paymentScreenLanguage: null,
-            }
+                paymentPinTerminal: null
+            },
+            collapsibleState: {
+                'payment_pin': true,
+            },
         };
     },
 
@@ -79,6 +86,52 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
+        initPaymentTerminals(salesChannelId = '') {
+            let self = this;
+
+            this.PaynlPaymentService.getPaymentTerminals(salesChannelId)
+                .then((result) => {
+                    self.paymentInstoreTerminals = [];
+                    result.data.forEach((element) => {
+                        let translationKey = 'paynl-instore-options.' + element.id;
+                        let translationValue = self.$t(translationKey);
+
+                        if (translationValue === translationKey) {
+                            translationValue = element.label;
+                        }
+
+                        self.paymentInstoreTerminals.push({
+                            'label': translationValue,
+                            'value': element.id,
+                        });
+                    });
+                });
+        },
+
+        isCollapsible(card) {
+            return card.name in this.collapsibleState;
+        },
+
+        displayField(element, config, card) {
+            if (!(card.name in this.collapsibleState)) {
+                return true;
+            }
+
+            return !this.collapsibleState[card.name];
+        },
+
+        isCollapsed(card) {
+            return this.collapsibleState[card.name];
+        },
+
+        toggleCollapsible(card) {
+            if (!(card.name in this.collapsibleState)) {
+                return;
+            }
+
+            this.collapsibleState[card.name] = !this.collapsibleState[card.name];
+        },
+
         saveFinish() {
             this.isSaveSuccessful = false;
         },
@@ -111,6 +164,13 @@ Component.register('paynl-plugin-settings', {
         },
 
         onConfigChange(config) {
+            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ? this.$refs.systemConfig.currentSalesChannelId : '';
+
+            if (salesChannelId !== this.currentSalesChannelId) {
+                this.initPaymentTerminals(salesChannelId);
+            }
+            this.currentSalesChannelId = salesChannelId;
+
             this.config = config;
 
             this.setCredentialsFilled();
@@ -128,6 +188,7 @@ Component.register('paynl-plugin-settings', {
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
                 paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
+                paymentPinTerminal: this.config['PaynlPaymentShopware6.settings.paymentPinTerminal'],
             };
 
             this.showCredentilasErrors = false;

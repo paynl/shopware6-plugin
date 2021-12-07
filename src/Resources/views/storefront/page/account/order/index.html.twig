@@ -1,0 +1,6 @@
+{% sw_extends '@Storefront/storefront/page/account/order/index.html.twig' %}
+
+{% block page_checkout_confirm_form_submit %}
+    <div class="paynl-process-message d-none">{{ 'checkout.messages.completePaymentPin'|trans }}</div>
+    {{ parent() }}
+{% endblock %}

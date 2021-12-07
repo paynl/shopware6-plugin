@@ -42,5 +42,10 @@
                 "label": "PAY. Transactions"
             }
         }
+    },
+
+    "paynl-instore-options": {
+        "checkout": "Choose in checkout",
+        "checkout_save": "Choose in checkout and save"
     }
 }

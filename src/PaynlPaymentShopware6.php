@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
+use Shopware\Core\Framework\Api\Controller\CacheController;
 use PaynlPayment\Shopware6\Helper\MediaHelper;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -20,6 +21,7 @@ use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Throwable;
 
 class PaynlPaymentShopware6 extends Plugin
 {
@@ -42,6 +44,17 @@ class PaynlPaymentShopware6 extends Plugin
     public function update(UpdateContext $updateContext): void
     {
         $this->getInstallHelper()->updatePaymentMethods($updateContext->getContext());
+
+        try {
+            $currentVersion = $this->container->getParameter('kernel.shopware_version');
+            if (\version_compare($currentVersion, '6.4', '<')) {
+                /** @var CacheController $cacheController */
+                $cacheController = $this->container->get(CacheController::class);
+                $cacheController->clearCacheAndScheduleWarmUp();
+            }
+        } catch (Throwable $exception) {
+
+        }
     }
 
     public function deactivate(DeactivateContext $deactivateContext): void

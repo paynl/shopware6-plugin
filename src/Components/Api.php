@@ -3,18 +3,20 @@
 namespace PaynlPayment\Shopware6\Components;
 
 use Paynl\Config as SDKConfig;
+use Paynl\Instore;
 use Paynl\Paymentmethods;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -96,21 +98,25 @@ class Api
     }
 
     public function startTransaction(
-        AsyncPaymentTransactionStruct $transaction,
+        OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+        string $returnUrl,
         string $exchangeUrl,
-        string $showareVersion,
-        string $pluginVersion
+        string $shopwareVersion,
+        string $pluginVersion,
+        ?string $terminalId = null
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
-            $transaction,
+            $order,
             $salesChannelContext,
+            $returnUrl,
             $exchangeUrl,
-            $showareVersion,
-            $pluginVersion
+            $shopwareVersion,
+            $pluginVersion,
+            $terminalId
         );
 
-        $this->setCredentials($salesChannelContext->getSalesChannelId());
+        $this->setCredentials($salesChannelContext->getSalesChannel()->getId());
 
         return Transaction::start($transactionInitialData);
     }
@@ -123,28 +129,32 @@ class Api
     }
 
     /**
-     * @param AsyncPaymentTransactionStruct $transaction
+     * @param OrderEntity $order
      * @param SalesChannelContext $salesChannelContext
+     * @param string $returnUrl
      * @param string $exchangeUrl
      * @param string $shopwareVersion
      * @param string $pluginVersion
-     * @return mixed[]
+     * @param string|null $terminalId
+     * @return array
+     * @throws PaynlPaymentException
      */
     private function getTransactionInitialData(
-        AsyncPaymentTransactionStruct $transaction,
+        OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+        string $returnUrl,
         string $exchangeUrl,
         string $shopwareVersion,
-        string $pluginVersion
+        string $pluginVersion,
+        ?string $terminalId = null
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodId($shopwarePaymentMethodId, $salesChannelId);
-        $amount = $transaction->getOrder()->getAmountTotal();
+        $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
-        $returnUrl = $transaction->getReturnUrl();
-        $orderNumber = $transaction->getOrder()->getOrderNumber();
+        $orderNumber = $order->getOrderNumber();
         $transactionInitialData = [
             // Basic data
             'paymentMethod' => $paynlPaymentMethodId,
@@ -163,7 +173,7 @@ class Api
             'exchangeUrl' => $exchangeUrl,
 
             // Products
-            'products' => $this->getOrderProducts($transaction, $salesChannelContext->getContext()),
+            'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
             'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
         ];
 
@@ -173,17 +183,21 @@ class Api
         $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->session->get('paynlIssuer'));
 
         if (!empty($bank)) {
-            $orderCustomFields = (array)$transaction->getOrder()->getCustomFields();
+            $orderCustomFields = (array)$order->getCustomFields();
             $orderCustomFields['paynlIssuer'] = $bank;
 
             $data[] = [
-                'id' => $transaction->getOrder()->getId(),
+                'id' => $order->getId(),
                 'customFields' => $orderCustomFields
             ];
 
             $this->orderRepository->upsert($data, $salesChannelContext->getContext());
 
             $transactionInitialData['bank'] = $bank;
+        }
+
+        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
+            $transactionInitialData['bank'] = $terminalId;
         }
 
         if ($customer instanceof CustomerEntity) {
@@ -196,7 +210,7 @@ class Api
         }
 
         if ($this->config->getPaymentScreenLanguage($salesChannelId)) {
-            $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($transaction->getOrder());
+            $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($order);
         }
 
         return $transactionInitialData;
@@ -236,15 +250,15 @@ class Api
     }
 
     /**
-     * @param AsyncPaymentTransactionStruct $transaction
+     * @param OrderEntity $order
      * @param Context $context
      * @return mixed[]
      * @throws InconsistentCriteriaIdsException
      */
-    private function getOrderProducts(AsyncPaymentTransactionStruct $transaction, Context $context): array
+    private function getOrderProducts(OrderEntity $order, Context $context): array
     {
         /** @var OrderLineItemCollection*/
-        $orderLineItems = $transaction->getOrder()->getLineItems();
+        $orderLineItems = $order->getLineItems();
         $productsItems = $orderLineItems->filterByProperty('type', 'product');
         $productsIds = [];
 
@@ -277,8 +291,8 @@ class Api
         $products[] = [
             'id' => 'shipping',
             'name' => 'Shipping',
-            'price' => $transaction->getOrder()->getShippingTotal(),
-            'vatPercentage' => $transaction->getOrder()->getShippingCosts()->getCalculatedTaxes()->getAmount(),
+            'price' => $order->getShippingTotal(),
+            'vatPercentage' => $order->getShippingCosts()->getCalculatedTaxes()->getAmount(),
             'qty' => 1,
             'type' => Transaction::PRODUCT_TYPE_SHIPPING,
         ];
@@ -331,5 +345,16 @@ class Api
         } catch (Exception $exception) {
             return false;
         }
+    }
+
+    /**
+     * @param string $salesChannelId
+     * @return array
+     */
+    public function getInstoreTerminals(string $salesChannelId): array
+    {
+        $this->setCredentials($salesChannelId);
+
+        return (array)Instore::getAllTerminals()->getList();
     }
 }
