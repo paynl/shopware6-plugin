@@ -10,6 +10,7 @@ use Paynl\Instore;
 use Paynl\Result\Transaction\Start;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\OrderTransactionCustomFieldsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlInstoreTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
@@ -20,6 +21,8 @@ use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandler
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
@@ -58,6 +61,9 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     /** @var PluginHelper */
     private $pluginHelper;
 
+    /** @var EntityRepositoryInterface */
+    private $orderTransactionRepository;
+
     /** @var string */
     private $shopwareVersion;
 
@@ -69,6 +75,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         CustomerHelper $customerHelper,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
+        EntityRepositoryInterface $orderTransactionRepository,
         string $shopwareVersion
     ) {
         $this->router = $router;
@@ -78,6 +85,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->customerHelper = $customerHelper;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
+        $this->orderTransactionRepository = $orderTransactionRepository;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -110,7 +118,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             $paynlTransactionData = $paynlTransaction->getData();
 
             $hash = (string)($paynlTransactionData[self::TERMINAL][self::HASH] ?? '');
-            $this->processTerminalState($paynlTransactionId, $hash);
+            $this->processTerminalState($transaction, $paynlTransactionId, $hash);
 
         } catch (Exception $e) {
             throw new SyncPaymentProcessException(
@@ -176,12 +184,15 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     }
 
     /**
+     * @param SyncPaymentTransactionStruct $transaction
      * @param string $paynlTransactionId
      * @param string $instoreHash
-     * @return void
      */
-    private function processTerminalState(string $paynlTransactionId, string $instoreHash): void
-    {
+    private function processTerminalState(
+        SyncPaymentTransactionStruct $transaction,
+        string $paynlTransactionId,
+        string $instoreHash
+    ): void {
         set_time_limit(self::MAX_EXECUTION_TIME);
 
         for ($i = 0; $i < 60; $i++) {
@@ -194,6 +205,18 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             switch ($status->getTransactionState()) {
                 case PaynlInstoreTransactionStatusesEnum::APPROVED:
+                    $statusData = $status->getData();
+
+                    $this->orderTransactionRepository->update([[
+                        'id' => $transaction->getOrderTransaction()->getId(),
+                        'customFields' => [
+                            OrderTransactionCustomFieldsEnum::PAYNL_PAYMENTS => [
+                                OrderTransactionCustomFieldsEnum::APPROVAL_ID => $statusData['approvalID'] ?? ''
+                            ]
+                        ]
+                    ]], Context::createDefaultContext());
+
+
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_PAID,
