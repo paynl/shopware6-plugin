@@ -6,5 +6,5 @@ class OrderTransactionCustomFieldsEnum
 {
     const PAYNL_PAYMENTS = 'paynl_payments';
 
-    const APPROVAL_ID = 'approvalId';
+    const APPROVAL_ID = 'approval_id';
 }
