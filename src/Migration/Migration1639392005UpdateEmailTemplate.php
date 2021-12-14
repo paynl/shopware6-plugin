@@ -36,22 +36,24 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
                     continue;
                 }
 
-                $mailTemplateContentHtml = ($mailTemplateTranslation['content_html'] ?? '') . $this->getMailTemplate();
-                if (strpos($mailTemplateTranslation['content_html'], $this->getMailTemplate()) !== false) {
-                    $mailTemplateContentHtml = $mailTemplateTranslation['content_html'] ?? '';
+                $mailContentHtml = $mailTemplateTranslation['content_html'] ?? '';
+                $mailTemplate = $this->getMailTemplate();
+                if (strpos($mailContentHtml, $mailTemplate) === false) {
+                    $this->updateMailTemplateTranslationContentHtml([
+                        'mail_template_id' => $mailTemplateTranslation['mail_template_id'],
+                        'language_id' => $mailTemplateTranslation['language_id'],
+                        'content_html' => $mailContentHtml . $mailTemplate
+                    ]);
                 }
 
-                $mailTemplateContentPlain = ($mailTemplateTranslation['content_plain'] ?? '') . $this->getMailTemplate();
-                if (strpos($mailTemplateTranslation['content_plain'], $this->getMailTemplate()) !== false) {
-                    $mailTemplateContentPlain = $mailTemplateTranslation['content_plain'] ?? '';
+                $mailContentPlain = $mailTemplateTranslation['content_plain'] ?? '';
+                if (strpos($mailContentPlain, $mailTemplate) === false) {
+                    $this->updateMailTemplateTranslationContentPlain([
+                        'mail_template_id' => $mailTemplateTranslation['mail_template_id'],
+                        'language_id' => $mailTemplateTranslation['language_id'],
+                        'content_plain' => $mailContentPlain . $mailTemplate
+                    ]);
                 }
-
-                $this->updateMailTemplateTranslation([
-                    'mail_template_id' => $mailTemplateTranslation['mail_template_id'],
-                    'language_id' => $mailTemplateTranslation['language_id'],
-                    'content_html' => $mailTemplateContentHtml,
-                    'content_plain' => $mailTemplateContentPlain,
-                ]);
             }
         }
     }
@@ -61,12 +63,38 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
         // implement update destructive
     }
 
-    private function updateMailTemplateTranslation(array $mailTemplateTranslationUpdate)
+    private function updateMailTemplateTranslationContentHtml(array $mailTemplateTranslationUpdate): void
     {
-        $this->connection->executeUpdate(
-            $this->getUpdatingMailTemplateTranslationSql(),
-            $mailTemplateTranslationUpdate
-        );
+        $sqlQuery = implode(' ', [
+            'UPDATE',
+            'mail_template_translation',
+            'SET',
+            'content_html = :content_html, updated_at = CURRENT_TIME()',
+            'WHERE',
+            'mail_template_id = :mail_template_id',
+            'AND',
+            'language_id = :language_id',
+            ';'
+        ]);
+
+        $this->connection->executeUpdate($sqlQuery, $mailTemplateTranslationUpdate);
+    }
+
+    private function updateMailTemplateTranslationContentPlain(array $mailTemplateTranslationUpdate): void
+    {
+        $sqlQuery = implode(' ', [
+            'UPDATE',
+            'mail_template_translation',
+            'SET',
+            'content_plain = :content_plain, updated_at = CURRENT_TIME()',
+            'WHERE',
+            'mail_template_id = :mail_template_id',
+            'AND',
+            'language_id = :language_id',
+            ';'
+        ]);
+
+        $this->connection->executeUpdate($sqlQuery, $mailTemplateTranslationUpdate);
     }
 
     private function getMailTemplate(): string
@@ -79,43 +107,7 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
 
     private function getMailTemplateTypeId(string $technicalName)
     {
-        return $this->connection->executeQuery($this->getSelectMailTemplateType(), [
-            'technical_name' => $technicalName,
-        ])->fetchColumn();
-    }
-
-    private function getMailTemplates(string $mailTemplateTypeId)
-    {
-        return $this->connection->executeQuery($this->getSelectMailTemplate(), [
-            'mail_template_type_id' => $mailTemplateTypeId,
-        ])->fetchAll();
-    }
-
-    private function getMailTemplateTranslations(string $mailTemplateId)
-    {
-        return $this->connection->executeQuery($this->getSelectMailTemplateTranslation(), [
-            'mail_template_id' => $mailTemplateId,
-        ])->fetchAll();
-    }
-
-    private function getUpdatingMailTemplateTranslationSql(): string
-    {
-        return join(' ', [
-            'UPDATE',
-            'mail_template_translation',
-            'SET',
-            'content_html = :content_html, content_plain = :content_plain, updated_at = CURRENT_TIME()',
-            'WHERE',
-            'mail_template_id = :mail_template_id',
-            'AND',
-            'language_id = :language_id',
-            ';'
-        ]);
-    }
-
-    private function getSelectMailTemplateType(): string
-    {
-        return join(' ', [
+        $sqlQuery = implode(' ', [
             'SELECT',
             'id',
             'FROM',
@@ -123,11 +115,15 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
             'WHERE',
             'technical_name = :technical_name',
         ]);
+
+        return $this->connection->executeQuery($sqlQuery, [
+            'technical_name' => $technicalName,
+        ])->fetchColumn();
     }
 
-    private function getSelectMailTemplate(): string
+    private function getMailTemplates(string $mailTemplateTypeId)
     {
-        return join(' ', [
+        $sqlQuery = implode(' ', [
             'SELECT',
             'id',
             'FROM',
@@ -135,11 +131,15 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
             'WHERE',
             'mail_template_type_id = :mail_template_type_id',
         ]);
+
+        return $this->connection->executeQuery($sqlQuery, [
+            'mail_template_type_id' => $mailTemplateTypeId,
+        ])->fetchAll();
     }
 
-    private function getSelectMailTemplateTranslation(): string
+    private function getMailTemplateTranslations(string $mailTemplateId)
     {
-        return join(' ', [
+        $sqlQuery = implode(' ', [
             'SELECT',
             'mail_template_id, language_id, content_html, content_plain',
             'FROM',
@@ -147,5 +147,9 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
             'WHERE',
             'mail_template_id = :mail_template_id',
         ]);
+
+        return $this->connection->executeQuery($sqlQuery, [
+            'mail_template_id' => $mailTemplateId,
+        ])->fetchAll();
     }
 }
