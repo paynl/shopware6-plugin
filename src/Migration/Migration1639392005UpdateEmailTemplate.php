@@ -22,30 +22,37 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
         $this->connection = $connection;
 
         $mailTemplateTypeId = $this->getMailTemplateTypeId(self::ORDER_TRANSACTION_PAID_MAIL_TEMPLATE);
-        $mailTemplateId = $this->getMailTemplateId($mailTemplateTypeId);
-        $mailTemplateTranslations = $this->getMailTemplateTranslations($mailTemplateId);
+        $mailTemplates = $this->getMailTemplates($mailTemplateTypeId);
 
-        foreach ($mailTemplateTranslations as $mailTemplateTranslation) {
-            if (empty($mailTemplateTranslation['mail_template_id']) || empty($mailTemplateTranslation['language_id'])) {
+        foreach ($mailTemplates as $mailTemplate) {
+            if (empty($mailTemplate['id'])) {
                 continue;
             }
 
-            $mailTemplateContentHtml = ($mailTemplateTranslation['content_html'] ?? '') . $this->getMailTemplate();
-            if (strpos($mailTemplateTranslation['content_html'], $this->getMailTemplate()) !== false) {
-                $mailTemplateContentHtml = $mailTemplateTranslation['content_html'] ?? '';
-            }
+            $mailTemplateTranslations = $this->getMailTemplateTranslations($mailTemplate['id']);
 
-            $mailTemplateContentPlain = ($mailTemplateTranslation['content_plain'] ?? '') . $this->getMailTemplate();
-            if (strpos($mailTemplateTranslation['content_plain'], $this->getMailTemplate()) !== false) {
-                $mailTemplateContentPlain = $mailTemplateTranslation['content_plain'] ?? '';
-            }
+            foreach ($mailTemplateTranslations as $mailTemplateTranslation) {
+                if (empty($mailTemplateTranslation['mail_template_id']) || empty($mailTemplateTranslation['language_id'])) {
+                    continue;
+                }
 
-            $this->updateMailTemplateTranslation([
-                'mail_template_id' => $mailTemplateTranslation['mail_template_id'],
-                'language_id' => $mailTemplateTranslation['language_id'],
-                'content_html' => $mailTemplateContentHtml,
-                'content_plain' => $mailTemplateContentPlain,
-            ]);
+                $mailTemplateContentHtml = ($mailTemplateTranslation['content_html'] ?? '') . $this->getMailTemplate();
+                if (strpos($mailTemplateTranslation['content_html'], $this->getMailTemplate()) !== false) {
+                    $mailTemplateContentHtml = $mailTemplateTranslation['content_html'] ?? '';
+                }
+
+                $mailTemplateContentPlain = ($mailTemplateTranslation['content_plain'] ?? '') . $this->getMailTemplate();
+                if (strpos($mailTemplateTranslation['content_plain'], $this->getMailTemplate()) !== false) {
+                    $mailTemplateContentPlain = $mailTemplateTranslation['content_plain'] ?? '';
+                }
+
+                $this->updateMailTemplateTranslation([
+                    'mail_template_id' => $mailTemplateTranslation['mail_template_id'],
+                    'language_id' => $mailTemplateTranslation['language_id'],
+                    'content_html' => $mailTemplateContentHtml,
+                    'content_plain' => $mailTemplateContentPlain,
+                ]);
+            }
         }
     }
 
@@ -77,11 +84,11 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
         ])->fetchColumn();
     }
 
-    private function getMailTemplateId(string $mailTemplateTypeId)
+    private function getMailTemplates(string $mailTemplateTypeId)
     {
         return $this->connection->executeQuery($this->getSelectMailTemplate(), [
             'mail_template_type_id' => $mailTemplateTypeId,
-        ])->fetchColumn();
+        ])->fetchAll();
     }
 
     private function getMailTemplateTranslations(string $mailTemplateId)
