@@ -205,17 +205,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             switch ($status->getTransactionState()) {
                 case PaynlInstoreTransactionStatusesEnum::APPROVED:
-                    $statusData = $status->getData();
-
-                    $this->orderTransactionRepository->update([[
-                        'id' => $transaction->getOrderTransaction()->getId(),
-                        'customFields' => [
-                            OrderTransactionCustomFieldsEnum::PAYNL_PAYMENTS => [
-                                OrderTransactionCustomFieldsEnum::APPROVAL_ID => $statusData['approvalID'] ?? ''
-                            ]
-                        ]
-                    ]], Context::createDefaultContext());
-
+                    $this->saveTransactionReceiptApprovalId($transaction->getOrderTransaction()->getId(), $instoreHash);
 
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
@@ -252,6 +242,27 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             StateMachineTransitionActions::ACTION_CANCEL,
             PaynlTransactionStatusesEnum::STATUS_EXPIRED
         );
+    }
+
+    /**
+     * @param string $orderTransactionId
+     * @param string $instoreHash
+     */
+    private function saveTransactionReceiptApprovalId(string $orderTransactionId, string $instoreHash): void
+    {
+        $receipt = Instore::getReceipt(['hash' => $instoreHash]);
+        if (empty($receipt->getApprovalId())) {
+            return;
+        }
+
+        $this->orderTransactionRepository->update([[
+            'id' => $orderTransactionId,
+            'customFields' => [
+                OrderTransactionCustomFieldsEnum::PAYNL_PAYMENTS => [
+                    OrderTransactionCustomFieldsEnum::APPROVAL_ID => $receipt->getApprovalId() ?? ''
+                ]
+            ]
+        ]], Context::createDefaultContext());
     }
 
     /**
