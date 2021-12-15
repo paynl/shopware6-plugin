@@ -100,6 +100,11 @@ class Migration1639392005UpdateEmailTemplate extends MigrationStep
     private function getMailTemplate(): string
     {
         return "\n\n{% set lastTransaction = order.transactions|last %}\n"
+            . "{% for transaction in order.transactions %}\n"
+            . "{% if transaction.stateMachineState.technicalName == \"paid\" %}\n"
+            . "{% set lastTransaction = transaction %}\n"
+            . "{% endif %}\n"
+            . "{% endfor %}\n"
             . "{% if lastTransaction is not null and lastTransaction.customFields.paynl_payments.approval_id is defined %} \n"
             . "ApprovalID - {{ lastTransaction.customFields.paynl_payments.approval_id }}\n"
             . "{% endif %}";
