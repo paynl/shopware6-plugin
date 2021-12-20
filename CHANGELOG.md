@@ -1,3 +1,8 @@
+# 1.4.9
+- Added the ability to pay by terminal
+- Fixed updating payment statuses
+- Fixed payment notify message
+
 # 1.4.8
 - Overwriting payments statuses was fixed
 

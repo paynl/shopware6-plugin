@@ -82,4 +82,9 @@ class Config
     {
         return (string)$this->get($salesChannelId, 'paymentScreenLanguage');
     }
+
+    public function getPaymentPinTerminal(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPinTerminal');
+    }
 }

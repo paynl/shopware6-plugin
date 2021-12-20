@@ -10,8 +10,8 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
-use PaynlPayment\Shopware6\Service\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -40,7 +40,19 @@ class InstallHelper
 
     const SINGLE_PAYMENT_METHOD_ID = '123456789';
 
-    /** @var SystemConfigService $configService */
+    const PAYNL_PAYMENT_FILTER = 'PaynlPayment';
+
+    const ORDER_TRANSACTION_PAID_MAIL_TEMPLATE = 'order_transaction.state.paid';
+
+    const TPL_REG_EXP = '/\{\# PaynlPaymentShopware6\-pin\-start \#\}(.*?)\{\# PaynlPaymentShopware6\-pin\-end \#\}/s';
+
+    const ID = 'id';
+    const MAIL_TEMPLATE_ID = 'mail_template_id';
+    const LANGUAGE_ID = 'language_id';
+    const CONTENT_HTML = 'content_html';
+    const CONTENT_PLAIN = 'content_plain';
+
+    /** @var SystemConfigService */
     private $configService;
     /** @var PluginIdProvider $pluginIdProvider */
     private $pluginIdProvider;
@@ -58,6 +70,8 @@ class InstallHelper
     private $paynlApi;
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
+    /** @var PaymentHandlerFactory */
+    private $paymentHandlerFactory;
 
     public function __construct(ContainerInterface $container)
     {
@@ -105,6 +119,7 @@ class InstallHelper
         );
 
         $this->mediaHelper = new MediaHelper($container);
+        $this->paymentHandlerFactory = new PaymentHandlerFactory();
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void
@@ -208,7 +223,7 @@ class InstallHelper
                 /** @var PaymentMethodEntity $paymentMethod */
                 $paymentMethod = $this->paymentMethodRepository->search(
                     (new Criteria())
-                        ->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class))
+                        ->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER))
                         ->addFilter(new EqualsFilter('active', 1)),
                     $context
                 )->first();
@@ -279,7 +294,7 @@ class InstallHelper
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
         $criteria->addAssociation('salesChannels');
 
         $paymentMethods = $this->paymentMethodRepository->search($criteria, $context);
@@ -297,7 +312,7 @@ class InstallHelper
         }
 
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
         $criteria->addAssociation('salesChannels');
         $criteria->addFilter(
             new NotFilter(
@@ -352,9 +367,11 @@ class InstallHelper
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
+        $paymentMethodHandler = $this->paymentHandlerFactory->get($paymentMethodValueObject->getId());
+
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
-            'handlerIdentifier' => PaynlPaymentHandler::class,
+            'handlerIdentifier' => $paymentMethodHandler,
             'name' => $paymentMethodValueObject->getVisibleName(),
             'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
@@ -363,7 +380,8 @@ class InstallHelper
             'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
-                'banks' => $paymentMethodValueObject->getBanks()
+                'banks' => $paymentMethodValueObject->getBanks(),
+                'paynlId' => $paymentMethodValueObject->getId()
             ]
         ];
         $paymentMethodId = $paymentMethodValueObject->getId();
@@ -410,7 +428,7 @@ class InstallHelper
     private function changePaymentMethodsStatuses(Context $context, bool $active): void
     {
         $paynlPaymentMethods = $this->paymentMethodRepository->search(
-            (new Criteria())->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class)),
+            (new Criteria())->addFilter(new ContainsFilter('handlerIdentifier', self::PAYNL_PAYMENT_FILTER)),
             $context
         );
         $upsertData = [];
@@ -496,7 +514,7 @@ class InstallHelper
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('salesChannelId', $salesChannelId));
         $criteria->addAssociation('paymentMethod');
-        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new ContainsFilter('paymentMethod.handlerIdentifier', self::PAYNL_PAYMENT_FILTER));
 
         $salesChannelPaymentMethodIds = $this->paymentMethodSalesChannelRepository->searchIds($criteria, $context);
         if (empty($salesChannelPaymentMethodIds)) {
@@ -526,5 +544,204 @@ class InstallHelper
     private function getSalesChannelById(string $id, Context $context)
     {
         return $this->salesChannelRepository->search(new Criteria([$id]), $context)->first();
+    }
+
+    public function addPaynlMailTemplateText(): void
+    {
+        $mailTemplateTypeId = $this->getMailTemplateTypeId(self::ORDER_TRANSACTION_PAID_MAIL_TEMPLATE);
+        $mailTemplates = $this->getMailTemplates($mailTemplateTypeId);
+
+        foreach ($mailTemplates as $mailTemplate) {
+            if (empty($mailTemplate[self::ID])) {
+                continue;
+            }
+
+            $mailTemplateTranslations = $this->getMailTemplateTranslations($mailTemplate[self::ID]);
+
+            foreach ($mailTemplateTranslations as $mailTemplateTranslation) {
+                if (empty($mailTemplateTranslation[self::MAIL_TEMPLATE_ID])
+                    || empty($mailTemplateTranslation[self::LANGUAGE_ID])) {
+                    continue;
+                }
+
+                $mailContentHtml = $mailTemplateTranslation[self::CONTENT_HTML] ?? '';
+                if (empty($this->searchMailTemplateText($mailContentHtml))) {
+                    $this->updateMailTemplateTranslationContentHtml([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_HTML => $this->generateMailTemplate($mailContentHtml)
+                    ]);
+                }
+
+                $mailContentPlain = $mailTemplateTranslation[self::CONTENT_PLAIN] ?? '';
+                if (empty($this->searchMailTemplateText($mailContentPlain))) {
+                    $this->updateMailTemplateTranslationContentPlain([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_PLAIN => $this->generateMailTemplate($mailContentPlain)
+                    ]);
+                }
+            }
+        }
+    }
+
+    public function deletePaynlMailTemplateText(): void
+    {
+        $mailTemplateTypeId = $this->getMailTemplateTypeId(self::ORDER_TRANSACTION_PAID_MAIL_TEMPLATE);
+        $mailTemplates = $this->getMailTemplates($mailTemplateTypeId);
+
+        foreach ($mailTemplates as $mailTemplate) {
+            if (empty($mailTemplate[self::ID])) {
+                continue;
+            }
+
+            $mailTemplateTranslations = $this->getMailTemplateTranslations($mailTemplate[self::ID]);
+
+            foreach ($mailTemplateTranslations as $mailTemplateTranslation) {
+                if (empty($mailTemplateTranslation[self::MAIL_TEMPLATE_ID])
+                    || empty($mailTemplateTranslation[self::LANGUAGE_ID])
+                ) {
+                    continue;
+                }
+
+                $mailContentHtml = $mailTemplateTranslation[self::CONTENT_HTML] ?? '';
+                $paynlMailTemplateBlockHtml = $this->searchMailTemplateText($mailContentHtml);
+                if (!empty($paynlMailTemplateBlockHtml)) {
+                    $mailContentHtml = str_replace($paynlMailTemplateBlockHtml, '', $mailContentHtml);
+                    $this->updateMailTemplateTranslationContentHtml([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_HTML => $mailContentHtml
+                    ]);
+                }
+
+                $mailContentPlain = $mailTemplateTranslation[self::CONTENT_PLAIN] ?? '';
+                $paynlMailTemplateBlockPlain = $this->searchMailTemplateText($mailContentPlain);
+                if (!empty($paynlMailTemplateBlockPlain)) {
+                    $mailContentPlain = str_replace($paynlMailTemplateBlockPlain, '', $mailContentPlain);
+                    $this->updateMailTemplateTranslationContentPlain([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_PLAIN => $mailContentPlain
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function getPaynlMailTemplate(): string
+    {
+        return "{# PaynlPaymentShopware6-pin-start #}\n"
+            . "{% set lastTransaction = order.transactions|last %}\n"
+            . "{% for transaction in order.transactions %}\n"
+            . "{% if transaction.stateMachineState.technicalName == \"paid\" %}\n"
+            . "{% set lastTransaction = transaction %}\n"
+            . "{% endif %}\n"
+            . "{% endfor %}\n"
+            . "{% if lastTransaction is not null and lastTransaction.customFields.paynl_payments.approval_id is defined %}\n"
+            . "Auth. code - {{ lastTransaction.customFields.paynl_payments.approval_id }}\n"
+            . "{% endif %}\n"
+            . "{# PaynlPaymentShopware6-pin-end #}";
+    }
+
+    private function generateMailTemplate(string $shopwareMailTemplate): string
+    {
+        $shopwareMailTemplateLastChar = substr($shopwareMailTemplate, -1);
+        $paynlMailTemplate = $this->getPaynlMailTemplate();
+        if ($shopwareMailTemplateLastChar !== "\n") {
+            $paynlMailTemplate = "\n{$paynlMailTemplate}";
+        }
+
+        return $shopwareMailTemplate . $paynlMailTemplate;
+    }
+
+    private function searchMailTemplateText(string $text): string
+    {
+        $matches = [];
+        preg_match(self::TPL_REG_EXP, $text, $matches);
+
+        return (string)reset($matches);
+    }
+
+    private function updateMailTemplateTranslationContentHtml(array $mailTemplateTranslationUpdate): void
+    {
+        $sqlQuery = implode(' ', [
+            'UPDATE',
+            'mail_template_translation',
+            'SET',
+            'content_html = :content_html, updated_at = CURRENT_TIME()',
+            'WHERE',
+            'mail_template_id = :mail_template_id',
+            'AND',
+            'language_id = :language_id',
+            ';'
+        ]);
+
+        $this->connection->executeUpdate($sqlQuery, $mailTemplateTranslationUpdate);
+    }
+
+    private function updateMailTemplateTranslationContentPlain(array $mailTemplateTranslationUpdate): void
+    {
+        $sqlQuery = implode(' ', [
+            'UPDATE',
+            'mail_template_translation',
+            'SET',
+            'content_plain = :content_plain, updated_at = CURRENT_TIME()',
+            'WHERE',
+            'mail_template_id = :mail_template_id',
+            'AND',
+            'language_id = :language_id',
+            ';'
+        ]);
+
+        $this->connection->executeUpdate($sqlQuery, $mailTemplateTranslationUpdate);
+    }
+
+    private function getMailTemplateTypeId(string $technicalName)
+    {
+        $sqlQuery = implode(' ', [
+            'SELECT',
+            'id',
+            'FROM',
+            'mail_template_type',
+            'WHERE',
+            'technical_name = :technical_name',
+        ]);
+
+        return $this->connection->executeQuery($sqlQuery, [
+            'technical_name' => $technicalName,
+        ])->fetchColumn();
+    }
+
+    private function getMailTemplates(string $mailTemplateTypeId)
+    {
+        $sqlQuery = implode(' ', [
+            'SELECT',
+            'id',
+            'FROM',
+            'mail_template',
+            'WHERE',
+            'mail_template_type_id = :mail_template_type_id',
+        ]);
+
+        return $this->connection->executeQuery($sqlQuery, [
+            'mail_template_type_id' => $mailTemplateTypeId,
+        ])->fetchAll();
+    }
+
+    private function getMailTemplateTranslations(string $mailTemplateId)
+    {
+        $sqlQuery = implode(' ', [
+            'SELECT',
+            'mail_template_id, language_id, content_html, content_plain',
+            'FROM',
+            'mail_template_translation',
+            'WHERE',
+            'mail_template_id = :mail_template_id',
+        ]);
+
+        return $this->connection->executeQuery($sqlQuery, [
+            'mail_template_id' => $mailTemplateId,
+        ])->fetchAll();
     }
 }

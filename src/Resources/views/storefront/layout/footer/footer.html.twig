@@ -3,11 +3,11 @@
 {% block layout_footer_payment_logos %}
     {% set paynlPmCounter = 0 %}
     {% for paymentMethod in page.salesChannelPaymentMethods %}
-        {% if paymentMethod.formattedHandlerIdentifier == 'handler_paynlpayment_paynlpaymenthandler' %}
+        {% if paymentMethod.translated.customFields.paynl_payment %}
             {% set paynlPmCounter = paynlPmCounter+1 %}
         {% endif %}
         {% block layout_footer_payment_logo %}
-            {% if paynlPmCounter <= 5 or paymentMethod.formattedHandlerIdentifier != 'handler_paynlpayment_paynlpaymenthandler' %}
+            {% if paynlPmCounter <= 5 or not paymentMethod.translated.customFields.paynl_payment %}
                 {% if paymentMethod.media %}
                     <div class="footer-logo is-payment">
                         {% sw_thumbnails 'footer-payment-image-thumbnails' with {

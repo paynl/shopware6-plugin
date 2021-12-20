@@ -1,9 +1,11 @@
 import Plugin from 'src/plugin-system/plugin.class';
 import IMask from '../../node_modules/imask/dist/imask';
+import DomAccess from 'src/helper/dom-access.helper';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
         this.paymentMethodsScriptsInit();
+        this.paymentPinMessageInit();
     }
 
     paymentMethodsScriptsInit() {
@@ -17,6 +19,28 @@ export default class PaynlPaymentPlugin extends Plugin {
             form.addEventListener('change', this.onChangeCallback);
             form.addEventListener('focus', this.removeInvalid, true);
         }
+    }
+
+    paymentPinMessageInit() {
+        const PAYNL_PIN_PAYMENT_METHOD_ID = '1927';
+
+        let formOrder = DomAccess.querySelector(document, '#confirmOrderForm');
+
+        formOrder.addEventListener('submit', function () {
+            let paymentMethod = DomAccess.querySelector(document, 'input[name="paymentMethodId"]:checked');
+            let paynlPaymentMethodId = paymentMethod.dataset.paynlid;
+            if (paynlPaymentMethodId === undefined) {
+                return true;
+            }
+
+            //PIN payment method ID
+            if (paynlPaymentMethodId === PAYNL_PIN_PAYMENT_METHOD_ID) {
+                let paynlProcessMessage = DomAccess.querySelector(document, '.paynl-process-message');
+                paynlProcessMessage.classList.remove('d-none');
+            }
+
+            return true;
+        });
     }
 
     initDateOfBirthMask() {

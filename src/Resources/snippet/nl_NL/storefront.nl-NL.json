@@ -8,7 +8,8 @@
         },
         "messages": {
             "cancelledTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere betaaloptie of probeer opnieuw.",
-            "deniedTransaction": "Afgewezen door de betaaloptie (kies andere betaalmethode)."
+            "deniedTransaction": "Afgewezen door de betaaloptie (kies andere betaalmethode).",
+            "completePaymentPin" : "Rond uw betaling af op de pin terminal"
         },
         "labels": {
             "changePayment": "Probeer opnieuw",

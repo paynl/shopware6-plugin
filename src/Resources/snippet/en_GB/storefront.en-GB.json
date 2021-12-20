@@ -8,7 +8,8 @@
         },
         "messages": {
             "cancelledTransaction": "Your payment could not be processed with the selected payment method, please select another one or try again.",
-            "deniedTransaction": "Your payment was rejected by payment provider (select another payment method)."
+            "deniedTransaction": "Your payment was rejected by payment provider (select another payment method).",
+            "completePaymentPin" : "Please complete payment on pin/chip device"
         },
         "labels": {
             "changePayment": "Try again",

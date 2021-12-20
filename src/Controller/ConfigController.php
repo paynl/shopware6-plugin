@@ -5,7 +5,7 @@ namespace PaynlPayment\Shopware6\Controller;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
-use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
+use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,19 +20,16 @@ class ConfigController extends AbstractController
 {
     public $installHelper;
     private $config;
-    private $api;
-    private $transactionLanguageHelper;
+    private $settingsHelper;
 
     public function __construct(
         InstallHelper $installHelper,
         Config $config,
-        Api $api,
-        TransactionLanguageHelper $transactionLanguageHelper
+        SettingsHelper $settingsHelper
     ) {
         $this->installHelper = $installHelper;
         $this->config = $config;
-        $this->api = $api;
-        $this->transactionLanguageHelper = $transactionLanguageHelper;
+        $this->settingsHelper = $settingsHelper;
     }
 
     /**
@@ -85,6 +82,27 @@ class ConfigController extends AbstractController
     public function storeSettings(Request $request, Context $context): JsonResponse
     {
         return $this->getStoreSettingsResponse($request, $context);
+    }
+
+    /**
+     * @Route(
+     *     "/api/paynl/get-payment-terminals",
+     *     name="api.action.PaynlPayment.get.payment-terminals",
+     *     methods={"GET"}
+     *     )
+     * @Route(
+     *     "/api/v{version}/paynl/get-payment-terminals",
+     *     name="api.action.PaynlPayment.get.payment-terminals.legacy",
+     *     methods={"GET"}
+     *     )
+     */
+    public function getPaymentTerminals(Request $request): JsonResponse
+    {
+        $salesChannelId = $request->get('salesChannelId');
+
+        $terminals = $this->settingsHelper->getTerminalsOptions($salesChannelId);
+
+        return $this->json(['success' => true, 'data' => $terminals]);
     }
 
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
