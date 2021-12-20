@@ -11,12 +11,18 @@ use Shopware\Core\Framework\Api\Controller\CacheController;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
+use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Throwable;
 
 class PaynlPaymentShopware6 extends Plugin
 {
+    public function install(InstallContext $installContext): void
+    {
+        (new InstallHelper($this->container))->addPaynlMailTemplateText();
+    }
+
     public function uninstall(UninstallContext $uninstallContext): void
     {
         (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
@@ -25,6 +31,7 @@ class PaynlPaymentShopware6 extends Plugin
             (new InstallHelper($this->container))->removeConfigurationData($uninstallContext->getContext());
             (new InstallHelper($this->container))->dropTables();
             (new InstallHelper($this->container))->removeStates();
+            (new InstallHelper($this->container))->deletePaynlMailTemplateText();
         }
     }
 
@@ -36,6 +43,7 @@ class PaynlPaymentShopware6 extends Plugin
     public function update(UpdateContext $updateContext): void
     {
         (new InstallHelper($this->container))->updatePaymentMethods($updateContext->getContext());
+        (new InstallHelper($this->container))->addPaynlMailTemplateText();
 
         try {
             $currentVersion = $this->container->getParameter('kernel.shopware_version');
