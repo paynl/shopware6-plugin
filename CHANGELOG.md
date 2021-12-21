@@ -1,3 +1,5 @@
+# 1.4.10
+
 # 1.4.9
 - Added the ability to pay by terminal
 - Fixed updating payment statuses

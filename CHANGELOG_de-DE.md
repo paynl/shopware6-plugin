@@ -1,3 +1,5 @@
+# 1.4.10
+
 # 1.4.9
 - Die Möglichkeit per Kartenterminal zu bezahlen hinzugefügt
 - Aktualisierung des Zahlungsstatus behoben
