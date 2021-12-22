@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
+use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use Shopware\Core\Framework\Api\Controller\CacheController;
 use PaynlPayment\Shopware6\Helper\MediaHelper;
 use Shopware\Core\Content\Media\File\FileSaver;
@@ -17,6 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
+use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
@@ -25,6 +27,11 @@ use Throwable;
 
 class PaynlPaymentShopware6 extends Plugin
 {
+    public function install(InstallContext $installContext): void
+    {
+        $this->getInstallHelper()->addPaynlMailTemplateText();
+    }
+
     public function uninstall(UninstallContext $uninstallContext): void
     {
         $this->getInstallHelper()->deactivatePaymentMethods($uninstallContext->getContext());
@@ -33,6 +40,7 @@ class PaynlPaymentShopware6 extends Plugin
             $this->getInstallHelper()->removeConfigurationData($uninstallContext->getContext());
             $this->getInstallHelper()->dropTables();
             $this->getInstallHelper()->removeStates();
+            $this->getInstallHelper()->deletePaynlMailTemplateText();
         }
     }
 
@@ -44,6 +52,7 @@ class PaynlPaymentShopware6 extends Plugin
     public function update(UpdateContext $updateContext): void
     {
         $this->getInstallHelper()->updatePaymentMethods($updateContext->getContext());
+        $this->getInstallHelper()->addPaynlMailTemplateText();
 
         try {
             $currentVersion = $this->container->getParameter('kernel.shopware_version');
@@ -91,6 +100,7 @@ class PaynlPaymentShopware6 extends Plugin
             $connection,
             $pluginIdProvider,
             $this->getConfig(),
+            $this->getPaymentHandlerFactory(),
             $this->getMediaHelper(),
             $paymentMethodRepository,
             $salesChannelRepository,
@@ -107,5 +117,10 @@ class PaynlPaymentShopware6 extends Plugin
         $mediaRepository = $this->container->get('media.repository');
 
         return new MediaHelper($fileSaver, $mediaRepository);
+    }
+
+    private function getPaymentHandlerFactory(): PaymentHandlerFactory
+    {
+        return new PaymentHandlerFactory();
     }
 }
