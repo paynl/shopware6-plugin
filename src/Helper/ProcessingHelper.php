@@ -120,13 +120,6 @@ class ProcessingHelper
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
 
-        $this->orderStatusUpdater->updateOrderStatus(
-            $paynlTransactionEntity->getOrder(),
-            $paynlTransactionStatusCode,
-            $salesChannelId,
-            Context::createDefaultContext()
-        );
-
         $apiTransactionData = $paynlApiTransaction->getData();
 
         if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
@@ -199,13 +192,6 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
-
-        $this->orderStatusUpdater->updateOrderStatus(
-            $paynlTransactionEntity->getOrder(),
-            $paynlTransactionStatusCode,
-            $salesChannelId,
-            Context::createDefaultContext()
-        );
     }
 
     /**
@@ -224,13 +210,6 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
-
-        $this->orderStatusUpdater->updateOrderStatus(
-            $paynlTransactionEntity->getOrder(),
-            $paynlTransactionStatusCode,
-            $salesChannelId,
-            Context::createDefaultContext()
-        );
     }
 
     /**
@@ -246,16 +225,8 @@ class ProcessingHelper
     ): void {
         /** @var PaynlTransactionEntity $transactionEntity */
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
-        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
-
-        $this->orderStatusUpdater->updateOrderStatus(
-            $paynlTransactionEntity->getOrder(),
-            $paynlTransactionStatusCode,
-            $salesChannelId,
-            Context::createDefaultContext()
-        );
     }
 
     /**
@@ -384,6 +355,13 @@ class ProcessingHelper
             $paynlTransactionStatusCode,
             $transitionName,
             $stateMachineStateId
+        );
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            $paynlTransactionStatusCode,
+            $paynlTransactionEntity->getOrder()->getSalesChannelId(),
+            Context::createDefaultContext()
         );
     }
 
