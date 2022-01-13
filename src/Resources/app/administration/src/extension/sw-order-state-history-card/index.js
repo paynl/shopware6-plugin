@@ -8,14 +8,24 @@ Component.override('sw-order-state-history-card', {
             this.showModal = false;
             let currentActionName = this.currentActionName;
             if (this.currentStateType === 'orderTransactionState') {
+
                 this.orderStateMachineService.transitionOrderTransactionState(
                     this.transaction.id,
                     this.currentActionName,
                     { documentIds: docIds, sendMail }
                 ).then(() => {
-                    this.$emit('order-state-change');
-                    this.loadHistory();
-                    this.paynlChangeTransactionStatus(this.transaction.id, currentActionName);
+                    let transactionId = this.transaction.id;
+                    this.PaynlPaymentService.changeTransactionStatus({transactionId, currentActionName})
+                        .then(() => {
+                            this.$emit('order-state-change');
+                            this.loadHistory();
+                        })
+                        .catch((errorResponse) => {
+                            this.createNotificationError({
+                                title: this.$tc('sw-plugin-config.titleSaveError'),
+                                message: errorResponse,
+                            });
+                        })
                 }).catch((error) => {
                     this.createStateChangeErrorNotification(error);
                 });
@@ -44,17 +54,6 @@ Component.override('sw-order-state-history-card', {
             }
             this.currentActionName = null;
             this.currentStateType = null;
-        },
-
-        paynlChangeTransactionStatus(transactionId, currentActionName) {
-            this.PaynlPaymentService.changeTransactionStatus({transactionId, currentActionName})
-                .then((response) => {})
-                .catch((errorResponse) => {
-                    this.createNotificationError({
-                        title: this.$tc('sw-plugin-config.titleSaveError'),
-                        message: errorResponse,
-                    });
-                })
         }
     }
 });
