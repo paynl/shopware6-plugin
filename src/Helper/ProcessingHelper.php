@@ -264,8 +264,8 @@ class ProcessingHelper
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
 
         if ($paynlTransaction->isBeingVerified()
-            && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
-
+            && $currentActionName === StateMachineTransitionActions::ACTION_PAID
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -275,8 +275,8 @@ class ProcessingHelper
             $paynlTransaction->approve();
 
         } elseif ($paynlTransaction->isBeingVerified()
-            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL) {
-
+            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_CANCEL,
@@ -286,8 +286,8 @@ class ProcessingHelper
             $paynlTransaction->decline();
 
         } elseif ($paynlTransaction->isAuthorized()
-            && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
-
+            && $currentActionName === StateMachineTransitionActions::ACTION_PAID
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -297,8 +297,8 @@ class ProcessingHelper
             $paynlTransaction->capture();
 
         } elseif ($paynlTransaction->isAuthorized()
-            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL) {
-
+            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_CANCEL,

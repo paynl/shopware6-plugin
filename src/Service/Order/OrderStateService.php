@@ -36,6 +36,10 @@ class OrderStateService
             return false;
         }
 
+        if ($order->getStateMachineState() === null) {
+            return false;
+        }
+
         $currentStatus = $order->getStateMachineState()->getTechnicalName();
 
         if ($currentStatus === $orderState) {
