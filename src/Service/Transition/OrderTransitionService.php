@@ -26,9 +26,7 @@ class OrderTransitionService implements OrderTransitionServiceInterface
      */
     public function openOrder(OrderEntity $order, Context $context): void
     {
-        if ($order->getStateMachineState() === null
-            || $order->getStateMachineState()->getTechnicalName() === OrderStates::STATE_OPEN
-        ) {
+        if ($this->isOrderStateSameAs($order, OrderStates::STATE_OPEN)) {
             return;
         }
 
@@ -47,9 +45,7 @@ class OrderTransitionService implements OrderTransitionServiceInterface
      */
     public function processOrder(OrderEntity $order, Context $context): void
     {
-        if ($order->getStateMachineState() === null
-            || $order->getStateMachineState()->getTechnicalName() === OrderStates::STATE_IN_PROGRESS
-        ) {
+        if ($this->isOrderStateSameAs($order, OrderStates::STATE_IN_PROGRESS)) {
             return;
         }
 
@@ -68,9 +64,7 @@ class OrderTransitionService implements OrderTransitionServiceInterface
      */
     public function completeOrder(OrderEntity $order, Context $context): void
     {
-        if ($order->getStateMachineState() === null
-            || $order->getStateMachineState()->getTechnicalName() === OrderStates::STATE_COMPLETED
-        ) {
+        if ($this->isOrderStateSameAs($order, OrderStates::STATE_COMPLETED)) {
             return;
         }
 
@@ -89,9 +83,7 @@ class OrderTransitionService implements OrderTransitionServiceInterface
      */
     public function cancelOrder(OrderEntity $order, Context $context): void
     {
-        if ($order->getStateMachineState() === null
-            || $order->getStateMachineState()->getTechnicalName() === OrderStates::STATE_CANCELLED
-        ) {
+        if ($this->isOrderStateSameAs($order, OrderStates::STATE_CANCELLED)) {
             return;
         }
 
@@ -132,5 +124,21 @@ class OrderTransitionService implements OrderTransitionServiceInterface
     private function performTransition(OrderEntity $order, string $transitionName, Context $context): void
     {
         $this->transitionService->performTransition(OrderDefinition::ENTITY_NAME, $order->getId(), $transitionName, $context);
+    }
+
+    /**
+     * @param OrderEntity $order
+     * @param string $orderState
+     * @return bool
+     */
+    private function isOrderStateSameAs(OrderEntity $order, string $orderState): bool
+    {
+        if ($order->getStateMachineState() === null
+            || $order->getStateMachineState()->getTechnicalName() === $orderState
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }
