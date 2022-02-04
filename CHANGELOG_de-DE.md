@@ -1,4 +1,5 @@
 # 1.4.10
+- Automatisierung des Auftragsstatus basierend auf dem Zahlungsstatus hinzugefügt
 
 # 1.4.9
 - Die Möglichkeit per Kartenterminal zu bezahlen hinzugefügt
