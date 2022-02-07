@@ -16,6 +16,7 @@
             <argument type="service" id="order_transaction.repository"/>
             <argument type="service" id="state_machine_transition.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\InstallHelper" public="true">
@@ -71,6 +72,24 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="cache.object"/>
         </service>
+
+        <service id="PaynlPayment\Shopware6\Service\Order\OrderStateService" class="PaynlPayment\Shopware6\Service\Order\OrderStateService">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Transition\OrderTransitionService"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderStateService"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\Transition\OrderTransitionService">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Transition\TransitionService"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\Transition\TransitionService">
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+        </service>
+
 
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">

@@ -1,3 +1,6 @@
+# 1.4.10
+- Added order state automation based on payment state
+
 # 1.4.9
 - Added the ability to pay by terminal
 - Fixed updating payment statuses
