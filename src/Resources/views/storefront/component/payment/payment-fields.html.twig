@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block component_payment_methods %}
-    <span id="paynl-payment-plugin"></span>
+    <span id="paynl-payment-plugin" data-paynl-payment-plugin></span>
 
     {% if (settingUsePAYStyles) %}
         <div class="paynl-payment-methods-custom-styles">{{ parent() }}</div>
