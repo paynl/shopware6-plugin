@@ -1,3 +1,6 @@
+# 1.4.11
+- Fixed Javascript error "HTML element not found" in the current Shopware version 6.4.8.
+
 # 1.4.10
 - Added order state automation based on payment state
 
