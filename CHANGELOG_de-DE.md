@@ -1,4 +1,5 @@
 # 1.4.11
+- Javascript-Fehler "HTML-Element nicht gefunden" behoben
 
 # 1.4.10
 - Automatisierung des Auftragsstatus basierend auf dem Zahlungsstatus hinzugefügt
