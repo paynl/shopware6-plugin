@@ -15,6 +15,7 @@ use Shopware\Core\System\Salutation\SalutationEntity;
 class CustomerHelper
 {
     private const BIRTHDATE_FORMAT = 'd-m-Y';
+    private const FIRST_NAME_MAX_LENGTH = 32;
 
     /** @var Config */
     private $config;
@@ -53,9 +54,14 @@ class CustomerHelper
             $gender = 'F';
         }
 
+        $customerFirstName = $customer->getFirstName();
+        if (strlen($customerFirstName) > self::FIRST_NAME_MAX_LENGTH) {
+            $customerFirstName = substr($customerFirstName, 0, self::FIRST_NAME_MAX_LENGTH);
+        }
+
         $formattedAddress = [
             'enduser' => [
-                'initials' => $customer->getFirstName(),
+                'initials' => $customerFirstName,
                 'lastName' => $customer->getLastName(),
                 'emailAddress' => $customer->getEmail(),
                 'customerReference' => $customer->getCustomerNumber(),
