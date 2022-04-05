@@ -1,3 +1,5 @@
+# 1.4.12
+
 # 1.4.11
 - Fixed Javascript error "HTML element not found" in the current Shopware version 6.4.8.
 

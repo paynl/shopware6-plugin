@@ -1,3 +1,5 @@
+# 1.4.12
+
 # 1.4.11
 - Javascript-Fehler "HTML-Element nicht gefunden" behoben
 
