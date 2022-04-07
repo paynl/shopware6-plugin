@@ -217,8 +217,8 @@ class CustomerHelper
         }
 
         return  [
-            'initials' => $customerBillingAddress->getFirstName(),
-            'lastName' => $customerBillingAddress->getLastName(),
+            'initials' => $this->getValidStringValue($customerBillingAddress->getFirstName()),
+            'lastName' => $this->getValidStringValue($customerBillingAddress->getLastName()),
             'streetName' => $street,
             'houseNumber' => $houseNumber,
             'houseNumberExtension' => $houseNumberExtension,
