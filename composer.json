@@ -24,8 +24,8 @@
         }
     },
     "require": {
-        "shopware/core": "^6.1",
-        "shopware/storefront": "^6.1",
+        "shopware/core": "^6.3",
+        "shopware/storefront": "^6.3",
         "paynl/sdk": "1.5.15"
     },
     "minimum-stability": "RC",
