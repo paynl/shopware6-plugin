@@ -348,6 +348,21 @@ class Api
         }
     }
 
+    public function isValidStoredCredentials(string $salesChannelId): bool
+    {
+        list($tokenCode, $apiToken, $serviceId) = [
+            $this->config->getTokenCode($salesChannelId),
+            $this->config->getApiToken($salesChannelId),
+            $this->config->getServiceId($salesChannelId),
+        ];
+
+        if (empty($tokenCode) || empty($apiToken) || empty($serviceId)) {
+            return false;
+        }
+
+        return $this->isValidCredentials($tokenCode, $apiToken, $serviceId);
+    }
+
     /**
      * @param string $salesChannelId
      * @return array
