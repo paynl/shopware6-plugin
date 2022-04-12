@@ -39,7 +39,7 @@ class SettingsHelper
      */
     public function getTerminalsOptions(?string $salesChannelId = null): array
     {
-        if (empty($salesChannelId)) {
+        if (empty($salesChannelId) || !$this->api->isValidStoredCredentials($salesChannelId)) {
             return $this->getDefaultTerminalsOptions();
         }
 
