@@ -1,4 +1,8 @@
 # 1.4.12
+- Der Prozess zum Senden von Kundennamen an PAY. wurde optimiert
+- der JS-Fehler in den Konfigurationseinstellungen des Plugins behoben
+- Fehler in den Konfigurationseinstellungen von Shopware 6.4.10 behoben. Das Paynl-Plugin wurde in den Konfigurationseinstellungen deaktiviert
+- Refactoring des Storefront-Codes
 
 # 1.4.11
 - Javascript-Fehler "HTML-Element nicht gefunden" behoben

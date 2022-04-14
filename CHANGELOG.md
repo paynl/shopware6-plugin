@@ -1,4 +1,8 @@
 # 1.4.12
+- Optimized the process of sending customer names to PAY.
+- Fixed the JS errors in the plugin configuration settings
+- Fixed configuration settings bug on Shopware 6.4.10. The Paynl plugin was disabled from configuration settings
+- Refactored the storefront code
 
 # 1.4.11
 - Fixed Javascript error "HTML element not found" in the current Shopware version 6.4.8.
