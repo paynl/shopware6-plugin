@@ -143,7 +143,9 @@ class InstallHelper
     public function updatePaymentMethods(Context $context): void
     {
         foreach ($this->getSalesChannels($context)->getIds() as $salesChannelId) {
-            $this->installPaymentMethods($salesChannelId, $context);
+            if ($this->paynlApi->isValidStoredCredentials($salesChannelId)) {
+                $this->installPaymentMethods($salesChannelId, $context);
+            }
         }
     }
 

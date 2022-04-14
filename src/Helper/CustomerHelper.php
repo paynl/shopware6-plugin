@@ -15,6 +15,7 @@ use Shopware\Core\System\Salutation\SalutationEntity;
 class CustomerHelper
 {
     private const BIRTHDATE_FORMAT = 'd-m-Y';
+    private const CUSTOMER_NAME_MAX_LENGTH = 32;
 
     /** @var Config */
     private $config;
@@ -55,8 +56,8 @@ class CustomerHelper
 
         $formattedAddress = [
             'enduser' => [
-                'initials' => $customer->getFirstName(),
-                'lastName' => $customer->getLastName(),
+                'initials' => $this->getValidStringValue($customer->getFirstName()),
+                'lastName' => $this->getValidStringValue($customer->getLastName()),
                 'emailAddress' => $customer->getEmail(),
                 'customerReference' => $customer->getCustomerNumber(),
                 'gender' => $gender,
@@ -216,8 +217,8 @@ class CustomerHelper
         }
 
         return  [
-            'initials' => $customerBillingAddress->getFirstName(),
-            'lastName' => $customerBillingAddress->getLastName(),
+            'initials' => $this->getValidStringValue($customerBillingAddress->getFirstName()),
+            'lastName' => $this->getValidStringValue($customerBillingAddress->getLastName()),
             'streetName' => $street,
             'houseNumber' => $houseNumber,
             'houseNumberExtension' => $houseNumberExtension,
@@ -241,5 +242,14 @@ class CustomerHelper
         }
 
         return '';
+    }
+
+    private function getValidStringValue(string $property): string
+    {
+        if (strlen($property) > self::CUSTOMER_NAME_MAX_LENGTH) {
+            $property = substr($property, 0, self::CUSTOMER_NAME_MAX_LENGTH);
+        }
+
+        return $property;
     }
 }
