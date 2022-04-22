@@ -1,3 +1,5 @@
+# 1.4.13
+
 # 1.4.12
 - Der Prozess zum Senden von Kundennamen an PAY. wurde optimiert
 - der JS-Fehler in den Konfigurationseinstellungen des Plugins behoben
