@@ -76,6 +76,10 @@ class StatusTransitionController extends AbstractController
                 )
                 ->first();
 
+            if (empty($paynlTransaction) || empty($paynlTransaction->getOrder())) {
+                return new JsonResponse($request->request->all());
+            }
+
             $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 
             if ($paynlTransaction instanceof PaynlTransactionEntity) {
