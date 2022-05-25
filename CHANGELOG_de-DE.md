@@ -1,4 +1,5 @@
 # 1.4.13
+- Fehler beim Zahlungsstatus behoben
 
 # 1.4.12
 - Der Prozess zum Senden von Kundennamen an PAY. wurde optimiert
