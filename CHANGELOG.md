@@ -1,3 +1,6 @@
+# 1.4.13
+- Fixed the Payment status bug
+
 # 1.4.12
 - Optimized the process of sending customer names to PAY.
 - Fixed the JS errors in the plugin configuration settings
