@@ -24,9 +24,12 @@
         }
     },
     "require": {
-        "shopware/core": "^6.3",
-        "shopware/storefront": "^6.3",
         "paynl/sdk": "1.5.15"
+    },
+    "require-dev": {
+        "shopware/core": "^6.3",
+        "shopware/administration": "^6.3",
+        "shopware/storefront": "^6.3"
     },
     "minimum-stability": "RC",
     "license": "MIT",
