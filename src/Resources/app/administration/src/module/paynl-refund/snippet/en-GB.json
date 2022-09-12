@@ -20,7 +20,7 @@
             "headlineTransaction": "Transaction",
             "headlineDescriptionInput": "Description",
             "headlineAmountInput": "Amount",
-            "paynlTransactionId": "Pay.nl transaction Id:",
+            "paynlTransactionId": "Pay. transaction Id:",
             "paidAmount": "Paid amount:",
             "availableForRefund": "Available for refund:",
             "refundedAmount": "Refunded amount",
