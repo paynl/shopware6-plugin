@@ -20,7 +20,7 @@
             "headlineTransaction": "Transaktion",
             "headlineDescriptionInput": "Beschreibung",
             "headlineAmountInput": "Betrag",
-            "paynlTransactionId": "PAY.nl Transaktion ID:",
+            "paynlTransactionId": "PAY. Transaktion ID:",
             "paidAmount": "Bezahlter Betrag:",
             "availableForRefund": "Verfügbar für Rückerstattung:",
             "refundedAmount": "Rückerstattung Betrag",

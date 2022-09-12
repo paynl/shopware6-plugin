@@ -1,9 +1,9 @@
 {
     "name": "paynlpayment",
     "version": "1.0.0",
-    "description": "Pay.nl Shopware Plugin",
+    "description": "Pay. Shopware Plugin",
     "main": "./src/main.js",
-    "author": "Pay.nl dev team",
+    "author": "Pay.",
     "license": "MIT",
     "dependencies": {
         "imask": "^6.1.0"
