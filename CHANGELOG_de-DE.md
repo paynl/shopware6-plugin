@@ -1,5 +1,6 @@
 # 1.4.14
-- Überarbeitung der Vorlage für Bestellvorgänge
+- Überarbeitung der Vorlage für Bestellvorgänge 
+- den Namen und das Logo des Plugins geändert
 
 # 1.4.13
 - Fehler beim Zahlungsstatus behoben
