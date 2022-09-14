@@ -1,18 +1,18 @@
 {
     "name": "paynl/shopware6-plugin",
-    "description": "Pay.nl Shopware Plugin",
-    "version": "v1.4.13",
+    "description": "Pay. Shopware Plugin",
+    "version": "v1.4.14",
     "type": "shopware-platform-plugin",
     "extra": {
         "shopware-plugin-class": "PaynlPayment\\Shopware6\\PaynlPaymentShopware6",
         "plugin-icon": "src/Resources/public/plugin.png",
         "label": {
-            "de-DE": "Pay.nl payment",
-            "en-GB": "Pay.nl payment"
+            "de-DE": "Pay. payments",
+            "en-GB": "Pay. payments"
         },
         "description": {
-            "de-DE": "Pay.nl Payment Shopware Plugin",
-            "en-GB": "Pay.nl Payment Shopware Plugin"
+            "de-DE": "Pay. Payment Shopware Plugin",
+            "en-GB": "Pay. Payment Shopware Plugin"
         },
         "manufacturerLink": {
             "de-DE": "https://pay.nl",
@@ -32,7 +32,7 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Pay.nl dev team",
+            "name": "Pay.",
             "email": "support@pay.nl"
         }
     ],

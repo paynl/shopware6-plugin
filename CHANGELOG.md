@@ -1,3 +1,7 @@
+# 1.4.14
+- Rewritten the Order actions template
+- Changed the plugin name and logo
+
 # 1.4.13
 - Fixed the Payment status bug
 
