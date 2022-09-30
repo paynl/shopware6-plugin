@@ -46,6 +46,11 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
             if (accountTypeSelect !== null) {
                 selectedValues.isBusiness = Boolean(accountTypeSelect.value === 'business');
             }
+
+            const accountTypeInput = form.querySelector('input[name="accountType"]');
+            if (accountTypeInput !== null) {
+                selectedValues.isBusiness = Boolean(accountTypeInput.value === 'business');
+            }
         } else {
             return;
         }
