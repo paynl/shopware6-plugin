@@ -15,7 +15,6 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
         const form = el.form;
         if (form.getAttribute('id') === 'profilePersonalForm' && el.id === 'accountType') {
             selectedValues.isBusiness = Boolean(el.value === 'business');
-            selectedValues.isPayCountrySelected = selectedValues.isBusiness;
             this.toggleCocField(selectedValues, form);
             return;
         }
@@ -29,31 +28,11 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
             return;
         }
 
-        const kvkCountriesIds = kvkBlock.getAttribute('data-countries-with-kvk').split(',');
-        if (el.id === 'accountType' || el.id === 'addressaccountType') {
-            selectedValues.isBusiness = Boolean(el.value === 'business');
-            const countrySelect = form.querySelector('.country-select');
-            if (countrySelect !== null) {
-                selectedValues.isPayCountrySelected = Boolean(
-                    kvkCountriesIds.includes(countrySelect.options[countrySelect.selectedIndex].getAttribute('value'))
-                );
-            }
-        } else if (el.classList.contains('country-select')) {
-            selectedValues.isPayCountrySelected = Boolean(
-                kvkCountriesIds.includes(el.options[el.selectedIndex].getAttribute('value'))
-            );
-            const accountTypeSelect = form.querySelector('select[name="address[accountType]"]');
-            if (accountTypeSelect !== null) {
-                selectedValues.isBusiness = Boolean(accountTypeSelect.value === 'business');
-            }
-
-            const accountTypeInput = form.querySelector('input[name="accountType"]');
-            if (accountTypeInput !== null) {
-                selectedValues.isBusiness = Boolean(accountTypeInput.value === 'business');
-            }
-        } else {
+        if (!['accountType', 'addressaccountType'].includes(el.id)) {
             return;
         }
+
+        selectedValues.isBusiness = Boolean(el.value === 'business');
 
         this.toggleCocField(selectedValues, form);
     }
@@ -65,7 +44,7 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
         }
         const kvkCocFieldInput = kvkCocFieldBlock.querySelector('input[name="coc_number"]');
 
-        if (!selectedValues.isBusiness || !selectedValues.isPayCountrySelected) {
+        if (!selectedValues.isBusiness) {
             kvkCocFieldBlock.style.display = 'none';
             kvkCocFieldInput.setAttribute('disabled', 'disabled');
 

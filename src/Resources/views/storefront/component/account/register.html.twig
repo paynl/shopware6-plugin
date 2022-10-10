@@ -27,14 +27,53 @@
                     {% endblock %}
 
                     {% block component_account_register_personal %}
-                        {{ parent() }}
+                        <div class="register-personal">
+                            {% block component_account_register_personal_fields %}
+                                {% block component_account_register_personal_address_fields %}
+                                    {{ parent() }}
+                                {% endblock %}
+
+                                {% block component_account_register_company_fields %}
+                                    {% sw_include '@Storefront/storefront/component/address/address-personal-company.html.twig' with {
+                                        'prefix': 'billingAddress',
+                                        'address': data.get('billingAddress')
+                                    } %}
+                                {% endblock %}
+
+                                {% set formGroupMail %}
+                                    {% block component_account_register_personal_mail %}
+                                        {{ parent() }}
+                                    {% endblock %}
+                                {% endset %}
+
+                                {% set formGroupMailConfirmation %}
+                                    {% block component_account_register_personal_mail_confirmation %}
+                                        {{ parent() }}
+                                    {% endblock %}
+                                {% endset %}
+
+                                {% set formGroupPassword %}
+                                    {% block component_account_register_personal_password %}
+                                        {{ parent() }}
+                                    {% endblock %}
+                                {% endset %}
+
+                                {% set formGroupPasswordConfirmation %}
+                                    {% block component_account_register_personal_password_confirmation %}
+                                        {{ parent() }}
+                                    {% endblock %}
+                                {% endset %}
+
+                                {% block component_account_register_personal_account_fields %}
+                                    {{ parent() }}
+                                {% endblock %}
+                            {% endblock %}
+                        </div>
                     {% endblock %}
 
                     {% block component_account_register_address %}
                         {{ parent() }}
                     {% endblock %}
-
-                    {% sw_include '@Storefront/storefront/component/account/paynl_kvk_coc_number_block.html.twig' %}
 
                     {% block component_account_register_captcha %}
                         {{ parent() }}
