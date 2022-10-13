@@ -293,6 +293,21 @@ class InstallHelper
         $this->mediaHelper->removeOldMedia($context, $paymentMethodMediaIds);
     }
 
+    /**
+     * AfterPay rebranding to Riverty
+     *
+     * @param Context $context
+     */
+    public function removeAfterPayMedia(Context $context): void
+    {
+        $mediaId = $this->mediaHelper->getMediaId('AfterPay', $context);
+        if (empty($mediaId)) {
+            return;
+        }
+
+        $this->mediaHelper->removeOldMedia($context, [$mediaId]);
+    }
+
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
