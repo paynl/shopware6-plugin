@@ -1,3 +1,8 @@
+# 1.4.15
+- Added the CoC number field on the customer group registration page
+- Displayed the CoC number field for all countries
+- Updated the AfterPay logo
+
 # 1.4.14
 - Rewritten the Order actions template
 - Changed the plugin name and logo
