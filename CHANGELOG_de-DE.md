@@ -1,3 +1,8 @@
+# 1.4.15
+- Hinzufügen des Feldes für die Handelskammernummer auf der Registrierungsformular für Kundengruppen
+- Das Feld für die Handelskammernummer wurde für alle Länder angezeigt
+- Das AfterPay-Logo aktualisiert
+
 # 1.4.14
 - Überarbeitung der Vorlage für Bestellvorgänge 
 - den Namen und das Logo des Plugins geändert
