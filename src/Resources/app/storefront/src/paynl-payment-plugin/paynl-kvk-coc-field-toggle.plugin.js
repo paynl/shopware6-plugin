@@ -13,6 +13,11 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
     accountFormChange(event) {
         const el = event.target;
         const form = el.form;
+
+        if (typeof form === 'undefined' || form === null) {
+            return;
+        }
+
         if (form.getAttribute('id') === 'profilePersonalForm' && el.id === 'accountType') {
             selectedValues.isBusiness = Boolean(el.value === 'business');
             this.toggleCocField(selectedValues, form);
