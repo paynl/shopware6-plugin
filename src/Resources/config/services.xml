@@ -36,6 +36,11 @@
         <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\PublicKeysHelper">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="cache.object"/>
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -162,6 +167,9 @@
             </call>
         </service>
 
+        <service id="PaynlPayment\Shopware6\StoreApi\Route\CseRoute" public="true">
+            </service>
+
         <!--Entities-->
         <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />
@@ -194,7 +202,9 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CheckoutConfirmSubscriber" public="true">
+            <argument type="service" id="Symfony\Component\Routing\RouterInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PublicKeysHelper"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

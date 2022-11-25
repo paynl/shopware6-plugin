@@ -18,3 +18,25 @@
         {% endif %}
     {% endif %}
 {% endblock %}
+
+{% block page_checkout_confirm_payment_inner %}
+    {{ parent() }}
+    {% block page_checkout_confirm_payment_inner_paynl %}
+        {% set paynlStorefrontData = page.extensions[constant('PaynlPayment\\Shopware6\\Subscriber\\CheckoutConfirmSubscriber::PAYNL_DATA_EXTENSION_ID')] %}
+        {% if paynlStorefrontData %}
+            <div id="paynl-checkout-options"
+                 data-language-id="{{ paynlStorefrontData.languageId }}"
+                 data-checkout-order-url="{{ paynlStorefrontData.checkoutOrderUrl }}"
+                 data-payment-handle-url="{{ paynlStorefrontData.paymentHandleUrl }}"
+                 data-payment-finish-url="{{ paynlStorefrontData.paymentFinishUrl }}"
+                 data-payment-error-url="{{ paynlStorefrontData.paymentErrorUrl }}"
+                 data-order-id="{{ paynlStorefrontData.orderId }}"
+                 data-public-encryption-keys="{{ paynlStorefrontData.publicEncryptionKeys }}"
+            >
+            </div>
+            <script>
+                var paynlCheckoutOptions = document.querySelector('#paynl-checkout-options').dataset;
+            </script>
+        {% endif %}
+    {% endblock %}
+{% endblock %}

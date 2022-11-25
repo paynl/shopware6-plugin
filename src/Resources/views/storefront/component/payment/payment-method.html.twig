@@ -46,7 +46,7 @@
     {% block pay_component_payment_extra %}
         {% if (payment.customFields.paynl_payment) %}
             <div class="paynl-payment-method-extra-wrapper">
-                <div class="paynl-payment-method-extra paynl-payment-method-cse{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
+                <div class="paynl-payment-method-extra {% if payment.customFields.paynlId === constant('PaynlPayment\\Shopware6\\Enums\\PaynlPaymentMethodsIdsEnum::VISA_MASTERCARD_PAYMENT') %}paynl-payment-method-cse{% endif %}{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {#Banks#}
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
@@ -76,7 +76,7 @@
                     {% endif %}
 
                     {#CSE#}
-                    {% if (payment.customFields.paynlId === 706) %}
+                    {% if (payment.customFields.paynlId === constant('PaynlPayment\\Shopware6\\Enums\\PaynlPaymentMethodsIdsEnum::VISA_MASTERCARD_PAYMENT')) %}
                         <div class="form-row mb-2">
                             <legend id="pay-cse-title">
                                 <span>Credit card payment</span>
@@ -155,9 +155,12 @@
                             </div>
                         </div>
 
+                        <div class="cse-payment-errors"></div>
+                        <div id="cse-status"></div>
+
                         <div class="form-row mb-2">
                             <div class="col form-element-container">
-                                <button class="btn btn-primary" type="submit" data-loading-state="0" disabled="disabled">
+                                <button id="csePlaceOrder" class="btn btn-primary" type="submit" data-loading-state="0" disabled="disabled">
                                     <span class="state-not-loading">Place Order</span>
                                     <span class="state-loading">
                                         <img src="{{ asset('bundles/paynlpaymentshopware6/spinner.gif', 'asset') }}" width="30" height="30" alt="Loading"/>

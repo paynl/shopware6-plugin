@@ -543,4 +543,11 @@ class Api
 
         return (array)Instore::getAllTerminals()->getList();
     }
+
+    public function getPublicKeys(string $salesChannelId): array
+    {
+        $this->setCredentials($salesChannelId);
+
+        return Payment::paymentEncryptionKeys()->getKeys();
+    }
 }

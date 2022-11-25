@@ -6,4 +6,7 @@
 
     <import resource="../../**/Storefront/Controller/*Controller.php" type="annotation" />
     <import resource="../../**/Controller/*Controller.php" type="annotation" />
+
+    <!-- Store-Api routes -->
+    <import resource="@PaynlPaymentShopware6/StoreApi/Route/CseRoute.php" type="annotation" />
 </routes>
