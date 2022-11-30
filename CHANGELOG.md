@@ -1,12 +1,12 @@
 # 1.4.16
-- Added payment method Blik (234)
-- Added payment method Biller (252)
-- Added payment method Shoes & Sneakers Giftcard (249)
-- Added payment method Your Green Giftcard (246)
-- Added payment method Bataviastad Giftcard (255)
-- Added payment method Online banking (258)
-- Added payment method Monizze (264)
-- Added payment method Sodexo (267)
+- Added payment method Blik
+- Added payment method Biller
+- Added payment method Shoes & Sneakers Giftcard
+- Added payment method Your Green Giftcard
+- Added payment method Bataviastad Giftcard
+- Added payment method Online banking
+- Added payment method Monizze
+- Added payment method Sodexo
 - Fixed storefront bugs
 
 # 1.4.15

@@ -1,3 +1,14 @@
+# 1.4.16
+- Zahlungsmethode Blik hinzugefügt
+- Zahlungsmethode Biller hinzugefügt
+- Zahlungsmethode Shoes & Sneakers Giftcard hinzugefügt
+- Zahlungsmethode Your Green Giftcard hinzugefügt
+- Zahlungsmethode Bataviastad Giftcard hinzugefügt
+- Zahlungsmethode Online Banking hinzugefügt
+- Zahlungsmethode Monizze hinzugefügt
+- Zahlungsmethode Sodexo hinzugefügt
+- Verbesserungen an der Storefront
+
 # 1.4.15
 - Hinzufügen des Feldes für die Handelskammernummer auf der Registrierungsformular für Kundengruppen
 - Das Feld für die Handelskammernummer wurde für alle Länder angezeigt
