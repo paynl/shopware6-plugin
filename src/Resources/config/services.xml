@@ -168,7 +168,8 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\StoreApi\Route\CseRoute" public="true">
-            </service>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+        </service>
 
         <!--Entities-->
         <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">

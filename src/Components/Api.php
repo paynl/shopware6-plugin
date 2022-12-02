@@ -6,6 +6,7 @@ use Paynl\Config as SDKConfig;
 use Paynl\Instore;
 use Paynl\Payment;
 use Paynl\Paymentmethods;
+use Paynl\Result\Payment\AuthenticateMethod;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
@@ -223,9 +224,13 @@ class Api
         return Payment::authenticationStatus($transactionId);
     }
 
-    public function authentication(array $params)
+    /**
+     * @throws \Paynl\Error\Error
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Required\ApiToken
+     */
+    public function authentication(array $params, string $salesChannelId): AuthenticateMethod
     {
-        $salesChannelId = $params['salesChannelId'] ?? null;
         $ped = $params['pay_encrypted_data'] ?? null;
         $transId = $params['transaction_id'] ?? null;
         $ecode = $params['entrance_code'] ?? null;
@@ -267,9 +272,14 @@ class Api
         return Payment::authenticateMethod($transaction, $payment);
     }
 
-    public function authorization(array $params)
+    /**
+     * @return \Paynl\Result\Payment\Authorize
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Error
+     * @throws \Paynl\Error\Required\ApiToken
+     */
+    public function authorization(array $params, string $salesChannelId)
     {
-        $salesChannelId = $params['salesChannelId'] ?? null;
         $ped = $params['pay_encrypted_data'] ?? null;
         $transId = $params['transaction_id'] ?? null;
         $ecode = $params['entrance_code'] ?? null;
