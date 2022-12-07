@@ -126,6 +126,18 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
                             'paymentFailed' => true,
                         ]
                     ),
+                    'csePostUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.execute'
+                    ),
+                    'cseStatusUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.status'
+                    ),
+                    'cseAuthorizationUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.authorization'
+                    ),
+                    'cseAuthenticationUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.authentication'
+                    ),
                     'languageId' => $salesChannelContext->getContext()->getLanguageId(),
                     'orderId' => $orderId,
                     'publicEncryptionKeys' => json_encode($this->publicKeysHelper->getKeys($salesChannelId))

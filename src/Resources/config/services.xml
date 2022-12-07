@@ -168,6 +168,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\StoreApi\Route\CseRoute" public="true">
+            <argument type="service" id="order.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
         </service>
 

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\StoreApi\Route;
 
 use PaynlPayment\Shopware6\Components\Api;
+use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,10 +21,12 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class CseRoute
 {
+    private EntityRepositoryInterface $orderRepository;
     private Api $api;
 
-    public function __construct(Api $api)
+    public function __construct(EntityRepositoryInterface $orderRepository, Api $api)
     {
+        $this->orderRepository = $orderRepository;
         $this->api = $api;
     }
 
@@ -33,6 +39,13 @@ class CseRoute
      */
     public function execute(Request $request, SalesChannelContext $context): Response
     {
+        $payload = json_decode($request->get('pay_encrypted_data'), true);
+        $order = $this->getLastOrder($context);
+
+        $auth = $this->api->startEncryptedTransaction($order, $payload, $context, '', '', '', '');
+
+        return new JsonResponse($auth->getData());
+
         // TODO temporary test response
         $arrEncryptedTransactionResult['result'] = 1;
         $arrEncryptedTransactionResult['nextAction'] = 'paid';
@@ -53,7 +66,7 @@ class CseRoute
      */
     public function status(Request $request, SalesChannelContext $context): Response
     {
-        $transactionId = $request->get('tranasction_id');
+        $transactionId = $request->get('transaction_id');
 
         $data = [];
         if (!empty($transactionId)) {
@@ -66,7 +79,7 @@ class CseRoute
 
     /**
      * @Route("/PaynlPayment/cse/authentication",
-     *     name="store-api.PaynlPayment.cse.status",
+     *     name="store-api.PaynlPayment.cse.authentication",
      *     defaults={"csrf_protected"=false},
      *     methods={"POST"}
      *     )
@@ -82,7 +95,7 @@ class CseRoute
 
     /**
      * @Route("/PaynlPayment/cse/authorization",
-     *     name="store-api.PaynlPayment.cse.status",
+     *     name="store-api.PaynlPayment.cse.authorization",
      *     defaults={"csrf_protected"=false},
      *     methods={"POST"}
      *     )
@@ -94,5 +107,32 @@ class CseRoute
         $data = $this->api->authorization($params, $context->getSalesChannel()->getId())->getData();
 
         return new JsonResponse($data);
+    }
+
+    private function getLastOrder(SalesChannelContext $context): ?OrderEntity
+    {
+        $criteria = new Criteria();
+        $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
+        $criteria->addAssociation('currency');
+        $criteria->addAssociation('addresses');
+        $criteria->addAssociation('shippingAddress');   # important for subscription creation
+        $criteria->addAssociation('billingAddress');    # important for subscription creation
+        $criteria->addAssociation('billingAddress.country');
+        $criteria->addAssociation('orderCustomer');
+        $criteria->addAssociation('orderCustomer.customer');
+        $criteria->addAssociation('orderCustomer.salutation');
+        $criteria->addAssociation('language');
+        $criteria->addAssociation('language.locale');
+        $criteria->addAssociation('lineItems');
+        $criteria->addAssociation('lineItems.product.media');
+        $criteria->addAssociation('deliveries.shippingOrderAddress');
+        $criteria->addAssociation('deliveries.shippingOrderAddress.country');
+        $criteria->addAssociation('deliveries.shippingMethod');
+        $criteria->addAssociation('deliveries.positions.orderLineItem');
+        $criteria->addAssociation('transactions.paymentMethod');
+        $criteria->addAssociation('transactions.paymentMethod.appPaymentMethod.app');
+        $criteria->addAssociation('transactions.stateMachineState');
+
+        return $this->orderRepository->search($criteria, $context->getContext())->first();
     }
 }

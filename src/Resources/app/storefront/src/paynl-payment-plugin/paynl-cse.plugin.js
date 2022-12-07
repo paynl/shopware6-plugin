@@ -28,10 +28,10 @@ export default class PaynlCsePlugin extends Plugin {
             'debug':                false,
             'public_keys':          publicEncryptionKeys,
             'language':             'NL',
-            'post_url':             '/PaynlPayment/cse/execute',
-            'status_url':           '/PaynlPayment/cse/execute',
-            'authorization_url':    '/PaynlPayment/cse/execute',
-            'authentication_url':   '/PaynlPayment/cse/execute',
+            'post_url':             paynlCheckoutOptions.csePostUrl,
+            'status_url':           paynlCheckoutOptions.cseStatusUrl,
+            'authorization_url':    paynlCheckoutOptions.cseAuthorizationUrl,
+            'authentication_url':   paynlCheckoutOptions.cseAuthenticationUrl,
             'payment_complete_url': '',
             'refresh_url':          '/',
             'form_input_payload_name': 'pay_encrypted_data',
@@ -151,9 +151,7 @@ export default class PaynlCsePlugin extends Plugin {
 
 
         let url = '/store-api/checkout/order';
-        this._client.post(url, formData, function (response) {
-
-        });
+        this._client.post(url, formData, this.afterCreateOrder.bind(this));
 
         // TODO temporary commented until the backend functionality is not done
         // self.encryptedForm.handleFormSubmission(
@@ -161,6 +159,65 @@ export default class PaynlCsePlugin extends Plugin {
         // );
 
         return false;
+    }
+
+    afterCreateOrder(response) {
+        let order;
+        try {
+            order = JSON.parse(response);
+            this.payDebug(order);
+        } catch (error) {
+            ElementLoadingIndicatorUtil.remove(document.body);
+            console.log('Error: invalid response from Shopware API', response);
+            return;
+        }
+
+        // let input = document.createElement('input');
+        // input.name = 'orderId';
+        // input.type = 'hidden';
+        // input.setAttribute('form', 'confirmOrderForm');
+        // input.value = order.id;
+
+        this.orderId = order.id;
+        this.finishUrl = new URL(
+            location.origin + paynlCheckoutOptions.paymentFinishUrl);
+        this.finishUrl.searchParams.set('orderId', order.id);
+        this.errorUrl = new URL(
+            location.origin + paynlCheckoutOptions.paymentErrorUrl);
+        this.errorUrl.searchParams.set('orderId', order.id);
+        let params = {
+            'orderId': this.orderId,
+            'finishUrl': this.finishUrl.toString(),
+            'errorUrl': this.errorUrl.toString(),
+        };
+
+        this.encryptedForm.handleFormSubmission(
+            this.encryptedForm.state.getElementFromReference(Elements.form)
+        );
+
+        // this._client.post(
+        //     paynlCheckoutOptions.paymentHandleUrl,
+        //     JSON.stringify(params),
+        //     this.afterPayOrder.bind(this, this.orderId),
+        // );
+    }
+
+    afterPayOrder(orderId, response) {
+        try {
+            response = JSON.parse(response);
+            this.returnUrl = response.redirectUrl;
+            this.payDebug(response);
+        } catch (e) {
+            ElementLoadingIndicatorUtil.remove(document.body);
+            console.log('Error: invalid response from Shopware API', response);
+            return;
+        }
+
+        // If payment call returns the errorUrl, then no need to proceed further.
+        // Redirect to error page.
+        if (this.returnUrl === this.errorUrl.toString()) {
+            // location.href = this.returnUrl;
+        }
     }
 
     getPublicEncryptionKeys() {

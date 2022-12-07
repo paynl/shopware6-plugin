@@ -6,6 +6,7 @@ use Paynl\Config as SDKConfig;
 use Paynl\Instore;
 use Paynl\Payment;
 use Paynl\Paymentmethods;
+use Paynl\Result\Payment\Authenticate;
 use Paynl\Result\Payment\AuthenticateMethod;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
@@ -139,7 +140,7 @@ class Api
         string $exchangeUrl,
         string $shopwareVersion,
         string $pluginVersion
-    ) {
+    ): Authenticate {
         $transaction = $this->getTransactionInitialData(
             $order,
             $salesChannelContext,
@@ -159,7 +160,7 @@ class Api
             ->setReference($transaction['orderNumber'])
             ->setAmount($transaction['amount'] * 100)
             ->setCurrency($transaction['currency'])
-            ->setIpAddress($transaction['ipaddress'])
+//            ->setIpAddress($transaction['ipaddress'])
             ->setLanguage($transaction['address']['country']);
 
         $address = new Model\Address();
@@ -202,7 +203,7 @@ class Api
                 $product->setDescription($arrProduct['name']);
                 $product->setAmount($arrProduct['price'] * 100);
                 $product->setQuantity($arrProduct['qty']);
-                $product->setVat($arrProduct['tax']);
+                $product->setVat($arrProduct['vatPercentage']);
                 $paymentOrder->addProduct($product);
             }
         }
