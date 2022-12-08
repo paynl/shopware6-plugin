@@ -218,7 +218,7 @@ class Api
         );
     }
 
-    public function status(string $transactionId, string $salesChannelId)
+    public function getAuthenticationStatus(string $transactionId, string $salesChannelId)
     {
         $this->setCredentials($salesChannelId);
 
@@ -230,7 +230,7 @@ class Api
      * @throws \Paynl\Error\Api
      * @throws \Paynl\Error\Required\ApiToken
      */
-    public function authentication(array $params, string $salesChannelId): AuthenticateMethod
+    public function authenticaticate(array $params)
     {
         $ped = $params['pay_encrypted_data'] ?? null;
         $transId = $params['transaction_id'] ?? null;
@@ -279,7 +279,7 @@ class Api
      * @throws \Paynl\Error\Error
      * @throws \Paynl\Error\Required\ApiToken
      */
-    public function authorization(array $params, string $salesChannelId)
+    public function authorize(array $params)
     {
         $ped = $params['pay_encrypted_data'] ?? null;
         $transId = $params['transaction_id'] ?? null;
