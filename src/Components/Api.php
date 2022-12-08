@@ -216,14 +216,14 @@ class Api
         );
     }
 
-    public function status(string $transactionId, string $salesChannelId)
+    public function getAuthenticationStatus(string $transactionId, string $salesChannelId)
     {
         $this->setCredentials($salesChannelId);
 
         return Payment::authenticationStatus($transactionId);
     }
 
-    public function authentication(array $params)
+    public function authenticaticate(array $params)
     {
         $salesChannelId = $params['salesChannelId'] ?? null;
         $ped = $params['pay_encrypted_data'] ?? null;
@@ -267,7 +267,7 @@ class Api
         return Payment::authenticateMethod($transaction, $payment);
     }
 
-    public function authorization(array $params)
+    public function authorize(array $params)
     {
         $salesChannelId = $params['salesChannelId'] ?? null;
         $ped = $params['pay_encrypted_data'] ?? null;
