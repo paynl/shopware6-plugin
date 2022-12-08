@@ -1,3 +1,14 @@
+# 1.4.16
+- Added payment method Blik
+- Added payment method Biller
+- Added payment method Shoes & Sneakers Giftcard
+- Added payment method Your Green Giftcard
+- Added payment method Bataviastad Giftcard
+- Added payment method Online banking
+- Added payment method Monizze
+- Added payment method Sodexo
+- Fixed storefront bugs
+
 # 1.4.15
 - Added the CoC number field on the customer group registration page
 - Displayed the CoC number field for all countries
