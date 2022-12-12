@@ -24,11 +24,11 @@ class PublicKeysHelper
         $this->cache = $cache;
     }
 
-    public function getKeys(string $salesChannelId): array
+    public function getKeys(string $salesChannelId, bool $refresh = false): array
     {
         $keysCacheItem = $this->cache->getItem(self::CACHE_KEY);
 
-        if (!$keysCacheItem->isHit() || !$keysCacheItem->get()) {
+        if ($refresh || !$keysCacheItem->isHit() || !$keysCacheItem->get()) {
             $keys = $this->paynlApi->getPublicKeys($salesChannelId);
             $keysCacheItem->set(json_encode($keys));
 

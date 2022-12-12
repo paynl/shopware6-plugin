@@ -138,6 +138,9 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
                     'cseAuthenticationUrl' => $this->router->generate(
                         'store-api.PaynlPayment.cse.authentication'
                     ),
+                    'cseRefreshUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.publicKeys'
+                    ),
                     'languageId' => $salesChannelContext->getContext()->getLanguageId(),
                     'orderId' => $orderId,
                     'publicEncryptionKeys' => json_encode($this->publicKeysHelper->getKeys($salesChannelId))

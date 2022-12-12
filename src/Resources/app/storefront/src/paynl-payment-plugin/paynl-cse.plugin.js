@@ -8,9 +8,8 @@ import {EncryptedForm, Elements, Events, PaymentCompleteModal, ErrorModal} from 
 
 export default class PaynlCsePlugin extends Plugin {
     init() {
-        this.activeModal = null;
         this.paymentModalContent = '';
-        this.paymentCompleteModalContent = '';
+        this.finishUrl = '';
         this.modal = new PseudoModalUtil();
         this.orderForm = DomAccess.querySelector(document, '#confirmOrderForm');
         this._client = new StoreApiClient();
@@ -22,7 +21,6 @@ export default class PaynlCsePlugin extends Plugin {
 
         let baseUrl = '/bundles/paynlpaymentshopware6';
         let publicEncryptionKeys = this.getPublicEncryptionKeys();
-        console.log(publicEncryptionKeys);
 
         this.encryptedForm = new EncryptedForm({
             'debug':                false,
@@ -33,7 +31,7 @@ export default class PaynlCsePlugin extends Plugin {
             'authorization_url':    paynlCheckoutOptions.cseAuthorizationUrl,
             'authentication_url':   paynlCheckoutOptions.cseAuthenticationUrl,
             'payment_complete_url': '',
-            'refresh_url':          '/',
+            'refresh_url':          paynlCheckoutOptions.cseRefreshUrl,
             'form_input_payload_name': 'pay_encrypted_data',
             'form_selector': 'data-pay-encrypt-form', // attribute to look for to identify the target form
             'field_selector': 'data-pay-encrypt-field', // attribute to look for to identify the target form elements
@@ -85,6 +83,7 @@ export default class PaynlCsePlugin extends Plugin {
 
             if (event.subject instanceof PaymentCompleteModal) {
                 self.payDebug('instanceof PaymentCompleteModal');
+                self.stopLoader();
                 // TODO should redirect to finish page
 
                 return;
@@ -106,6 +105,7 @@ export default class PaynlCsePlugin extends Plugin {
             }
 
             self.payDebug('showing modal');
+            self.stopLoader();
         }, 10);
 
         eventDispatcher.addListener(Events.onModalCloseEvent, function (event) {
@@ -124,16 +124,21 @@ export default class PaynlCsePlugin extends Plugin {
             self.payDebug('onPaymentCompleteEvent custom');
             let pol = self.encryptedForm.getPoller();
             pol.clear();
-            self.payDebug('Disable redirection');
-            event.setParameter('redirection_enabled', false);
-
-            self.orderForm.submit();
+            self.payDebug('Update redirection_url');
+            event.setParameter('redirection_url',self.finishUrl.toString());
         }, 10);
 
         eventDispatcher.addListener(Events.onPaymentFailedEvent, function (event) {
             self.payDebug('onPaymentFailedEvent');
             //TODO should show the error
         }, 10);
+
+        eventDispatcher.addListener(Events.onStateChangeEvent, function (event)  {
+            /* Skip this function if the current event does not change the loading state. */
+            if (event.hasParameter('state') && 'loading' in event.getParameter('state')) {
+                event.getCurrentState().isLoading() ? self.startLoader() : self.stopLoader();
+            }
+        }, 100);
     }
 
     placeOrder(event) {
@@ -146,17 +151,11 @@ export default class PaynlCsePlugin extends Plugin {
         }
 
         const form =  DomAccess.querySelector(document, '#confirmOrderForm');
-        ElementLoadingIndicatorUtil.create(document.body);
+        this.startLoader();
         const formData = FormSerializeUtil.serialize(form);
-
 
         let url = '/store-api/checkout/order';
         this._client.post(url, formData, this.afterCreateOrder.bind(this));
-
-        // TODO temporary commented until the backend functionality is not done
-        // self.encryptedForm.handleFormSubmission(
-        //     self.encryptedForm.state.getElementFromReference(Elements.form)
-        // );
 
         return false;
     }
@@ -167,16 +166,10 @@ export default class PaynlCsePlugin extends Plugin {
             order = JSON.parse(response);
             this.payDebug(order);
         } catch (error) {
-            ElementLoadingIndicatorUtil.remove(document.body);
+            this.stopLoader();
             console.log('Error: invalid response from Shopware API', response);
             return;
         }
-
-        // let input = document.createElement('input');
-        // input.name = 'orderId';
-        // input.type = 'hidden';
-        // input.setAttribute('form', 'confirmOrderForm');
-        // input.value = order.id;
 
         this.orderId = order.id;
         this.finishUrl = new URL(
@@ -208,7 +201,7 @@ export default class PaynlCsePlugin extends Plugin {
             this.returnUrl = response.redirectUrl;
             this.payDebug(response);
         } catch (e) {
-            ElementLoadingIndicatorUtil.remove(document.body);
+            this.startLoader();
             console.log('Error: invalid response from Shopware API', response);
             return;
         }
@@ -230,5 +223,13 @@ export default class PaynlCsePlugin extends Plugin {
         } else {
             console.log(text);
         }
+    }
+
+    startLoader() {
+        ElementLoadingIndicatorUtil.create(document.body);
+    }
+
+    stopLoader() {
+        ElementLoadingIndicatorUtil.remove(document.body);
     }
 }

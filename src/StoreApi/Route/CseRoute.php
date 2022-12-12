@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\StoreApi\Route;
 
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -23,11 +24,16 @@ class CseRoute
 {
     private EntityRepositoryInterface $orderRepository;
     private Api $api;
+    private PublicKeysHelper $publicKeysHelper;
 
-    public function __construct(EntityRepositoryInterface $orderRepository, Api $api)
-    {
+    public function __construct(
+        EntityRepositoryInterface $orderRepository,
+        Api $api,
+        PublicKeysHelper $publicKeysHelper
+    ) {
         $this->orderRepository = $orderRepository;
         $this->api = $api;
+        $this->publicKeysHelper = $publicKeysHelper;
     }
 
     /**
@@ -107,6 +113,20 @@ class CseRoute
         $data = $this->api->authorization($params, $context->getSalesChannel()->getId())->getData();
 
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/PaynlPayment/cse/publicKeys",
+     *     name="store-api.PaynlPayment.cse.publicKeys",
+     *     defaults={"csrf_protected"=false},
+     *     methods={"GET"}
+     *     )
+     */
+    public function refreshPublicKeys(Request $request, SalesChannelContext $context): Response
+    {
+        $keys = $this->publicKeysHelper->getKeys($context->getSalesChannel()->getId(), true);
+
+        return new JsonResponse($keys);
     }
 
     private function getLastOrder(SalesChannelContext $context): ?OrderEntity
