@@ -23,7 +23,8 @@
     {{ parent() }}
     {% block page_checkout_confirm_payment_inner_paynl %}
         {% set paynlStorefrontData = page.extensions[constant('PaynlPayment\\Shopware6\\Subscriber\\CheckoutConfirmSubscriber::PAYNL_DATA_EXTENSION_ID')] %}
-        {% if paynlStorefrontData %}
+        {% set paynlSettings = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings %}
+        {% if paynlStorefrontData and paynlSettings.cseEnabled %}
             <div id="paynl-checkout-options"
                  data-language-id="{{ paynlStorefrontData.languageId }}"
                  data-checkout-order-url="{{ paynlStorefrontData.checkoutOrderUrl }}"

@@ -19,6 +19,8 @@ class PaymentMethodCustomFields
     const HAS_ADDITIONAL_INFO_INPUT_FIELD = 'hasAdditionalInfoInput';
     const TERMINALS = 'terminals';
     const PAYMENT_TERMINALS_CACHE_TAG = 'paymentTerminals';
+    const PAYNL_ID = 'paynlId';
+    const CSE_ENABLED = 'cseEnabled';
 
     /** @var Api */
     private $paynlApi;
@@ -76,6 +78,13 @@ class PaymentMethodCustomFields
         $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasPaymentLaterInputs);
 
         $this->generatePaymentTerminals($paymentMethod, $salesChannelId);
+
+        $paynlPaymentId = $this->getCustomField(self::PAYNL_ID);
+        $isVisaMastercardPayment = $paynlPaymentId == PaynlPaymentMethodsIdsEnum::VISA_MASTERCARD_PAYMENT;
+        $configCseEnabled = $this->config->cseEnabled($salesChannelId);
+        $paymentCseEnabled = $isVisaMastercardPayment && $configCseEnabled;
+
+        $this->setCustomField(self::CSE_ENABLED, $paymentCseEnabled);
     }
 
     private function generatePaymentTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void

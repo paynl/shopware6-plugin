@@ -8,6 +8,10 @@ import {EncryptedForm, Elements, Events, PaymentCompleteModal, ErrorModal} from 
 
 export default class PaynlCsePlugin extends Plugin {
     init() {
+        if (typeof paynlCheckoutOptions === 'undefined') {
+            return;
+        }
+
         this.paymentModalContent = '';
         this.finishUrl = '';
         this.modal = new PseudoModalUtil();
