@@ -78,6 +78,10 @@
             <argument type="service" id="cache.object"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\Order\OrderService" class="PaynlPayment\Shopware6\Service\Order\OrderService">
+            <argument type="service" id="order.repository"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Service\Order\OrderStateService" class="PaynlPayment\Shopware6\Service\Order\OrderStateService">
             <argument type="service" id="PaynlPayment\Shopware6\Service\Transition\OrderTransitionService"/>
         </service>
@@ -168,9 +172,12 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\StoreApi\Route\CseRoute" public="true">
-            <argument type="service" id="order.repository"/>
+            <argument type="service" id="Symfony\Component\Routing\RouterInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PublicKeysHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument>%kernel.shopware_version%</argument>
         </service>
 
         <!--Entities-->
