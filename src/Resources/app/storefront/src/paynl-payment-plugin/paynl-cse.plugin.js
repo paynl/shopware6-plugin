@@ -19,6 +19,10 @@ export default class PaynlCsePlugin extends Plugin {
         let el = document.querySelector('#changePaymentForm');
         el.setAttribute('data-pay-encrypt-form', '');
 
+        if (!!paynlCheckoutOptions.orderId) {
+            self.orderId = paynlCheckoutOptions.orderId;
+        }
+
         let baseUrl = '/bundles/paynlpaymentshopware6';
         let publicEncryptionKeys = this.getPublicEncryptionKeys();
 
@@ -27,7 +31,7 @@ export default class PaynlCsePlugin extends Plugin {
             'public_keys':          publicEncryptionKeys,
             'language':             'NL',
             'post_url':             paynlCheckoutOptions.csePostUrl,
-            'status_url':           paynlCheckoutOptions.cseStatusUrl,
+            'status_url':           paynlCheckoutOptions.cseStatusUrl + '?transactionId=%transaction_id%',
             'authorization_url':    paynlCheckoutOptions.cseAuthorizationUrl,
             'authentication_url':   paynlCheckoutOptions.cseAuthenticationUrl,
             'payment_complete_url': '',
@@ -138,6 +142,12 @@ export default class PaynlCsePlugin extends Plugin {
             if (event.hasParameter('state') && 'loading' in event.getParameter('state')) {
                 event.getCurrentState().isLoading() ? self.startLoader() : self.stopLoader();
             }
+
+            if (event.getCurrentState().isFormReadyForSubmission()) {
+                if (self.orderId) {
+                    self.encryptedForm.setPaymentPostUrl(paynlCheckoutOptions.csePostUrl + '?orderId=' + self.orderId);
+                }
+            }
         }, 100);
     }
 
@@ -154,10 +164,19 @@ export default class PaynlCsePlugin extends Plugin {
         this.startLoader();
         const formData = FormSerializeUtil.serialize(form);
 
-        let url = '/store-api/checkout/order';
-        this._client.post(url, formData, this.afterCreateOrder.bind(this));
+        this.confirmOrder(formData);
 
         return false;
+    }
+
+    confirmOrder(formData) {
+        const orderId = paynlCheckoutOptions.orderId;
+        if (!!orderId) { //Only used if the order is being edited
+            this.afterCreateOrder(JSON.stringify({id: paynlCheckoutOptions.orderId}));
+            return;
+        }
+
+        this._client.post(paynlCheckoutOptions.checkoutOrderUrl, formData, this.afterCreateOrder.bind(this));
     }
 
     afterCreateOrder(response) {
@@ -184,6 +203,8 @@ export default class PaynlCsePlugin extends Plugin {
             'errorUrl': this.errorUrl.toString(),
         };
 
+        paynlCheckoutOptions.orderId = this.orderId;
+
         this.encryptedForm.handleFormSubmission(
             this.encryptedForm.state.getElementFromReference(Elements.form)
         );
@@ -203,13 +224,6 @@ export default class PaynlCsePlugin extends Plugin {
         } catch (e) {
             this.startLoader();
             console.log('Error: invalid response from Shopware API', response);
-            return;
-        }
-
-        // If payment call returns the errorUrl, then no need to proceed further.
-        // Redirect to error page.
-        if (this.returnUrl === this.errorUrl.toString()) {
-            // location.href = this.returnUrl;
         }
     }
 
