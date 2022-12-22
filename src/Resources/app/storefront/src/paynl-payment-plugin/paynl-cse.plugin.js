@@ -4,7 +4,7 @@ import PseudoModalUtil from 'src/utility/modal-extension/pseudo-modal.util';
 import DomAccess from 'src/helper/dom-access.helper';
 import FormSerializeUtil from 'src/utility/form/form-serialize.util';
 import ElementLoadingIndicatorUtil from 'src/utility/loading-indicator/element-loading-indicator.util';
-import {EncryptedForm, Elements, Events, PaymentCompleteModal, ErrorModal} from '../cse/pay-cryptography.amd';
+import {EncryptedForm, Elements, Events, PaymentCompleteModal, ErrorModal, StateChangeEvent} from '../cse/pay-cryptography.amd';
 
 export default class PaynlCsePlugin extends Plugin {
     init() {
@@ -75,6 +75,8 @@ export default class PaynlCsePlugin extends Plugin {
         let payEncryptedDataInput = DomAccess.querySelector(document, 'input[name="pay_encrypted_data"]');
         payEncryptedDataInput.setAttribute('form', 'confirmOrderForm');
 
+        this.initDefaultSubmitButton();
+
         document.getElementById('csePlaceOrder').addEventListener('click', this.placeOrder.bind(this));
 
         eventDispatcher.addListener(Events.onModalOpenEvent, function(event) {
@@ -101,15 +103,15 @@ export default class PaynlCsePlugin extends Plugin {
                 self.payDebug('ErrorModal');
 
                 let paymentErrorModalContent = event.getSubject().render();
-                self.modal.updateContent(paymentErrorModalContent);
                 self.modal.open();
+                self.modal.updateContent(paymentErrorModalContent);
 
                 return;
             }
 
             if (eventSubject != null) {
-                self.modal.updateContent(eventSubject.render());
                 self.modal.open();
+                self.modal.updateContent(eventSubject.render());
             }
 
             self.payDebug('showing modal');
@@ -126,6 +128,10 @@ export default class PaynlCsePlugin extends Plugin {
                 self.payDebug(self.modal);
                 self.modal.close();
             }
+
+            if (self.returnUrl) {
+                location.href = self.returnUrl;
+            }
         }, 10);
 
         eventDispatcher.addListener(Events.onPaymentCompleteEvent, function (event) {
@@ -134,11 +140,6 @@ export default class PaynlCsePlugin extends Plugin {
             pol.clear();
             self.payDebug('Update redirection_url');
             event.setParameter('redirection_url',self.finishUrl.toString());
-        }, 10);
-
-        eventDispatcher.addListener(Events.onPaymentFailedEvent, function (event) {
-            self.payDebug('onPaymentFailedEvent');
-            //TODO should show the error
         }, 10);
 
         eventDispatcher.addListener(Events.onStateChangeEvent, function (event)  {
@@ -153,12 +154,50 @@ export default class PaynlCsePlugin extends Plugin {
                 }
             }
         }, 100);
+
+        eventDispatcher.addListener(Events.onActionableResponseEvent, function (event) {
+            self.payDebug('event.onActionableResponseEvent');
+            let transaction = event.subject.data.transaction;
+            let transactionId = transaction !== undefined ? transaction.transactionId : null;
+            if (transactionId !== null) {
+                let params = {
+                    'orderId': self.orderId,
+                    'finishUrl': self.finishUrl.toString(),
+                    'errorUrl': self.errorUrl.toString(),
+                    'paymentType': 'cse',
+                    'transactionId': transactionId,
+                };
+
+                // Handle payment
+                self._client.post(
+                    paynlCheckoutOptions.paymentHandleUrl,
+                    JSON.stringify(params),
+                    self.afterPayOrder.bind(self, self.orderId),
+                );
+            }
+        });
+
+        $(document).on('hide.bs.modal', '.js-pseudo-modal', function (event) {
+            self.payDebug('hide.bs.modal');
+            eventDispatcher.dispatch(new StateChangeEvent(event, {
+                'state': {modalOpen: false, formSubmitted: false}
+            }), Events.onStateChangeEvent);
+            /* Making sure any content/polling from this content will stop working */
+            self.paymentModalContent = '';
+            let isPolling = self.encryptedForm.state.isPolling();
+            if (isPolling) {
+                let pol = self.encryptedForm.getPoller();
+                pol.clear();
+            }
+
+            if (self.returnUrl) {
+                location.href = self.returnUrl;
+            }
+        });
     }
 
     placeOrder(event) {
         event.preventDefault();
-
-        let self = this;
 
         if (!this.orderForm.reportValidity()) {
             return;
@@ -190,7 +229,7 @@ export default class PaynlCsePlugin extends Plugin {
             this.payDebug(order);
         } catch (error) {
             this.stopLoader();
-            console.log('Error: invalid response from Shopware API', response);
+            this.payDebug('Error: invalid response from Shopware API', response);
             return;
         }
 
@@ -201,23 +240,12 @@ export default class PaynlCsePlugin extends Plugin {
         this.errorUrl = new URL(
             location.origin + paynlCheckoutOptions.paymentErrorUrl);
         this.errorUrl.searchParams.set('orderId', order.id);
-        let params = {
-            'orderId': this.orderId,
-            'finishUrl': this.finishUrl.toString(),
-            'errorUrl': this.errorUrl.toString(),
-        };
 
         paynlCheckoutOptions.orderId = this.orderId;
 
         this.encryptedForm.handleFormSubmission(
             this.encryptedForm.state.getElementFromReference(Elements.form)
         );
-
-        // this._client.post(
-        //     paynlCheckoutOptions.paymentHandleUrl,
-        //     JSON.stringify(params),
-        //     this.afterPayOrder.bind(this, this.orderId),
-        // );
     }
 
     afterPayOrder(orderId, response) {
@@ -226,8 +254,7 @@ export default class PaynlCsePlugin extends Plugin {
             this.returnUrl = response.redirectUrl;
             this.payDebug(response);
         } catch (e) {
-            this.startLoader();
-            console.log('Error: invalid response from Shopware API', response);
+            this.payDebug('Error: invalid response from Shopware API', response);
         }
     }
 
@@ -249,5 +276,24 @@ export default class PaynlCsePlugin extends Plugin {
 
     stopLoader() {
         ElementLoadingIndicatorUtil.remove(document.body);
+    }
+
+    initDefaultSubmitButton() {
+        let confirmFormSubmit = document.getElementById('confirmFormSubmit');
+        let visaPaymentMethodInput = document.querySelector('input[data-paynlid="706"]');
+        if (!visaPaymentMethodInput) {
+            return;
+        }
+
+        if (!visaPaymentMethodInput.checked) {
+            return;
+        }
+
+        let paynlPaymentMethodCse = document.querySelector('.paynl-payment-method-cse');
+        if (!paynlPaymentMethodCse) {
+            return;
+        }
+
+        confirmFormSubmit.style.display = 'none';
     }
 }

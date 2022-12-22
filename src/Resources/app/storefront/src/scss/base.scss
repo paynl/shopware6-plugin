@@ -154,6 +154,14 @@
     flex-basis: 20%;
 }
 
+.js-pseudo-modal .js-pseudo-modal-template-content-element iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.js-pseudo-modal .modal-content {
+    height: 600px;
+}
 
 @media screen and (max-width: 767px) {
     .paynl-payment-methods-custom-styles .payment-method,
