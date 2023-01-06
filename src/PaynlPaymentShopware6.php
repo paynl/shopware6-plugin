@@ -3,7 +3,7 @@
 namespace PaynlPayment\Shopware6;
 
 // phpcs:disable
-require_once(__DIR__ . '/../vendor/autoload.php');
+require_once(__DIR__ . '/../../../autoload.php');
 // phpcs:enable
 
 use PaynlPayment\Shopware6\Helper\InstallHelper;
