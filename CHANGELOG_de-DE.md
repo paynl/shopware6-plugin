@@ -1,3 +1,6 @@
+# 1.4.17
+- Nederlandse vertaling toegevoegd voor Refund Order status
+
 # 1.4.16
 - Zahlungsmethode Blik hinzugefügt
 - Zahlungsmethode Biller hinzugefügt
