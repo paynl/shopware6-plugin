@@ -1,3 +1,6 @@
+# 1.4.17
+- Added Refunding status Dutch translation
+
 # 1.4.16
 - Added payment method Blik
 - Added payment method Biller
