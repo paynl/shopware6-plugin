@@ -26,7 +26,7 @@ class PublicKeysHelper
         $this->cache = $cache;
     }
 
-    public function getKeys(string $salesChannelId, bool $refresh = true): array
+    public function getKeys(string $salesChannelId, bool $refresh = false): array
     {
         $keysCacheItem = $this->cache->getItem(self::CACHE_KEY);
 
