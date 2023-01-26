@@ -214,12 +214,18 @@ export default class PaynlCsePlugin extends Plugin {
 
     confirmOrder(formData) {
         const orderId = paynlCheckoutOptions.orderId;
+        let url = null;
+        let callback = null;
         if (!!orderId) { //Only used if the order is being edited
-            this.afterCreateOrder(JSON.stringify({id: paynlCheckoutOptions.orderId}));
-            return;
+            formData.set('orderId', orderId);
+            url = paynlCheckoutOptions.updatePaymentUrl;
+            callback = this.afterSetPayment.bind(this);
+        } else {
+            url = paynlCheckoutOptions.checkoutOrderUrl;
+            callback = this.afterCreateOrder.bind(this);
         }
 
-        this._client.post(paynlCheckoutOptions.checkoutOrderUrl, formData, this.afterCreateOrder.bind(this));
+        this._client.post(url, formData, callback);
     }
 
     afterCreateOrder(response) {
@@ -248,6 +254,18 @@ export default class PaynlCsePlugin extends Plugin {
         );
     }
 
+    afterSetPayment(response) {
+        try {
+            const responseObject = JSON.parse(response);
+            if (responseObject.success) {
+                this.afterCreateOrder(JSON.stringify({id: paynlCheckoutOptions.orderId}));
+            }
+        } catch (e) {
+            ElementLoadingIndicatorUtil.remove(document.body);
+            this.payDebug('Error: invalid response from Shopware API', response);
+        }
+    }
+
     afterPayOrder(orderId, response) {
         try {
             response = JSON.parse(response);
@@ -263,10 +281,12 @@ export default class PaynlCsePlugin extends Plugin {
     }
 
     payDebug(text) {
-        if (typeof text == 'string') {
-            console.log('PAY. - ' + text);
-        } else {
-            console.log(text);
+        if (paynlCheckoutOptions.debug === 'true') {
+            if (typeof text == 'string') {
+                console.log('PAY. - ' + text);
+            } else {
+                console.log(text);
+            }
         }
     }
 
@@ -280,6 +300,7 @@ export default class PaynlCsePlugin extends Plugin {
 
     initDefaultSubmitButton() {
         let confirmFormSubmit = document.getElementById('confirmFormSubmit');
+        let confirmOrderForm = document.getElementById('confirmOrderForm')
         let visaPaymentMethodInput = document.querySelector('input[data-paynlid="706"]');
         if (!visaPaymentMethodInput) {
             return;
@@ -294,6 +315,12 @@ export default class PaynlCsePlugin extends Plugin {
             return;
         }
 
-        confirmFormSubmit.style.display = 'none';
+        if (confirmOrderForm) {
+            confirmOrderForm.style.display = 'none';
+        }
+
+        if (confirmFormSubmit) {
+            confirmFormSubmit.style.display = 'none';
+        }
     }
 }

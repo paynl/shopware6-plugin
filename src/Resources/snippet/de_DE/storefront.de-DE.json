@@ -27,5 +27,43 @@
     "coc": {
         "label": "IHK-Nummer",
         "placeholder": "IHK-Nummer eingeben"
+    },
+    "cse": {
+        "title": "Kreditkartenzahlung",
+        "cardName": {
+            "label": "Karteninhaber",
+            "placeholder": "Name auf der Karte"
+        },
+        "cardNumber": {
+            "label": "Kreditkartennummer",
+            "placeholder": "Bitte eingeben"
+        },
+        "cvc": {
+            "label": "Prüfnr",
+            "placeholder": "3-stellig"
+        },
+        "month": {
+            "label": "Monat",
+            "placeholder": "Auswählen"
+        },
+        "year": {
+            "label": "Jahr",
+            "placeholder": "Auswählen"
+        },
+        "placeOrder": "Bestellung aufgeben"
+    },
+    "month": {
+        "jan": "Januar",
+        "feb": "Februar",
+        "mar": "März",
+        "apr": "April",
+        "may": "Mai",
+        "jun": "Juni",
+        "jul": "Juli",
+        "aug": "August",
+        "sep": "September",
+        "oct": "Oktober",
+        "nov": "November",
+        "dec": "Dezember"
     }
 }

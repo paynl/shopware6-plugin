@@ -239,9 +239,10 @@ class ProcessingHelper
             return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
             return sprintf(
-                'FALSE| Error "%s" in file %s',
+                'FALSE| Error "%s" in file %s:%s',
                 $e->getMessage(),
-                $e->getFile()
+                $e->getFile(),
+                $e->getLine()
             );
         }
     }

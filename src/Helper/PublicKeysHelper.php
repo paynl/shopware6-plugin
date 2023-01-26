@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Helper;
 
+use DateTime;
+use DateTimeInterface;
 use PaynlPayment\Shopware6\Components\Api;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -30,7 +32,11 @@ class PublicKeysHelper
 
         if ($refresh || !$keysCacheItem->isHit() || !$keysCacheItem->get()) {
             $keys = $this->paynlApi->getPublicKeys($salesChannelId);
+            $expiresAt = $this->getExpiresAtPublicKey($keys);
             $keysCacheItem->set(json_encode($keys));
+            if ($expiresAt !== null) {
+                $keysCacheItem->expiresAt($expiresAt);
+            }
 
             $this->cache->save($keysCacheItem);
         } else {
@@ -38,5 +44,23 @@ class PublicKeysHelper
         }
 
         return $keys;
+    }
+
+    private function getExpiresAtPublicKey(array $keys): ?DateTimeInterface
+    {
+        if (empty($keys)) {
+            return null;
+        }
+
+        usort($keys, function ($firstDate, $secondDate) {
+            return strtotime($firstDate['expires_at']) - strtotime($secondDate['expires_at']);
+        });
+
+        $expiresAt = reset($keys)['expires_at'];
+
+        $expiresAtDateTime = new DateTime();
+        $expiresAtDateTime->setTimestamp(strtotime($expiresAt));
+
+        return $expiresAtDateTime;
     }
 }
