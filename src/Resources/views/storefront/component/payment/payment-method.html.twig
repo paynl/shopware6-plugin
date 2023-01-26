@@ -45,8 +45,8 @@
 {% block component_payment_fieldset_template %}
     {% block pay_component_payment_extra %}
         {% if (payment.customFields.paynl_payment) %}
-            <div class="paynl-payment-method-extra-wrapper">
-                <div class="paynl-payment-method-extra {% if payment.customFields.paynlId === constant('PaynlPayment\\Shopware6\\Enums\\PaynlPaymentMethodsIdsEnum::VISA_MASTERCARD_PAYMENT') %}paynl-payment-method-cse{% endif %}{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
+            <div class="{% if payment.customFields.cseEnabled %}paynl-cse-extra-wrapper{% else %}paynl-payment-method-extra-wrapper{% endif %}">
+                <div class="{% if payment.customFields.cseEnabled %}paynl-payment-method-cse{% else %}paynl-payment-method-extra{% endif %}{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {#Banks#}
                     {% if payment.translated.customFields.displayBanks %}
                         {% if payment.translated.customFields.banks is not empty %}
@@ -76,16 +76,16 @@
                     {% endif %}
 
                     {#CSE#}
-                    {% if (payment.customFields.paynlId === constant('PaynlPayment\\Shopware6\\Enums\\PaynlPaymentMethodsIdsEnum::VISA_MASTERCARD_PAYMENT')) %}
+                    {% if (payment.customFields.cseEnabled) %}
                         <div class="form-row mb-2">
                             <legend id="pay-cse-title">
-                                <span>Credit card payment</span>
+                                <span>{{ "cse.title"|trans|striptags }}</span>
                             </legend>
                         </div>
                         <div class="form-row mb-2">
                             <div class="col">
-                                <label for="card-holder">Name on card</label>
-                                <input id="card-holder" class="form-control" type="text" placeholder="Name as shown on card" name="cardholder" value=""
+                                <label for="card-holder">{{ "cse.cardName.label"|trans|striptags }}</label>
+                                <input id="card-holder" class="form-control" type="text" placeholder="{{ "cse.cardName.placeholder"|trans|striptags }}" name="cardholder" value=""
                                        required data-pay-encrypt-field/>
                             </div>
                         </div>
@@ -93,10 +93,10 @@
                         <div class="form-row mb-2">
                             <div class="col-sm-10">
                                 <div class="form-element-container has-icon-container">
-                                    <label for="cardnumber">Card number</label>
+                                    <label for="cardnumber">{{ "cse.cardNumber.label"|trans|striptags }}</label>
                                     <div class="has-icon-wrap">
                                         <span class="input-container">
-                                            <input id="cardnumber" class="form-control" type="text" name="cardnumber" placeholder="Enter your credit card number here" value="" required data-pay-encrypt-field/>
+                                            <input id="cardnumber" class="form-control" type="text" name="cardnumber" placeholder="{{ "cse.cardNumber.label"|trans|striptags }}" value="" required data-pay-encrypt-field/>
                                         </span>
 
                                         <div class="icon-container">
@@ -109,9 +109,9 @@
 
                             <div class="col-sm-2">
                                 <div class="form-element-container">
-                                    <label for="cvc" data-cvc-label>CVC</label>
+                                    <label for="cvc" data-cvc-label>{{ "cse.cvc.label"|trans|striptags }}</label>
                                     <span class="input-container">
-                                        <input id="cvc" class="form-control" type="text" name="cardcvc" placeholder="123" required value="" data-pay-encrypt-field/>
+                                        <input id="cvc" class="form-control" type="text" name="cardcvc" placeholder="{{ "cse.cvc.placeholder"|trans|striptags }}" required value="" data-pay-encrypt-field/>
                                     </span>
                                 </div>
                             </div>
@@ -120,36 +120,32 @@
                         <div class="form-row mb-2">
                             <div class="col-sm-6">
                                 <div class="form-element-container">
-                                    <label for="month">Month</label>
+                                    <label for="month">{{ "cse.month.label"|trans|striptags }}</label>
                                     <select class="custom-select" name="valid_thru_month" id="month" data-pay-encrypt-field>
-                                        <option value="" disabled selected>Select</option>
-                                        <option value="01">01 - Januari</option>
-                                        <option value="02">02 - Februari</option>
-                                        <option value="03">03 - Maart</option>
-                                        <option value="04">04 - April</option>
-                                        <option value="05">05 - Mei</option>
-                                        <option value="06">06 - Juni</option>
-                                        <option value="07">07 - Juli</option>
-                                        <option value="08">08 - Augustus</option>
-                                        <option value="09">09 - September</option>
-                                        <option value="10">10 - Oktober</option>
-                                        <option value="11">11 - November</option>
-                                        <option value="12">12 - December</option>
+                                        <option value="" disabled selected>{{ "cse.month.placeholder"|trans|striptags }}</option>
+                                        <option value="01">01 - {{ "month.jan"|trans|striptags }}</option>
+                                        <option value="02">02 - {{ "month.feb"|trans|striptags }}</option>
+                                        <option value="03">03 - {{ "month.mar"|trans|striptags }}</option>
+                                        <option value="04">04 - {{ "month.apr"|trans|striptags }}</option>
+                                        <option value="05">05 - {{ "month.may"|trans|striptags }}</option>
+                                        <option value="06">06 - {{ "month.jun"|trans|striptags }}</option>
+                                        <option value="07">07 - {{ "month.jul"|trans|striptags }}</option>
+                                        <option value="08">08 - {{ "month.aug"|trans|striptags }}</option>
+                                        <option value="09">09 - {{ "month.sep"|trans|striptags }}</option>
+                                        <option value="10">10 - {{ "month.oct"|trans|striptags }}</option>
+                                        <option value="11">11 - {{ "month.nov"|trans|striptags }}</option>
+                                        <option value="12">12 - {{ "month.dec"|trans|striptags }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-element-container">
-                                    <label for="year">Year</label>
+                                    <label for="year">{{ "cse.year.label"|trans|striptags }}</label>
                                     <select class="custom-select" name="valid_thru_year" id="year" data-pay-encrypt-field>
-                                        <option value="" disabled selected>Select</option>
-                                        <option value="2021">2021</option>
-                                        <option value="2022">2022</option>
-                                        <option value="2023">2023</option>
-                                        <option value="2024">2024</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2026">2026</option>
-                                        <option value="2027">2027</option>
+                                        <option value="" disabled selected>{{ "cse.year.placeholder"|trans|striptags }}</option>
+                                        {% for year in range(date('Y')|date('Y'), date('Y')|date('Y') + 11) %}
+                                            <option value="{{ year }}">{{ year }}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div>
@@ -161,7 +157,7 @@
                         <div class="form-row mb-2">
                             <div class="col form-element-container">
                                 <button id="csePlaceOrder" class="btn btn-primary" type="submit" data-loading-state="0" disabled="disabled">
-                                    <span class="state-not-loading">Place Order</span>
+                                    <span class="state-not-loading">{{ "cse.placeOrder.label"|trans|striptags }}</span>
                                     <span class="state-loading">
                                         <img src="{{ asset('bundles/paynlpaymentshopware6/spinner.gif', 'asset') }}" width="30" height="30" alt="Loading"/>
                                     </span>

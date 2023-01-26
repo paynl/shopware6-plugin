@@ -26,5 +26,45 @@
     "coc": {
         "label": "KVK/COC Number",
         "placeholder": "Enter your COC number"
+    },
+    "cse": {
+        "title": "Credit card payment",
+        "cardName": {
+            "label": "Name on card",
+            "placeholder": "Name as shown on card"
+        },
+        "cardNumber": {
+            "label": "Card number",
+            "placeholder": "Enter your credit card number here"
+        },
+        "cvc": {
+            "label": "CVC",
+            "placeholder": "123"
+        },
+        "month": {
+            "label": "Month",
+            "placeholder": "Select"
+        },
+        "year": {
+            "label": "Year",
+            "placeholder": "Select"
+        },
+        "placeOrder": {
+            "label": "Place Order"
+        }
+    },
+    "month": {
+        "jan": "January",
+        "feb": "February",
+        "mar": "March",
+        "apr": "April",
+        "may": "May",
+        "jun": "June",
+        "jul": "July",
+        "aug": "August",
+        "sep": "September",
+        "oct": "October",
+        "nov": "November",
+        "dec": "December"
     }
 }

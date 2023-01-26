@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -11,12 +12,13 @@ use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoade
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Shopware\Storefront\Page\PageLoadedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\RouterInterface;
 
 class CheckoutConfirmSubscriber implements EventSubscriberInterface
 {
     const PAYNL_DATA_EXTENSION_ID = 'paynlFrontendData';
+
+    private $config;
 
     private $router;
 
@@ -25,10 +27,12 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
     private $publicKeysHelper;
 
     public function __construct(
+        Config $config,
         RouterInterface $router,
         PaymentMethodCustomFields $paymentMethodCustomFields,
         PublicKeysHelper $publicKeysHelper
     ) {
+        $this->config = $config;
         $this->router = $router;
         $this->paymentMethodCustomFields = $paymentMethodCustomFields;
         $this->publicKeysHelper = $publicKeysHelper;
@@ -114,6 +118,9 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
                     'paymentHandleUrl' => $this->router->generate(
                         'store-api.payment.handle'
                     ),
+                    'updatePaymentUrl' => $this->router->generate(
+                        'store-api.action.paynl.set-payment'
+                    ),
                     'paymentFinishUrl' => $this->router->generate(
                         'frontend.checkout.finish.page',
                         ['orderId' => '']
@@ -126,9 +133,25 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
                             'paymentFailed' => true,
                         ]
                     ),
+                    'csePostUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.execute'
+                    ),
+                    'cseStatusUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.status'
+                    ),
+                    'cseAuthorizationUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.authorization'
+                    ),
+                    'cseAuthenticationUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.authentication'
+                    ),
+                    'cseRefreshUrl' => $this->router->generate(
+                        'store-api.PaynlPayment.cse.publicKeys'
+                    ),
                     'languageId' => $salesChannelContext->getContext()->getLanguageId(),
                     'orderId' => $orderId,
-                    'publicEncryptionKeys' => json_encode($this->publicKeysHelper->getKeys($salesChannelId))
+                    'publicEncryptionKeys' => json_encode($this->publicKeysHelper->getKeys($salesChannelId)),
+                    'debug' => $this->config->getTestMode($salesChannelId) ? 'true' : 'false',
                 ]
             )
         );

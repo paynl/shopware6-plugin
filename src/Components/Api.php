@@ -6,6 +6,7 @@ use Paynl\Config as SDKConfig;
 use Paynl\Instore;
 use Paynl\Payment;
 use Paynl\Paymentmethods;
+use Paynl\Result\Payment\Authenticate;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
@@ -138,7 +139,7 @@ class Api
         string $exchangeUrl,
         string $shopwareVersion,
         string $pluginVersion
-    ) {
+    ): Authenticate {
         $transaction = $this->getTransactionInitialData(
             $order,
             $salesChannelContext,
@@ -158,7 +159,6 @@ class Api
             ->setReference($transaction['orderNumber'])
             ->setAmount($transaction['amount'] * 100)
             ->setCurrency($transaction['currency'])
-            ->setIpAddress($transaction['ipaddress'])
             ->setLanguage($transaction['address']['country']);
 
         $address = new Model\Address();
@@ -191,9 +191,18 @@ class Api
         $statistics->setObject($transaction['object']);
 
         $browser = new Model\Browser();
+        $browser
+            ->setJavaEnabled('false')
+            ->setJavascriptEnabled('false')
+            ->setLanguage('nl-NL')
+            ->setColorDepth('24')
+            ->setScreenWidth('1920')
+            ->setScreenHeight('1080')
+            ->setTz('-120');
+
         $paymentOrder = new Model\Order();
 
-        if(!empty($transaction['products']) && is_array($transaction['products'])) {
+        if (!empty($transaction['products']) && is_array($transaction['products'])) {
             foreach ($transaction['products'] as $arrProduct) {
                 $product = new Model\Product();
                 $product->setId($arrProduct['id']);
@@ -201,7 +210,7 @@ class Api
                 $product->setDescription($arrProduct['name']);
                 $product->setAmount($arrProduct['price'] * 100);
                 $product->setQuantity($arrProduct['qty']);
-                $product->setVat($arrProduct['tax']);
+                $product->setVat($arrProduct['vatPercentage']);
                 $paymentOrder->addProduct($product);
             }
         }
@@ -223,9 +232,13 @@ class Api
         return Payment::authenticationStatus($transactionId);
     }
 
-    public function authenticaticate(array $params)
+    /**
+     * @throws \Paynl\Error\Error
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Required\ApiToken
+     */
+    public function authenticaticate(array $params, string $salesChannelId)
     {
-        $salesChannelId = $params['salesChannelId'] ?? null;
         $ped = $params['pay_encrypted_data'] ?? null;
         $transId = $params['transaction_id'] ?? null;
         $ecode = $params['entrance_code'] ?? null;
@@ -267,9 +280,14 @@ class Api
         return Payment::authenticateMethod($transaction, $payment);
     }
 
-    public function authorize(array $params)
+    /**
+     * @return \Paynl\Result\Payment\Authorize
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Error
+     * @throws \Paynl\Error\Required\ApiToken
+     */
+    public function authorize(array $params, string $salesChannelId)
     {
-        $salesChannelId = $params['salesChannelId'] ?? null;
         $ped = $params['pay_encrypted_data'] ?? null;
         $transId = $params['transaction_id'] ?? null;
         $ecode = $params['entrance_code'] ?? null;
