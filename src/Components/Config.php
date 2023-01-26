@@ -57,6 +57,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'allowRefunds');
     }
 
+    public function cseEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'cseEnabled');
+    }
+
     /**
      * @return string[]
      */

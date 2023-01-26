@@ -11,16 +11,23 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateEntity;
+use Shopware\Core\System\StateMachine\Exception\StateMachineStateNotFoundException;
+use Shopware\Core\System\StateMachine\StateMachineRegistry;
+use Shopware\Core\System\StateMachine\Transition;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 class OrderService
 {
     protected EntityRepositoryInterface $orderRepository;
+    protected StateMachineRegistry $stateMachineRegistry;
 
     protected LoggerInterface $logger;
 
-    public function __construct(EntityRepositoryInterface $orderRepository)
+    public function __construct(EntityRepositoryInterface $orderRepository, StateMachineRegistry $stateMachineRegistry)
     {
         $this->orderRepository = $orderRepository;
+        $this->stateMachineRegistry = $stateMachineRegistry;
     }
 
     public function getOrder(string $orderId, Context $context): OrderEntity
@@ -81,5 +88,32 @@ class OrderService
         $criteria->addAssociation('transactions.stateMachineState');
 
         return $this->orderRepository->search($criteria, $context)->first();
+    }
+
+    public function orderTransactionStateTransition(
+        string $orderTransactionId,
+        string $transition,
+        ParameterBag $data,
+        Context $context
+    ): StateMachineStateEntity {
+        $stateFieldName = $data->get('stateFieldName', 'stateId');
+
+        $stateMachineStates = $this->stateMachineRegistry->transition(
+            new Transition(
+                'order_transaction',
+                $orderTransactionId,
+                $transition,
+                $stateFieldName
+            ),
+            $context
+        );
+
+        $toPlace = $stateMachineStates->get('toPlace');
+
+        if (!$toPlace) {
+            throw new StateMachineStateNotFoundException('order_transaction', $transition);
+        }
+
+        return $toPlace;
     }
 }

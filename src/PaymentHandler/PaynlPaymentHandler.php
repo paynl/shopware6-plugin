@@ -65,7 +65,12 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         SalesChannelContext $salesChannelContext
     ): RedirectResponse {
         try {
-            $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
+            $paymentType = $dataBag->get('paymentType');
+            if ($paymentType === 'cse') {
+                $redirectUrl = $this->handleCse($transaction, $dataBag, $salesChannelContext);
+            } else {
+                $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
+            }
         } catch (Exception $e) {
             throw new AsyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
@@ -135,5 +140,26 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return '';
+    }
+
+    private function handleCse(
+        AsyncPaymentTransactionStruct $transaction,
+        RequestDataBag $dataBag,
+        SalesChannelContext $salesChannelContext
+    ): string {
+        $paynlTransactionId = $dataBag->get('transactionId');
+        $order = $transaction->getOrder();
+        $orderTransaction = $transaction->getOrderTransaction();
+
+        $this->processingHelper->storePaynlTransactionData(
+            $order,
+            $orderTransaction,
+            $salesChannelContext,
+            $paynlTransactionId
+        );
+
+        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($transaction->getOrder()->getId());
+
+        return $dataBag->get('finishUrl');
     }
 }
