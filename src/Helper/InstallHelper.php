@@ -124,7 +124,7 @@ class InstallHelper
 
         $this->mediaHelper = new MediaHelper($container);
         $this->paymentHandlerFactory = new PaymentHandlerFactory();
-        $this->logger = $container->get('PaynlPayment\Util\Logger');
+        $this->logger = $container->get('paynl_payments.logger');
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void
