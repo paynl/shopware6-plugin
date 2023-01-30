@@ -3,16 +3,6 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory" class="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory">
-            <argument type="service" id="session"/>
-            <argument>%kernel.logs_dir%/paynl_%kernel.environment%.log</argument>
-            <argument>14</argument>
-        </service>
-
-        <service id="paynl_payments.logger" class="Monolog\Logger" public="true">
-            <factory service="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory" method="createLogger"/>
-        </service>
-
         <!--Helpers-->
         <service id="PaynlPayment\Shopware6\Helper\CustomerHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>

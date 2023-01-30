@@ -3,7 +3,6 @@
 namespace PaynlPayment\Shopware6\Helper;
 
 use Doctrine\DBAL\Connection;
-use Exception;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
@@ -13,9 +12,7 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
-use PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
-use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
@@ -55,8 +52,6 @@ class InstallHelper
     const CONTENT_HTML = 'content_html';
     const CONTENT_PLAIN = 'content_plain';
 
-    const LOG_RETENTION_DAYS = '14';
-
     /** @var SystemConfigService */
     private $configService;
     /** @var PluginIdProvider $pluginIdProvider */
@@ -77,8 +72,6 @@ class InstallHelper
     private $mediaHelper;
     /** @var PaymentHandlerFactory */
     private $paymentHandlerFactory;
-    /** @var LoggerInterface */
-    private $logger;
 
     public function __construct(ContainerInterface $container)
     {
@@ -127,11 +120,6 @@ class InstallHelper
 
         $this->mediaHelper = new MediaHelper($container);
         $this->paymentHandlerFactory = new PaymentHandlerFactory();
-
-        $kernelLogsDir = $container->getParameter('kernel.logs_dir');
-        $kernelEnvironment = $container->getParameter('kernel.environment');
-        $paynlLogsDir = sprintf('%s/paynl_%s.log', $kernelLogsDir, $kernelEnvironment);
-        $this->logger = (new PaynlLoggerFactory($session, $paynlLogsDir, self::LOG_RETENTION_DAYS))->createLogger();
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void
@@ -593,27 +581,21 @@ class InstallHelper
                     continue;
                 }
 
-                try {
-                    $mailContentHtml = $mailTemplateTranslation[self::CONTENT_HTML] ?? '';
-                    if (empty($this->searchMailTemplateText($mailContentHtml))) {
-                        $this->updateMailTemplateTranslationContentHtml([
-                            self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
-                            self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
-                            self::CONTENT_HTML => $this->generateMailTemplate($mailContentHtml)
-                        ]);
-                    }
+                $mailContentHtml = $mailTemplateTranslation[self::CONTENT_HTML] ?? '';
+                if (empty($this->searchMailTemplateText($mailContentHtml))) {
+                    $this->updateMailTemplateTranslationContentHtml([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_HTML => $this->generateMailTemplate($mailContentHtml)
+                    ]);
+                }
 
-                    $mailContentPlain = $mailTemplateTranslation[self::CONTENT_PLAIN] ?? '';
-                    if (empty($this->searchMailTemplateText($mailContentPlain))) {
-                        $this->updateMailTemplateTranslationContentPlain([
-                            self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
-                            self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
-                            self::CONTENT_PLAIN => $this->generateMailTemplate($mailContentPlain)
-                        ]);
-                    }
-                } catch (Exception $exception) {
-                    $this->logger->error($exception->getMessage(), [
-                        'exception' => $exception
+                $mailContentPlain = $mailTemplateTranslation[self::CONTENT_PLAIN] ?? '';
+                if (empty($this->searchMailTemplateText($mailContentPlain))) {
+                    $this->updateMailTemplateTranslationContentPlain([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_PLAIN => $this->generateMailTemplate($mailContentPlain)
                     ]);
                 }
             }
@@ -639,31 +621,25 @@ class InstallHelper
                     continue;
                 }
 
-                try {
-                    $mailContentHtml = $mailTemplateTranslation[self::CONTENT_HTML] ?? '';
-                    $paynlMailTemplateBlockHtml = $this->searchMailTemplateText($mailContentHtml);
-                    if (!empty($paynlMailTemplateBlockHtml)) {
-                        $mailContentHtml = str_replace($paynlMailTemplateBlockHtml, '', $mailContentHtml);
-                        $this->updateMailTemplateTranslationContentHtml([
-                            self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
-                            self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
-                            self::CONTENT_HTML => $mailContentHtml
-                        ]);
-                    }
+                $mailContentHtml = $mailTemplateTranslation[self::CONTENT_HTML] ?? '';
+                $paynlMailTemplateBlockHtml = $this->searchMailTemplateText($mailContentHtml);
+                if (!empty($paynlMailTemplateBlockHtml)) {
+                    $mailContentHtml = str_replace($paynlMailTemplateBlockHtml, '', $mailContentHtml);
+                    $this->updateMailTemplateTranslationContentHtml([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_HTML => $mailContentHtml
+                    ]);
+                }
 
-                    $mailContentPlain = $mailTemplateTranslation[self::CONTENT_PLAIN] ?? '';
-                    $paynlMailTemplateBlockPlain = $this->searchMailTemplateText($mailContentPlain);
-                    if (!empty($paynlMailTemplateBlockPlain)) {
-                        $mailContentPlain = str_replace($paynlMailTemplateBlockPlain, '', $mailContentPlain);
-                        $this->updateMailTemplateTranslationContentPlain([
-                            self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
-                            self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
-                            self::CONTENT_PLAIN => $mailContentPlain
-                        ]);
-                    }
-                } catch (Exception $exception) {
-                    $this->logger->error($exception->getMessage(), [
-                        'exception' => $exception
+                $mailContentPlain = $mailTemplateTranslation[self::CONTENT_PLAIN] ?? '';
+                $paynlMailTemplateBlockPlain = $this->searchMailTemplateText($mailContentPlain);
+                if (!empty($paynlMailTemplateBlockPlain)) {
+                    $mailContentPlain = str_replace($paynlMailTemplateBlockPlain, '', $mailContentPlain);
+                    $this->updateMailTemplateTranslationContentPlain([
+                        self::MAIL_TEMPLATE_ID => $mailTemplateTranslation[self::MAIL_TEMPLATE_ID],
+                        self::LANGUAGE_ID => $mailTemplateTranslation[self::LANGUAGE_ID],
+                        self::CONTENT_PLAIN => $mailContentPlain
                     ]);
                 }
             }
