@@ -52,19 +52,23 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
                 'state_machine_id' => $orderTransactionStateId
             ])->fetchColumn();
 
-            $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
-                'language_id' => $translations['english']['id'],
-                'state_machine_state_id' => $stateMachineStateId,
-                'name' => $translations['english']['name'],
-                'created_at' => $date
-            ]);
+            if (!empty($translations['english']['id'])) {
+                $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
+                    'language_id' => $translations['english']['id'],
+                    'state_machine_state_id' => $stateMachineStateId,
+                    'name' => $translations['english']['name'],
+                    'created_at' => $date
+                ]);
+            }
 
-            $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
-                'language_id' => $translations['german']['id'],
-                'state_machine_state_id' => $stateMachineStateId,
-                'name' => $translations['german']['name'],
-                'created_at' => $date
-            ]);
+            if (!empty($translations['german']['id'])) {
+                $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
+                    'language_id' => $translations['german']['id'],
+                    'state_machine_state_id' => $stateMachineStateId,
+                    'name' => $translations['german']['name'],
+                    'created_at' => $date
+                ]);
+            }
         }
 
         $transitions = $this->getTransitions($orderTransactionStateId);
