@@ -13,6 +13,7 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
+use PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
@@ -53,6 +54,8 @@ class InstallHelper
     const LANGUAGE_ID = 'language_id';
     const CONTENT_HTML = 'content_html';
     const CONTENT_PLAIN = 'content_plain';
+
+    const LOG_RETENTION_DAYS = '14';
 
     /** @var SystemConfigService */
     private $configService;
@@ -124,7 +127,11 @@ class InstallHelper
 
         $this->mediaHelper = new MediaHelper($container);
         $this->paymentHandlerFactory = new PaymentHandlerFactory();
-        $this->logger = $container->get('paynl_payments.logger');
+
+        $kernelLogsDir = $container->getParameter('kernel.logs_dir');
+        $kernelEnvironment = $container->getParameter('kernel.environment');
+        $paynlLogsDir = sprintf('%s/paynl_%s.log', $kernelLogsDir, $kernelEnvironment);
+        $this->logger = (new PaynlLoggerFactory($session, $paynlLogsDir, self::LOG_RETENTION_DAYS))->createLogger();
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void
