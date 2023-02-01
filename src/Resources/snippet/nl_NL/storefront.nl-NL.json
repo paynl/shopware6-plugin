@@ -49,7 +49,9 @@
             "label": "Jaar",
             "placeholder": "Selecteer"
         },
-        "placeOrder": "Bestelling plaatsen"
+        "placeOrder": {
+            "label": "Bestelling plaatsen"
+        }
     },
     "month": {
         "jan": "januari",

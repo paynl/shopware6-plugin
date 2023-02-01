@@ -50,7 +50,9 @@
             "label": "Jahr",
             "placeholder": "Auswählen"
         },
-        "placeOrder": "Bestellung aufgeben"
+        "placeOrder": {
+            "label": "Bestellung aufgeben"
+        }
     },
     "month": {
         "jan": "Januar",
