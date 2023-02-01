@@ -164,6 +164,8 @@
                                 </button>
                             </div>
                         </div>
+
+                        <input type="hidden" name="paymentMethodId" value="{{ payment.id }}" form="confirmOrderForm">
                     {% endif %}
 
                     {% if payment.translated.customFields.isPayLater %}

@@ -282,13 +282,13 @@ export default class PaynlCsePlugin extends Plugin {
     }
 
     payDebug(text) {
-        // if (paynlCheckoutOptions.debug === 'true') {
+        if (paynlCheckoutOptions.debug === 'true') {
             if (typeof text == 'string') {
                 console.log('PAY. - ' + text);
             } else {
                 console.log(text);
             }
-        // }
+        }
     }
 
     startLoader() {
