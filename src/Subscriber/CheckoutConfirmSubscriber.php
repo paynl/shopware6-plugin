@@ -109,21 +109,27 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
             $orderId = $page->getOrder()->getId();
         }
 
+        // Shopware 6.3 compatibility
+        $routerParam = [];
+        if (defined(sprintf('%s::API_VERSION', PlatformRequest::class))) {
+            $routerParam = ['version' => PlatformRequest::API_VERSION];
+        }
+
         $page->addExtension(
             self::PAYNL_DATA_EXTENSION_ID,
             new ArrayEntity(
                 [
                     'checkoutOrderUrl' => $this->router->generate(
                         'store-api.checkout.cart.order',
-                        ['version' => PlatformRequest::API_VERSION]
+                        $routerParam
                     ),
                     'paymentHandleUrl' => $this->router->generate(
                         'store-api.payment.handle',
-                        ['version' => PlatformRequest::API_VERSION]
+                        $routerParam
                     ),
                     'updatePaymentUrl' => $this->router->generate(
                         'store-api.action.paynl.set-payment',
-                        ['version' => PlatformRequest::API_VERSION]
+                        $routerParam
                     ),
                     'paymentFinishUrl' => $this->router->generate(
                         'frontend.checkout.finish.page',
