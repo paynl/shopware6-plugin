@@ -19,10 +19,8 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 
 class OrderService
 {
-    protected EntityRepositoryInterface $orderRepository;
-    protected StateMachineRegistry $stateMachineRegistry;
-
-    protected LoggerInterface $logger;
+    protected $orderRepository;
+    protected $stateMachineRegistry;
 
     public function __construct(EntityRepositoryInterface $orderRepository, StateMachineRegistry $stateMachineRegistry)
     {

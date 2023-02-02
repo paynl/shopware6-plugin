@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Struct\ArrayEntity;
+use Shopware\Core\PlatformRequest;
 use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
@@ -113,13 +114,16 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
             new ArrayEntity(
                 [
                     'checkoutOrderUrl' => $this->router->generate(
-                        'store-api.checkout.cart.order'
+                        'store-api.checkout.cart.order',
+                        ['version' => PlatformRequest::API_VERSION]
                     ),
                     'paymentHandleUrl' => $this->router->generate(
-                        'store-api.payment.handle'
+                        'store-api.payment.handle',
+                        ['version' => PlatformRequest::API_VERSION]
                     ),
                     'updatePaymentUrl' => $this->router->generate(
-                        'store-api.action.paynl.set-payment'
+                        'store-api.action.paynl.set-payment',
+                        ['version' => PlatformRequest::API_VERSION]
                     ),
                     'paymentFinishUrl' => $this->router->generate(
                         'frontend.checkout.finish.page',

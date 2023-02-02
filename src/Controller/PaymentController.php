@@ -23,9 +23,9 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class PaymentController extends AbstractController
 {
-    private StateMachineRegistry $stateMachineRegistry;
-    private OrderRepository $orderRepository;
-    private OrderService $orderService;
+    private $stateMachineRegistry;
+    private $orderRepository;
+    private $orderService;
 
     public function __construct(
         StateMachineRegistry $stateMachineRegistry,
