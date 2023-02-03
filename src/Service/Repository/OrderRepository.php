@@ -10,7 +10,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
 class OrderRepository
 {
-    private EntityRepositoryInterface $orderRepository;
+    private $orderRepository;
 
     public function __construct(EntityRepositoryInterface $orderRepository)
     {

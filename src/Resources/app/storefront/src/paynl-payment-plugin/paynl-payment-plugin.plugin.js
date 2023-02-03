@@ -18,7 +18,7 @@ export default class PaynlPaymentPlugin extends Plugin {
             this.initDateOfBirthMask();
 
             const form = trigger.parentNode;
-            form.addEventListener('submit', this.onSavePaymentMethod);
+            form.addEventListener('submit', this.onSavePaymentMethod.bind(this));
             form.addEventListener('change', this.onChangeCallback);
             form.addEventListener('focus', this.removeInvalid, true);
         }
@@ -138,7 +138,7 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     savePayLaterFields(data) {
-        this._client.post('/PaynlPayment/order/change/paylater-fields', JSON.stringify(data));
+        this._client.post('/store-api/PaynlPayment/order/change/paylater-fields', JSON.stringify(data));
     }
 
     onChangeCallback(event) {

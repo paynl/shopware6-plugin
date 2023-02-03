@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Struct\ArrayEntity;
+use Shopware\Core\PlatformRequest;
 use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
@@ -108,18 +109,27 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
             $orderId = $page->getOrder()->getId();
         }
 
+        // Shopware 6.3 compatibility
+        $routerParam = [];
+        if (defined(sprintf('%s::API_VERSION', PlatformRequest::class))) {
+            $routerParam = ['version' => PlatformRequest::API_VERSION];
+        }
+
         $page->addExtension(
             self::PAYNL_DATA_EXTENSION_ID,
             new ArrayEntity(
                 [
                     'checkoutOrderUrl' => $this->router->generate(
-                        'store-api.checkout.cart.order'
+                        'store-api.checkout.cart.order',
+                        $routerParam
                     ),
                     'paymentHandleUrl' => $this->router->generate(
-                        'store-api.payment.handle'
+                        'store-api.payment.handle',
+                        $routerParam
                     ),
                     'updatePaymentUrl' => $this->router->generate(
-                        'store-api.action.paynl.set-payment'
+                        'store-api.action.paynl.set-payment',
+                        $routerParam
                     ),
                     'paymentFinishUrl' => $this->router->generate(
                         'frontend.checkout.finish.page',

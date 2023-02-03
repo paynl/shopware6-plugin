@@ -23,12 +23,12 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class CseRoute
 {
-    private RouterInterface $router;
-    private Api $api;
-    private OrderService $orderService;
-    private PublicKeysHelper $publicKeysHelper;
-    private PluginHelper $pluginHelper;
-    private string $shopwareVersion;
+    private $router;
+    private $api;
+    private $orderService;
+    private $publicKeysHelper;
+    private $pluginHelper;
+    private $shopwareVersion;
 
     public function __construct(
         RouterInterface $router,

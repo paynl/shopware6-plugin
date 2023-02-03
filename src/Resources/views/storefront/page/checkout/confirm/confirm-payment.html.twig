@@ -17,6 +17,20 @@
             {% endfor %}
         {% endif %}
     {% endif %}
+
+    {#CSE#}
+    {% set paynlSettings = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings %}
+    {% set paymentMethodCustomFields = context.paymentMethod.translated.customFields %}
+    {% if (paynlSettings.cseEnabled and paymentMethodCustomFields.paynlId == constant('PaynlPayment\\Shopware6\\Enums\\PaynlPaymentMethodsIdsEnum::VISA_MASTERCARD_PAYMENT')) %}
+        <div class="paynl-cse-extra-wrapper">
+            <div class="paynl-payment-method-cse d-block">
+                <form method="post" data-pay-encrypt-form>
+                    {% sw_include '@Storefront/storefront/component/payment/cse/form.html.twig' %}
+                    <input type="hidden" name="paymentMethodId" value="{{ context.paymentMethod.id }}" form="confirmOrderForm">
+                </form>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block page_checkout_confirm_payment_inner %}

@@ -20,8 +20,10 @@ export default class PaynlCsePlugin extends Plugin {
 
         let self = this;
 
-        let el = document.querySelector('#changePaymentForm');
-        el.setAttribute('data-pay-encrypt-form', '');
+        let changePaymentForm = document.querySelector('#changePaymentForm');
+        if (changePaymentForm) {
+            changePaymentForm.setAttribute('data-pay-encrypt-form', '');
+        }
 
         if (!!paynlCheckoutOptions.orderId) {
             self.orderId = paynlCheckoutOptions.orderId;
