@@ -112,6 +112,7 @@ class CheckoutConfirmSubscriber implements EventSubscriberInterface
         // Shopware 6.3 compatibility
         $routerParam = [];
         if (defined(sprintf('%s::API_VERSION', PlatformRequest::class))) {
+            // @phpstan-ignore-next-line
             $routerParam = ['version' => PlatformRequest::API_VERSION];
         }
 
