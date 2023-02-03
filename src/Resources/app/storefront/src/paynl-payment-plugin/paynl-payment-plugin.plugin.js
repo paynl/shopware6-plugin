@@ -1,9 +1,12 @@
 import Plugin from 'src/plugin-system/plugin.class';
 import IMask from '../../node_modules/imask/dist/imask';
 import DomAccess from 'src/helper/dom-access.helper';
+import StoreApiClient from 'src/service/store-api-client.service';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
+        this._client = new StoreApiClient();
+
         this.paymentMethodsScriptsInit();
         this.paymentPinMessageInit();
     }
@@ -131,10 +134,11 @@ export default class PaynlPaymentPlugin extends Plugin {
             return;
         }
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/PaynlPayment/order/change/paylater-fields', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(data));
+        this.savePayLaterFields(data);
+    }
+
+    savePayLaterFields(data) {
+        this._client.post('/PaynlPayment/order/change/paylater-fields', JSON.stringify(data));
     }
 
     onChangeCallback(event) {

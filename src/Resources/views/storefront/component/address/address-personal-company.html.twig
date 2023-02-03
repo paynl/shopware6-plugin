@@ -1,0 +1,7 @@
+{% sw_extends '@Storefront/storefront/component/address/address-personal-company.html.twig' %}
+
+{% block component_address_form_company_name %}
+    {{ parent() }}
+
+    {% sw_include '@Storefront/storefront/component/account/paynl_kvk_coc_number_block.html.twig' %}
+{% endblock %}

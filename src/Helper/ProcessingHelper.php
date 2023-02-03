@@ -6,6 +6,7 @@ use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -33,27 +34,36 @@ class ProcessingHelper
 {
     /** @var Api */
     private $paynlApi;
+
     /** @var EntityRepositoryInterface */
     private $paynlTransactionRepository;
+
     /** @var EntityRepositoryInterface  */
     private $orderTransactionRepository;
+
     /** @var EntityRepositoryInterface  */
     private $stateMachineTransitionRepository;
+
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
+
+    /** @var OrderStatusUpdater */
+    private $orderStatusUpdater;
 
     public function __construct(
         Api $api,
         EntityRepositoryInterface $paynlTransactionRepository,
         EntityRepositoryInterface $orderTransactionRepository,
         EntityRepositoryInterface $stateMachineTransitionRepository,
-        StateMachineRegistry $stateMachineRegistry
+        StateMachineRegistry $stateMachineRegistry,
+        OrderStatusUpdater $orderStatusUpdater
     ) {
         $this->paynlApi = $api;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
+        $this->orderStatusUpdater = $orderStatusUpdater;
     }
 
     public function storePaynlTransactionData(
@@ -109,6 +119,7 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
         $apiTransactionData = $paynlApiTransaction->getData();
 
         if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
@@ -250,8 +261,11 @@ class ProcessingHelper
         string $salesChannelId
     ): void {
         $paynlTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+
         if ($paynlTransaction->isBeingVerified()
-            && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
+            && $currentActionName === StateMachineTransitionActions::ACTION_PAID
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -260,10 +274,7 @@ class ProcessingHelper
 
             $paynlTransaction->approve();
 
-            return;
-        }
-
-        if ($paynlTransaction->isBeingVerified()
+        } elseif ($paynlTransaction->isBeingVerified()
             && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
         ) {
             $this->updatePaynlTransactionStatus(
@@ -274,10 +285,9 @@ class ProcessingHelper
 
             $paynlTransaction->decline();
 
-            return;
-        }
-
-        if ($paynlTransaction->isAuthorized() && $currentActionName === StateMachineTransitionActions::ACTION_PAID) {
+        } elseif ($paynlTransaction->isAuthorized()
+            && $currentActionName === StateMachineTransitionActions::ACTION_PAID
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_PAID,
@@ -286,10 +296,9 @@ class ProcessingHelper
 
             $paynlTransaction->capture();
 
-            return;
-        }
-
-        if ($paynlTransaction->isAuthorized() && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL) {
+        } elseif ($paynlTransaction->isAuthorized()
+            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
+        ) {
             $this->updatePaynlTransactionStatus(
                 $paynlId,
                 PaynlTransactionStatusesEnum::STATUS_CANCEL,
@@ -297,9 +306,16 @@ class ProcessingHelper
             );
 
             $paynlTransaction->void();
-
+        } else {
             return;
         }
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            (int)($paynlTransaction->getStatus()->getData()['paymentDetails']['state'] ?? ''),
+            $salesChannelId,
+            Context::createDefaultContext()
+        );
     }
 
     /**
@@ -344,6 +360,13 @@ class ProcessingHelper
             $paynlTransactionStatusCode,
             $transitionName,
             $stateMachineStateId
+        );
+
+        $this->orderStatusUpdater->updateOrderStatus(
+            $paynlTransactionEntity->getOrder(),
+            $paynlTransactionStatusCode,
+            $paynlTransactionEntity->getOrder()->getSalesChannelId(),
+            Context::createDefaultContext()
         );
     }
 

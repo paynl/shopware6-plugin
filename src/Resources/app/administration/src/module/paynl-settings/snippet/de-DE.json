@@ -5,10 +5,10 @@
     },
     "paynlSettings": {
         "general": {
-            "name": "Paynl plugin",
-            "title": "Paynl plugin",
-            "description": "Paynl plugin",
-            "mainMenuItemGeneral": "Paynl Zahlung"
+            "name": "Pay. plugin",
+            "title": "Pay. plugin",
+            "description": "Pay. plugin",
+            "mainMenuItemGeneral": "Pay. Zahlung"
         },
         "settingsForm": {
             "save": "Speichern",

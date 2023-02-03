@@ -18,8 +18,12 @@
             </sw-context-menu-item>
         {% endblock %}
 
-        {% block sw_customer_list_grid_columns_actions_delete %}
-            <sw-context-menu-item variant="danger" disabled>
+        {% block sw_order_list_grid_columns_actions_delete %}
+            <sw-context-menu-item
+                variant="danger"
+                :disabled="disableDeletion(item)"
+                @click="onDelete(item.id)"
+            >
                 {{ $tc('sw-order.list.contextMenuDelete') }}
             </sw-context-menu-item>
         {% endblock %}

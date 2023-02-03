@@ -1,3 +1,41 @@
+# 1.4.17
+- Nederlandse vertaling toegevoegd voor Refund Order status
+
+# 1.4.16
+- Zahlungsmethode Blik hinzugefügt
+- Zahlungsmethode Biller hinzugefügt
+- Zahlungsmethode Shoes & Sneakers Giftcard hinzugefügt
+- Zahlungsmethode Your Green Giftcard hinzugefügt
+- Zahlungsmethode Bataviastad Giftcard hinzugefügt
+- Zahlungsmethode Online Banking hinzugefügt
+- Zahlungsmethode Monizze hinzugefügt
+- Zahlungsmethode Sodexo hinzugefügt
+- Verbesserungen an der Storefront
+
+# 1.4.15
+- Hinzufügen des Feldes für die Handelskammernummer auf der Registrierungsformular für Kundengruppen
+- Das Feld für die Handelskammernummer wurde für alle Länder angezeigt
+- Das AfterPay-Logo aktualisiert
+
+# 1.4.14
+- Überarbeitung der Vorlage für Bestellvorgänge 
+- den Namen und das Logo des Plugins geändert
+
+# 1.4.13
+- Fehler beim Zahlungsstatus behoben
+
+# 1.4.12
+- Der Prozess zum Senden von Kundennamen an PAY. wurde optimiert
+- der JS-Fehler in den Konfigurationseinstellungen des Plugins behoben
+- Fehler in den Konfigurationseinstellungen von Shopware 6.4.10 behoben. Das Paynl-Plugin wurde in den Konfigurationseinstellungen deaktiviert
+- Refactoring des Storefront-Codes
+
+# 1.4.11
+- Javascript-Fehler "HTML-Element nicht gefunden" behoben
+
+# 1.4.10
+- Automatisierung des Auftragsstatus basierend auf dem Zahlungsstatus hinzugefügt
+
 # 1.4.9
 - Die Möglichkeit per Kartenterminal zu bezahlen hinzugefügt
 - Aktualisierung des Zahlungsstatus behoben

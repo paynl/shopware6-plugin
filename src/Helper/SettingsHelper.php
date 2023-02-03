@@ -9,6 +9,8 @@ use PaynlPayment\Shopware6\ValueObjects\SettingsSelectOptionValueObject;
 
 class SettingsHelper
 {
+    const ORDER_STATE_SKIP = 'skip';
+
     const TERMINAL_CHECKOUT_OPTION = 'checkout';
     const TERMINAL_CHECKOUT_SAVE_OPTION = 'checkout_save';
 
@@ -37,7 +39,7 @@ class SettingsHelper
      */
     public function getTerminalsOptions(?string $salesChannelId = null): array
     {
-        if (empty($salesChannelId)) {
+        if (empty($salesChannelId) || !$this->api->isValidStoredCredentials($salesChannelId)) {
             return $this->getDefaultTerminalsOptions();
         }
 

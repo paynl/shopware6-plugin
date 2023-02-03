@@ -53,9 +53,14 @@ Component.register('paynl-plugin-settings', {
                 additionalAddressFields: null,
                 femaleSalutations: null,
                 paymentScreenLanguage: null,
+                orderStateWithPaidTransaction: null,
+                orderStateWithFailedTransaction: null,
+                orderStateWithCancelledTransaction: null,
+                orderStateWithAuthorizedTransaction: null,
                 paymentPinTerminal: null
             },
             collapsibleState: {
+                'order_state_automation': true,
                 'payment_pin': true,
             },
         };
@@ -188,6 +193,10 @@ Component.register('paynl-plugin-settings', {
                 femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
                 usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
                 paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
+                orderStateWithPaidTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithPaidTransaction'],
+                orderStateWithFailedTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithFailedTransaction'],
+                orderStateWithCancelledTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithCancelledTransaction'],
+                orderStateWithAuthorizedTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithAuthorizedTransaction'],
                 paymentPinTerminal: this.config['PaynlPaymentShopware6.settings.paymentPinTerminal'],
             };
 

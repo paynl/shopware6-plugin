@@ -1,3 +1,41 @@
+# 1.4.17
+- Added Refunding status Dutch translation
+
+# 1.4.16
+- Added payment method Blik
+- Added payment method Biller
+- Added payment method Shoes & Sneakers Giftcard
+- Added payment method Your Green Giftcard
+- Added payment method Bataviastad Giftcard
+- Added payment method Online banking
+- Added payment method Monizze
+- Added payment method Sodexo
+- Fixed storefront bugs
+
+# 1.4.15
+- Added the CoC number field on the customer group registration page
+- Displayed the CoC number field for all countries
+- Updated the AfterPay logo
+
+# 1.4.14
+- Rewritten the Order actions template
+- Changed the plugin name and logo
+
+# 1.4.13
+- Fixed the Payment status bug
+
+# 1.4.12
+- Optimized the process of sending customer names to PAY.
+- Fixed the JS errors in the plugin configuration settings
+- Fixed configuration settings bug on Shopware 6.4.10. The Paynl plugin was disabled from configuration settings
+- Refactored the storefront code
+
+# 1.4.11
+- Fixed Javascript error "HTML element not found" in the current Shopware version 6.4.8.
+
+# 1.4.10
+- Added order state automation based on payment state
+
 # 1.4.9
 - Added the ability to pay by terminal
 - Fixed updating payment statuses

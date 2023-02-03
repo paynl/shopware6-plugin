@@ -1,7 +1,6 @@
 {% block paynl_kvk_edit_block %}
     {% set configs = page.footer.extensions.PAY_custom_data.configs %}
-    {% set kvk_countries = ['BE', 'NL'] %}
-    {% set display_kvk_block = (context.customer.company is not empty) and (context.customer.defaultBillingAddress.country.iso in kvk_countries) %}
+    {% set display_kvk_block = (context.customer.company is not empty) %}
     {% if (configs.core.loginRegistration.showAccountTypeSelection) and display_kvk_block %}
         <div class="form-row">
             {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.settings.cocNumberRequired %}
