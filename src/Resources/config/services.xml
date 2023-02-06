@@ -23,6 +23,7 @@
             <argument type="service" id="Doctrine\DBAL\Connection"/>
             <argument type="service" id="Shopware\Core\Framework\Plugin\Util\PluginIdProvider"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
             <argument type="service" id="payment_method.repository"/>

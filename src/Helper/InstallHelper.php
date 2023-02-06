@@ -56,6 +56,9 @@ class InstallHelper
     /** @var Config */
     private $config;
 
+    /** @var Api $paynlApi */
+    private $paynlApi;
+
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
 
@@ -78,6 +81,7 @@ class InstallHelper
         Connection $connection,
         PluginIdProvider $pluginIdProvider,
         Config $config,
+        Api $paynlApi,
         PaymentHandlerFactory $paymentHandlerFactory,
         MediaHelper $mediaHelper,
         EntityRepositoryInterface $paymentMethodRepository,
@@ -89,6 +93,7 @@ class InstallHelper
         $this->connection = $connection;
 
         $this->config = $config;
+        $this->paynlApi = $paynlApi;
         $this->mediaHelper = $mediaHelper;
 
         $this->paymentMethodRepository = $paymentMethodRepository;
