@@ -54,9 +54,8 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
-        $salesChannelId = $event->getSalesChannelContext()->getSalesChannel()->getId();
 
-        $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
+        $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
     }
 
     /**
@@ -69,17 +68,12 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
         $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
-        $salesChannelId = $event->getSalesChannelId();
 
-        $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
+        $this->processPayLaterFields($requestDataBagArray, $customer, $event->getContext());
     }
 
-    private function processPayLaterFields(
-        array $requestData,
-        ?CustomerEntity $customer,
-        string $salesChannelId,
-        Context $context
-    ): void {
+    private function processPayLaterFields(array $requestData, ?CustomerEntity $customer, Context $context): void
+    {
         if (!($customer instanceof CustomerEntity)) {
             return;
         }

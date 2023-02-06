@@ -64,7 +64,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     {
         if ($this->counter < 1) {
             $this->counter++;
-            $request = $this->requestStack->getMasterRequest();
+            $request = $this->requestStack->getCurrentRequest();
             if (is_null($request)) {
                 return;
             }
@@ -83,7 +83,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     {
         if ($this->counter < 1) {
             $this->counter++;
-            $request = $this->requestStack->getMasterRequest();
+            $request = $this->requestStack->getCurrentRequest();
             if (is_null($request)) {
                 return;
             }

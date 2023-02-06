@@ -178,23 +178,17 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                 'state_machine_id' => $orderTransactionStateId
             ])->fetchColumn();
 
-            if (!empty($translations['english']['id'])) {
+            foreach ($translations as $translation) {
+                if (empty($translation['id'])) {
+                    continue;
+                }
+
                 $connection->executeUpdate($stateMachineStateTranslation, [
-                    'language_id' => $translations['english']['id'],
+                    'language_id' => $translation['id'],
                     'state_machine_state_id' => $stateMachineStateId,
-                    'name' => $translations['english']['name'],
+                    'name' => $translation['name'],
                     'created_at' => $date
                 ]);
-            }
-
-            if (!empty($translations['german']['id'])) {
-                $connection->executeUpdate($stateMachineStateTranslation, [
-                    'language_id' => $translations['german']['id'],
-                    'state_machine_state_id' => $stateMachineStateId,
-                    'name' => $translations['german']['name'],
-                    'created_at' => $date
-                ]);
-
             }
         }
 
