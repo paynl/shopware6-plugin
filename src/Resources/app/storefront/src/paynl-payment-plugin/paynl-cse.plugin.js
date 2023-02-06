@@ -14,14 +14,16 @@ export default class PaynlCsePlugin extends Plugin {
 
         this.paymentModalContent = '';
         this.finishUrl = '';
-        this.modal = new PseudoModalUtil();
+        this.modal = new PseudoModalUtil('', false);
         this.orderForm = DomAccess.querySelector(document, '#confirmOrderForm');
         this._client = new StoreApiClient();
 
         let self = this;
 
-        let el = document.querySelector('#changePaymentForm');
-        el.setAttribute('data-pay-encrypt-form', '');
+        let changePaymentForm = document.querySelector('#changePaymentForm');
+        if (changePaymentForm) {
+            changePaymentForm.setAttribute('data-pay-encrypt-form', '');
+        }
 
         if (!!paynlCheckoutOptions.orderId) {
             self.orderId = paynlCheckoutOptions.orderId;
@@ -103,15 +105,16 @@ export default class PaynlCsePlugin extends Plugin {
                 self.payDebug('ErrorModal');
 
                 let paymentErrorModalContent = event.getSubject().render();
+
+                self.modal = new PseudoModalUtil(paymentErrorModalContent, false);
                 self.modal.open();
-                self.modal.updateContent(paymentErrorModalContent);
 
                 return;
             }
 
             if (eventSubject != null) {
+                self.modal = new PseudoModalUtil(eventSubject.render(), false);
                 self.modal.open();
-                self.modal.updateContent(eventSubject.render());
             }
 
             self.payDebug('showing modal');

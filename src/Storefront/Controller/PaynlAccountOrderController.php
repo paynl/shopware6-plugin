@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @RouteScope(scopes={"storefront"})
+ * @RouteScope(scopes={"store-api"})
  */
 class PaynlAccountOrderController extends StorefrontController
 {
@@ -34,11 +34,10 @@ class PaynlAccountOrderController extends StorefrontController
 
     /**
      * @Route(
-     *     "/PaynlPayment/order/change/paylater-fields",
-     *     name="frontend.PaynlPayment.edit-order.change-paylater-fields",
-     *     methods={"POST"},
-     *     defaults={"csrf_protected"=false}
-     *     )
+     *     "/store-api/PaynlPayment/order/change/paylater-fields",
+     *     name="store-api.PaynlPayment.edit-order.change-paylater-fields",
+     *     methods={"POST"}
+     * )
      * @param Request $request
      * @return JsonResponse
      */
