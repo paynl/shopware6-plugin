@@ -168,7 +168,7 @@ class PaynlPaymentShopware6 extends Plugin
         /** @var EntityRepositoryInterface $languageRepository */
         $languageRepository = $this->container->get('language.repository');
         /** @var RequestStack $requestStack */
-        $requestStack = $this->container->get(RequestStack::class);
+        $requestStack = $this->container->get('request_stack');
 
         return new TransactionLanguageHelper(
             $this->getConfig(),

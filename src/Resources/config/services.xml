@@ -44,7 +44,7 @@
         <service id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="language.repository"/>
-            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="request_stack"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
@@ -118,7 +118,7 @@
 
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">
             <argument type="service" id="router.default"/>
-            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
@@ -221,7 +221,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CustomerRegisterSubscriber">
-            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="customer_address.repository"/>
             <argument type="service" id="customer.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
