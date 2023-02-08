@@ -54,4 +54,12 @@ class PaynlTransactionStatusesEnum
         self::STATUS_PARTIAL_REFUND => StateMachineTransitionActions::ACTION_REFUND_PARTIALLY,
         self::STATUS_PARTIAL_PAYMENT => StateMachineTransitionActions::ACTION_PAID_PARTIALLY,
     ];
+
+    const STATUS_NAME_AUTHORIZE = 'AUTHORIZE';
+    const STATUS_NAME_PAID = 'PAID';
+
+    const STATUS_NAME_TO_CODE_ARRAY = [
+        self::STATUS_NAME_AUTHORIZE => self::STATUS_AUTHORIZE,
+        self::STATUS_NAME_PAID => self::STATUS_PAID,
+    ];
 }

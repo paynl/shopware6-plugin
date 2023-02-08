@@ -6,7 +6,9 @@ namespace PaynlPayment\Shopware6\StoreApi\Route;
 
 use Exception;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use PaynlPayment\Shopware6\Service\Order\OrderService;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
@@ -28,6 +30,7 @@ class CseRoute
     private $orderService;
     private $publicKeysHelper;
     private $pluginHelper;
+    private $processingHelper;
     private $shopwareVersion;
 
     public function __construct(
@@ -36,6 +39,7 @@ class CseRoute
         OrderService $orderService,
         PublicKeysHelper $publicKeysHelper,
         PluginHelper $pluginHelper,
+        ProcessingHelper $processingHelper,
         string $shopwareVersion
     ) {
         $this->router = $router;
@@ -43,6 +47,7 @@ class CseRoute
         $this->orderService = $orderService;
         $this->publicKeysHelper = $publicKeysHelper;
         $this->pluginHelper = $pluginHelper;
+        $this->processingHelper = $processingHelper;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -159,6 +164,8 @@ class CseRoute
 
         $data = $this->api->authorize($params, $context->getSalesChannel()->getId())->getData();
 
+        $this->updateTransactionStatus($data);
+
         return new JsonResponse($data);
     }
 
@@ -174,5 +181,27 @@ class CseRoute
         $keys = $this->publicKeysHelper->getKeys($context->getSalesChannel()->getId(), true);
 
         return new JsonResponse($keys);
+    }
+
+    private function updateTransactionStatus(array $authData): void
+    {
+        if ($authData['result'] !== 1) {
+            return;
+        }
+
+        if (empty($authData['orderId']) || empty($authData['nextAction'])) {
+            return;
+        }
+
+        $orderId = $authData['orderId'];
+        $statusName = $authData['nextAction'];
+        $statusId = PaynlTransactionStatusesEnum::STATUS_NAME_TO_CODE_ARRAY[$statusName] ?? null;
+        $transitionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$statusId] ?? null;
+
+        if (empty($statusId) || empty($transitionName)) {
+            return;
+        }
+
+        $this->processingHelper->updatePaymentStateByTransactionId($orderId, $transitionName, $statusId);
     }
 }

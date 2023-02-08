@@ -218,7 +218,7 @@ class ProcessingHelper
      * @param int $paynlTransactionStatusCode
      * @return void
      */
-    public function instorePaymentUpdateState(
+    public function updatePaymentStateByTransactionId(
         string $paynlTransactionId,
         string $transitionName,
         int $paynlTransactionStatusCode

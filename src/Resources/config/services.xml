@@ -191,6 +191,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PublicKeysHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument>%kernel.shopware_version%</argument>
         </service>
 
