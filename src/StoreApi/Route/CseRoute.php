@@ -13,6 +13,7 @@ use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use PaynlPayment\Shopware6\Service\Order\OrderService;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -167,6 +168,29 @@ class CseRoute
         $this->updateTransactionStatus($data);
 
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/PaynlPayment/cse/cancel",
+     *     name="store-api.PaynlPayment.cse.cancel",
+     *     defaults={"csrf_protected"=false},
+     *     methods={"POST"}
+     *     )
+     */
+    public function cancel(Request $request): Response
+    {
+        $transactionId = $request->get('transactionId');
+        if (empty($transactionId)) {
+            return new JsonResponse(['success' => false]);
+        }
+
+        $this->processingHelper->updatePaymentStateByTransactionId(
+            $transactionId,
+            StateMachineTransitionActions::ACTION_CANCEL,
+            PaynlTransactionStatusesEnum::STATUS_CANCEL
+        );
+
+        return new JsonResponse(['success' => true]);
     }
 
     /**

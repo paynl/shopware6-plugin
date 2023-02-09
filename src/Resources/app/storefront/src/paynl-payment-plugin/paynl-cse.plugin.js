@@ -14,6 +14,7 @@ export default class PaynlCsePlugin extends Plugin {
 
         this.paymentModalContent = '';
         this.finishUrl = '';
+        this.transactionId = '';
         this.modal = new PseudoModalUtil('', false);
         this.orderForm = DomAccess.querySelector(document, '#confirmOrderForm');
         this._client = new StoreApiClient();
@@ -171,6 +172,8 @@ export default class PaynlCsePlugin extends Plugin {
                     'transactionId': transactionId,
                 };
 
+                self.transactionId = transactionId;
+
                 // Handle payment
                 self._client.post(
                     paynlCheckoutOptions.paymentHandleUrl,
@@ -192,6 +195,8 @@ export default class PaynlCsePlugin extends Plugin {
                 let pol = self.encryptedForm.getPoller();
                 pol.clear();
             }
+
+            self.cancelPaymentTransaction();
 
             if (self.returnUrl) {
                 location.href = self.returnUrl;
@@ -277,6 +282,24 @@ export default class PaynlCsePlugin extends Plugin {
         } catch (e) {
             this.payDebug('Error: invalid response from Shopware API', response);
         }
+    }
+
+    cancelPaymentTransaction() {
+        let transactionId = this.transactionId;
+        if (!transactionId) {
+            return;
+        }
+
+        let url = '/PaynlPayment/cse/cancel';
+        let formData = new FormData();
+        formData.set('transactionId', transactionId);
+
+        fetch(url, {
+            'method': 'POST',
+            'cache': 'no-cache',
+            'redirect': 'follow',
+            'body': formData
+        });
     }
 
     getPublicEncryptionKeys() {
