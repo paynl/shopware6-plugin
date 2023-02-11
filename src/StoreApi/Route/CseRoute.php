@@ -100,16 +100,6 @@ class CseRoute
 
             return new JsonResponse($arrEncryptedTransactionResult);
         }
-
-        // TODO temporary test response
-        $arrEncryptedTransactionResult['result'] = 1;
-        $arrEncryptedTransactionResult['nextAction'] = 'paid';
-        $arrEncryptedTransactionResult['orderId'] = '1234567890X12345';
-        $arrEncryptedTransactionResult['entranceCode'] = '12345';
-        $arrEncryptedTransactionResult['transaction'] = ['transactionId' => '1234567890X12345', 'entranceCode' => '12345'];
-        $arrEncryptedTransactionResult['entityId'] = '1';
-
-        return new JsonResponse($arrEncryptedTransactionResult);
     }
 
     /**
@@ -124,13 +114,12 @@ class CseRoute
         $transactionId = $request->get('transactionId');
 
         try {
-            $data = [];
             if (!empty($transactionId)) {
                 $result = $this->api->getAuthenticationStatus($transactionId, $context->getSalesChannel()->getId());
                 $data = $result->getData();
             }
         } catch (Exception $exception) {
-            // TODO log exception message to file
+            $data = [];
         }
 
         return new JsonResponse($data);
@@ -147,7 +136,14 @@ class CseRoute
     {
         $params = $request->request->all();
 
-        $data = $this->api->authenticaticate($params, $context->getSalesChannel()->getId())->getData();
+        try {
+            $data = $this->api->authenticaticate($params, $context->getSalesChannel()->getId())->getData();
+        } catch (Exception $exception) {
+            $data = [
+                'success' => false,
+                'errorMessage' => $exception->getMessage()
+            ];
+        }
 
         return new JsonResponse($data);
     }
@@ -163,9 +159,14 @@ class CseRoute
     {
         $params = $request->request->all();
 
-        $data = $this->api->authorize($params, $context->getSalesChannel()->getId())->getData();
-
-        $this->updateTransactionStatus($data);
+        try {
+            $data = $this->api->authorize($params, $context->getSalesChannel()->getId())->getData();
+        } catch (Exception $exception) {
+            $data = [
+                'success' => false,
+                'errorMessage' => $exception->getMessage()
+            ];
+        }
 
         return new JsonResponse($data);
     }
@@ -184,11 +185,44 @@ class CseRoute
             return new JsonResponse(['success' => false]);
         }
 
-        $this->processingHelper->updatePaymentStateByTransactionId(
-            $transactionId,
-            StateMachineTransitionActions::ACTION_CANCEL,
-            PaynlTransactionStatusesEnum::STATUS_CANCEL
-        );
+        try {
+            $this->processingHelper->updatePaymentStateByTransactionId(
+                $transactionId,
+                StateMachineTransitionActions::ACTION_CANCEL,
+                PaynlTransactionStatusesEnum::STATUS_CANCEL
+            );
+        } catch (Exception $exception) {
+            return new JsonResponse([
+                'success' => false,
+                'errorMessage' => $exception->getMessage()
+            ]);
+        }
+
+        return new JsonResponse(['success' => true]);
+    }
+
+    /**
+     * @Route("/PaynlPayment/cse/updatePaymentStatusFromPay",
+     *     name="store-api.PaynlPayment.cse.updatePaymentStatusFromPay",
+     *     defaults={"csrf_protected"=false},
+     *     methods={"POST"}
+     *     )
+     */
+    public function updatePaymentStatusFromPay(Request $request): Response
+    {
+        $transactionId = $request->get('transactionId');
+        if (empty($transactionId)) {
+            return new JsonResponse(['success' => false]);
+        }
+
+        try {
+            $this->processingHelper->updatePaymentStatusFromPay($transactionId);
+        } catch (Exception $exception) {
+            return new JsonResponse([
+                'success' => false,
+                'errorMessage' => $exception->getMessage()
+            ]);
+        }
 
         return new JsonResponse(['success' => true]);
     }
@@ -202,30 +236,15 @@ class CseRoute
      */
     public function refreshPublicKeys(Request $request, SalesChannelContext $context): Response
     {
-        $keys = $this->publicKeysHelper->getKeys($context->getSalesChannel()->getId(), true);
+        try {
+            $keys = $this->publicKeysHelper->getKeys($context->getSalesChannel()->getId(), true);
+        } catch (Exception $exception) {
+            return new JsonResponse([
+                'success' => false,
+                'errorMessage' => $exception->getMessage()
+            ]);
+        }
 
         return new JsonResponse($keys);
-    }
-
-    private function updateTransactionStatus(array $authData): void
-    {
-        if ($authData['result'] !== 1) {
-            return;
-        }
-
-        if (empty($authData['orderId']) || empty($authData['nextAction'])) {
-            return;
-        }
-
-        $orderId = $authData['orderId'];
-        $statusName = $authData['nextAction'];
-        $statusId = PaynlTransactionStatusesEnum::STATUS_NAME_TO_CODE_ARRAY[$statusName] ?? null;
-        $transitionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$statusId] ?? null;
-
-        if (empty($statusId) || empty($transitionName)) {
-            return;
-        }
-
-        $this->processingHelper->updatePaymentStateByTransactionId($orderId, $transitionName, $statusId);
     }
 }

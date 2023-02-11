@@ -184,14 +184,18 @@ class ProcessingHelper
     {
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByOrderId($orderId);
 
-        $paynlTransactionId = $paynlTransactionEntity->getPaynlTransactionId();
-        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
+        $this->updateTransactionStatusFromPay($paynlTransactionEntity);
+    }
 
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+    /**
+     * @param string $transactionId
+     * @return void
+     */
+    public function updatePaymentStatusFromPay(string $transactionId): void
+    {
+        $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($transactionId);
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+        $this->updateTransactionStatusFromPay($paynlTransactionEntity);
     }
 
     /**
@@ -369,6 +373,22 @@ class ProcessingHelper
             $paynlTransactionEntity->getOrder()->getSalesChannelId(),
             Context::createDefaultContext()
         );
+    }
+
+    /**
+     * @param PaynlTransactionEntity $paynlTransactionEntity
+     * @return void
+     */
+    private function updateTransactionStatusFromPay(PaynlTransactionEntity $paynlTransactionEntity): void
+    {
+        $paynlTransactionId = $paynlTransactionEntity->getPaynlTransactionId();
+        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
+
+        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
     /**
