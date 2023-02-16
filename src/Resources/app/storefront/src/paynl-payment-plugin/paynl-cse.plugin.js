@@ -14,7 +14,9 @@ export default class PaynlCsePlugin extends Plugin {
 
         this.paymentModalContent = '';
         this.finishUrl = '';
+        this.transactionId = '';
         this.modal = new PseudoModalUtil('', false);
+        this.modalClosedByPayCse = false;
         this.orderForm = DomAccess.querySelector(document, '#confirmOrderForm');
         this._client = new StoreApiClient();
 
@@ -95,9 +97,6 @@ export default class PaynlCsePlugin extends Plugin {
 
             if (event.subject instanceof PaymentCompleteModal) {
                 self.payDebug('instanceof PaymentCompleteModal');
-                self.stopLoader();
-                // TODO should redirect to finish page
-
                 return;
             }
 
@@ -129,11 +128,8 @@ export default class PaynlCsePlugin extends Plugin {
             if (self.modal !== null) {
                 self.payDebug('Closing modal');
                 self.payDebug(self.modal);
+                self.modalClosedByPayCse = true;
                 self.modal.close();
-            }
-
-            if (self.returnUrl) {
-                location.href = self.returnUrl;
             }
         }, 10);
 
@@ -143,14 +139,28 @@ export default class PaynlCsePlugin extends Plugin {
             pol.clear();
             self.payDebug('Update redirection_url');
             event.setParameter('redirection_url',self.finishUrl.toString());
+
+            self.startLoader();
+            self.updatePaymentStatusFromPay().then(() => {});
         }, 10);
 
-        eventDispatcher.addListener(Events.onStateChangeEvent, function (event)  {
-            /* Skip this function if the current event does not change the loading state. */
-            if (event.hasParameter('state') && 'loading' in event.getParameter('state')) {
-                event.getCurrentState().isLoading() ? self.startLoader() : self.stopLoader();
-            }
+        eventDispatcher.addListener(Events.onPaymentFailedEvent, function (event) {
+            self.payDebug('onPaymentFailedEvent custom');
 
+            self.cancelPaymentTransaction().then(() => {
+                setTimeout(() => self.redirectToFinishUrl(), 2000);
+            });
+        }, 10);
+
+        eventDispatcher.addListener(Events.onPaymentCanceledEvent, function (event) {
+            self.payDebug('onPaymentCanceledEvent custom');
+
+            self.cancelPaymentTransaction().then(() => {
+                self.redirectToFinishUrl();
+            });
+        }, 90);
+
+        eventDispatcher.addListener(Events.onStateChangeEvent, function (event)  {
             if (event.getCurrentState().isFormReadyForSubmission()) {
                 if (self.orderId) {
                     self.encryptedForm.setPaymentPostUrl(paynlCheckoutOptions.csePostUrl + '?orderId=' + self.orderId);
@@ -171,6 +181,8 @@ export default class PaynlCsePlugin extends Plugin {
                     'transactionId': transactionId,
                 };
 
+                self.transactionId = transactionId;
+
                 // Handle payment
                 self._client.post(
                     paynlCheckoutOptions.paymentHandleUrl,
@@ -181,21 +193,26 @@ export default class PaynlCsePlugin extends Plugin {
         });
 
         $(document).on('hide.bs.modal', '.js-pseudo-modal', function (event) {
+            if (self.modalClosedByPayCse) {
+                return;
+            }
+
             self.payDebug('hide.bs.modal');
             eventDispatcher.dispatch(new StateChangeEvent(event, {
                 'state': {modalOpen: false, formSubmitted: false}
             }), Events.onStateChangeEvent);
             /* Making sure any content/polling from this content will stop working */
             self.paymentModalContent = '';
+            self.modalClosedByPayCse = false;
             let isPolling = self.encryptedForm.state.isPolling();
             if (isPolling) {
                 let pol = self.encryptedForm.getPoller();
                 pol.clear();
             }
 
-            if (self.returnUrl) {
-                location.href = self.returnUrl;
-            }
+            self.cancelPaymentTransaction().then(() => {
+                self.redirectToFinishUrl();
+            });
         });
     }
 
@@ -276,6 +293,50 @@ export default class PaynlCsePlugin extends Plugin {
             this.payDebug(response);
         } catch (e) {
             this.payDebug('Error: invalid response from Shopware API', response);
+        }
+    }
+
+    updatePaymentStatusFromPay() {
+        let transactionId = this.transactionId;
+        if (!transactionId) {
+            return;
+        }
+
+        let url = '/PaynlPayment/cse/updatePaymentStatusFromPay';
+        let formData = new FormData();
+        formData.set('transactionId', transactionId);
+
+        return fetch(url, {
+            'method': 'POST',
+            'cache': 'no-cache',
+            'redirect': 'follow',
+            'body': formData
+        });
+    }
+
+    cancelPaymentTransaction() {
+        let transactionId = this.transactionId;
+        if (!transactionId) {
+            return;
+        }
+
+        let url = '/PaynlPayment/cse/cancel';
+        let formData = new FormData();
+        formData.set('transactionId', transactionId);
+
+        this.startLoader();
+
+        return fetch(url, {
+            'method': 'POST',
+            'cache': 'no-cache',
+            'redirect': 'follow',
+            'body': formData
+        });
+    }
+
+    redirectToFinishUrl() {
+        if (this.returnUrl) {
+            location.href = this.returnUrl;
         }
     }
 
