@@ -50,6 +50,9 @@
         <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper">
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -124,6 +127,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
             <argument type="service" id="order_transaction.repository"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
@@ -203,6 +207,7 @@
             <argument type="service" id="session"/>
             <argument type="service" id="payment_method.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\PageLoadedSubscriber" public="true">
