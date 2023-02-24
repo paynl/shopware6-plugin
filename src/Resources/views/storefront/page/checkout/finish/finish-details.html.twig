@@ -11,7 +11,7 @@
             <div class="card-body">
                 {% block page_checkout_finish_header %}
                     {% if (context.paymentMethod.translated.customFields.paynl_payment) %}
-                        {% if (status == 'cancelled' or status == 'denied') %}
+                        {% if (status in ['cancelled', 'denied', 'failed']) %}
                             <h1 class="finish-header text-danger">
                                 {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
                             </h1>
@@ -31,7 +31,7 @@
                             {{ parent() }}
                         {% endblock %}
 
-                        {% if (status == 'cancelled' or status == 'denied') %}
+                        {% if (status in ['cancelled', 'denied', 'failed']) %}
                             <div class="flashbags">
                                 <div role="alert" class="alert alert-danger alert-has-icon">
                                         <span class="icon icon-blocked">

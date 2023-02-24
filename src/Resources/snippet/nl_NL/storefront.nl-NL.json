@@ -3,12 +3,14 @@
         "statuses": {
             "cancelled": "Betaling geannuleerd",
             "denied": "Betaling afgewezen",
+            "failed": "Payment failed",
             "in_progress": "De betaling wordt geverifieerd door de beheerder.",
             "paid": "Betaling geslaagd!"
         },
         "messages": {
             "cancelledTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere betaaloptie of probeer opnieuw.",
             "deniedTransaction": "Afgewezen door de betaaloptie (kies andere betaalmethode).",
+            "failedTransaction": "Your payment was failed by payment provider.",
             "completePaymentPin" : "Rond uw betaling af op de pin terminal"
         },
         "labels": {

@@ -100,6 +100,10 @@
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\Paynl\TransactionStateService">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+        </service>
+
         <!--Repositories-->
         <service id="PaynlPayment\Shopware6\Service\Repository\OrderRepository" autowire="true">
             <argument type="service" id="order.repository"/>
@@ -189,6 +193,7 @@
             <argument type="service" id="Symfony\Component\Routing\RouterInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Paynl\TransactionStateService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PublicKeysHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>

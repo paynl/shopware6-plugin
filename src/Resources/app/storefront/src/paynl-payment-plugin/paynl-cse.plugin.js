@@ -147,7 +147,7 @@ export default class PaynlCsePlugin extends Plugin {
         eventDispatcher.addListener(Events.onPaymentFailedEvent, function (event) {
             self.payDebug('onPaymentFailedEvent custom');
 
-            self.cancelPaymentTransaction().then(() => {
+            self.failPaymentTransaction().then(() => {
                 setTimeout(() => self.redirectToFinishUrl(), 2000);
             });
         }, 10);
@@ -321,6 +321,26 @@ export default class PaynlCsePlugin extends Plugin {
         }
 
         let url = '/PaynlPayment/cse/cancel';
+        let formData = new FormData();
+        formData.set('transactionId', transactionId);
+
+        this.startLoader();
+
+        return fetch(url, {
+            'method': 'POST',
+            'cache': 'no-cache',
+            'redirect': 'follow',
+            'body': formData
+        });
+    }
+
+    failPaymentTransaction() {
+        let transactionId = this.transactionId;
+        if (!transactionId) {
+            return;
+        }
+
+        let url = '/PaynlPayment/cse/fail';
         let formData = new FormData();
         formData.set('transactionId', transactionId);
 
