@@ -15,10 +15,6 @@
                             <h1 class="finish-header text-danger">
                                 {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
                             </h1>
-                        {% elseif (status == 'in_progress') %}
-                            <h1 class="finish-header text-info">
-                                {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
-                            </h1>
                         {% elseif (status == 'paid') %}
                             <h1 class="finish-header text-success">
                                 {{ "checkout.statuses.%s"|format(status)|trans()|sw_sanitize }}
