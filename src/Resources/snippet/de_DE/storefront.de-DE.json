@@ -9,7 +9,9 @@
         "messages": {
             "cancelledTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere aus oder versuchen Sie es erneut.",
             "deniedTransaction": "Zahlung vom Zahlungsanbieter verweigert (andere Zahlungsmethode wählen).",
-            "completePaymentPin" : "Zahlung bitte mit Pin/Chip-Terminal durchführen"
+            "completePaymentPin" : "Zahlung bitte mit Pin/Chip-Terminal durchführen",
+            "orderAmountPaymentError": "Der Bestellbetrag entspricht nicht den Bedingungen dieser Zahlungsmethode.",
+            "orderDefaultError": "Scheint so, als wäre etwas schiefgelaufen"
         },
         "labels": {
             "changePayment": "Erneut versuchen",
