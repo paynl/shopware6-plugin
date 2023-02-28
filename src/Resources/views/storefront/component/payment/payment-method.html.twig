@@ -78,23 +78,24 @@
                     {% if payment.translated.customFields.isPayLater %}
                         {% if not page.isBirthdayExists %}
                             {% set pickerOptions = {
-                                locale: app.request.locale,
-                                dateFormat: "d-m-Y"
+                                enableTime: false,
+                                dateFormat: "d-m-Y",
+                                altInput: true,
+                                altFormat: "d-m-Y",
+                                weekNumbers: false,
+                                minDate: date()|date_modify("-100 years")|date("d-m-Y"),
+                                maxDate: "today",
                             } %}
 
                             <div class="form-group">
                                 <input type="text"
                                        id="paynl-dob-{{ loop.index }}"
-                                       data-date-picker="true"
-                                       data-date-picker-options="{{ pickerOptions|json_encode|escape('html_attr') }}"
-                                       data-enable-time="false"
-                                       data-alt-format="d-m-Y"
+                                       data-paynl-date-picker="true"
+                                       data-paynl-date-picker-options="{{ pickerOptions|json_encode|escape('html_attr') }}"
                                        class="form-control paynl-dob"
                                        placeholder="{{ "checkout.labels.dob"|trans|striptags }}"
                                        pattern="(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[012])-[0-9]{4}"
-                                       name="dob[{{ payment.id }}]"
-                                       data-min-date="{{ date()|date_modify('-100 years')|date('d-m-Y') }}"
-                                       data-max-date="today" />
+                                       name="dob[{{ payment.id }}]" />
                             </div>
                         {% endif %}
                         {% if not page.isPhoneNumberExists %}
