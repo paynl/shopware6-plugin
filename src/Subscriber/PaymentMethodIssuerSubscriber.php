@@ -84,12 +84,15 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         $paymentMethodId = $this->requestDataBagHelper->getDataBagItem('paymentMethodId', $dataBag);
-        $phone = $this->requestDataBagHelper->getDataBagItem('phone', $dataBag)[$paymentMethodId] ?? null;
+        $phoneDataBag = $this->requestDataBagHelper->getDataBagItem('phone', $dataBag);
+        $phone = $phoneDataBag instanceof RequestDataBag ? $phoneDataBag->get($paymentMethodId) : null;
         if ($phone) {
             $billingAddress = $customer->getDefaultBillingAddress();
             $this->customerHelper->saveCustomerPhone($billingAddress, $phone, $context);
         }
-        $dob = $this->requestDataBagHelper->getDataBagItem('dob', $dataBag)[$paymentMethodId] ?? null;
+
+        $dobDataBag = $this->requestDataBagHelper->getDataBagItem('dob', $dataBag);
+        $dob = $dobDataBag instanceof RequestDataBag ? $dobDataBag->get($paymentMethodId) : null;
         if ($dob) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
         }
