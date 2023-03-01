@@ -177,6 +177,10 @@
     height: 600px;
 }
 
+.js-pseudo-modal .modal-header .close {
+    display: none;
+}
+
 @media screen and (max-width: 767px) {
     .paynl-payment-methods-custom-styles .payment-method,
     .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
