@@ -211,6 +211,12 @@ class CustomerHelper
             $address = Helper::splitAddress($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
+
+            $houseNumberArr = explode(' ', (string) $houseNumber);
+            if (count($houseNumberArr) > 1) {
+                $houseNumber = array_shift($houseNumberArr);
+                $houseNumberExtension = implode(' ', $houseNumberArr);
+            }
         } else {
             $houseNumber = $customerBillingAddress->getAdditionalAddressLine1();
             $houseNumberExtension = $customerBillingAddress->getAdditionalAddressLine2();
