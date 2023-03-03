@@ -151,12 +151,11 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private function displaySafeErrorMessages(string $errorMessage)
     {
         if (strpos(strtolower($errorMessage), 'minimum amount') !== false) {
-            $this->session->getFlashBag()->add(
-                'danger',
-                $this->translator->trans('checkout.messages.orderAmountPaymentError')
-            );
+            $flashBagMessage = $this->translator->trans('checkout.messages.orderAmountPaymentError');
         } else {
-            $this->session->getFlashBag()->add('danger', $this->translator->trans('orderDefaultError'));
+            $flashBagMessage = $this->translator->trans('checkout.messages.orderDefaultError');
         }
+
+        $this->session->getFlashBag()->add('warning', $flashBagMessage);
     }
 }
