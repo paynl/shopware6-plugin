@@ -21,8 +21,13 @@
                     <input id="cardnumber" class="form-control" type="text"
                            name="cardnumber"
                            placeholder="{{ "cse.cardNumber.label"|trans|striptags }}"
+                           inputmode="numeric"
+                           autocomplete="cc-number"
+                           autocorrect="off"
                            value=""
-                           required data-pay-encrypt-field/>
+                           required
+                           data-pay-encrypt-field
+                    />
                 </span>
 
                 <div class="icon-container">
@@ -82,8 +87,7 @@
 
 <div class="form-row mb-2">
     <div class="col form-element-container">
-        <button id="csePlaceOrder" class="btn btn-primary" type="submit" data-loading-state="0"
-                disabled="disabled">
+        <button id="csePlaceOrder" class="btn btn-primary" type="submit" data-loading-state="0">
             <span class="state-not-loading">{{ "cse.placeOrder.label"|trans|striptags }}</span>
             <span class="state-loading">
                 <img src="{{ asset('bundles/paynlpaymentshopware6/spinner.gif', 'asset') }}" width="30" height="30"
