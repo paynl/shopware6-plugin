@@ -4,7 +4,7 @@ import PseudoModalUtil from 'src/utility/modal-extension/pseudo-modal.util';
 import DomAccess from 'src/helper/dom-access.helper';
 import FormSerializeUtil from 'src/utility/form/form-serialize.util';
 import ElementLoadingIndicatorUtil from 'src/utility/loading-indicator/element-loading-indicator.util';
-import {EncryptedForm, Elements, Events, PaymentCompleteModal, ErrorModal, StateChangeEvent, State} from '../cse/pay-cryptography.amd';
+import {EncryptedForm, Elements, Events, PaymentCompleteModal, ErrorModal, StateChangeEvent} from '../cse/pay-cryptography.amd';
 
 export default class PaynlCsePlugin extends Plugin {
     init() {

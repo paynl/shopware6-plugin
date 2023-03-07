@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\StoreApi\Route;
 
 use Exception;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
@@ -26,6 +27,7 @@ use Symfony\Component\Routing\RouterInterface;
 class CseRoute
 {
     private $router;
+    private $config;
     private $api;
     private $orderService;
     private $transactionStateService;
@@ -36,6 +38,7 @@ class CseRoute
 
     public function __construct(
         RouterInterface $router,
+        Config $config,
         Api $api,
         OrderService $orderService,
         TransactionStateService $transactionStateService,
@@ -45,6 +48,7 @@ class CseRoute
         string $shopwareVersion
     ) {
         $this->router = $router;
+        $this->config = $config;
         $this->api = $api;
         $this->orderService = $orderService;
         $this->transactionStateService = $transactionStateService;
@@ -73,6 +77,19 @@ class CseRoute
 
             if (empty($order)) {
                 $order = $this->orderService->getLastOrder($context->getContext());
+            }
+
+            if ($this->config->getTestMode($context->getSalesChannel()->getId())) {
+                $arrEncryptedTransactionResult = [
+                    'result' => 1,
+                    'nextAction' => 'paid',
+                    'orderId' => '1234567890X12345',
+                    'entranceCode' => '12345',
+                    'transaction' => ['transactionId' => '1234567890X12345', 'entranceCode' => '12345'],
+                    'entityId' => '1',
+                ];
+
+                return new JsonResponse($arrEncryptedTransactionResult);
             }
 
             $exchangeUrl = $this->router->generate(
