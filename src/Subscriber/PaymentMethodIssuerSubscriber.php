@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
@@ -11,6 +12,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent;
@@ -26,14 +28,19 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /** @var CustomerHelper $customerHelper */
     private $customerHelper;
 
+    /** @var RequestDataBagHelper $requestDataBagHelper */
+    private $requestDataBagHelper;
+
     public function __construct(
         Session $session,
         EntityRepositoryInterface $paymentMethodRepository,
-        CustomerHelper $customerHelper
+        CustomerHelper $customerHelper,
+        RequestDataBagHelper $requestDataBagHelper
     ) {
         $this->session = $session;
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->customerHelper = $customerHelper;
+        $this->requestDataBagHelper = $requestDataBagHelper;
     }
 
     public static function getSubscribedEvents(): array
@@ -52,11 +59,9 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         if (!$event->getRequestDataBag()->has('paymentMethodId')) {
             return;
         }
-        $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
-        $salesChannelId = $event->getSalesChannelContext()->getSalesChannel()->getId();
 
-        $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
+        $this->processPayLaterFields($event->getRequestDataBag()->toRequestDataBag(), $customer, $event->getContext());
     }
 
     /**
@@ -67,40 +72,41 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         if (!$event->getRequestDataBag()->has('paymentMethodId')) {
             return;
         }
-        $requestDataBagArray = $event->getRequestDataBag()->all();
         $customer = $event->getSalesChannelContext()->getCustomer();
-        $salesChannelId = $event->getSalesChannelId();
 
-        $this->processPayLaterFields($requestDataBagArray, $customer, $salesChannelId, $event->getContext());
+        $this->processPayLaterFields($event->getRequestDataBag(), $customer, $event->getContext());
     }
 
-    private function processPayLaterFields(
-        array $requestData,
-        ?CustomerEntity $customer,
-        string $salesChannelId,
-        Context $context
-    ): void {
+    private function processPayLaterFields(RequestDataBag $dataBag, ?CustomerEntity $customer, Context $context): void
+    {
         if (!($customer instanceof CustomerEntity)) {
             return;
         }
 
-        $paymentMethodId = $requestData['paymentMethodId'];
-        $phone = $requestData['phone'][$paymentMethodId] ?? null;
+        $paymentMethodId = $this->getValueFromRequestDataBag('paymentMethodId', $dataBag);
+        $phoneData = (array) $this->getValueFromRequestDataBag('phone', $dataBag);
+        $phone = $phoneData[$paymentMethodId] ?? null;
         if ($phone) {
             $billingAddress = $customer->getDefaultBillingAddress();
             $this->customerHelper->saveCustomerPhone($billingAddress, $phone, $context);
         }
-        $dob = $requestData['dob'][$paymentMethodId] ?? null;
+
+        $dobData = (array) $this->getValueFromRequestDataBag('dob', $dataBag);
+        $dob = $dobData[$paymentMethodId] ?? null;
         if ($dob) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
         }
 
-        $this->savePaynlPaymentMethodIssuer($requestData, $customer, $context);
+        $this->savePaynlPaymentMethodIssuer($dataBag, $customer, $context);
     }
 
-    private function savePaynlPaymentMethodIssuer(array $requestData, CustomerEntity $customer, Context $context): void
-    {
-        $paymentMethod = $this->getPaymentMethodById($requestData['paymentMethodId'], $context);
+    private function savePaynlPaymentMethodIssuer(
+        RequestDataBag $dataBag,
+        CustomerEntity $customer,
+        Context $context
+    ): void {
+        $paymentMethodId = (string) $this->requestDataBagHelper->getDataBagItem('paymentMethodId', $dataBag);
+        $paymentMethod = $this->getPaymentMethodById($paymentMethodId, $context);
 
         if (empty($paymentMethod)) {
             return;
@@ -113,8 +119,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $paymentMethodId = (string)$requestData['paymentMethodId'];
-        $paynlIssuer = (string)($requestData['paynlIssuer'] ?? '');
+        $paynlIssuer = (string) $this->requestDataBagHelper->getDataBagItem('paynlIssuer', $dataBag);
 
         $this->customerHelper->savePaynlIssuer($customer, $paymentMethodId, $paynlIssuer, $context);
     }
@@ -122,12 +127,24 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     private function getPaymentMethodById(string $paymentMethodId, Context $context): ?PaymentMethodEntity
     {
         /** @var PaymentMethodEntity $paymentMethod */
-        $paymentMethod = $this->paymentMethodRepository->search(
+        return $this->paymentMethodRepository->search(
             (new Criteria())
                 ->addFilter(new EqualsFilter('id', $paymentMethodId)),
             $context
         )->first();
+    }
 
-        return $paymentMethod;
+    private function getValueFromRequestDataBag(string $name, RequestDataBag $dataBag)
+    {
+        $dataBagItem = $this->requestDataBagHelper->getDataBagItem($name, $dataBag);
+        if ($dataBagItem instanceof RequestDataBag) {
+            return $dataBagItem->all();
+        }
+
+        if (is_array($dataBagItem)) {
+            return $dataBagItem;
+        }
+
+        return $dataBagItem;
     }
 }

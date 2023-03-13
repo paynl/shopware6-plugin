@@ -6,45 +6,60 @@ namespace PaynlPayment\Shopware6;
 require_once(__DIR__ . '/../vendor/autoload.php');
 // phpcs:enable
 
+use Doctrine\DBAL\Connection;
+use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
+use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
+use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
+use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use Shopware\Core\Framework\Api\Controller\CacheController;
+use PaynlPayment\Shopware6\Helper\MediaHelper;
+use Shopware\Core\Content\Media\File\FileSaver;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
+use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 class PaynlPaymentShopware6 extends Plugin
 {
     public function install(InstallContext $installContext): void
     {
-        (new InstallHelper($this->container))->addPaynlMailTemplateText();
+        $this->getInstallHelper()->addPaynlMailTemplateText();
     }
 
     public function uninstall(UninstallContext $uninstallContext): void
     {
-        (new InstallHelper($this->container))->deactivatePaymentMethods($uninstallContext->getContext());
+        $this->getInstallHelper()->deactivatePaymentMethods($uninstallContext->getContext());
         if (!$uninstallContext->keepUserData()) {
-            (new InstallHelper($this->container))->removePaymentMethodsMedia($uninstallContext->getContext());
-            (new InstallHelper($this->container))->removeConfigurationData($uninstallContext->getContext());
-            (new InstallHelper($this->container))->dropTables();
-            (new InstallHelper($this->container))->removeStates();
-            (new InstallHelper($this->container))->deletePaynlMailTemplateText();
+            $this->getInstallHelper()->removePaymentMethodsMedia($uninstallContext->getContext());
+            $this->getInstallHelper()->removeConfigurationData($uninstallContext->getContext());
+            $this->getInstallHelper()->dropTables();
+            $this->getInstallHelper()->removeStates();
+            $this->getInstallHelper()->deletePaynlMailTemplateText();
         }
     }
 
     public function activate(ActivateContext $activateContext): void
     {
-        (new InstallHelper($this->container))->activatePaymentMethods($activateContext->getContext());
+        $this->getInstallHelper()->activatePaymentMethods($activateContext->getContext());
     }
 
     public function update(UpdateContext $updateContext): void
     {
-        (new InstallHelper($this->container))->removeAfterPayMedia($updateContext->getContext());
-        (new InstallHelper($this->container))->updatePaymentMethods($updateContext->getContext());
-        (new InstallHelper($this->container))->addPaynlMailTemplateText();
+        $this->getInstallHelper()->removeAfterPayMedia($updateContext->getContext());
+        $this->getInstallHelper()->updatePaymentMethods($updateContext->getContext());
+        $this->getInstallHelper()->addPaynlMailTemplateText();
 
         try {
             $currentVersion = $this->container->getParameter('kernel.shopware_version');
@@ -60,6 +75,110 @@ class PaynlPaymentShopware6 extends Plugin
 
     public function deactivate(DeactivateContext $deactivateContext): void
     {
-        (new InstallHelper($this->container))->deactivatePaymentMethods($deactivateContext->getContext());
+        $this->getInstallHelper()->deactivatePaymentMethods($deactivateContext->getContext());
+    }
+
+    private function getConfig(): Config
+    {
+        /** @var SystemConfigService $systemConfigService */
+        $systemConfigService = $this->container->get(SystemConfigService::class);
+
+        $configReader = new ConfigReader($systemConfigService);
+
+        return new Config($configReader);
+    }
+
+    private function getInstallHelper(): InstallHelper
+    {
+        /** @var Connection $connection */
+        $connection = $this->container->get(Connection::class);
+        /** @var PluginIdProvider $pluginIdProvider */
+        $pluginIdProvider = $this->container->get(PluginIdProvider::class);
+        /** @var EntityRepositoryInterface $paymentMethodRepository */
+        $paymentMethodRepository = $this->container->get('payment_method.repository');
+        /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
+        $paymentMethodSalesChannelRepository = $this->container->get('sales_channel_payment_method.repository');
+        /** @var EntityRepositoryInterface $salesChannelRepository */
+        $salesChannelRepository = $this->container->get('sales_channel.repository');
+        /** @var EntityRepositoryInterface $systemConfigRepository */
+        $systemConfigRepository = $this->container->get('system_config.repository');
+
+        return new InstallHelper(
+            $connection,
+            $pluginIdProvider,
+            $this->getConfig(),
+            $this->getPaynlApi(),
+            $this->getPaymentHandlerFactory(),
+            $this->getMediaHelper(),
+            $paymentMethodRepository,
+            $salesChannelRepository,
+            $paymentMethodSalesChannelRepository,
+            $systemConfigRepository
+        );
+    }
+
+    private function getPaynlApi(): Api
+    {
+        /** @var EntityRepositoryInterface $productRepository */
+        $productRepository = $this->container->get('product.repository');
+        /** @var EntityRepositoryInterface $orderRepository */
+        $orderRepository = $this->container->get('order.repository');
+        /** @var TranslatorInterface $translator */
+        $translator = $this->container->get('translator');
+        /** @var Session $session */
+        $session = $this->container->get('session');
+
+        return new Api(
+            $this->getConfig(),
+            $this->getCustomerHelper(),
+            $this->getTransactionLanguageHelper(),
+            $productRepository,
+            $orderRepository,
+            $translator,
+            $session
+        );
+    }
+
+    private function getCustomerHelper(): CustomerHelper
+    {
+        /** @var EntityRepositoryInterface $customerAddressRepository */
+        $customerAddressRepository = $this->container->get('customer_address.repository');
+        /** @var EntityRepositoryInterface $customerRepository */
+        $customerRepository = $this->container->get('customer.repository');
+
+        return new CustomerHelper(
+            $this->getConfig(),
+            $customerAddressRepository,
+            $customerRepository
+        );
+    }
+
+    private function getMediaHelper(): MediaHelper
+    {
+        /** @var FileSaver $fileSaver */
+        $fileSaver = $this->container->get(FileSaver::class);
+        /** @var EntityRepositoryInterface $mediaRepository */
+        $mediaRepository = $this->container->get('media.repository');
+
+        return new MediaHelper($fileSaver, $mediaRepository);
+    }
+
+    private function getTransactionLanguageHelper(): TransactionLanguageHelper
+    {
+        /** @var EntityRepositoryInterface $languageRepository */
+        $languageRepository = $this->container->get('language.repository');
+        /** @var RequestStack $requestStack */
+        $requestStack = $this->container->get('request_stack');
+
+        return new TransactionLanguageHelper(
+            $this->getConfig(),
+            $languageRepository,
+            $requestStack
+        );
+    }
+
+    private function getPaymentHandlerFactory(): PaymentHandlerFactory
+    {
+        return new PaymentHandlerFactory();
     }
 }

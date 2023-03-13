@@ -16,6 +16,7 @@ use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
@@ -61,6 +62,9 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     /** @var PluginHelper */
     private $pluginHelper;
 
+    /** @var RequestDataBagHelper */
+    private $requestDataBagHelper;
+
     /** @var EntityRepositoryInterface */
     private $orderTransactionRepository;
 
@@ -75,6 +79,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         CustomerHelper $customerHelper,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
+        RequestDataBagHelper $requestDataBagHelper,
         EntityRepositoryInterface $orderTransactionRepository,
         string $shopwareVersion
     ) {
@@ -85,6 +90,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->customerHelper = $customerHelper;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
+        $this->requestDataBagHelper = $requestDataBagHelper;
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->shopwareVersion = $shopwareVersion;
     }
@@ -303,7 +309,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
 
         if (empty($configTerminal) || in_array($configTerminal, SettingsHelper::TERMINAL_DEFAULT_OPTIONS)) {
-            return (string)$dataBag->get('paynlInstoreTerminal');
+            return (string) $this->requestDataBagHelper->getDataBagItem('paynlInstoreTerminal', $dataBag);
         }
 
         return $configTerminal;

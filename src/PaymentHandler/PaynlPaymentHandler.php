@@ -16,8 +16,10 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
@@ -32,6 +34,10 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $processingHelper;
     /** @var PluginHelper */
     private $pluginHelper;
+    /** @var TranslatorInterface */
+    private $translator;
+    /** @var Session */
+    protected Session $session;
     /** @var string */
     private $shopwareVersion;
 
@@ -41,6 +47,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Api $api,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
+        TranslatorInterface $translator,
+        Session $session,
         string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
@@ -48,6 +56,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $this->paynlApi = $api;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
+        $this->translator = $translator;
+        $this->session = $session;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -67,6 +77,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         try {
             $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
         } catch (Exception $e) {
+            $this->displaySafeErrorMessages($e->getMessage());
             throw new AsyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
@@ -135,5 +146,16 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         return '';
+    }
+
+    private function displaySafeErrorMessages(string $errorMessage)
+    {
+        if (strpos(strtolower($errorMessage), 'minimum amount') !== false) {
+            $flashBagMessage = $this->translator->trans('checkout.messages.orderAmountPaymentError');
+        } else {
+            $flashBagMessage = $this->translator->trans('checkout.messages.orderDefaultError');
+        }
+
+        $this->session->getFlashBag()->add('warning', $flashBagMessage);
     }
 }

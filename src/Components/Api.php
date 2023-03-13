@@ -5,7 +5,6 @@ namespace PaynlPayment\Shopware6\Components;
 use Paynl\Config as SDKConfig;
 use Paynl\Instore;
 use Paynl\Paymentmethods;
-use Paynl\Result\Instore\Payment;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;

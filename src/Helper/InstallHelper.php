@@ -3,9 +3,10 @@
 namespace PaynlPayment\Shopware6\Helper;
 
 use Doctrine\DBAL\Connection;
+use Paynl\Config as SDKConfig;
+use Paynl\Paymentmethods;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
@@ -24,17 +25,11 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
-use Shopware\Core\System\SystemConfig\SystemConfigService;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 class InstallHelper
 {
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
 
-    const PAYMENT_METHOD_REPOSITORY_ID = 'payment_method.repository';
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
     const PAYMENT_METHOD_IDEAL_ID = 10;
 
@@ -52,74 +47,60 @@ class InstallHelper
     const CONTENT_HTML = 'content_html';
     const CONTENT_PLAIN = 'content_plain';
 
-    /** @var SystemConfigService */
-    private $configService;
-    /** @var PluginIdProvider $pluginIdProvider */
-    private $pluginIdProvider;
-    /** @var EntityRepositoryInterface $paymentMethodRepository */
-    private $paymentMethodRepository;
-    /** @var EntityRepositoryInterface $salesChannelRepository */
-    private $salesChannelRepository;
-    /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
-    private $paymentMethodSalesChannelRepository;
-    /** @var EntityRepositoryInterface $systemConfigRepository */
-    private $systemConfigRepository;
     /** @var Connection $connection */
     private $connection;
+
+    /** @var PluginIdProvider $pluginIdProvider */
+    private $pluginIdProvider;
+
+    /** @var Config */
+    private $config;
+
     /** @var Api $paynlApi */
     private $paynlApi;
+
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
+
+    /** @var EntityRepositoryInterface $paymentMethodRepository */
+    private $paymentMethodRepository;
+
+    /** @var EntityRepositoryInterface $salesChannelRepository */
+    private $salesChannelRepository;
+
+    /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
+    private $paymentMethodSalesChannelRepository;
+
+    /** @var EntityRepositoryInterface $systemConfigRepository */
+    private $systemConfigRepository;
+
     /** @var PaymentHandlerFactory */
     private $paymentHandlerFactory;
 
-    public function __construct(ContainerInterface $container)
-    {
-        $this->pluginIdProvider = $container->get(PluginIdProvider::class);
-        $this->paymentMethodRepository = $container->get(self::PAYMENT_METHOD_REPOSITORY_ID);
-        $this->salesChannelRepository = $container->get('sales_channel.repository');
-        $this->paymentMethodSalesChannelRepository = $container->get('sales_channel_payment_method.repository');
-        $this->connection = $container->get(Connection::class);
-        /** @var EntityRepositoryInterface $systemConfigRepository */
-        $this->systemConfigRepository = $container->get('system_config.repository');
+    public function __construct(
+        Connection $connection,
+        PluginIdProvider $pluginIdProvider,
+        Config $config,
+        Api $paynlApi,
+        PaymentHandlerFactory $paymentHandlerFactory,
+        MediaHelper $mediaHelper,
+        EntityRepositoryInterface $paymentMethodRepository,
+        EntityRepositoryInterface $salesChannelRepository,
+        EntityRepositoryInterface $paymentMethodSalesChannelRepository,
+        EntityRepositoryInterface $systemConfigRepository
+    ) {
+        $this->pluginIdProvider = $pluginIdProvider;
+        $this->connection = $connection;
 
-        // TODO:
-        // plugin services doesn't registered on plugin install - create instances of classes
-        // may be use setter injection?
-        /** @var SystemConfigService $configService */
-        $configService = $container->get(SystemConfigService::class);
-        $this->configService = $configService;
-        $config = new Config(new ConfigReader($configService));
-        /** @var EntityRepositoryInterface $customerAddressRepository */
-        $customerAddressRepository = $container->get('customer_address.repository');
-        /** @var EntityRepositoryInterface $customerRepository */
-        $customerRepository = $container->get('customer.repository');
-        $customerHelper = new CustomerHelper($config, $customerAddressRepository, $customerRepository);
-        /** @var EntityRepositoryInterface $languageRepository */
-        $languageRepository = $container->get('language.repository');
-        /** @var RequestStack $requestStack */
-        $requestStack = $container->get('request_stack');
-        $transactionLanguageHelper = new TransactionLanguageHelper($config, $languageRepository, $requestStack);
-        /** @var EntityRepositoryInterface $productRepository */
-        $productRepository = $container->get('product.repository');
-        /** @var EntityRepositoryInterface $orderRepository */
-        $orderRepository = $container->get('order.repository');
-        /** @var TranslatorInterface $translator */
-        $translator = $container->get('translator');
-        /** @var Session $session */
-        $session = $container->get('session');
-        $this->paynlApi = new Api(
-            $config,
-            $customerHelper,
-            $transactionLanguageHelper,
-            $productRepository,
-            $orderRepository,
-            $translator,
-            $session
-        );
+        $this->config = $config;
+        $this->paynlApi = $paynlApi;
+        $this->mediaHelper = $mediaHelper;
 
-        $this->mediaHelper = new MediaHelper($container);
-        $this->paymentHandlerFactory = new PaymentHandlerFactory();
+        $this->paymentMethodRepository = $paymentMethodRepository;
+        $this->salesChannelRepository = $salesChannelRepository;
+        $this->paymentMethodSalesChannelRepository = $paymentMethodSalesChannelRepository;
+        $this->systemConfigRepository = $systemConfigRepository;
+        $this->paymentHandlerFactory = $paymentHandlerFactory;
     }
 
     public function installPaymentMethods(string $salesChannelId, Context $context): void
@@ -131,7 +112,7 @@ class InstallHelper
         }
         $this->removeOldMedia($salesChannelId, $context);
 
-        $paymentMethods = $this->paynlApi->getPaymentMethods($salesChannelId);
+        $paymentMethods = $this->getPaynlPaymentMethods($salesChannelId);
         if (empty($paymentMethods)) {
             throw new PaynlPaymentException('Cannot get any payment method.');
         }
@@ -561,6 +542,15 @@ class InstallHelper
     private function getSalesChannelById(string $id, Context $context)
     {
         return $this->salesChannelRepository->search(new Criteria([$id]), $context)->first();
+    }
+
+    private function getPaynlPaymentMethods(string $salesChannelId): array
+    {
+        SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
+        SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
+        SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
+
+        return Paymentmethods::getList();
     }
 
     public function addPaynlMailTemplateText(): void

@@ -178,19 +178,18 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                 'state_machine_id' => $orderTransactionStateId
             ])->fetchColumn();
 
-            $connection->executeUpdate($stateMachineStateTranslation, [
-                'language_id' => $translations['english']['id'],
-                'state_machine_state_id' => $stateMachineStateId,
-                'name' => $translations['english']['name'],
-                'created_at' => $date
-            ]);
+            foreach ($translations as $translation) {
+                if (empty($translation['id'])) {
+                    continue;
+                }
 
-            $connection->executeUpdate($stateMachineStateTranslation, [
-                'language_id' => $translations['german']['id'],
-                'state_machine_state_id' => $stateMachineStateId,
-                'name' => $translations['german']['name'],
-                'created_at' => $date
-            ]);
+                $connection->executeUpdate($stateMachineStateTranslation, [
+                    'language_id' => $translation['id'],
+                    'state_machine_state_id' => $stateMachineStateId,
+                    'name' => $translation['name'],
+                    'created_at' => $date
+                ]);
+            }
         }
 
         // Adding transitions
@@ -285,19 +284,23 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'technical_name' => 'order_transaction.state.authorize'
         ])->fetchColumn();
 
-        $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
-            'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
-            'language_id' => $languageEnglishId,
-            'name' => 'Enter payment state: Authorize',
-            'created_at' => $date,
-        ]);
+        if (!empty($languageEnglishId)) {
+            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+                'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
+                'language_id' => $languageEnglishId,
+                'name' => 'Enter payment state: Authorize',
+                'created_at' => $date,
+            ]);
+        }
 
-        $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
-            'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
-            'language_id' => $languageDeutschId,
-            'name' => 'Zahlungsstatus eingeben: Autorisieren',
-            'created_at' => $date,
-        ]);
+        if (!empty($languageDeutschId)) {
+            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+                'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
+                'language_id' => $languageDeutschId,
+                'name' => 'Zahlungsstatus eingeben: Autorisieren',
+                'created_at' => $date,
+            ]);
+        }
 
         $connection->executeUpdate($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
@@ -310,19 +313,23 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'technical_name' => 'order_transaction.state.verify'
         ])->fetchColumn();
 
-        $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
-            'mail_template_type_id' => $mailTempaleVerifyTypeId,
-            'language_id' => $languageEnglishId,
-            'name' => 'Enter payment state: Verify',
-            'created_at' => $date,
-        ]);
+        if (!empty($languageEnglishId)) {
+            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+                'mail_template_type_id' => $mailTempaleVerifyTypeId,
+                'language_id' => $languageEnglishId,
+                'name' => 'Enter payment state: Verify',
+                'created_at' => $date,
+            ]);
+        }
 
-        $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
-            'mail_template_type_id' => $mailTempaleVerifyTypeId,
-            'language_id' => $languageDeutschId,
-            'name' => 'Zahlungsstatus eingeben: Verify',
-            'created_at' => $date,
-        ]);
+        if (!empty($languageDeutschId)) {
+            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+                'mail_template_type_id' => $mailTempaleVerifyTypeId,
+                'language_id' => $languageDeutschId,
+                'name' => 'Zahlungsstatus eingeben: Verify',
+                'created_at' => $date,
+            ]);
+        }
 
         $connection->executeUpdate($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
@@ -335,19 +342,23 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'technical_name' => 'order_transaction.state.partly_captured'
         ])->fetchColumn();
 
-        $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
-            'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
-            'language_id' => $languageEnglishId,
-            'name' => 'Enter payment state: Partly captured',
-            'created_at' => $date,
-        ]);
+        if (!empty($languageEnglishId)) {
+            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+                'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
+                'language_id' => $languageEnglishId,
+                'name' => 'Enter payment state: Partly captured',
+                'created_at' => $date,
+            ]);
+        }
 
-        $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
-            'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
-            'language_id' => $languageDeutschId,
-            'name' => 'Zahlungsstatus eingeben: Partly captured',
-            'created_at' => $date,
-        ]);
+        if (!empty($languageDeutschId)) {
+            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+                'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
+                'language_id' => $languageDeutschId,
+                'name' => 'Zahlungsstatus eingeben: Partly captured',
+                'created_at' => $date,
+            ]);
+        }
     }
 
     public function updateDestructive(Connection $connection): void

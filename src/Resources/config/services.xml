@@ -20,7 +20,21 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\InstallHelper" public="true">
-            <argument type="service" id="Symfony\Component\DependencyInjection\ContainerInterface"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="Shopware\Core\Framework\Plugin\Util\PluginIdProvider"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
+            <argument type="service" id="payment_method.repository"/>
+            <argument type="service" id="sales_channel.repository"/>
+            <argument type="service" id="sales_channel_payment_method.repository"/>
+            <argument type="service" id="system_config.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Helper\MediaHelper">
+            <argument type="service" id="Shopware\Core\Content\Media\File\FileSaver"/>
+            <argument type="service" id="media.repository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\SettingsHelper" public="true">
@@ -30,10 +44,13 @@
         <service id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="language.repository"/>
-            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="request_stack"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper">
         </service>
 
         <!--Components-->
@@ -98,21 +115,27 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument type="service" id="translator"/>
+            <argument type="service" id="session"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
         </service>
 
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">
             <argument type="service" id="router.default"/>
-            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
             <argument type="service" id="order_transaction.repository"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
+        </service>
+
+        <service id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory">
         </service>
 
         <!--Controllers-->
@@ -186,6 +209,7 @@
             <argument type="service" id="session"/>
             <argument type="service" id="payment_method.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\PageLoadedSubscriber" public="true">
@@ -204,7 +228,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CustomerRegisterSubscriber">
-            <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="customer_address.repository"/>
             <argument type="service" id="customer.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
