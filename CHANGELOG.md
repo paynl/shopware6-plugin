@@ -1,4 +1,5 @@
 # 1.4.18
+- Code improvements and bug fixes
 
 # 1.4.17
 - Added Refunding status Dutch translation
