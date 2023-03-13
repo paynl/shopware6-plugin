@@ -220,7 +220,7 @@ class ProcessingHelper
      * @param string $paynlTransactionId
      * @param string $transitionName
      * @param int $paynlTransactionStatusCode
-     * @return void
+     * @throws Exception
      */
     public function updatePaymentStateByTransactionId(
         string $paynlTransactionId,
@@ -327,7 +327,7 @@ class ProcessingHelper
      * @param PaynlTransactionEntity $paynlTransactionEntity
      * @param string $transitionName
      * @param int $paynlTransactionStatusCode
-     * @return void
+     * @throws Exception
      */
     private function updateTransactionStatus(
         PaynlTransactionEntity $paynlTransactionEntity,
@@ -378,6 +378,7 @@ class ProcessingHelper
     /**
      * @param PaynlTransactionEntity $paynlTransactionEntity
      * @return void
+     * @throws Exception
      */
     private function updateTransactionStatusFromPay(PaynlTransactionEntity $paynlTransactionEntity): void
     {

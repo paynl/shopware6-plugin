@@ -3,12 +3,14 @@
         "statuses": {
             "cancelled": "Zahlung storniert",
             "denied": "Bezahlung verweigert ",
+            "failed": "Payment failed",
             "in_progress": "Die Zahlung wird durch den Verwalter überprüft.",
             "paid": "Zahlung erfolgreich!"
         },
         "messages": {
             "cancelledTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere aus oder versuchen Sie es erneut.",
             "deniedTransaction": "Zahlung vom Zahlungsanbieter verweigert (andere Zahlungsmethode wählen).",
+            "failedTransaction": "Your payment was failed by payment provider.",
             "completePaymentPin" : "Zahlung bitte mit Pin/Chip-Terminal durchführen"
         },
         "labels": {

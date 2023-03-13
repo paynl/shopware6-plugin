@@ -18,7 +18,31 @@ export default class PaynlCsePlugin extends Plugin {
         this.modal = new PseudoModalUtil('', false);
         this.modalClosedByPayCse = false;
         this.orderForm = DomAccess.querySelector(document, '#confirmOrderForm');
+        this.csePlaceOrderButton = DomAccess.querySelector(document, '#csePlaceOrder');
         this._client = new StoreApiClient();
+        this.formReadyForSubmission = false;
+        this.formFields = {
+            cardHolder: {
+                elementId: 'card-holder',
+                isValid: false
+            },
+            cardNumber: {
+                elementId: 'cardnumber',
+                isValid: false
+            },
+            cardCvv: {
+                elementId: 'cvc',
+                isValid: false
+            },
+            cardExpiryMonth: {
+                elementId: 'month',
+                isValid: false
+            },
+            cardExpiryYear: {
+                elementId: 'year',
+                isValid: false
+            },
+        }
 
         let self = this;
 
@@ -147,20 +171,23 @@ export default class PaynlCsePlugin extends Plugin {
         eventDispatcher.addListener(Events.onPaymentFailedEvent, function (event) {
             self.payDebug('onPaymentFailedEvent custom');
 
-            self.cancelPaymentTransaction().then(() => {
-                setTimeout(() => self.redirectToFinishUrl(), 2000);
-            });
+            self.failPaymentTransaction();
         }, 10);
 
         eventDispatcher.addListener(Events.onPaymentCanceledEvent, function (event) {
             self.payDebug('onPaymentCanceledEvent custom');
 
-            self.cancelPaymentTransaction().then(() => {
-                self.redirectToFinishUrl();
-            });
+            self.cancelPaymentTransaction();
         }, 90);
 
         eventDispatcher.addListener(Events.onStateChangeEvent, function (event)  {
+            // update payment form input fields validation state
+            self.updateFormFieldsState(event.getCurrentState())
+
+            // make place order button enabled all time
+            self.csePlaceOrderButton.removeAttribute('disabled');
+
+            self.formReadyForSubmission = event.getCurrentState().isFormReadyForSubmission();
             if (event.getCurrentState().isFormReadyForSubmission()) {
                 if (self.orderId) {
                     self.encryptedForm.setPaymentPostUrl(paynlCheckoutOptions.csePostUrl + '?orderId=' + self.orderId);
@@ -210,23 +237,26 @@ export default class PaynlCsePlugin extends Plugin {
                 pol.clear();
             }
 
-            self.cancelPaymentTransaction().then(() => {
-                self.redirectToFinishUrl();
-            });
+            self.cancelPaymentTransaction();
         });
     }
 
     placeOrder(event) {
         event.preventDefault();
 
-        if (!this.orderForm.reportValidity()) {
+        // check payment form validation by pay cse library
+        this.checkFormValidation();
+        // check payment form validation by default html validation
+        this.checkFormHtmlValidation();
+
+        if (!this.isFormHtmlValid() || !this.formReadyForSubmission || !this.orderForm.reportValidity()) {
             return;
         }
 
         const form =  DomAccess.querySelector(document, '#confirmOrderForm');
-        this.startLoader();
         const formData = FormSerializeUtil.serialize(form);
 
+        this.startLoader();
         this.confirmOrder(formData);
 
         return false;
@@ -326,11 +356,35 @@ export default class PaynlCsePlugin extends Plugin {
 
         this.startLoader();
 
-        return fetch(url, {
+        fetch(url, {
             'method': 'POST',
             'cache': 'no-cache',
             'redirect': 'follow',
             'body': formData
+        }).then(() => {
+            this.redirectToFinishUrl();
+        });
+    }
+
+    failPaymentTransaction() {
+        let transactionId = this.transactionId;
+        if (!transactionId) {
+            return;
+        }
+
+        let url = '/PaynlPayment/cse/fail';
+        let formData = new FormData();
+        formData.set('transactionId', transactionId);
+
+        this.startLoader();
+
+        fetch(url, {
+            'method': 'POST',
+            'cache': 'no-cache',
+            'redirect': 'follow',
+            'body': formData
+        }).then(() => {
+            setTimeout(() => this.redirectToFinishUrl(), 2000);
         });
     }
 
@@ -386,5 +440,73 @@ export default class PaynlCsePlugin extends Plugin {
         if (confirmFormSubmit) {
             confirmFormSubmit.style.display = 'none';
         }
+    }
+
+    checkFormValidation() {
+        for (const property in this.formFields) {
+            if (!this.formFields.hasOwnProperty(property)) {
+                continue;
+            }
+
+            let obj = this.formFields[property];
+            let domElement = DomAccess.querySelector(document, `#${obj.elementId}`);
+
+            this.checkInputValidation(domElement);
+        }
+    }
+
+    checkInputValidation(domElement) {
+        if (!domElement) {
+            return;
+        }
+
+        const validationObj = this.getValidationObjByElementId(domElement.id)
+        if (validationObj.isValid) {
+            domElement.classList.remove('is-invalid');
+            return;
+        }
+
+        domElement.classList.add('is-invalid');
+    }
+
+    getValidationObjByElementId(elementId) {
+        for (const property in this.formFields) {
+            if (this.formFields.hasOwnProperty(property) === false) {
+                continue;
+            }
+
+            let obj = this.formFields[property];
+            if (obj.elementId !== elementId) {
+                continue;
+            }
+
+            return obj;
+        }
+    }
+
+    checkFormHtmlValidation() {
+        let formFields = document.querySelector('.paynl-payment-method-cse').querySelectorAll('[required]');
+        for (const element of formFields) {
+            element.checkValidity();
+        }
+    }
+
+    isFormHtmlValid() {
+        let formFields = document.querySelector('.paynl-payment-method-cse').querySelectorAll('[required]');
+        for (const element of formFields) {
+            if (!element.reportValidity()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    updateFormFieldsState(state) {
+        this.formFields.cardHolder.isValid = state.getStateParameter('cardHolderInputComplete');
+        this.formFields.cardNumber.isValid = state.getStateParameter('cardNumberInputComplete');
+        this.formFields.cardCvv.isValid = state.getStateParameter('cardCvvInputComplete');
+        this.formFields.cardExpiryMonth.isValid = state.getStateParameter('cardExpiryMonthInputComplete');
+        this.formFields.cardExpiryYear.isValid = state.getStateParameter('cardExpiryYearInputComplete');
     }
 }

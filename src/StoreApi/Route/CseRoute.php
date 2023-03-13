@@ -6,14 +6,14 @@ namespace PaynlPayment\Shopware6\StoreApi\Route;
 
 use Exception;
 use PaynlPayment\Shopware6\Components\Api;
-use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\PublicKeysHelper;
 use PaynlPayment\Shopware6\Service\Order\OrderService;
+use PaynlPayment\Shopware6\Service\Paynl\TransactionStateService;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,8 +27,10 @@ use Symfony\Component\Routing\RouterInterface;
 class CseRoute
 {
     private $router;
+    private $config;
     private $api;
     private $orderService;
+    private $transactionStateService;
     private $publicKeysHelper;
     private $pluginHelper;
     private $processingHelper;
@@ -36,16 +38,20 @@ class CseRoute
 
     public function __construct(
         RouterInterface $router,
+        Config $config,
         Api $api,
         OrderService $orderService,
+        TransactionStateService $transactionStateService,
         PublicKeysHelper $publicKeysHelper,
         PluginHelper $pluginHelper,
         ProcessingHelper $processingHelper,
         string $shopwareVersion
     ) {
         $this->router = $router;
+        $this->config = $config;
         $this->api = $api;
         $this->orderService = $orderService;
+        $this->transactionStateService = $transactionStateService;
         $this->publicKeysHelper = $publicKeysHelper;
         $this->pluginHelper = $pluginHelper;
         $this->processingHelper = $processingHelper;
@@ -71,6 +77,19 @@ class CseRoute
 
             if (empty($order)) {
                 $order = $this->orderService->getLastOrder($context->getContext());
+            }
+
+            if ($this->config->getTestMode($context->getSalesChannel()->getId())) {
+                $arrEncryptedTransactionResult = [
+                    'result' => 1,
+                    'nextAction' => 'paid',
+                    'orderId' => '1234567890X12345',
+                    'entranceCode' => '12345',
+                    'transaction' => ['transactionId' => '1234567890X12345', 'entranceCode' => '12345'],
+                    'entityId' => '1',
+                ];
+
+                return new JsonResponse($arrEncryptedTransactionResult);
             }
 
             $exchangeUrl = $this->router->generate(
@@ -186,11 +205,33 @@ class CseRoute
         }
 
         try {
-            $this->processingHelper->updatePaymentStateByTransactionId(
-                $transactionId,
-                StateMachineTransitionActions::ACTION_CANCEL,
-                PaynlTransactionStatusesEnum::STATUS_CANCEL
-            );
+            $this->transactionStateService->cancel($transactionId);
+        } catch (Exception $exception) {
+            return new JsonResponse([
+                'success' => false,
+                'errorMessage' => $exception->getMessage()
+            ]);
+        }
+
+        return new JsonResponse(['success' => true]);
+    }
+
+    /**
+     * @Route("/PaynlPayment/cse/fail",
+     *     name="store-api.PaynlPayment.cse.fail",
+     *     defaults={"csrf_protected"=false},
+     *     methods={"POST"}
+     *     )
+     */
+    public function fail(Request $request): Response
+    {
+        $transactionId = $request->get('transactionId');
+        if (empty($transactionId)) {
+            return new JsonResponse(['success' => false]);
+        }
+
+        try {
+            $this->transactionStateService->fail($transactionId);
         } catch (Exception $exception) {
             return new JsonResponse([
                 'success' => false,
