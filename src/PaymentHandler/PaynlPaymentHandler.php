@@ -37,7 +37,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     /** @var TranslatorInterface */
     private $translator;
     /** @var Session */
-    protected Session $session;
+    private $session;
     /** @var string */
     private $shopwareVersion;
 
