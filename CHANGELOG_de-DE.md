@@ -1,4 +1,5 @@
-# 1.4.18
+# 1.4.19
+
 - Verbesserung der allgemeinen Code-Qualität und Fehler-Korrekturen
 
 # 1.4.17
