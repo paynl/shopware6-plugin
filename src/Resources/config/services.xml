@@ -36,6 +36,11 @@
         <service id="PaynlPayment\Shopware6\Helper\PluginHelper">
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\PublicKeysHelper">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="cache.object"/>
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -73,6 +78,11 @@
             <argument type="service" id="cache.object"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\Order\OrderService" class="PaynlPayment\Shopware6\Service\Order\OrderService">
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Service\Order\OrderStateService" class="PaynlPayment\Shopware6\Service\Order\OrderStateService">
             <argument type="service" id="PaynlPayment\Shopware6\Service\Transition\OrderTransitionService"/>
         </service>
@@ -90,6 +100,14 @@
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\Paynl\TransactionStateService">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+        </service>
+
+        <!--Repositories-->
+        <service id="PaynlPayment\Shopware6\Service\Repository\OrderRepository" autowire="true">
+            <argument type="service" id="order.repository"/>
+        </service>
 
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
@@ -162,6 +180,27 @@
             </call>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Controller\PaymentController" public="true">
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Repository\OrderRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderService"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\StoreApi\Route\CseRoute" public="true">
+            <argument type="service" id="Symfony\Component\Routing\RouterInterface"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Paynl\TransactionStateService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PublicKeysHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument>%kernel.shopware_version%</argument>
+        </service>
+
         <!--Entities-->
         <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />
@@ -194,7 +233,10 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CheckoutConfirmSubscriber" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="Symfony\Component\Routing\RouterInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\PublicKeysHelper"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

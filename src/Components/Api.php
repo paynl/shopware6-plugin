@@ -4,11 +4,13 @@ namespace PaynlPayment\Shopware6\Components;
 
 use Paynl\Config as SDKConfig;
 use Paynl\Instore;
+use Paynl\Payment;
 use Paynl\Paymentmethods;
-use Paynl\Result\Instore\Payment;
+use Paynl\Result\Payment\Authenticate;
 use Paynl\Result\Transaction\Start;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
+use Paynl\Api\Payment\Model;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
@@ -127,6 +129,192 @@ class Api
         $this->setCredentials($salesChannelId);
 
         return Transaction::get($transactionId);
+    }
+
+    public function startEncryptedTransaction(
+        OrderEntity $order,
+        array $payload,
+        SalesChannelContext $salesChannelContext,
+        string $returnUrl,
+        string $exchangeUrl,
+        string $shopwareVersion,
+        string $pluginVersion
+    ): Authenticate {
+        $transaction = $this->getTransactionInitialData(
+            $order,
+            $salesChannelContext,
+            $returnUrl,
+            $exchangeUrl,
+            $shopwareVersion,
+            $pluginVersion
+        );
+
+        $this->setCredentials($salesChannelContext->getSalesChannel()->getId());
+
+        $objTransaction = new Model\Authenticate\Transaction();
+        $objTransaction
+            ->setServiceId(\Paynl\Config::getServiceId())
+            ->setDescription($transaction['description'])
+            ->setExchangeUrl($transaction['exchangeUrl'])
+            ->setReference($transaction['orderNumber'])
+            ->setAmount($transaction['amount'] * 100)
+            ->setCurrency($transaction['currency'])
+            ->setLanguage($transaction['address']['country']);
+
+        $address = new Model\Address();
+        $address
+            ->setStreetName($transaction['invoiceAddress']['streetName'])
+            ->setStreetNumber($transaction['invoiceAddress']['houseNumber'])
+            ->setZipCode($transaction['invoiceAddress']['zipCode'])
+            ->setCity($transaction['invoiceAddress']['city'])
+            ->setCountryCode($transaction['invoiceAddress']['country']);
+
+        $invoice = new Model\Invoice();
+        $invoice
+            ->setFirstName($transaction['invoiceAddress']['initials'])
+            ->setLastName($transaction['invoiceAddress']['lastName'])
+            ->setGender($transaction['enduser']['gender'] ?? null)
+            ->setAddress($address);
+
+        $customer = new Model\Customer();
+        $customer
+            ->setFirstName($transaction['enduser']['initials'])
+            ->setLastName($transaction['enduser']['lastName'])
+            ->setAddress($address)
+            ->setInvoice($invoice);
+
+        $cse = new Model\CSE();
+        $cse->setIdentifier($payload['identifier']);
+        $cse->setData($payload['data']);
+
+        $statistics = new Model\Statistics();
+        $statistics->setObject($transaction['object']);
+
+        $browser = new Model\Browser();
+        $browser
+            ->setJavaEnabled('false')
+            ->setJavascriptEnabled('false')
+            ->setLanguage('nl-NL')
+            ->setColorDepth('24')
+            ->setScreenWidth('1920')
+            ->setScreenHeight('1080')
+            ->setTz('-120');
+
+        $paymentOrder = new Model\Order();
+
+        if (!empty($transaction['products']) && is_array($transaction['products'])) {
+            foreach ($transaction['products'] as $arrProduct) {
+                $product = new Model\Product();
+                $product->setId($arrProduct['id']);
+                $product->setType($arrProduct['type']);
+                $product->setDescription($arrProduct['name']);
+                $product->setAmount($arrProduct['price'] * 100);
+                $product->setQuantity($arrProduct['qty']);
+                $product->setVat($arrProduct['vatPercentage']);
+                $paymentOrder->addProduct($product);
+            }
+        }
+
+        return Payment::authenticate(
+            $objTransaction,
+            $customer,
+            $cse,
+            $browser,
+            $statistics,
+            $paymentOrder
+        );
+    }
+
+    public function getAuthenticationStatus(string $transactionId, string $salesChannelId)
+    {
+        $this->setCredentials($salesChannelId);
+
+        return Payment::authenticationStatus($transactionId);
+    }
+
+    /**
+     * @throws \Paynl\Error\Error
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Required\ApiToken
+     */
+    public function authenticaticate(array $params, string $salesChannelId)
+    {
+        $ped = $params['pay_encrypted_data'] ?? null;
+        $transId = $params['transaction_id'] ?? null;
+        $ecode = $params['entrance_code'] ?? null;
+        $acquirerId = $params['acquirer_id'] ?? null;
+        $tdsTransactionId = $params['threeds_transaction_id'] ?? null;
+
+        $payload = json_decode($ped, true);
+
+        $transaction = new Model\Authenticate\TransactionMethod();
+        $transaction->setOrderId($transId)->setEntranceCode($ecode);
+
+
+        $cse = new Model\CSE();
+        $cse->setIdentifier($payload['identifier'])->setData($payload['data']);
+
+        $payment = new Model\Payment();
+        $payment->setMethod(Model\Payment::METHOD_CSE)->setCse($cse);
+
+        if (!empty($tdsTransactionId)) {
+            $auth = new Model\Auth();
+            $auth->setPayTdsAcquirerId($acquirerId)->setPayTdsTransactionId($tdsTransactionId);
+            $payment->setAuth($auth);
+        }
+
+        $browser = new Model\Browser();
+        $browser
+            ->setJavaEnabled('false')
+            ->setJavascriptEnabled('false')
+            ->setLanguage('nl-NL')
+            ->setColorDepth('24')
+            ->setScreenWidth('1920')
+            ->setScreenHeight('1080')
+            ->setTz('-120');
+
+        $payment->setBrowser($browser);
+
+        $this->setCredentials($salesChannelId);
+
+        return Payment::authenticateMethod($transaction, $payment);
+    }
+
+    /**
+     * @return \Paynl\Result\Payment\Authorize
+     * @throws \Paynl\Error\Api
+     * @throws \Paynl\Error\Error
+     * @throws \Paynl\Error\Required\ApiToken
+     */
+    public function authorize(array $params, string $salesChannelId)
+    {
+        $ped = $params['pay_encrypted_data'] ?? null;
+        $transId = $params['transaction_id'] ?? null;
+        $ecode = $params['entrance_code'] ?? null;
+        $acquirerId = $params['acquirer_id'] ?? null;
+        $tdsTransactionId = $params['threeds_transaction_id'] ?? null;
+
+        $payload = json_decode($ped, true);
+
+        $transaction = new Model\Authorize\Transaction();
+        $transaction->setOrderId($transId)->setEntranceCode($ecode);
+
+        $cse = new Model\CSE();
+        $cse->setIdentifier($payload['identifier']);
+        $cse->setData($payload['data']);
+
+        $auth = new Model\Auth();
+        $auth->setPayTdsAcquirerId($acquirerId);
+        $auth->setPayTdsTransactionId($tdsTransactionId);
+
+        $payment = new Model\Payment();
+        $payment->setMethod(Model\Payment::METHOD_CSE);
+        $payment->setCse($cse);
+        $payment->setAuth($auth);
+
+        $this->setCredentials($salesChannelId);
+
+        return Payment::authorize($transaction, $payment);
     }
 
     /**
@@ -372,5 +560,12 @@ class Api
         $this->setCredentials($salesChannelId);
 
         return (array)Instore::getAllTerminals()->getList();
+    }
+
+    public function getPublicKeys(string $salesChannelId): array
+    {
+        $this->setCredentials($salesChannelId);
+
+        return Payment::paymentEncryptionKeys()->getKeys();
     }
 }

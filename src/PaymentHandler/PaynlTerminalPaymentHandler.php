@@ -207,7 +207,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
                 case PaynlInstoreTransactionStatusesEnum::APPROVED:
                     $this->saveTransactionReceiptApprovalId($transaction->getOrderTransaction()->getId(), $instoreHash);
 
-                    $this->processingHelper->instorePaymentUpdateState(
+                    $this->processingHelper->updatePaymentStateByTransactionId(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_PAID,
                         PaynlTransactionStatusesEnum::STATUS_PAID
@@ -215,7 +215,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
                     return;
                 case PaynlInstoreTransactionStatusesEnum::EXPIRED:
-                    $this->processingHelper->instorePaymentUpdateState(
+                    $this->processingHelper->updatePaymentStateByTransactionId(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_CANCEL,
                         PaynlTransactionStatusesEnum::STATUS_EXPIRED
@@ -225,7 +225,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
                 case PaynlInstoreTransactionStatusesEnum::CANCELLED:
                 case PaynlInstoreTransactionStatusesEnum::ERROR:
-                    $this->processingHelper->instorePaymentUpdateState(
+                    $this->processingHelper->updatePaymentStateByTransactionId(
                         $paynlTransactionId,
                         StateMachineTransitionActions::ACTION_CANCEL,
                         PaynlTransactionStatusesEnum::STATUS_CANCEL
@@ -237,7 +237,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             usleep(1000000);
         }
 
-        $this->processingHelper->instorePaymentUpdateState(
+        $this->processingHelper->updatePaymentStateByTransactionId(
             $paynlTransactionId,
             StateMachineTransitionActions::ACTION_CANCEL,
             PaynlTransactionStatusesEnum::STATUS_EXPIRED

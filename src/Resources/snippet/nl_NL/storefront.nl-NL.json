@@ -3,12 +3,14 @@
         "statuses": {
             "cancelled": "Betaling geannuleerd",
             "denied": "Betaling afgewezen",
+            "failed": "Betaling mislukt",
             "in_progress": "De betaling wordt geverifieerd door de beheerder.",
             "paid": "Betaling geslaagd!"
         },
         "messages": {
             "cancelledTransaction": "Uw betaling kon niet worden verwerkt met de gekozen betaalmethode, kies een andere betaaloptie of probeer opnieuw.",
             "deniedTransaction": "Afgewezen door de betaaloptie (kies andere betaalmethode).",
+            "failedTransaction": "Betaling afgewezen door betaaloptie",
             "completePaymentPin" : "Rond uw betaling af op de pin terminal"
         },
         "labels": {
@@ -26,5 +28,45 @@
     "coc": {
         "label": "KVK-nummer",
         "placeholder": "Voer KVK-nummer in"
+    },
+    "cse": {
+        "title": "Creditcardbetaling",
+        "cardName": {
+            "label": "Naam op kaart",
+            "placeholder": "Naam zoals die op de kaart staat"
+        },
+        "cardNumber": {
+            "label": "Kaartnummer",
+            "placeholder": "Vul hier uw kaartnummer in"
+        },
+        "cvc": {
+            "label": "CVC",
+            "placeholder": "123"
+        },
+        "month": {
+            "label": "Maand",
+            "placeholder": "Selecteer"
+        },
+        "year": {
+            "label": "Jaar",
+            "placeholder": "Selecteer"
+        },
+        "placeOrder": {
+            "label": "Bestelling plaatsen"
+        }
+    },
+    "month": {
+        "jan": "januari",
+        "feb": "februari",
+        "mar": "maart",
+        "apr": "april",
+        "may": "mei",
+        "jun": "juni",
+        "jul": "juli",
+        "aug": "augustus",
+        "sep": "september",
+        "oct": "oktober",
+        "nov": "november",
+        "dec": "december"
     }
 }

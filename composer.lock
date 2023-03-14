@@ -4,26 +4,26 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9be90e36404f63efac81fddc45f92fc0",
+    "content-hash": "8225897ebb8c06c0fbd7de99fe7ca9b1",
     "packages": [
         {
             "name": "paynl/sdk",
-            "version": "v1.5.15",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paynl/sdk.git",
-                "reference": "c801462646b8182677c00d6c0a39a505266067b4"
+                "reference": "ff5ec77b73b85fb474e4b235c64f0a62ca4ea79b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paynl/sdk/zipball/c801462646b8182677c00d6c0a39a505266067b4",
-                "reference": "c801462646b8182677c00d6c0a39a505266067b4",
+                "url": "https://api.github.com/repos/paynl/sdk/zipball/ff5ec77b73b85fb474e4b235c64f0a62ca4ea79b",
+                "reference": "ff5ec77b73b85fb474e4b235c64f0a62ca4ea79b",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php-curl-class/php-curl-class": "^8.3"
+                "php-curl-class/php-curl-class": "^8.3||^9.0"
             },
             "require-dev": {
                 "php-coveralls/php-coveralls": "^1.0",
@@ -48,7 +48,11 @@
                     "email": "andy@pay.nl"
                 }
             ],
-            "time": "2020-06-18T14:33:40+00:00"
+            "support": {
+                "issues": "https://github.com/paynl/sdk/issues",
+                "source": "https://github.com/paynl/sdk/tree/v2.0.1"
+            },
+            "time": "2022-07-06T16:49:30+00:00"
         },
         {
             "name": "php-curl-class/php-curl-class",
@@ -125,5 +129,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }

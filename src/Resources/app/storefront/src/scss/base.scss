@@ -7,6 +7,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.paynl-payment-methods-custom-styles .payment-method .paynl-cse-extra-wrapper {
+    display: block;
 }
 
 .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
@@ -16,6 +21,10 @@
 .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra input.form-control,
 .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra .paynl-ideal-banks-select {
     max-width: 200px;
+}
+
+.paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-cse input.form-control {
+    max-width: none;
 }
 
 .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra .form-group {
@@ -43,7 +52,7 @@
     display: none !important;
 }
 
-.paynl-payment-method-extra {
+.paynl-payment-method-extra, .paynl-payment-method-cse {
     padding-left: 1.5rem;
     display: none;
 }
@@ -52,7 +61,12 @@
     display: flex;
 }
 
-.paynl-payment-method-extra.active {
+.paynl-payment-methods-custom-styles .paynl-payment-method-cse.active {
+    display: block;
+}
+
+.paynl-payment-method-extra.active,
+.paynl-payment-method-cse.active {
     display: block;
 }
 
@@ -70,12 +84,110 @@
     text-align: center;
 }
 
+/* CSE */
+.paynl-payment-method-cse fieldset, .paynl-payment-method-cse legend {
+    border: 0;
+}
+.paynl-payment-method-cse [data-credit-card-type] {
+    display: block;
+    height: inherit;
+    background-size: cover;
+}
+.paynl-payment-method-cse .form-element-container {
+    display: block;
+}
+.paynl-payment-method-cse .has-icon-container {
+    flex-direction: row;
+    box-sizing: border-box;
+    flex: 0 1 auto;
+}
+.paynl-payment-method-cse .has-icon-wrap {
+    position: relative;
+}
+.paynl-payment-method-cse .has-icon-container .icon-container {
+    pointer-events: none;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    height: 31px;
+}
+.paynl-payment-method-cse .has-icon-container .input-container {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+.paynl-payment-method-cse .has-icon-container .input-container input {
+    position: relative;
+}
+.paynl-payment-method-cse button[type=submit] {
+    height: 50px;
+}
+.paynl-payment-method-cse button[type=submit] span {
+    display: none;
+}
+.paynl-payment-method-cse button[type=submit] span.not-loading {
+    margin: 1em;
+}
+.paynl-payment-method-cse button[type=submit] span.loading {
+    margin: 1em;
+}
+.paynl-payment-method-cse button[data-loading-state="0"] .state-loading {
+    display: none;
+}
+.paynl-payment-method-cse button[data-loading-state="0"] .state-not-loading {
+    display: inline-block;
+}
+.paynl-payment-method-cse button[data-loading-state="1"] {
+    padding: 0;
+}
+.paynl-payment-method-cse button[data-loading-state="1"] .state-loading {
+    margin-top: 5px;
+    display: inline-block;
+}
+.paynl-payment-method-cse button[data-loading-state="1"] .state-not-loading {
+    display: none;
+}
+.paynl-payment-method-cse .row-pan-cvc-group, .paynl-payment-method-cse .row-expiry-group {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
+}
+.paynl-payment-method-cse .row-pan-cvc-group .column-pan {
+    flex-basis: 75%;
+}
+.paynl-payment-method-cse .row-pan-cvc-group .column-cvc {
+    flex-basis: 20%;
+}
+.paynl-payment-method-cse .row-expiry-group .column-month {
+    flex-basis: 75%;
+}
+.paynl-payment-method-cse .row-expiry-group .column-year {
+    flex-basis: 20%;
+}
+
+.js-pseudo-modal .js-pseudo-modal-template-content-element iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.js-pseudo-modal .modal-content {
+    height: 600px;
+}
+
+.js-pseudo-modal .modal-header .close {
+    display: none;
+}
+
 @media screen and (max-width: 767px) {
     .paynl-payment-methods-custom-styles .payment-method,
     .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
+        flex-wrap: wrap;
     }
 
     .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {

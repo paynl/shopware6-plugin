@@ -3,12 +3,14 @@
         "statuses": {
             "cancelled": "Zahlung storniert",
             "denied": "Bezahlung verweigert ",
+            "failed": "Zahlung fehlgeschlagen",
             "in_progress": "Die Zahlung wird durch den Verwalter überprüft.",
             "paid": "Zahlung erfolgreich!"
         },
         "messages": {
             "cancelledTransaction": "Ihre Zahlung konnte mit der gewählten Zahlungsmethode nicht verarbeitet werden, bitte wählen Sie eine andere aus oder versuchen Sie es erneut.",
             "deniedTransaction": "Zahlung vom Zahlungsanbieter verweigert (andere Zahlungsmethode wählen).",
+            "failedTransaction": "Ihre Zahlung wurde vom Zahlungsdienstleister abgelehnt",
             "completePaymentPin" : "Zahlung bitte mit Pin/Chip-Terminal durchführen"
         },
         "labels": {
@@ -27,5 +29,45 @@
     "coc": {
         "label": "IHK-Nummer",
         "placeholder": "IHK-Nummer eingeben"
+    },
+    "cse": {
+        "title": "Kreditkartenzahlung",
+        "cardName": {
+            "label": "Karteninhaber",
+            "placeholder": "Name auf der Karte"
+        },
+        "cardNumber": {
+            "label": "Kreditkartennummer",
+            "placeholder": "Bitte eingeben"
+        },
+        "cvc": {
+            "label": "Prüfnr",
+            "placeholder": "3-stellig"
+        },
+        "month": {
+            "label": "Monat",
+            "placeholder": "Auswählen"
+        },
+        "year": {
+            "label": "Jahr",
+            "placeholder": "Auswählen"
+        },
+        "placeOrder": {
+            "label": "Bestellung aufgeben"
+        }
+    },
+    "month": {
+        "jan": "Januar",
+        "feb": "Februar",
+        "mar": "März",
+        "apr": "April",
+        "may": "Mai",
+        "jun": "Juni",
+        "jul": "Juli",
+        "aug": "August",
+        "sep": "September",
+        "oct": "Oktober",
+        "nov": "November",
+        "dec": "Dezember"
     }
 }

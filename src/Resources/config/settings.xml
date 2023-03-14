@@ -79,6 +79,15 @@
             <helpText lang="nl-NL">Enable this to use styles by PAY. on payment methods form</helpText>
             <helpText lang="de-DE">Aktivieren Sie dies, um die Stile von PAY. im Auswahlbildschirm für Zahlungsmethoden zu verwenden, im Checkout</helpText>
         </input-field>
+        <input-field type="bool">
+            <name>cseEnabled</name>
+            <label>Embed credit card payments</label>
+            <label lang="nl-NL">Integreer creditcardbetalingen</label>
+            <label lang="de-DE">Kreditkartenzahlungen einbetten</label>
+            <helpText>Allow your customers to remain on the website for the entire payment process, providing them with a faster and smoother checkout experience. This functionality will enable a customer to enter their card details directly in the checkout</helpText>
+            <helpText lang="nl-NL">Laat uw klanten gedurende het hele betalingsproces op de website blijven, zodat ze sneller en soepeler kunnen afrekenen. Met deze functionaliteit kan een klant zijn kaartgegevens direct bij het afrekenen invoeren</helpText>
+            <helpText lang="de-DE">Ermöglichen Sie Ihren Kunden, während des gesamten Zahlungsvorgangs auf der Website zu bleiben, und bieten Sie ihnen so ein schnelleres und reibungsloseres Bezahlerlebnis. Diese Funktion ermöglicht es einem Kunden, seine Kartendaten direkt an der Kasse einzugeben</helpText>
+        </input-field>
         <input-field type="single-select">
             <name>showDescription</name>
             <label>Payment methods description</label>
