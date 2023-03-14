@@ -199,24 +199,26 @@ export default class PaynlCsePlugin extends Plugin {
             self.payDebug('event.onActionableResponseEvent');
             let transaction = event.subject.data.transaction;
             let transactionId = transaction !== undefined ? transaction.transactionId : null;
-            if (transactionId !== null) {
-                let params = {
-                    'orderId': self.orderId,
-                    'finishUrl': self.finishUrl.toString(),
-                    'errorUrl': self.errorUrl.toString(),
-                    'paymentType': 'cse',
-                    'transactionId': transactionId,
-                };
-
-                self.transactionId = transactionId;
-
-                // Handle payment
-                self._client.post(
-                    paynlCheckoutOptions.paymentHandleUrl,
-                    JSON.stringify(params),
-                    self.afterPayOrder.bind(self, self.orderId),
-                );
+            if (transactionId === null || transactionId === self.transactionId) {
+                return;
             }
+
+            let params = {
+                'orderId': self.orderId,
+                'finishUrl': self.finishUrl.toString(),
+                'errorUrl': self.errorUrl.toString(),
+                'paymentType': 'cse',
+                'transactionId': transactionId,
+            };
+
+            self.transactionId = transactionId;
+
+            // Handle payment
+            self._client.post(
+                paynlCheckoutOptions.paymentHandleUrl,
+                JSON.stringify(params),
+                self.afterPayOrder.bind(self, self.orderId),
+            );
         });
 
         $(document).on('hide.bs.modal', '.js-pseudo-modal', function (event) {
