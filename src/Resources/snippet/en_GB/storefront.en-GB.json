@@ -10,7 +10,7 @@
         "messages": {
             "cancelledTransaction": "Your payment could not be processed with the selected payment method, please select another one or try again.",
             "deniedTransaction": "Your payment was rejected by payment provider (select another payment method).",
-            "failedTransaction": "Your payment was failed by payment provider.",
+            "failedTransaction": "Your payment was denied by payment provider",
             "completePaymentPin" : "Please complete payment on pin/chip device"
         },
         "labels": {
