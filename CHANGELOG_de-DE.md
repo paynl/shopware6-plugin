@@ -1,5 +1,7 @@
 # 1.4.19
+- Aktualisierung des Zahlungsstatus von "teilweise bezahlt" zu "bezahlt" behoben
 
+# 1.4.18
 - Verbesserung der allgemeinen Code-Qualität und Fehler-Korrekturen
 
 # 1.4.17

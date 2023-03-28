@@ -1,4 +1,5 @@
 # 1.4.19
+- Fixed updating payment status from partly paid to the paid state
 
 # 1.4.18
 - Code improvements and bug fixes
