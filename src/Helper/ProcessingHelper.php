@@ -330,21 +330,26 @@ class ProcessingHelper
         int $paynlTransactionStatusCode
     ): void {
         $orderTransaction = $paynlTransactionEntity->getOrderTransaction();
+        $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
         $stateMachineStateId = $orderTransaction->getStateId();
         $stateMachineId = $orderTransaction->getStateMachineState()->getStateMachineId();
+        $context = Context::createDefaultContext();
 
-        $allowedTransitionsStatesCount = $this->getAllowedTransitionsStatesCount(
-            $transitionName,
-            $stateMachineId,
-            $stateMachineStateId
-        );
+        $allowedTransitions = $this->getAllowedTransitions($transitionName, $stateMachineId, $stateMachineStateId);
+
+        if ($this->isPaidPartlyToPaidTransition($transitionName, $orderTransactionId, $context)) {
+            $allowedTransitions = $this->getAllowedTransitions(
+                StateMachineTransitionActions::ACTION_DO_PAY,
+                $stateMachineId,
+                $stateMachineStateId
+            );
+        }
 
         if (
             !empty($transitionName)
             && ($transitionName !== $paynlTransactionEntity->getLatestActionName())
-            && ($allowedTransitionsStatesCount > 0)
+            && ($allowedTransitions > 0)
         ) {
-            $orderTransactionId = $paynlTransactionEntity->get('orderTransactionId') ?: '';
             $stateMachine = $this->manageOrderTransactionStateTransition(
                 $orderTransactionId,
                 $transitionName
@@ -366,7 +371,7 @@ class ProcessingHelper
             $paynlTransactionEntity->getOrder(),
             $paynlTransactionStatusCode,
             $paynlTransactionEntity->getOrder()->getSalesChannelId(),
-            Context::createDefaultContext()
+            $context
         );
     }
 
@@ -390,11 +395,8 @@ class ProcessingHelper
         return (bool)$this->paynlTransactionRepository->search($criteria, $context)->count();
     }
 
-    private function getAllowedTransitionsStatesCount(
-        string $actionName,
-        string $stateMachineId,
-        string $stateMachineStateId
-    ): int {
+    private function getAllowedTransitions(string $actionName, string $stateMachineId, string $stateMachineStateId): int
+    {
         $filter = (new Criteria())->addFilter(
             new MultiFilter(
                 MultiFilter::CONNECTION_AND,
@@ -411,6 +413,26 @@ class ProcessingHelper
         $context = Context::createDefaultContext();
 
         return $this->stateMachineTransitionRepository->search($filter, $context)->count();
+    }
+
+    private function isPaidPartlyToPaidTransition(
+        string $transitionName,
+        string $orderTransactionId,
+        Context $context
+    ): bool {
+        $transactionCriteria = (new Criteria([$orderTransactionId]))
+            ->addAssociation('stateMachineState');
+        /** @var null|OrderTransactionEntity $transaction */
+        $transaction = $this->orderTransactionRepository->search($transactionCriteria, $context)->first();
+
+        if (empty($transaction)
+            || $transitionName !== StateMachineTransitionActions::ACTION_PAID
+            || $transaction->getStateMachineState()->getTechnicalName() !== OrderTransactionStates::STATE_PARTIALLY_PAID
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -479,15 +501,7 @@ class ProcessingHelper
     ): StateMachineStateCollection {
         $context = Context::createDefaultContext();
 
-        $transactionCriteria = (new Criteria([$orderTransactionId]))
-            ->addAssociation('stateMachineState');
-        /** @var null|OrderTransactionEntity $transaction */
-        $transaction = $this->orderTransactionRepository->search($transactionCriteria, $context)->first();
-
-        if (!empty($transaction)
-            && $orderTransactionTransitionName === StateMachineTransitionActions::ACTION_PAID
-            && $transaction->getStateMachineState()->getTechnicalName() === OrderTransactionStates::STATE_PARTIALLY_PAID
-        ) {
+        if ($this->isPaidPartlyToPaidTransition($orderTransactionTransitionName, $orderTransactionId, $context)) {
             // If the previous state is "paid_partially", "paid" is currently not allowed as direct transition,
             // see https://github.com/shopwareLabs/SwagPayPal/blob/b63efb9/src/Util/PaymentStatusUtil.php#L79
             $this->manageOrderTransactionStateTransition(
