@@ -1,4 +1,5 @@
 # 1.4.20
+- Snippet-Übersetzungen hinzugefügt
 
 # 1.4.19
 - Aktualisierung des Zahlungsstatus von "teilweise bezahlt" zu "bezahlt" behoben

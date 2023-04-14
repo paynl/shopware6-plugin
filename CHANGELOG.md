@@ -1,4 +1,5 @@
 # 1.4.20
+- Added snippets
 
 # 1.4.19
 - Fixed updating payment status from partly paid to the paid state
