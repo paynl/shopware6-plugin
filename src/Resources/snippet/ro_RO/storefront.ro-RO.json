@@ -1,0 +1,32 @@
+{
+    "checkout": {
+        "statuses": {
+            "cancelled": "Payment cancelled",
+            "denied": "Payment denied",
+            "in_progress": "Payment is being verified by the administrator.",
+            "paid": "Payment successful!"
+        },
+        "messages": {
+            "cancelledTransaction": "Your payment could not be processed with the selected payment method, please select another one or try again.",
+            "deniedTransaction": "Your payment was rejected by payment provider (select another payment method).",
+            "completePaymentPin" : "Please complete payment on pin/chip device",
+            "orderAmountPaymentError": "Unfortunately the order amount does not fit the requirements for this payment method.",
+            "orderDefaultError": "Unfortunately something went wrong"
+        },
+        "labels": {
+            "changePayment": "Try again",
+            "dob": "Date of birth dd-mm-yyyy:",
+            "phone": "Phone:"
+        }
+    },
+    "transactionLabels": {
+        "order": "Order: "
+    },
+    "payment": {
+        "selectIssuer": "Select Issuer"
+    },
+    "coc": {
+        "label": "KVK/COC Number",
+        "placeholder": "Enter your COC number"
+    }
+}

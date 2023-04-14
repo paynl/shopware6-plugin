@@ -203,6 +203,30 @@
             <tag name="shopware.snippet.file"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Resources\snippet\it_IT\SnippetFileIt">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Resources\snippet\fr_FR\SnippetFileFr">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Resources\snippet\es_ES\SnippetFileEs">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Resources\snippet\pl_PL\SnippetFilePl">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Resources\snippet\pt_PT\SnippetFilePt">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Resources\snippet\ro_RO\SnippetFileRo">
+            <tag name="shopware.snippet.file"/>
+        </service>
+
         <!--Subscribers-->
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
             <tag name="kernel.event_subscriber"/>
