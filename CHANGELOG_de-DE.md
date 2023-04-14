@@ -1,3 +1,5 @@
+# 1.4.20
+
 # 1.4.19
 - Aktualisierung des Zahlungsstatus von "teilweise bezahlt" zu "bezahlt" behoben
 
