@@ -111,7 +111,7 @@ class RefundController extends AbstractController
 
     private function getRefundDataResponse(Request $request): JsonResponse
     {
-        $paynlTransactionId = $request->get('transactionId');
+        $paynlTransactionId = $request->query->get('transactionId');
         $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 

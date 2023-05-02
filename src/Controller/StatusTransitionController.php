@@ -63,8 +63,8 @@ class StatusTransitionController extends AbstractController
 
     private function getChangeTransactionStatusResponse(Request $request): JsonResponse
     {
-        $orderTransactionId = $request->get('transactionId', '');
-        $currentActionName = $request->get('currentActionName', '');
+        $orderTransactionId = $request->request->get('transactionId', '');
+        $currentActionName = $request->request->get('currentActionName', '');
         try {
             /** @var PaynlTransactionEntity $paynlTransaction */
             $paynlTransaction = $this->paynlTransactionRepository

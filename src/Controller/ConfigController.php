@@ -2,7 +2,6 @@
 
 namespace PaynlPayment\Shopware6\Controller;
 
-use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
@@ -98,7 +97,7 @@ class ConfigController extends AbstractController
      */
     public function getPaymentTerminals(Request $request): JsonResponse
     {
-        $salesChannelId = $request->get('salesChannelId');
+        $salesChannelId = $request->query->get('salesChannelId');
 
         $terminals = $this->settingsHelper->getTerminalsOptions($salesChannelId);
 
@@ -107,7 +106,7 @@ class ConfigController extends AbstractController
 
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
-        $salesChannelId = $request->get('salesChannelId');
+        $salesChannelId = $request->query->get('salesChannelId');
         $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
             : [$salesChannelId];
 

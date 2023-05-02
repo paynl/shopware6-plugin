@@ -2,9 +2,9 @@
 
 namespace PaynlPayment\Shopware6\Resources\snippet\de_DE;
 
-use Shopware\Core\System\Snippet\Files\SnippetFileInterface;
+use Shopware\Core\System\Snippet\Files\AbstractSnippetFile;
 
-class SnippetFileDe implements SnippetFileInterface
+class SnippetFileDe extends AbstractSnippetFile
 {
     public function getName(): string
     {
@@ -29,5 +29,10 @@ class SnippetFileDe implements SnippetFileInterface
     public function isBase(): bool
     {
         return false;
+    }
+
+    public function getTechnicalName(): string
+    {
+        return $this->getName();
     }
 }
