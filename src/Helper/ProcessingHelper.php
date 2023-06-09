@@ -14,7 +14,7 @@ use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
@@ -35,13 +35,13 @@ class ProcessingHelper
     /** @var Api */
     private $paynlApi;
 
-    /** @var EntityRepositoryInterface */
+    /** @var EntityRepository */
     private $paynlTransactionRepository;
 
-    /** @var EntityRepositoryInterface  */
+    /** @var EntityRepository  */
     private $orderTransactionRepository;
 
-    /** @var EntityRepositoryInterface  */
+    /** @var EntityRepository  */
     private $stateMachineTransitionRepository;
 
     /** @var StateMachineRegistry */
@@ -52,9 +52,9 @@ class ProcessingHelper
 
     public function __construct(
         Api $api,
-        EntityRepositoryInterface $paynlTransactionRepository,
-        EntityRepositoryInterface $orderTransactionRepository,
-        EntityRepositoryInterface $stateMachineTransitionRepository,
+        EntityRepository $paynlTransactionRepository,
+        EntityRepository $orderTransactionRepository,
+        EntityRepository $stateMachineTransitionRepository,
         StateMachineRegistry $stateMachineRegistry,
         OrderStatusUpdater $orderStatusUpdater
     ) {

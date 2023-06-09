@@ -9,7 +9,7 @@ use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
@@ -22,7 +22,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /** @var RequestStack */
     private $requestStack;
 
-    /** @var EntityRepositoryInterface */
+    /** @var EntityRepository */
     private $paymentMethodRepository;
 
     /** @var CustomerHelper $customerHelper */
@@ -33,7 +33,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 
     public function __construct(
         RequestStack $requestStack,
-        EntityRepositoryInterface $paymentMethodRepository,
+        EntityRepository $paymentMethodRepository,
         CustomerHelper $customerHelper,
         RequestDataBagHelper $requestDataBagHelper
     ) {

@@ -17,7 +17,7 @@ use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
@@ -62,16 +62,16 @@ class InstallHelper
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
 
-    /** @var EntityRepositoryInterface $paymentMethodRepository */
+    /** @var EntityRepository $paymentMethodRepository */
     private $paymentMethodRepository;
 
-    /** @var EntityRepositoryInterface $salesChannelRepository */
+    /** @var EntityRepository $salesChannelRepository */
     private $salesChannelRepository;
 
-    /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
+    /** @var EntityRepository $paymentMethodSalesChannelRepository */
     private $paymentMethodSalesChannelRepository;
 
-    /** @var EntityRepositoryInterface $systemConfigRepository */
+    /** @var EntityRepository $systemConfigRepository */
     private $systemConfigRepository;
 
     /** @var PaymentHandlerFactory */
@@ -84,10 +84,10 @@ class InstallHelper
         Api $paynlApi,
         PaymentHandlerFactory $paymentHandlerFactory,
         MediaHelper $mediaHelper,
-        EntityRepositoryInterface $paymentMethodRepository,
-        EntityRepositoryInterface $salesChannelRepository,
-        EntityRepositoryInterface $paymentMethodSalesChannelRepository,
-        EntityRepositoryInterface $systemConfigRepository
+        EntityRepository $paymentMethodRepository,
+        EntityRepository $salesChannelRepository,
+        EntityRepository $paymentMethodSalesChannelRepository,
+        EntityRepository $systemConfigRepository
     ) {
         $this->pluginIdProvider = $pluginIdProvider;
         $this->connection = $connection;

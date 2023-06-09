@@ -8,7 +8,7 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,10 +35,10 @@ class RefundController extends AbstractController
     public function __construct(
         Api $paynlApi,
         Config $paynlConfig,
-        EntityRepositoryInterface $transactionRepository,
-        EntityRepositoryInterface $productRepository,
+        EntityRepository $transactionRepository,
+        EntityRepository $productRepository,
         ProcessingHelper $processingHelper,
-        EntityRepositoryInterface $paynlTransactionRepository
+        EntityRepository $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;

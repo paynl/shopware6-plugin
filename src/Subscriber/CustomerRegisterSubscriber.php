@@ -7,7 +7,7 @@ use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEnt
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\CustomerEvents;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -23,12 +23,12 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     private $requestStack;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var EntityRepository
      */
     private $customerAddressRepository;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var EntityRepository
      */
     private $customerRepository;
 
@@ -42,8 +42,8 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
 
     public function __construct(
         RequestStack $requestStack,
-        EntityRepositoryInterface $customerAddressRepository,
-        EntityRepositoryInterface $customerRepository,
+        EntityRepository $customerAddressRepository,
+        EntityRepository $customerRepository,
         CustomerHelper $customerHelper
     ) {
         $this->requestStack = $requestStack;

@@ -5,7 +5,7 @@ namespace PaynlPayment\Shopware6\Helper;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\LanguageEnum;
 use Shopware\Core\Checkout\Order\OrderEntity;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\Framework\Context;
@@ -22,7 +22,7 @@ class TransactionLanguageHelper
     private $config;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var EntityRepository
      */
     private $languageRepository;
 
@@ -33,7 +33,7 @@ class TransactionLanguageHelper
 
     public function __construct(
         Config $config,
-        EntityRepositoryInterface $languageRepository,
+        EntityRepository $languageRepository,
         RequestStack $requestStack
     ) {
         $this->config = $config;

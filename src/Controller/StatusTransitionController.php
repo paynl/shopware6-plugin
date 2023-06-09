@@ -7,7 +7,7 @@ use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
@@ -31,7 +31,7 @@ class StatusTransitionController extends AbstractController
         Api $paynlApi,
         Config $paynlConfig,
         ProcessingHelper $processingHelper,
-        EntityRepositoryInterface $paynlTransactionRepository
+        EntityRepository $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;

@@ -8,7 +8,7 @@ use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
 
@@ -21,19 +21,19 @@ class CustomerHelper
     private $config;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var EntityRepository
      */
     private $customerAddressRepository;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var EntityRepository
      */
     private $customerRepository;
 
     public function __construct(
         Config $config,
-        EntityRepositoryInterface $customerAddressRepository,
-        EntityRepositoryInterface $customerRepository
+        EntityRepository $customerAddressRepository,
+        EntityRepository $customerRepository
     ) {
         $this->config = $config;
         $this->customerAddressRepository = $customerAddressRepository;
