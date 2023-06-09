@@ -27,7 +27,6 @@ use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
@@ -125,8 +124,8 @@ class PaynlPaymentShopware6 extends Plugin
         $orderRepository = $this->container->get('order.repository');
         /** @var TranslatorInterface $translator */
         $translator = $this->container->get('translator');
-        /** @var Session $session */
-        $session = $this->container->get('session');
+        /** @var RequestStack $requestStack */
+        $requestStack = $this->container->get('request_stack');
 
         return new Api(
             $this->getConfig(),
@@ -135,7 +134,7 @@ class PaynlPaymentShopware6 extends Plugin
             $productRepository,
             $orderRepository,
             $translator,
-            $session
+            $requestStack
         );
     }
 
