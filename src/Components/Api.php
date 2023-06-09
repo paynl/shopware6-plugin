@@ -25,8 +25,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 class Api
 {
@@ -52,8 +52,8 @@ class Api
     private $orderRepository;
     /** @var TranslatorInterface */
     private $translator;
-    /** @var Session */
-    private $session;
+    /** @var RequestStack */
+    private $requestStack;
 
     public function __construct(
         Config $config,
@@ -62,7 +62,7 @@ class Api
         EntityRepositoryInterface $productRepository,
         EntityRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
-        Session $session
+        RequestStack $requestStack
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
@@ -70,7 +70,7 @@ class Api
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
-        $this->session = $session;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -180,7 +180,7 @@ class Api
         $customer = $salesChannelContext->getCustomer();
         $customerCustomFields = $customer->getCustomFields();
         $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->session->get('paynlIssuer'));
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->requestStack->getSession()->get('paynlIssuer'));
 
         if (!empty($bank)) {
             $orderCustomFields = (array)$order->getCustomFields();

@@ -11,7 +11,6 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -19,16 +18,13 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class PaynlAccountOrderController extends StorefrontController
 {
-    /** @var Session */
-    private $session;
-
     /**
      * @var CustomerHelper
      */
     private $customerHelper;
 
-    public function __construct(Session $session, CustomerHelper $customerHelper) {
-        $this->session = $session;
+    public function __construct(CustomerHelper $customerHelper)
+    {
         $this->customerHelper = $customerHelper;
     }
 

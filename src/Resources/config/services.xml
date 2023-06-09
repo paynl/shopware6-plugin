@@ -69,7 +69,7 @@
             <argument type="service" id="product.repository"/>
             <argument type="service" id="order.repository"/>
             <argument type="service" id="translator" />
-            <argument type="service" id="session"/>
+            <argument type="service" id="request_stack"/>
         </service>
 
         <!--Definition Extensions-->
@@ -116,7 +116,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="translator"/>
-            <argument type="service" id="session"/>
+            <argument type="service" id="request_stack"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
         </service>
@@ -147,7 +147,6 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController" public="true">
-            <argument type="service" id="session"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
@@ -206,7 +205,7 @@
         <!--Subscribers-->
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
             <tag name="kernel.event_subscriber"/>
-            <argument type="service" id="session"/>
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="payment_method.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
