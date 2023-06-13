@@ -472,16 +472,16 @@ class InstallHelper
         // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_VERIFY
-        ])->fetchColumn();
+        ])->fetchOne();
         $stateMachineStateAuthorizeId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE
-        ])->fetchColumn();
+        ])->fetchOne();
         $stateMachineStatePartlyCapturedId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED
-        ])->fetchColumn();
+        ])->fetchOne();
         $stateMachineStateRefundingId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_REFUNDING
-        ])->fetchColumn();
+        ])->fetchOne();
 
         // Remove state machine transition
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
@@ -717,7 +717,7 @@ class InstallHelper
 
         return $this->connection->executeQuery($sqlQuery, [
             'technical_name' => $technicalName,
-        ])->fetchColumn();
+        ])->fetchOne();
     }
 
     private function getMailTemplates(string $mailTemplateTypeId)
