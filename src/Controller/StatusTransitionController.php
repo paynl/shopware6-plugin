@@ -10,16 +10,12 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Paynl\Error;
 
-/**
- * @Route(defaults={"_routeScope"={"api"}})
- */
 class StatusTransitionController extends AbstractController
 {
     private $paynlApi;
@@ -42,7 +38,8 @@ class StatusTransitionController extends AbstractController
     /**
      * @Route("/api/paynl/change-transaction-status",
      *     name="api.PaynlPayment.changeTransactionStatusSW64",
-     *     methods={"POST"}
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function changeTransactionStatusSW64(Request $request): JsonResponse
@@ -53,7 +50,8 @@ class StatusTransitionController extends AbstractController
     /**
      * @Route("/api/v{version}/paynl/change-transaction-status",
      *     name="api.PaynlPayment.changeTransactionStatus",
-     *     methods={"POST"}
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function changeTransactionStatus(Request $request): JsonResponse

@@ -5,7 +5,6 @@ namespace PaynlPayment\Shopware6\Storefront\Controller;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
@@ -13,9 +12,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route(defaults={"_routeScope"={"storefront"}})
- */
 class PaynlAccountOrderController extends StorefrontController
 {
     /**
@@ -33,7 +29,7 @@ class PaynlAccountOrderController extends StorefrontController
      *     "/PaynlPayment/order/change/paylater-fields",
      *     name="frontend.PaynlPayment.edit-order.change-paylater-fields",
      *     methods={"POST"},
-     *     defaults={"csrf_protected"=false}
+     *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}},
      *     )
      * @param Request $request
      * @return JsonResponse

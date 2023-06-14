@@ -2,20 +2,15 @@
 
 namespace PaynlPayment\Shopware6\Controller;
 
-use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-/**
- * @Route(defaults={"_routeScope"={"api"}})
- */
 class ConfigController extends AbstractController
 {
     public $installHelper;
@@ -38,7 +33,8 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/paynl/install-payment-methods",
      *     name="api.action.PaynlPayment.installPaymentMethodsSW64",
-     *     methods={"GET"}
+     *     methods={"GET"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function installPaymentMethodsSW64(Request $request, Context $context): JsonResponse
@@ -50,7 +46,8 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/v{version}/paynl/install-payment-methods",
      *     name="api.action.PaynlPayment.installPaymentMethods",
-     *     methods={"GET"}
+     *     methods={"GET"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function installPaymentMethods(Request $request, Context $context): JsonResponse
@@ -64,7 +61,8 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/paynl/store-settings",
      *     name="api.action.PaynlPayment.storeSettingsSW64",
-     *     methods={"POST"}
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function storeSettingsSW64(Request $request, Context $context): JsonResponse
@@ -76,7 +74,8 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/v{version}/paynl/store-settings",
      *     name="api.action.PaynlPayment.storeSettings",
-     *     methods={"POST"}
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function storeSettings(Request $request, Context $context): JsonResponse
@@ -88,12 +87,14 @@ class ConfigController extends AbstractController
      * @Route(
      *     "/api/paynl/get-payment-terminals",
      *     name="api.action.PaynlPayment.get.payment-terminals",
-     *     methods={"GET"}
+     *     methods={"GET"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      * @Route(
      *     "/api/v{version}/paynl/get-payment-terminals",
      *     name="api.action.PaynlPayment.get.payment-terminals.legacy",
-     *     methods={"GET"}
+     *     methods={"GET"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function getPaymentTerminals(Request $request): JsonResponse

@@ -521,8 +521,8 @@ class InstallHelper
 
         $ids = array_map(function ($element) {
             return [
-                'salesChannelId' => $element['sales_channel_id'],
-                'paymentMethodId' => $element['payment_method_id']
+                'salesChannelId' => $element['sales_channel_id'] ?? $element['salesChannelId'],
+                'paymentMethodId' => $element['payment_method_id'] ?? $element['paymentMethodId']
             ];
         }, $salesChannelPaymentMethodIds->getData());
 
