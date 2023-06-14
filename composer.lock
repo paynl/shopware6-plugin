@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9be90e36404f63efac81fddc45f92fc0",
+    "content-hash": "423f745fe70a0f438dd9a2497ad621d9",
     "packages": [
         {
             "name": "paynl/sdk",
@@ -48,6 +48,10 @@
                     "email": "andy@pay.nl"
                 }
             ],
+            "support": {
+                "issues": "https://github.com/paynl/sdk/issues",
+                "source": "https://github.com/paynl/sdk/tree/master"
+            },
             "time": "2020-06-18T14:33:40+00:00"
         },
         {
@@ -115,6 +119,10 @@
                 "web-service",
                 "xml"
             ],
+            "support": {
+                "issues": "https://github.com/php-curl-class/php-curl-class/issues",
+                "source": "https://github.com/php-curl-class/php-curl-class/tree/8.8.0"
+            },
             "time": "2020-04-20T03:39:57+00:00"
         }
     ],
@@ -125,5 +133,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }

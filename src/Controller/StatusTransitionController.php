@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Paynl\Error;
 
 /**
- * @RouteScope(scopes={"api"})
+ * @Route(defaults={"_routeScope"={"api"}})
  */
 class StatusTransitionController extends AbstractController
 {

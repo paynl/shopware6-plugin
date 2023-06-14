@@ -1,7 +1,7 @@
 import Plugin from 'src/plugin-system/plugin.class';
 import IMask from '../../node_modules/imask/dist/imask';
 import DomAccess from 'src/helper/dom-access.helper';
-import HttpClient from 'src/service/store-api-client.service';
+import HttpClient from 'src/service/http-client.service';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
