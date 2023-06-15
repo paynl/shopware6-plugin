@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Controller;
+namespace PaynlPayment\Shopware6\Controller\Api\Refund;
 
+use Paynl\Error;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
@@ -9,15 +10,14 @@ use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Paynl\Error;
 
-class RefundController extends AbstractController
+class RefundControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;

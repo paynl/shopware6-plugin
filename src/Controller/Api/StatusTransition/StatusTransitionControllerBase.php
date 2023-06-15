@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Controller;
+namespace PaynlPayment\Shopware6\Controller\Api\StatusTransition;
 
+use Paynl\Error;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
@@ -14,9 +15,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Paynl\Error;
 
-class StatusTransitionController extends AbstractController
+class StatusTransitionControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;

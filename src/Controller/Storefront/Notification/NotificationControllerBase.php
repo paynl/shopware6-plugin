@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Storefront\Controller;
+namespace PaynlPayment\Shopware6\Controller\Storefront\Notification;
 
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Storefront\Controller\StorefrontController;
@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class NotificationController extends StorefrontController
+class NotificationControllerBase extends StorefrontController
 {
     /** @var ProcessingHelper */
     private $processingHelper;

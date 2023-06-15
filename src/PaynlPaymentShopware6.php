@@ -7,6 +7,8 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 // phpcs:enable
 
 use Doctrine\DBAL\Connection;
+use Exception;
+use PaynlPayment\Shopware6\Compatibility\DependencyLoader;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
@@ -25,8 +27,13 @@ use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
+use Shopware\Core\Kernel;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
@@ -75,6 +82,50 @@ class PaynlPaymentShopware6 extends Plugin
     public function deactivate(DeactivateContext $deactivateContext): void
     {
         $this->getInstallHelper()->deactivatePaymentMethods($deactivateContext->getContext());
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     * @throws Exception
+     */
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $this->container = $container;
+
+        # load the dependencies that are compatible
+        # with our current shopware version
+        $loader = new DependencyLoader($this->container);
+        $loader->loadServices();
+    }
+
+    /**
+     * @param RoutingConfigurator $routes
+     * @param string $environment
+     * @return void
+     */
+    public function configureRoutes(RoutingConfigurator $routes, string $environment): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        /** @var Container $container */
+        $container = $this->container;
+
+        $loader = new DependencyLoader($container);
+
+        $routeDir = $loader->getRoutesPath($this->getPath());
+
+        $fileSystem = new Filesystem();
+
+        if ($fileSystem->exists($routeDir)) {
+            $routes->import($routeDir . '/{routes}/*' . Kernel::CONFIG_EXTS, 'glob');
+            $routes->import($routeDir . '/{routes}/' . $environment . '/**/*' . Kernel::CONFIG_EXTS, 'glob');
+            $routes->import($routeDir . '/{routes}' . Kernel::CONFIG_EXTS, 'glob');
+            $routes->import($routeDir . '/{routes}_' . $environment . Kernel::CONFIG_EXTS, 'glob');
+        }
     }
 
     private function getConfig(): Config

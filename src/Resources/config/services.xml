@@ -138,52 +138,6 @@
         <service id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory">
         </service>
 
-        <!--Controllers-->
-        <service id="PaynlPayment\Shopware6\Storefront\Controller\NotificationController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Storefront\Controller\PaynlAccountOrderController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Controller\ConfigController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\SettingsHelper"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Controller\RefundController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="paynl_transactions.repository"/>
-            <argument type="service" id="product.repository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument type="service" id="paynl_transactions.repository"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Controller\StatusTransitionController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument type="service" id="paynl_transactions.repository"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
         <!--Entities-->
         <service id="PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition">
             <tag name="shopware.entity.definition" entity="paynl_transactions" />

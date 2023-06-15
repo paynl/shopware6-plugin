@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Storefront\Controller;
+namespace PaynlPayment\Shopware6\Controller\Storefront\AccountOrder;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-class PaynlAccountOrderController extends StorefrontController
+class AccountOrderControllerBase extends StorefrontController
 {
     /**
      * @var CustomerHelper
