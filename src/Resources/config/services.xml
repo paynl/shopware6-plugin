@@ -34,7 +34,7 @@
 
         <service id="PaynlPayment\Shopware6\Helper\MediaHelper">
             <argument type="service" id="Shopware\Core\Content\Media\File\FileSaver"/>
-            <argument type="service" id="media.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Media\MediaRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\SettingsHelper" public="true">
@@ -187,6 +187,11 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <tag name="kernel.event_subscriber"/>
             <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <!-- Repositories -->
+        <service id="PaynlPayment\Shopware6\Repository\Media\MediaRepository">
+            <argument type="service" id="media.repository"/>
         </service>
     </services>
 </container>

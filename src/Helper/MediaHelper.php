@@ -2,12 +2,12 @@
 
 namespace PaynlPayment\Shopware6\Helper;
 
+use PaynlPayment\Shopware6\Repository\Media\MediaRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\File\MediaFile;
 use Shopware\Core\Content\Media\MediaEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -19,7 +19,7 @@ class MediaHelper
     const MEDIA_NAME_PREFIX = 'paynlpayment';
     const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
 
-    /** @var EntityRepository */
+    /** @var MediaRepositoryInterface */
     private $mediaRepository;
 
     /** @var FileSaver */
@@ -27,7 +27,7 @@ class MediaHelper
 
     public function __construct(
         FileSaver $fileSaver,
-        EntityRepository $mediaRepository
+        MediaRepositoryInterface $mediaRepository
     ) {
         $this->fileSaver = $fileSaver;
         $this->mediaRepository = $mediaRepository;
