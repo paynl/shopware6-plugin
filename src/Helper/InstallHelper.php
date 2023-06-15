@@ -13,11 +13,14 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
@@ -62,16 +65,16 @@ class InstallHelper
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
 
-    /** @var EntityRepository $paymentMethodRepository */
+    /** @var PaymentMethodRepositoryInterface $paymentMethodRepository */
     private $paymentMethodRepository;
 
-    /** @var EntityRepository $salesChannelRepository */
+    /** @var SalesChannelRepositoryInterface $salesChannelRepository */
     private $salesChannelRepository;
 
-    /** @var EntityRepository $paymentMethodSalesChannelRepository */
+    /** @var SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository */
     private $paymentMethodSalesChannelRepository;
 
-    /** @var EntityRepository $systemConfigRepository */
+    /** @var SystemConfigRepositoryInterface $systemConfigRepository */
     private $systemConfigRepository;
 
     /** @var PaymentHandlerFactory */
@@ -84,10 +87,10 @@ class InstallHelper
         Api $paynlApi,
         PaymentHandlerFactory $paymentHandlerFactory,
         MediaHelper $mediaHelper,
-        EntityRepository $paymentMethodRepository,
-        EntityRepository $salesChannelRepository,
-        EntityRepository $paymentMethodSalesChannelRepository,
-        EntityRepository $systemConfigRepository
+        PaymentMethodRepositoryInterface $paymentMethodRepository,
+        SalesChannelRepositoryInterface $salesChannelRepository,
+        SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository,
+        SystemConfigRepositoryInterface $systemConfigRepository
     ) {
         $this->pluginIdProvider = $pluginIdProvider;
         $this->connection = $connection;

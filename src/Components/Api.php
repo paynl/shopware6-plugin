@@ -13,12 +13,13 @@ use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
+use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
@@ -46,9 +47,9 @@ class Api
     private $customerHelper;
     /** @var TransactionLanguageHelper */
     private $transactionLanguageHelper;
-    /** @var EntityRepository */
+    /** @var ProductRepositoryInterface */
     private $productRepository;
-    /** @var EntityRepository */
+    /** @var OrderRepositoryInterface */
     private $orderRepository;
     /** @var TranslatorInterface */
     private $translator;
@@ -59,8 +60,8 @@ class Api
         Config $config,
         CustomerHelper $customerHelper,
         TransactionLanguageHelper $transactionLanguageHelper,
-        EntityRepository $productRepository,
-        EntityRepository $orderRepository,
+        ProductRepositoryInterface $productRepository,
+        OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack
     ) {

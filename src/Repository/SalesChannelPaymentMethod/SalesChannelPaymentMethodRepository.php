@@ -1,7 +1,6 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Repository\Media;
+namespace PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod;
 
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -11,19 +10,19 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
-class MediaRepository implements MediaRepositoryInterface
+class SalesChannelPaymentMethodRepository implements SalesChannelPaymentMethodRepositoryInterface
 {
     /**
      * @var EntityRepository|EntityRepositoryInterface
      */
-    private $mediaRepository;
+    private $salesChannelPaymentMethodRepository;
 
     /**
-     * @param EntityRepository|EntityRepositoryInterface $mediaRepository
+     * @param EntityRepository|EntityRepositoryInterface $salesChannelPaymentMethodRepository
      */
-    public function __construct($mediaRepository)
+    public function __construct($salesChannelPaymentMethodRepository)
     {
-        $this->mediaRepository = $mediaRepository;
+        $this->salesChannelPaymentMethodRepository = $salesChannelPaymentMethodRepository;
     }
 
     /**
@@ -33,7 +32,7 @@ class MediaRepository implements MediaRepositoryInterface
      */
     public function upsert(array $data, Context $context): EntityWrittenContainerEvent
     {
-        return $this->mediaRepository->upsert($data, $context);
+        return $this->salesChannelPaymentMethodRepository->upsert($data, $context);
     }
 
     /**
@@ -43,7 +42,7 @@ class MediaRepository implements MediaRepositoryInterface
      */
     public function create(array $data, Context $context): EntityWrittenContainerEvent
     {
-        return $this->mediaRepository->create($data, $context);
+        return $this->salesChannelPaymentMethodRepository->create($data, $context);
     }
 
 
@@ -54,7 +53,7 @@ class MediaRepository implements MediaRepositoryInterface
      */
     public function search(Criteria $criteria, Context $context): EntitySearchResult
     {
-        return $this->mediaRepository->search($criteria, $context);
+        return $this->salesChannelPaymentMethodRepository->search($criteria, $context);
     }
 
     /**
@@ -64,7 +63,7 @@ class MediaRepository implements MediaRepositoryInterface
      */
     public function searchIds(Criteria $criteria, Context $context): IdSearchResult
     {
-        return $this->mediaRepository->searchIds($criteria, $context);
+        return $this->salesChannelPaymentMethodRepository->searchIds($criteria, $context);
     }
 
     /**
@@ -74,7 +73,7 @@ class MediaRepository implements MediaRepositoryInterface
      */
     public function update(array $data, Context $context): EntityWrittenContainerEvent
     {
-        return $this->mediaRepository->update($data, $context);
+        return $this->salesChannelPaymentMethodRepository->update($data, $context);
     }
 
     /**
@@ -84,6 +83,6 @@ class MediaRepository implements MediaRepositoryInterface
      */
     public function delete(array $ids, Context $context): EntityWrittenContainerEvent
     {
-        return $this->mediaRepository->delete($ids, $context);
+        return $this->salesChannelPaymentMethodRepository->delete($ids, $context);
     }
 }

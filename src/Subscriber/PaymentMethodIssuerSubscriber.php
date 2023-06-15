@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
@@ -22,7 +23,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /** @var RequestStack */
     private $requestStack;
 
-    /** @var EntityRepository */
+    /** @var PaymentMethodRepositoryInterface */
     private $paymentMethodRepository;
 
     /** @var CustomerHelper $customerHelper */
@@ -33,7 +34,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 
     public function __construct(
         RequestStack $requestStack,
-        EntityRepository $paymentMethodRepository,
+        PaymentMethodRepositoryInterface $paymentMethodRepository,
         CustomerHelper $customerHelper,
         RequestDataBagHelper $requestDataBagHelper
     ) {

@@ -18,6 +18,7 @@ use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
+use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
@@ -65,7 +66,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     /** @var RequestDataBagHelper */
     private $requestDataBagHelper;
 
-    /** @var EntityRepository */
+    /** @var OrderTransactionRepositoryInterface */
     private $orderTransactionRepository;
 
     /** @var string */
@@ -80,7 +81,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         RequestDataBagHelper $requestDataBagHelper,
-        EntityRepository $orderTransactionRepository,
+        OrderTransactionRepositoryInterface $orderTransactionRepository,
         string $shopwareVersion
     ) {
         $this->router = $router;

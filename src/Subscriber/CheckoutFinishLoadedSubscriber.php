@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -17,7 +18,7 @@ class CheckoutFinishLoadedSubscriber implements EventSubscriberInterface
      */
     private $paynlTransactionRepository;
 
-    public function __construct(EntityRepository $paynlTransactionRepository)
+    public function __construct(PaynlTransactionsRepositoryInterface $paynlTransactionRepository)
     {
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }

@@ -1,7 +1,6 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Repository\Media;
+namespace PaynlPayment\Shopware6\Repository\SalesChannel;
 
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEvent;
@@ -9,7 +8,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
-interface MediaRepositoryInterface
+interface SalesChannelRepositoryInterface
 {
     /**
      * @param array<mixed> $data
@@ -43,11 +42,4 @@ interface MediaRepositoryInterface
      * @return EntityWrittenContainerEvent
      */
     public function update(array $data, Context $context): EntityWrittenContainerEvent;
-
-    /**
-     * @param array $data
-     * @param Context $context
-     * @return EntityWrittenContainerEvent
-     */
-    public function delete(array $data, Context $context): EntityWrittenContainerEvent;
 }

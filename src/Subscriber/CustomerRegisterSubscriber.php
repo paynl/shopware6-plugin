@@ -3,6 +3,8 @@
 namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Repository\Customer\CustomerRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepositoryInterface;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\CustomerEvents;
@@ -23,12 +25,12 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
     private $requestStack;
 
     /**
-     * @var EntityRepository
+     * @var CustomerAddressRepositoryInterface
      */
     private $customerAddressRepository;
 
     /**
-     * @var EntityRepository
+     * @var CustomerRepositoryInterface
      */
     private $customerRepository;
 
@@ -42,8 +44,8 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
 
     public function __construct(
         RequestStack $requestStack,
-        EntityRepository $customerAddressRepository,
-        EntityRepository $customerRepository,
+        CustomerAddressRepositoryInterface $customerAddressRepository,
+        CustomerRepositoryInterface $customerRepository,
         CustomerHelper $customerHelper
     ) {
         $this->requestStack = $requestStack;

@@ -6,15 +6,15 @@
         <!--Helpers-->
         <service id="PaynlPayment\Shopware6\Helper\CustomerHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="customer_address.repository"/>
-            <argument type="service" id="customer.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Customer\CustomerRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="paynl_transactions.repository"/>
-            <argument type="service" id="order_transaction.repository"/>
-            <argument type="service" id="state_machine_transition.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater"/>
         </service>
@@ -26,10 +26,10 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
-            <argument type="service" id="payment_method.repository"/>
-            <argument type="service" id="sales_channel.repository"/>
-            <argument type="service" id="sales_channel_payment_method.repository"/>
-            <argument type="service" id="system_config.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\MediaHelper">
@@ -43,7 +43,7 @@
 
         <service id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="language.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Language\LanguageRepository"/>
             <argument type="service" id="request_stack"/>
         </service>
 
@@ -66,8 +66,8 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper"/>
-            <argument type="service" id="product.repository"/>
-            <argument type="service" id="order.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
             <argument type="service" id="translator" />
             <argument type="service" id="request_stack"/>
         </service>
@@ -130,7 +130,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
-            <argument type="service" id="order_transaction.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.sync" />
         </service>
@@ -160,7 +160,7 @@
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
             <tag name="kernel.event_subscriber"/>
             <argument type="service" id="request_stack"/>
-            <argument type="service" id="payment_method.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
         </service>
@@ -176,14 +176,14 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CheckoutFinishLoadedSubscriber" public="true">
-            <argument type="service" id="paynl_transactions.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\CustomerRegisterSubscriber">
             <argument type="service" id="request_stack"/>
-            <argument type="service" id="customer_address.repository"/>
-            <argument type="service" id="customer.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Customer\CustomerRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <tag name="kernel.event_subscriber"/>
             <tag name="shopware.event_subscriber"/>
@@ -192,6 +192,54 @@
         <!-- Repositories -->
         <service id="PaynlPayment\Shopware6\Repository\Media\MediaRepository">
             <argument type="service" id="media.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\Customer\CustomerRepository">
+            <argument type="service" id="customer.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository">
+            <argument type="service" id="customer_address.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\Language\LanguageRepository">
+            <argument type="service" id="language.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\Order\OrderRepository">
+            <argument type="service" id="order.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository">
+            <argument type="service" id="order_transaction.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository">
+            <argument type="service" id="payment_method.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository">
+            <argument type="service" id="paynl_transactions.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\Product\ProductRepository">
+            <argument type="service" id="product.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository">
+            <argument type="service" id="sales_channel.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository">
+            <argument type="service" id="sales_channel_payment_method.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepository">
+            <argument type="service" id="state_machine_transition.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository">
+            <argument type="service" id="system_config.repository"/>
         </service>
     </services>
 </container>

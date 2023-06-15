@@ -6,6 +6,9 @@ use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
@@ -14,7 +17,6 @@ use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
@@ -35,13 +37,13 @@ class ProcessingHelper
     /** @var Api */
     private $paynlApi;
 
-    /** @var EntityRepository */
+    /** @var PaynlTransactionsRepositoryInterface */
     private $paynlTransactionRepository;
 
-    /** @var EntityRepository  */
+    /** @var OrderTransactionRepositoryInterface  */
     private $orderTransactionRepository;
 
-    /** @var EntityRepository  */
+    /** @var StateMachineTransitionRepositoryInterface  */
     private $stateMachineTransitionRepository;
 
     /** @var StateMachineRegistry */
@@ -52,9 +54,9 @@ class ProcessingHelper
 
     public function __construct(
         Api $api,
-        EntityRepository $paynlTransactionRepository,
-        EntityRepository $orderTransactionRepository,
-        EntityRepository $stateMachineTransitionRepository,
+        PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
+        OrderTransactionRepositoryInterface $orderTransactionRepository,
+        StateMachineTransitionRepositoryInterface $stateMachineTransitionRepository,
         StateMachineRegistry $stateMachineRegistry,
         OrderStatusUpdater $orderStatusUpdater
     ) {
