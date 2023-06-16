@@ -42,5 +42,8 @@
             "Paynl\\": "vendor/paynl/sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
+    },
+    "config": {
+        "allow-plugins": false
     }
 }
