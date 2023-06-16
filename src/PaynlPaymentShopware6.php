@@ -16,6 +16,16 @@ use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
+use PaynlPayment\Shopware6\Repository\Customer\CustomerRepository;
+use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository;
+use PaynlPayment\Shopware6\Repository\Language\LanguageRepository;
+use PaynlPayment\Shopware6\Repository\Media\MediaRepository;
+use PaynlPayment\Shopware6\Repository\Order\OrderRepository;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\Product\ProductRepository;
+use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository;
+use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository;
 use Shopware\Core\Framework\Api\Controller\CacheController;
 use PaynlPayment\Shopware6\Helper\MediaHelper;
 use Shopware\Core\Content\Media\File\FileSaver;
@@ -160,10 +170,10 @@ class PaynlPaymentShopware6 extends Plugin
             $this->getPaynlApi(),
             $this->getPaymentHandlerFactory(),
             $this->getMediaHelper(),
-            $paymentMethodRepository,
-            $salesChannelRepository,
-            $paymentMethodSalesChannelRepository,
-            $systemConfigRepository
+            new PaymentMethodRepository($paymentMethodRepository),
+            new SalesChannelRepository($salesChannelRepository),
+            new SalesChannelPaymentMethodRepository($paymentMethodSalesChannelRepository),
+            new SystemConfigRepository($systemConfigRepository)
         );
     }
 
@@ -182,8 +192,8 @@ class PaynlPaymentShopware6 extends Plugin
             $this->getConfig(),
             $this->getCustomerHelper(),
             $this->getTransactionLanguageHelper(),
-            $productRepository,
-            $orderRepository,
+            new ProductRepository($productRepository),
+            new OrderRepository($orderRepository),
             $translator,
             $requestStack
         );
@@ -198,8 +208,8 @@ class PaynlPaymentShopware6 extends Plugin
 
         return new CustomerHelper(
             $this->getConfig(),
-            $customerAddressRepository,
-            $customerRepository
+            new CustomerAddressRepository($customerAddressRepository),
+            new CustomerRepository($customerRepository)
         );
     }
 
@@ -210,7 +220,7 @@ class PaynlPaymentShopware6 extends Plugin
         /** @var EntityRepository $mediaRepository */
         $mediaRepository = $this->container->get('media.repository');
 
-        return new MediaHelper($fileSaver, $mediaRepository);
+        return new MediaHelper($fileSaver, new MediaRepository($mediaRepository));
     }
 
     private function getTransactionLanguageHelper(): TransactionLanguageHelper
@@ -222,7 +232,7 @@ class PaynlPaymentShopware6 extends Plugin
 
         return new TransactionLanguageHelper(
             $this->getConfig(),
-            $languageRepository,
+            new LanguageRepository($languageRepository),
             $requestStack
         );
     }
