@@ -4,7 +4,6 @@ Component.override('sw-order-general-info', {
     inject: ['PaynlPaymentService'],
     methods: {
         onLeaveModalConfirm(docIds, sendMail = true) {
-            console.log('stas');
             this.showModal = false;
 
             let transition = null;
