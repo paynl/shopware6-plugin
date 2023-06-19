@@ -41,12 +41,6 @@ class DependencyLoader
 
         $loader->load('services.xml');
 
-//        if ($versionCompare->gte('6.5')) {
-//            $loader->load('compatibility/snippets_6.5.xml');
-//        } else {
-//            $loader->load('compatibility/snippets.xml');
-//        }
-
         if ($versionCompare->gte('6.5')) {
             $loader->load('compatibility/controller/sw65/controller.xml');
         } else {

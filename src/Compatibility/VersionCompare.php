@@ -17,7 +17,6 @@ class VersionCompare
     {
         $this->swVersion = $swVersion;
 
-        # no words...make it work :D
         $this->swVersion = str_replace('-RC2', '', $this->swVersion);
         $this->swVersion = str_replace('-RC1', '', $this->swVersion);
         $this->swVersion = str_replace('-RC3', '', $this->swVersion);
