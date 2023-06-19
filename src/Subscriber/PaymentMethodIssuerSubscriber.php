@@ -85,14 +85,14 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         $paymentMethodId = $this->getValueFromRequestDataBag('paymentMethodId', $dataBag);
-        $phoneData = (array) $this->getValueFromRequestDataBag('phone', $dataBag);
+        $phoneData = (array) $this->getArrayFromRequestDataBag('phone', $dataBag);
         $phone = $phoneData[$paymentMethodId] ?? null;
         if ($phone) {
             $billingAddress = $customer->getDefaultBillingAddress();
             $this->customerHelper->saveCustomerPhone($billingAddress, $phone, $context);
         }
 
-        $dobData = (array) $this->getValueFromRequestDataBag('dob', $dataBag);
+        $dobData = (array) $this->getArrayFromRequestDataBag('dob', $dataBag);
         $dob = $dobData[$paymentMethodId] ?? null;
         if ($dob) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
@@ -147,5 +147,16 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         return $dataBagItem;
+    }
+
+
+    private function getArrayFromRequestDataBag(string $name, RequestDataBag $dataBag)
+    {
+        $dataBagArray = $this->requestDataBagHelper->getDataBagArray($name, $dataBag);
+        if ($dataBagArray instanceof RequestDataBag) {
+            return $dataBagArray->all();
+        }
+
+        return $dataBagArray;
     }
 }
