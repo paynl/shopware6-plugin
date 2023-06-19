@@ -22,7 +22,6 @@ Component.override('sw-order-general-info', {
                             currentActionName
                         }).then(() => {
                             this.$emit('order-state-change');
-                            //this.loadHistory();
                         }).catch((errorResponse) => {
                             this.createNotificationError({
                                 title: this.$tc('sw-plugin-config.titleSaveError'),
