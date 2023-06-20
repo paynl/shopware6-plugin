@@ -65,4 +65,35 @@ class DependencyLoader
 
         return $pluginPath . '/Resources/config/compatibility/routes/sw6';
     }
+
+    /**
+     * @return void
+     */
+    public function prepareStorefrontBuild(): void
+    {
+        /** @var string $version */
+        $version = $this->container->getParameter('kernel.shopware_version');
+
+        $versionCompare = new VersionCompare($version);
+
+        $pluginRoot = __DIR__ . '/../..';
+
+        $distFileFolder = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/js';
+
+        if (!file_exists($distFileFolder)) {
+            mkdir($distFileFolder, 0777, true);
+        }
+
+        if ($versionCompare->gte('6.5')) {
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/paynl-payment-shopware6-65.js';
+            $target = $distFileFolder . '/paynl-payment-shopware6.js';
+        } else {
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/paynl-payment-shopware6-64.js';
+            $target = $distFileFolder . '/paynl-payment-shopware6.js';
+        }
+
+        if (file_exists($file) && !file_exists($target)) {
+            copy($file, $target);
+        }
+    }
 }
