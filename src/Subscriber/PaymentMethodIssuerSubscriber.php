@@ -4,25 +4,26 @@ namespace PaynlPayment\Shopware6\Subscriber;
 
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 {
-    /** @var Session $session */
-    private $session;
+    /** @var RequestStack */
+    private $requestStack;
 
-    /** @var EntityRepositoryInterface */
+    /** @var PaymentMethodRepositoryInterface */
     private $paymentMethodRepository;
 
     /** @var CustomerHelper $customerHelper */
@@ -32,12 +33,12 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     private $requestDataBagHelper;
 
     public function __construct(
-        Session $session,
-        EntityRepositoryInterface $paymentMethodRepository,
+        RequestStack $requestStack,
+        PaymentMethodRepositoryInterface $paymentMethodRepository,
         CustomerHelper $customerHelper,
         RequestDataBagHelper $requestDataBagHelper
     ) {
-        $this->session = $session;
+        $this->requestStack = $requestStack;
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->customerHelper = $customerHelper;
         $this->requestDataBagHelper = $requestDataBagHelper;
@@ -84,14 +85,14 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         $paymentMethodId = $this->getValueFromRequestDataBag('paymentMethodId', $dataBag);
-        $phoneData = (array) $this->getValueFromRequestDataBag('phone', $dataBag);
+        $phoneData = (array) $this->getArrayFromRequestDataBag('phone', $dataBag);
         $phone = $phoneData[$paymentMethodId] ?? null;
         if ($phone) {
             $billingAddress = $customer->getDefaultBillingAddress();
             $this->customerHelper->saveCustomerPhone($billingAddress, $phone, $context);
         }
 
-        $dobData = (array) $this->getValueFromRequestDataBag('dob', $dataBag);
+        $dobData = (array) $this->getArrayFromRequestDataBag('dob', $dataBag);
         $dob = $dobData[$paymentMethodId] ?? null;
         if ($dob) {
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
@@ -115,7 +116,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         $paymentMethodCustomFields = $paymentMethod->getTranslation('customFields');
         $paymentMethodDisplayBanks = $paymentMethodCustomFields[PaymentMethodCustomFields::DISPLAY_BANKS_FIELD] ?? null;
         if (!$paymentMethodDisplayBanks) {
-            $this->session->remove('paynlIssuer');
+            $this->requestStack->getSession()->remove('paynlIssuer');
             return;
         }
 
@@ -146,5 +147,16 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         return $dataBagItem;
+    }
+
+
+    private function getArrayFromRequestDataBag(string $name, RequestDataBag $dataBag)
+    {
+        $dataBagArray = $this->requestDataBagHelper->getDataBagArray($name, $dataBag);
+        if ($dataBagArray instanceof RequestDataBag) {
+            return $dataBagArray->all();
+        }
+
+        return $dataBagArray;
     }
 }

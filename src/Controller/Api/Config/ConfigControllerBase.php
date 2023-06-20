@@ -1,22 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Controller;
+namespace PaynlPayment\Shopware6\Controller\Api\Config;
 
-use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
-/**
- * @RouteScope(scopes={"api"})
- */
-class ConfigController extends AbstractController
+class ConfigControllerBase extends AbstractController
 {
     public $installHelper;
     private $config;

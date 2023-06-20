@@ -1,27 +1,23 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Controller;
+namespace PaynlPayment\Shopware6\Controller\Api\Refund;
 
+use Paynl\Error;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Paynl\Error;
 
-/**
- * @RouteScope(scopes={"api"})
- */
-class RefundController extends AbstractController
+class RefundControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
@@ -35,10 +31,10 @@ class RefundController extends AbstractController
     public function __construct(
         Api $paynlApi,
         Config $paynlConfig,
-        EntityRepositoryInterface $transactionRepository,
-        EntityRepositoryInterface $productRepository,
+        EntityRepository $transactionRepository,
+        EntityRepository $productRepository,
         ProcessingHelper $processingHelper,
-        EntityRepositoryInterface $paynlTransactionRepository
+        EntityRepository $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
@@ -49,7 +45,12 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/paynl/get-refund-data", name="api.PaynlPayment.getRefundDataSW64", methods={"GET"})
+     * @Route(
+     *     "/api/paynl/get-refund-data",
+     *     name="api.PaynlPayment.getRefundDataSW64",
+     *     methods={"GET"},
+     *     defaults={"_routeScope"={"api"}}
+     *     )
      */
     public function getRefundDataSW64(Request $request): JsonResponse
     {
@@ -57,7 +58,12 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/v{version}/paynl/get-refund-data", name="api.PaynlPayment.getRefundData", methods={"GET"})
+     * @Route(
+     *     "/api/v{version}/paynl/get-refund-data",
+     *     name="api.PaynlPayment.getRefundData",
+     *     methods={"GET"},
+     *     defaults={"_routeScope"={"api"}}
+     *     )
      */
     public function getRefundData(Request $request): JsonResponse
     {
@@ -65,7 +71,12 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/paynl/refund", name="frontend.PaynlPayment.refundSW64", methods={"POST"})
+     * @Route(
+     *     "/api/paynl/refund",
+     *     name="frontend.PaynlPayment.refundSW64",
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
+     *     )
      */
     public function refundSW64(Request $request): JsonResponse
     {
@@ -73,7 +84,12 @@ class RefundController extends AbstractController
     }
 
     /**
-     * @Route("/api/v{version}/paynl/refund", name="frontend.PaynlPayment.refund", methods={"POST"})
+     * @Route(
+     *     "/api/v{version}/paynl/refund",
+     *     name="frontend.PaynlPayment.refund",
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
+     *     )
      */
     public function refund(Request $request): JsonResponse
     {

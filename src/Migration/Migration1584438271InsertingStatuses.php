@@ -122,15 +122,15 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $orderTransactionStateId = $connection->executeQuery($orderTransactionStateSQL, [
             'technical_name' => 'order_transaction.state'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $languageEnglishId = $connection->executeQuery($languageSQL, [
             'name' => 'English'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $languageDeutschId = $connection->executeQuery($languageSQL, [
             'name' => 'Deutsch'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $statusesArray = [
             'verify' => [
@@ -176,7 +176,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             $stateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
                 'technical_name' => $status,
                 'state_machine_id' => $orderTransactionStateId
-            ])->fetchColumn();
+            ])->fetchOne();
 
             foreach ($translations as $translation) {
                 if (empty($translation['id'])) {
@@ -196,32 +196,32 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         $paidStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'paid',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $openStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'open',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $authorizeStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'authorize',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $verifyStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'verify',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $partlyCapturedStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'partly_captured',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $cancelledCapturedStateMachineStateId = $connection->executeQuery($stateMachineStateSQL, [
             'technical_name' => 'cancelled',
             'state_machine_id' => $orderTransactionStateId,
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $transitions = [
             [
@@ -282,7 +282,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         // Adding mail template types
         $mailTempaleAuthorizeTypeId = $connection->executeQuery($mailTempaleTypeId, [
             'technical_name' => 'order_transaction.state.authorize'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         if (!empty($languageEnglishId)) {
             $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
@@ -311,7 +311,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $mailTempaleVerifyTypeId = $connection->executeQuery($mailTempaleTypeId, [
             'technical_name' => 'order_transaction.state.verify'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         if (!empty($languageEnglishId)) {
             $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
@@ -340,7 +340,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
 
         $mailTempalePartlyCapturedTypeId = $connection->executeQuery($mailTempaleTypeId, [
             'technical_name' => 'order_transaction.state.partly_captured'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         if (!empty($languageEnglishId)) {
             $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [

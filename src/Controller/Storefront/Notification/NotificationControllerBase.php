@@ -1,18 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Storefront\Controller;
+namespace PaynlPayment\Shopware6\Controller\Storefront\Notification;
 
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @RouteScope(scopes={"storefront"})
- */
-class NotificationController extends StorefrontController
+class NotificationControllerBase extends StorefrontController
 {
     /** @var ProcessingHelper */
     private $processingHelper;
@@ -27,7 +23,8 @@ class NotificationController extends StorefrontController
      *     name="frontend.PaynlPayment.notify",
      *     defaults={"csrf_protected"=false},
      *     options={"seo"="false"},
-     *     methods={"POST", "GET"}
+     *     methods={"POST", "GET"},
+     *     defaults={"_routeScope"={"storefront"}}
      *     )
      */
     public function notify(Request $request): Response
