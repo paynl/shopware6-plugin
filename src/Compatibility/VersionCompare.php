@@ -9,7 +9,6 @@ class VersionCompare
      */
     private $swVersion;
 
-
     /**
      * @param string $swVersion
      */
@@ -22,7 +21,6 @@ class VersionCompare
         $this->swVersion = str_replace('-RC3', '', $this->swVersion);
         $this->swVersion = str_replace('-RC4', '', $this->swVersion);
     }
-
 
     /**
      * @param string $versionB

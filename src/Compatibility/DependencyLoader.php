@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Compatibility;
 
+use Exception;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,7 +15,6 @@ class DependencyLoader
      */
     private $container;
 
-
     /**
      * @param Container $container
      */
@@ -24,7 +24,7 @@ class DependencyLoader
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function loadServices(): void
     {
@@ -32,7 +32,6 @@ class DependencyLoader
         $version = $this->container->getParameter('kernel.shopware_version');
 
         $versionCompare = new VersionCompare($version);
-
 
         /** @var ContainerBuilder $containerBuilder */
         $containerBuilder = $this->container;
