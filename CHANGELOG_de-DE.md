@@ -1,4 +1,5 @@
 # 1.5.0
+- Unterstützt Shopware 6.5 Version
 
 # 1.4.19
 - Aktualisierung des Zahlungsstatus von "teilweise bezahlt" zu "bezahlt" behoben
