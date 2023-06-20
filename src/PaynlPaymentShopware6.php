@@ -108,6 +108,7 @@ class PaynlPaymentShopware6 extends Plugin
         # with our current shopware version
         $loader = new DependencyLoader($this->container);
         $loader->loadServices();
+        $loader->prepareStorefrontBuild();
     }
 
     /**
