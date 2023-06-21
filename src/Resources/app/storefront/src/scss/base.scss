@@ -22,7 +22,8 @@
     margin-right: 5px;
 }
 
-.paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label {
+.paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label,
+.paynl-payment-methods-custom-styles .payment-method .form-check-label.payment-method-label {
     display: flex;
     align-items: center;
     padding-right: 0;
@@ -30,6 +31,11 @@
 
 .paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label:before,
 .paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label:after {
+    top: 20%;
+}
+
+.paynl-payment-methods-custom-styles .payment-method .form-check-label.payment-method-label:before,
+.paynl-payment-methods-custom-styles .payment-method .form-check-label.payment-method-label:after {
     top: 20%;
 }
 
@@ -88,7 +94,8 @@
         justify-content: space-between;
     }
 
-    .paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label {
+    .paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label,
+    .paynl-payment-methods-custom-styles .payment-method .form-check-label.payment-method-label {
         padding-right: 25px;
     }
 

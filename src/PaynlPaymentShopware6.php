@@ -7,6 +7,8 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 // phpcs:enable
 
 use Doctrine\DBAL\Connection;
+use Exception;
+use PaynlPayment\Shopware6\Compatibility\DependencyLoader;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
@@ -14,10 +16,20 @@ use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
+use PaynlPayment\Shopware6\Repository\Customer\CustomerRepository;
+use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository;
+use PaynlPayment\Shopware6\Repository\Language\LanguageRepository;
+use PaynlPayment\Shopware6\Repository\Media\MediaRepository;
+use PaynlPayment\Shopware6\Repository\Order\OrderRepository;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\Product\ProductRepository;
+use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository;
+use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository;
 use Shopware\Core\Framework\Api\Controller\CacheController;
 use PaynlPayment\Shopware6\Helper\MediaHelper;
 use Shopware\Core\Content\Media\File\FileSaver;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
@@ -25,9 +37,13 @@ use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
+use Shopware\Core\Kernel;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
@@ -78,6 +94,51 @@ class PaynlPaymentShopware6 extends Plugin
         $this->getInstallHelper()->deactivatePaymentMethods($deactivateContext->getContext());
     }
 
+    /**
+     * @param ContainerBuilder $container
+     * @throws Exception
+     */
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $this->container = $container;
+
+        # load the dependencies that are compatible
+        # with our current shopware version
+        $loader = new DependencyLoader($this->container);
+        $loader->loadServices();
+        $loader->prepareStorefrontBuild();
+    }
+
+    /**
+     * @param RoutingConfigurator $routes
+     * @param string $environment
+     * @return void
+     */
+    public function configureRoutes(RoutingConfigurator $routes, string $environment): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        /** @var Container $container */
+        $container = $this->container;
+
+        $loader = new DependencyLoader($container);
+
+        $routeDir = $loader->getRoutesPath($this->getPath());
+
+        $fileSystem = new Filesystem();
+
+        if ($fileSystem->exists($routeDir)) {
+            $routes->import($routeDir . '/{routes}/*' . Kernel::CONFIG_EXTS, 'glob');
+            $routes->import($routeDir . '/{routes}/' . $environment . '/**/*' . Kernel::CONFIG_EXTS, 'glob');
+            $routes->import($routeDir . '/{routes}' . Kernel::CONFIG_EXTS, 'glob');
+            $routes->import($routeDir . '/{routes}_' . $environment . Kernel::CONFIG_EXTS, 'glob');
+        }
+    }
+
     private function getConfig(): Config
     {
         /** @var SystemConfigService $systemConfigService */
@@ -94,13 +155,13 @@ class PaynlPaymentShopware6 extends Plugin
         $connection = $this->container->get(Connection::class);
         /** @var PluginIdProvider $pluginIdProvider */
         $pluginIdProvider = $this->container->get(PluginIdProvider::class);
-        /** @var EntityRepositoryInterface $paymentMethodRepository */
+        /** @var EntityRepository $paymentMethodRepository */
         $paymentMethodRepository = $this->container->get('payment_method.repository');
-        /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
+        /** @var EntityRepository $paymentMethodSalesChannelRepository */
         $paymentMethodSalesChannelRepository = $this->container->get('sales_channel_payment_method.repository');
-        /** @var EntityRepositoryInterface $salesChannelRepository */
+        /** @var EntityRepository $salesChannelRepository */
         $salesChannelRepository = $this->container->get('sales_channel.repository');
-        /** @var EntityRepositoryInterface $systemConfigRepository */
+        /** @var EntityRepository $systemConfigRepository */
         $systemConfigRepository = $this->container->get('system_config.repository');
 
         return new InstallHelper(
@@ -110,46 +171,46 @@ class PaynlPaymentShopware6 extends Plugin
             $this->getPaynlApi(),
             $this->getPaymentHandlerFactory(),
             $this->getMediaHelper(),
-            $paymentMethodRepository,
-            $salesChannelRepository,
-            $paymentMethodSalesChannelRepository,
-            $systemConfigRepository
+            new PaymentMethodRepository($paymentMethodRepository),
+            new SalesChannelRepository($salesChannelRepository),
+            new SalesChannelPaymentMethodRepository($paymentMethodSalesChannelRepository),
+            new SystemConfigRepository($systemConfigRepository)
         );
     }
 
     private function getPaynlApi(): Api
     {
-        /** @var EntityRepositoryInterface $productRepository */
+        /** @var EntityRepository $productRepository */
         $productRepository = $this->container->get('product.repository');
-        /** @var EntityRepositoryInterface $orderRepository */
+        /** @var EntityRepository $orderRepository */
         $orderRepository = $this->container->get('order.repository');
         /** @var TranslatorInterface $translator */
         $translator = $this->container->get('translator');
-        /** @var Session $session */
-        $session = $this->container->get('session');
+        /** @var RequestStack $requestStack */
+        $requestStack = $this->container->get('request_stack');
 
         return new Api(
             $this->getConfig(),
             $this->getCustomerHelper(),
             $this->getTransactionLanguageHelper(),
-            $productRepository,
-            $orderRepository,
+            new ProductRepository($productRepository),
+            new OrderRepository($orderRepository),
             $translator,
-            $session
+            $requestStack
         );
     }
 
     private function getCustomerHelper(): CustomerHelper
     {
-        /** @var EntityRepositoryInterface $customerAddressRepository */
+        /** @var EntityRepository $customerAddressRepository */
         $customerAddressRepository = $this->container->get('customer_address.repository');
-        /** @var EntityRepositoryInterface $customerRepository */
+        /** @var EntityRepository $customerRepository */
         $customerRepository = $this->container->get('customer.repository');
 
         return new CustomerHelper(
             $this->getConfig(),
-            $customerAddressRepository,
-            $customerRepository
+            new CustomerAddressRepository($customerAddressRepository),
+            new CustomerRepository($customerRepository)
         );
     }
 
@@ -157,22 +218,22 @@ class PaynlPaymentShopware6 extends Plugin
     {
         /** @var FileSaver $fileSaver */
         $fileSaver = $this->container->get(FileSaver::class);
-        /** @var EntityRepositoryInterface $mediaRepository */
+        /** @var EntityRepository $mediaRepository */
         $mediaRepository = $this->container->get('media.repository');
 
-        return new MediaHelper($fileSaver, $mediaRepository);
+        return new MediaHelper($fileSaver, new MediaRepository($mediaRepository));
     }
 
     private function getTransactionLanguageHelper(): TransactionLanguageHelper
     {
-        /** @var EntityRepositoryInterface $languageRepository */
+        /** @var EntityRepository $languageRepository */
         $languageRepository = $this->container->get('language.repository');
         /** @var RequestStack $requestStack */
         $requestStack = $this->container->get('request_stack');
 
         return new TransactionLanguageHelper(
             $this->getConfig(),
-            $languageRepository,
+            new LanguageRepository($languageRepository),
             $requestStack
         );
     }

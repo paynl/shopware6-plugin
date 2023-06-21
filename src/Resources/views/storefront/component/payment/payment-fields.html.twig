@@ -9,7 +9,7 @@
            name="paymentMethodId"
            value="{{ payment.id }}"
            {% if payment.id is same as(defaultPaymentMethodId) %}checked="checked"{% endif %}
-           class="custom-control-input payment-method-input {{ payment.translated.customFields.mollie_payment_method_name }}"
+           class="custom-control-input payment-method-input"
            {% if payment.translated.customFields.paynl_payment %}data-paynlId="{{ payment.translated.customFields.paynlId }}"{% endif %}>
 {% endblock %}
 

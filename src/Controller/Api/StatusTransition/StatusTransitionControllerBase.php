@@ -1,26 +1,22 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Controller;
+namespace PaynlPayment\Shopware6\Controller\Api\StatusTransition;
 
+use Paynl\Error;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Paynl\Error;
 
-/**
- * @RouteScope(scopes={"api"})
- */
-class StatusTransitionController extends AbstractController
+class StatusTransitionControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
@@ -31,7 +27,7 @@ class StatusTransitionController extends AbstractController
         Api $paynlApi,
         Config $paynlConfig,
         ProcessingHelper $processingHelper,
-        EntityRepositoryInterface $paynlTransactionRepository
+        EntityRepository $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
@@ -42,7 +38,8 @@ class StatusTransitionController extends AbstractController
     /**
      * @Route("/api/paynl/change-transaction-status",
      *     name="api.PaynlPayment.changeTransactionStatusSW64",
-     *     methods={"POST"}
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function changeTransactionStatusSW64(Request $request): JsonResponse
@@ -53,7 +50,8 @@ class StatusTransitionController extends AbstractController
     /**
      * @Route("/api/v{version}/paynl/change-transaction-status",
      *     name="api.PaynlPayment.changeTransactionStatus",
-     *     methods={"POST"}
+     *     methods={"POST"},
+     *     defaults={"_routeScope"={"api"}}
      *     )
      */
     public function changeTransactionStatus(Request $request): JsonResponse

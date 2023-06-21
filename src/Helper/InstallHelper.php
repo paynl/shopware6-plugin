@@ -13,11 +13,14 @@ use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
@@ -62,16 +65,16 @@ class InstallHelper
     /** @var MediaHelper $mediaHelper */
     private $mediaHelper;
 
-    /** @var EntityRepositoryInterface $paymentMethodRepository */
+    /** @var PaymentMethodRepositoryInterface $paymentMethodRepository */
     private $paymentMethodRepository;
 
-    /** @var EntityRepositoryInterface $salesChannelRepository */
+    /** @var SalesChannelRepositoryInterface $salesChannelRepository */
     private $salesChannelRepository;
 
-    /** @var EntityRepositoryInterface $paymentMethodSalesChannelRepository */
+    /** @var SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository */
     private $paymentMethodSalesChannelRepository;
 
-    /** @var EntityRepositoryInterface $systemConfigRepository */
+    /** @var SystemConfigRepositoryInterface $systemConfigRepository */
     private $systemConfigRepository;
 
     /** @var PaymentHandlerFactory */
@@ -84,10 +87,10 @@ class InstallHelper
         Api $paynlApi,
         PaymentHandlerFactory $paymentHandlerFactory,
         MediaHelper $mediaHelper,
-        EntityRepositoryInterface $paymentMethodRepository,
-        EntityRepositoryInterface $salesChannelRepository,
-        EntityRepositoryInterface $paymentMethodSalesChannelRepository,
-        EntityRepositoryInterface $systemConfigRepository
+        PaymentMethodRepositoryInterface $paymentMethodRepository,
+        SalesChannelRepositoryInterface $salesChannelRepository,
+        SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository,
+        SystemConfigRepositoryInterface $systemConfigRepository
     ) {
         $this->pluginIdProvider = $pluginIdProvider;
         $this->connection = $connection;
@@ -472,16 +475,16 @@ class InstallHelper
         // Remove state machine state
         $stateMachineStateVerifyId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_VERIFY
-        ])->fetchColumn();
+        ])->fetchOne();
         $stateMachineStateAuthorizeId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_AUTHORIZE
-        ])->fetchColumn();
+        ])->fetchOne();
         $stateMachineStatePartlyCapturedId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_PARTLY_CAPTURED
-        ])->fetchColumn();
+        ])->fetchOne();
         $stateMachineStateRefundingId = $this->connection->executeQuery($stateMachineStateSQl, [
             'technical_name' => StateMachineStateEnum::ACTION_REFUNDING
-        ])->fetchColumn();
+        ])->fetchOne();
 
         // Remove state machine transition
         $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
@@ -521,8 +524,8 @@ class InstallHelper
 
         $ids = array_map(function ($element) {
             return [
-                'salesChannelId' => $element['sales_channel_id'],
-                'paymentMethodId' => $element['payment_method_id']
+                'salesChannelId' => $element['sales_channel_id'] ?? $element['salesChannelId'],
+                'paymentMethodId' => $element['payment_method_id'] ?? $element['paymentMethodId']
             ];
         }, $salesChannelPaymentMethodIds->getData());
 
@@ -717,7 +720,7 @@ class InstallHelper
 
         return $this->connection->executeQuery($sqlQuery, [
             'technical_name' => $technicalName,
-        ])->fetchColumn();
+        ])->fetchOne();
     }
 
     private function getMailTemplates(string $mailTemplateTypeId)

@@ -13,20 +13,21 @@ use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
+use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 class Api
 {
@@ -46,23 +47,23 @@ class Api
     private $customerHelper;
     /** @var TransactionLanguageHelper */
     private $transactionLanguageHelper;
-    /** @var EntityRepositoryInterface */
+    /** @var ProductRepositoryInterface */
     private $productRepository;
-    /** @var EntityRepositoryInterface */
+    /** @var OrderRepositoryInterface */
     private $orderRepository;
     /** @var TranslatorInterface */
     private $translator;
-    /** @var Session */
-    private $session;
+    /** @var RequestStack */
+    private $requestStack;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
         TransactionLanguageHelper $transactionLanguageHelper,
-        EntityRepositoryInterface $productRepository,
-        EntityRepositoryInterface $orderRepository,
+        ProductRepositoryInterface $productRepository,
+        OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
-        Session $session
+        RequestStack $requestStack
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
@@ -70,7 +71,7 @@ class Api
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
-        $this->session = $session;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -180,7 +181,7 @@ class Api
         $customer = $salesChannelContext->getCustomer();
         $customerCustomFields = $customer->getCustomFields();
         $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->session->get('paynlIssuer'));
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->requestStack->getSession()->get('paynlIssuer'));
 
         if (!empty($bank)) {
             $orderCustomFields = (array)$order->getCustomFields();

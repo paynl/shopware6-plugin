@@ -35,7 +35,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
 
         $orderTransactionStateId = $connection->executeQuery($this->getOrderTransactionStateSql(), [
             'technical_name' => 'order_transaction.state'
-        ])->fetchColumn();
+        ])->fetchOne();
 
         $statuses = $this->getStatuses();
 
@@ -50,7 +50,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             $stateMachineStateId = $connection->executeQuery($this->getSelectStateMachineState(), [
                 'technical_name' => $status,
                 'state_machine_id' => $orderTransactionStateId
-            ])->fetchColumn();
+            ])->fetchOne();
 
             if (!empty($translations['english']['id'])) {
                 $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
@@ -253,13 +253,13 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
          return $this->connection->executeQuery($this->getSelectStateMachineState(), [
             'technical_name' => $technicalName,
             'state_machine_id' => $stateMachineId,
-        ])->fetchColumn();
+        ])->fetchOne();
     }
 
     private function getLanguageId(string $name)
     {
         return $this->connection->executeQuery($this->getLanguageSql(), [
             'name' => $name
-        ])->fetchColumn();
+        ])->fetchOne();
     }
 }

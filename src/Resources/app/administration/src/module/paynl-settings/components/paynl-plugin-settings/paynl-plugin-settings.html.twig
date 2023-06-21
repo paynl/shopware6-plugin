@@ -54,8 +54,8 @@
                 <template #beforeElements="{card, config}">
                     <div v-if="isCollapsible(card)" class="paynl-config__collapsible-container" v-bind:class="{'collapsed': isCollapsed(card)}" >
                         <a class="paynl-config__collapsible-handle" @click="toggleCollapsible(card)">
-                            <sw-icon small v-if="isCollapsed(card)" name="small-arrow-medium-down" class="paynl-config__collapsible-handle-open"></sw-icon>
-                            <sw-icon small v-if="!isCollapsed(card)" name="small-arrow-medium-up" class="paynl-config__collapsible-handle-close"></sw-icon>
+                            <sw-icon small v-if="isCollapsed(card)" name="regular-chevron-down-xxs" class="paynl-config__collapsible-handle-open"></sw-icon>
+                            <sw-icon small v-if="!isCollapsed(card)" name="regular-chevron-up-xxs" class="paynl-config__collapsible-handle-close"></sw-icon>
                         </a>
                     </div>
                 </template>

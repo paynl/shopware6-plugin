@@ -1,3 +1,6 @@
+# 1.5.0
+- Support Shopware 6.5 version
+
 # 1.4.19
 - Fixed updating payment status from partly paid to the paid state
 
