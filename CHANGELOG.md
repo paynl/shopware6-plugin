@@ -1,3 +1,5 @@
+# 1.5.1
+
 # 1.5.0
 - Support Shopware 6.5 version
 
