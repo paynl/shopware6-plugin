@@ -12,6 +12,7 @@ use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
@@ -47,6 +48,8 @@ class Api
     private $customerHelper;
     /** @var TransactionLanguageHelper */
     private $transactionLanguageHelper;
+    /** @var StringHelper */
+    private $stringHelper;
     /** @var ProductRepositoryInterface */
     private $productRepository;
     /** @var OrderRepositoryInterface */
@@ -60,6 +63,7 @@ class Api
         Config $config,
         CustomerHelper $customerHelper,
         TransactionLanguageHelper $transactionLanguageHelper,
+        StringHelper $stringHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
@@ -68,6 +72,7 @@ class Api
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->transactionLanguageHelper = $transactionLanguageHelper;
+        $this->stringHelper = $stringHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
@@ -214,6 +219,10 @@ class Api
             $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($order);
         }
 
+        if ($this->getTransferData($salesChannelId)) {
+            $transactionInitialData['transferData'] = $this->getTransferData($salesChannelId);
+        }
+
         return $transactionInitialData;
     }
 
@@ -299,6 +308,38 @@ class Api
         ];
 
         return $products;
+    }
+
+    /** @return mixed[] */
+    private function getTransferData(string $salesChannelId): array
+    {
+        $transferData = [];
+
+        if ($this->config->getTransferGoogleAnalytics($salesChannelId)) {
+            $transferData['gaClientId'] = $this->getGoogleAnalyticsClientId();
+        }
+
+        return $transferData;
+    }
+
+    private function getGoogleAnalyticsClientId(): string
+    {
+        $allCookies = $this->requestStack->getCurrentRequest()->cookies->all();
+        $gaCookies = array_filter($allCookies, function ($key) {
+            return $this->stringHelper->endsWith($key, '_ga');
+        }, ARRAY_FILTER_USE_KEY);
+
+        if (empty($gaCookies)) {
+            return '';
+        }
+
+        $gaCookie = reset($gaCookies);
+        $gaSplit = explode('.', $gaCookie);
+        if (isset($gaSplit[2]) && isset($gaSplit[3])) {
+            return $gaSplit[2] . '.' . $gaSplit[3];
+        }
+
+        return '';
     }
 
     /**

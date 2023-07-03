@@ -184,7 +184,7 @@
             </options>
         </input-field>
         <input-field type="bool">
-            <name>googleAnalytics</name>
+            <name>transferGoogleAnalytics</name>
             <label>Transfer analytics to PAY.</label>
             <label lang="nl-NL">Stuur analytics via PAY.</label>
             <label lang="de-DE">Transfer analytics to PAY.</label>
