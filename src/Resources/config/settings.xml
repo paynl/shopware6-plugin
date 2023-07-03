@@ -183,6 +183,15 @@
                 </option>
             </options>
         </input-field>
+        <input-field type="bool">
+            <name>googleAnalytics</name>
+            <label>Transfer analytics to PAY.</label>
+            <label lang="nl-NL">Stuur analytics via PAY.</label>
+            <label lang="de-DE">Transfer analytics to PAY.</label>
+            <helpText>This option turns on sending google analytics.</helpText>
+            <helpText lang="nl-NL">This option turns on sending google analytics.</helpText>
+            <helpText lang="de-DE">This option turns on sending google analytics.</helpText>
+        </input-field>
     </card>
 
     <card>
