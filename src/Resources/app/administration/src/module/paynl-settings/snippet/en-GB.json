@@ -12,7 +12,8 @@
         },
         "settingsForm": {
             "save": "Save",
-            "installPaymentMethods": "Install payment methods"
+            "installPaymentMethods": "Install payment methods",
+            "testApiKeys": "Test API Keys"
         }
     },
     "paynlValidation": {

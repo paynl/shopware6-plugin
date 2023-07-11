@@ -1,5 +1,6 @@
 import './page/components/paynl-transactions-list';
 import './page/paynl-transactions-list-component';
+import './components/paynl-config-section-api';
 import './acl';
 
 import deDE from './snippet/de-DE.json';

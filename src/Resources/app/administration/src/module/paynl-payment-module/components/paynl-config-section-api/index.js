@@ -1,0 +1,62 @@
+import template from './paynl-config-section-api.html.twig';
+import './paynl-config-section-api.scss';
+
+
+// eslint-disable-next-line no-undef
+const {Component, Mixin} = Shopware;
+
+Component.register('paynl-config-section-api', {
+    template,
+
+    inject: [
+        'PaynlPaymentService',
+    ],
+
+    mixins: [
+        Mixin.getByName('notification'),
+    ],
+
+    data() {
+        return {
+            testCredentialsIsLoading: false,
+        };
+    },
+
+    methods: {
+        onInstallPaymentMethods() {
+            // Shopware > 6.4.7.0
+            const configRootNew = this.$parent.$parent.$parent.$parent.$parent;
+            // Shopware <= 6.4.7.0
+            const configRootOld = this.$parent.$parent.$parent.$parent;
+            const configRoot = configRootNew ? configRootNew : configRootOld;
+            let salesChannelId = '';
+            if (configRoot) {
+                salesChannelId = configRoot.currentSalesChannelId ? configRoot.currentSalesChannelId : '';
+            }
+
+            configRoot.saveAll().then((response) => {
+                this.createNotificationSuccess({
+                    title: this.$tc('paynlDefault.success'),
+                    message: this.$tc('paynlValidation.messages.paymentMethodsSuccessfullyInstalled')
+                });
+            }).catch((error) => {
+                console.log(error);
+                this.createNotificationError({
+                    title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
+                    message: error.message
+                });
+            });
+        },
+
+        onTestCredentials() {
+        },
+
+        startTestCredentials() {
+            this.testCredentialsIsLoading = true;
+        },
+
+        testCredentialsIsDone() {
+            this.testCredentialsIsLoading = false;
+        },
+    },
+});

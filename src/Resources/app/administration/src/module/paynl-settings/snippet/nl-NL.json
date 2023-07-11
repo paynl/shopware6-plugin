@@ -12,7 +12,8 @@
         },
         "settingsForm": {
             "save": "Opslaan",
-            "installPaymentMethods": "Betaalmethoden installeren"
+            "installPaymentMethods": "Betaalmethoden installeren",
+            "testApiKeys": "Test API Keys"
         }
     },
     "paynlValidation": {

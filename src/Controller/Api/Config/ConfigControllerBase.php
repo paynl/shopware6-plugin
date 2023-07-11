@@ -100,6 +100,23 @@ class ConfigControllerBase extends AbstractController
         return $this->json(['success' => true, 'data' => $terminals]);
     }
 
+    /**
+     * @Route(
+     *     "/api/paynl/test-api-keys",
+     *     name="api.action.PaynlPayment.test.api.keys",
+     *     methods={"POST"}
+     *     )
+     * @Route(
+     *     "/api/v{version}/paynl/test-api-keys",
+     *     name="api.action.PaynlPayment.test.api.keys",
+     *     methods={"POST"}
+     *     )
+     */
+    public function testApiKeys(Request $request): JsonResponse
+    {
+
+    }
+
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
         $salesChannelId = $request->get('salesChannelId');
