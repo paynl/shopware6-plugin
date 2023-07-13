@@ -49,7 +49,7 @@
                     inherit
                     @config-changed="onConfigChange"
                     sales-channel-switchable
-                    domain="PaynlPaymentShopware6.settings">
+                    domain="PaynlPaymentShopware6.config">
 
                 <template #beforeElements="{card, config}">
                     <div v-if="isCollapsible(card)" class="paynl-config__collapsible-container" v-bind:class="{'collapsed': isCollapsed(card)}" >
@@ -63,7 +63,7 @@
                 <template #card-element="{ element, config, card }" data-new-data="acl.can('paynl_settings.editor')">
                     <div v-show="displayField(element, config, card)">
                         <sw-form-field-renderer
-                            v-if="element.name.startsWith('PaynlPaymentShopware6.settings.paymentPinTerminal')"
+                            v-if="element.name.startsWith('PaynlPaymentShopware6.config.paymentPinTerminal')"
                             :config="{
                                 componentName: 'sw-single-select',
                                 label: getInlineSnippet(getElementBind(bindOriginalField(element, config)).config.label),
