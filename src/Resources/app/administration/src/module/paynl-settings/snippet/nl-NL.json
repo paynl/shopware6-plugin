@@ -27,7 +27,8 @@
             "paymentMethodsSuccessfullyInstalled": "Betaalmethoden succesvol toegevoegd.",
             "emptyCredentialsError": "Inloggegevens mogen niet leeg zijn!",
             "settingsSavedSuccessfully": "Configuratie succesvol opgeslagen.",
-            "wrongCredentials": "Onjuiste inloggegevens!"
+            "wrongCredentials": "Onjuiste inloggegevens!",
+            "correctCredentials": "Correct credentials!"
         }
     },
 

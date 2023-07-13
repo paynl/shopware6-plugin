@@ -2,6 +2,9 @@
 
 namespace PaynlPayment\Shopware6\Controller\Api\Config;
 
+use Exception;
+use Paynl\Config as SDKConfig;
+use Paynl\Paymentmethods;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
@@ -108,13 +111,33 @@ class ConfigControllerBase extends AbstractController
      *     )
      * @Route(
      *     "/api/v{version}/paynl/test-api-keys",
-     *     name="api.action.PaynlPayment.test.api.keys",
+     *     name="api.action.PaynlPayment.test.api.keys.legacy",
      *     methods={"POST"}
      *     )
      */
     public function testApiKeys(Request $request): JsonResponse
     {
+        $tokenCode = $request->get('tokenCode');
+        $apiToken = $request->get('apiToken');
+        $serviceId = $request->get('serviceId');
 
+        SDKConfig::setTokenCode($tokenCode);
+        SDKConfig::setApiToken($apiToken);
+        SDKConfig::setServiceId($serviceId);
+
+        try {
+            Paymentmethods::getList();
+
+            return $this->json([
+                'success' => true,
+                'message' => "paynlValidation.messages.correctCredentials"
+            ]);
+        } catch (Exception $exception) {
+            return $this->json([
+                'success' => false,
+                'message' => "paynlValidation.messages.wrongCredentials"
+            ], 400);
+        }
     }
 
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse

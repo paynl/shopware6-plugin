@@ -27,7 +27,8 @@
             "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",
             "emptyCredentialsError": "Anmeldeinformationen dürfen nicht leer sein!",
             "settingsSavedSuccessfully": "Konfigurationen wurden erfolgreich gespeichert.",
-            "wrongCredentials": "Falsche Anmeldeinformationen!"
+            "wrongCredentials": "Falsche Anmeldeinformationen!",
+            "correctCredentials": "Correct credentials!"
         }
     },
 
