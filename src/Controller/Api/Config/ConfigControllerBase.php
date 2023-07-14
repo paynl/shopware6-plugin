@@ -136,7 +136,7 @@ class ConfigControllerBase extends AbstractController
             return $this->json([
                 'success' => false,
                 'message' => "paynlValidation.messages.wrongCredentials"
-            ], 400);
+            ]);
         }
     }
 

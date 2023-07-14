@@ -6,9 +6,7 @@ use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\System\SystemConfig\Event\SystemConfigChangedEvent;
-use Shopware\Core\System\SystemConfig\Event\SystemConfigChangedHook;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 class SystemConfigSubscriber implements EventSubscriberInterface
 {
@@ -26,13 +24,13 @@ class SystemConfigSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            SystemConfigChangedHook::class => 'onSystemConfigChanged',
+            SystemConfigChangedEvent::class => 'onSystemConfigChanged',
         ];
     }
 
-    public function onSystemConfigChanged(SystemConfigChangedHook $event)
+    public function onSystemConfigChanged(SystemConfigChangedEvent $event)
     {
-        if ($this->isPaynlConfigChanged($event)) {
+        if ($event->getKey() === 'PaynlPaymentShopware6.config.apiToken') {
             $this->installPaymentMethods();
         }
     }
@@ -58,23 +56,5 @@ class SystemConfigSubscriber implements EventSubscriberInterface
             $this->installHelper->activatePaymentMethods($context);
         }
 
-    }
-
-    private function isPaynlConfigChanged(SystemConfigChangedHook $event): bool
-    {
-        if ($event->getName() !== 'app.config.changed') {
-            return false;
-        }
-
-        $webhookPayload = $event->getWebhookPayload();
-        if (isset($webhookPayload['changes']) === false) {
-            return false;
-        }
-
-        $paynlConfig = array_filter($webhookPayload['changes'], function ($webhookData) {
-            return strpos($webhookData, 'PaynlPaymentShopware6') !== false;
-        });
-
-        return empty($paynlConfig) !== true;
     }
 }

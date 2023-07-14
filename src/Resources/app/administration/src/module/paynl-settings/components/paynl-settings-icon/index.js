@@ -1,7 +1,8 @@
 import template from './paynl-settings-icon.html.twig';
 import './paynl-settings-icon.scss';
 
+const { Component } = Shopware;
 
-export default {
+Component.register('paynl-settings-icon', {
     template,
-};
+});
