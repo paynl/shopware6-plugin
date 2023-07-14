@@ -1,12 +1,13 @@
-import './components/paynl-config-section-api';
-import './components/paynl-plugin-settings';
-import './components/paynl-settings-icon';
 import './acl';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
 
 const { Module } = Shopware;
+
+Shopware.Component.register('paynl-settings-icon', () => import ('./components/paynl-settings-icon'));
+Shopware.Component.register('paynl-config-section-api', () => import ('./components/paynl-config-section-api'));
+Shopware.Component.register('paynl-plugin-settings', () => import('./page/paynl-plugin-settings'));
 
 Module.register('paynl-settings', {
     type: "plugin",

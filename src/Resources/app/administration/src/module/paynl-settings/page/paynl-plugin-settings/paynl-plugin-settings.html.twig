@@ -24,19 +24,6 @@
             {{ $tc('paynlSettings.settingsForm.save') }}
         </sw-button-process>
         {% endblock %}
-
-        {% block paynl_payment_settings_actions_install_payment_methods %}
-        <sw-button-process
-                class="sw-settings-login-registration__save-action"
-                :isLoading="isInstallLoading"
-                :processSuccess="isInstallSuccessful"
-                :disabled="isDisabled"
-                variant="primary"
-                @process-finish="installFinish"
-                @click="onInstallPaymentMethods">
-            {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
-        </sw-button-process>
-        {% endblock %}
     </template>
     {% endblock %}
 
@@ -57,34 +44,6 @@
                             <sw-icon small v-if="isCollapsed(card)" name="regular-chevron-down-xxs" class="paynl-config__collapsible-handle-open"></sw-icon>
                             <sw-icon small v-if="!isCollapsed(card)" name="regular-chevron-up-xxs" class="paynl-config__collapsible-handle-close"></sw-icon>
                         </a>
-                    </div>
-                </template>
-
-                <template #card-element="{ element, config, card }" data-new-data="acl.can('paynl_settings.editor')">
-                    <div v-show="displayField(element, config, card)">
-                        <sw-form-field-renderer
-                            v-if="element.name.startsWith('PaynlPaymentShopware6.config.paymentPinTerminal')"
-                            :config="{
-                                componentName: 'sw-single-select',
-                                label: getInlineSnippet(getElementBind(bindOriginalField(element, config)).config.label),
-                                helpText: getInlineSnippet(getElementBind(bindOriginalField(element, config)).config.helpText),
-                                options: paymentInstoreTerminals,
-                            }"
-                            v-model="config[element.name]"
-                        />
-
-                        <sw-form-field-renderer
-                            v-else-if="element.type.startsWith('single-select')"
-                            :disabled="isDisabled"
-                            v-bind="getElementBind(bindOriginalField(element, config))"
-                            v-model="config[element.name]"/>
-                        />
-
-                        <sw-form-field-renderer
-                            v-else
-                            :disabled="isDisabled"
-                            v-bind="bindField(element, config)"
-                            v-model="config[element.name]"/>
                     </div>
                 </template>
             </sw-system-config>

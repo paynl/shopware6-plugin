@@ -1,11 +1,9 @@
 import template from './paynl-config-section-api.html.twig';
 import './paynl-config-section-api.scss';
 
+const {Mixin} = Shopware;
 
-// eslint-disable-next-line no-undef
-const {Component, Mixin} = Shopware;
-
-Component.register('paynl-config-section-api', {
+export default {
     template,
 
     inject: [
@@ -83,4 +81,4 @@ Component.register('paynl-config-section-api', {
             this.testCredentialsIsLoading = false;
         },
     },
-});
+};

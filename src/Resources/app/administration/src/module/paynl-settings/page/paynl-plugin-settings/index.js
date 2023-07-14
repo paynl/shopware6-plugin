@@ -1,10 +1,10 @@
-const { Component, Mixin } = Shopware;
+const { Mixin } = Shopware;
 const { object, types } = Shopware.Utils;
 
 import template from './paynl-plugin-settings.html.twig';
 import './style.scss';
 
-Component.register('paynl-plugin-settings', {
+export default {
     template,
 
     mixins: [
@@ -394,4 +394,4 @@ Component.register('paynl-plugin-settings', {
             return bind;
         },
     }
-});
+};
