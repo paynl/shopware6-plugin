@@ -1,3 +1,4 @@
+import './components/paynl-config-section-api';
 import './components/paynl-plugin-settings';
 import './components/paynl-settings-icon';
 import './acl';
@@ -12,6 +13,8 @@ Module.register('paynl-settings', {
     name: "paynlSettings.general.name",
     title: "paynlSettings.general.mainMenuItemGeneral",
     description: "paynlSettings.general.description",
+    version: '1.0.0',
+    targetVersion: '1.0.0',
     icon: 'default-action-settings',
     color: '#23ac70',
     snippets: {
@@ -37,7 +40,7 @@ Module.register('paynl-settings', {
     settingsItem: {
         group: 'plugins',
         to: 'paynl.settings.view',
-        backgroundEnabled: true,
+        backgroundEnabled: false,
         iconComponent: 'paynl-settings-icon',
         privilege: 'paynl.viewer',
     }
