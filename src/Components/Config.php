@@ -83,7 +83,7 @@ class Config
         return (string)$this->get($salesChannelId, 'paymentScreenLanguage');
     }
 
-    public function getTransferGoogleAnalytics(string $salesChannelId): bool
+    public function isTransferGoogleAnalytics(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'transferGoogleAnalytics');
     }

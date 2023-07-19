@@ -315,7 +315,7 @@ class Api
     {
         $transferData = [];
 
-        if ($this->config->getTransferGoogleAnalytics($salesChannelId)) {
+        if ($this->config->isTransferGoogleAnalytics($salesChannelId)) {
             $transferData['gaClientId'] = $this->getGoogleAnalyticsClientId();
         }
 
