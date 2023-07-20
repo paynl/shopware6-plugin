@@ -3,7 +3,7 @@
     {% set display_kvk_block = (context.customer.company is not empty) %}
     {% if (configs.core.loginRegistration.showAccountTypeSelection) and display_kvk_block %}
         <div class="form-row">
-            {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.settings.cocNumberRequired %}
+            {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.config.cocNumberRequired %}
             <div class="form-group col-md-6 paynl-kvk-coc-number-field"
                 {% if display_kvk_block %}
                     style="display: block"

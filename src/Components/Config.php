@@ -6,8 +6,8 @@ use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReaderInterface;
 
 class Config
 {
-    const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.settings.%s';
-    const CONFIG_DOMAIN = 'PaynlPaymentShopware6.settings.';
+    const CONFIG_TEMPLATE = 'PaynlPaymentShopware6.config.%s';
+    const CONFIG_DOMAIN = 'PaynlPaymentShopware6.config.';
     const FEMALE_SALUTATIONS = 'mrs, ms, miss, ma\'am, frau, mevrouw, mevr';
 
     const SHOW_PHONE_FIELD_CONFIG_KEY = 'core.loginRegistration.showPhoneNumberField';

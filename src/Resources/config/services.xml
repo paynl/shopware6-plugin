@@ -193,6 +193,12 @@
             <tag name="shopware.event_subscriber"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\SystemConfigSubscriber" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <!-- Repositories -->
         <service id="PaynlPayment\Shopware6\Repository\Media\MediaRepository">
             <argument type="service" id="media.repository"/>

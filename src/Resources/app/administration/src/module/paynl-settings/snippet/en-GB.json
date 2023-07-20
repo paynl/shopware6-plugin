@@ -12,7 +12,8 @@
         },
         "settingsForm": {
             "save": "Save",
-            "installPaymentMethods": "Install payment methods"
+            "installPaymentMethods": "Install payment methods",
+            "testApiKeys": "Test API Keys"
         }
     },
     "paynlValidation": {
@@ -26,7 +27,8 @@
             "paymentMethodsSuccessfullyInstalled": "Payment methods were successfully added.",
             "emptyCredentialsError": "Credentials cannot be empty!",
             "settingsSavedSuccessfully": "Configurations were successfully saved.",
-            "wrongCredentials": "Wrong credentials!"
+            "wrongCredentials": "Wrong credentials!",
+            "correctCredentials": "Correct credentials!"
         }
     },
 

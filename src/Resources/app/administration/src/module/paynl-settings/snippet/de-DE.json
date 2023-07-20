@@ -12,7 +12,8 @@
         },
         "settingsForm": {
             "save": "Speichern",
-            "installPaymentMethods": "Zahlungsarten installieren"
+            "installPaymentMethods": "Zahlungsarten installieren",
+            "testApiKeys": "API-Schlüssel testen"
         }
     },
     "paynlValidation": {
@@ -26,7 +27,8 @@
             "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",
             "emptyCredentialsError": "Anmeldeinformationen dürfen nicht leer sein!",
             "settingsSavedSuccessfully": "Konfigurationen wurden erfolgreich gespeichert.",
-            "wrongCredentials": "Falsche Anmeldeinformationen!"
+            "wrongCredentials": "Falsche Anmeldeinformationen!",
+            "correctCredentials": "Link erfolgreich!"
         }
     },
 

@@ -1,0 +1,8 @@
+<sw-container gap="16px" columns="1fr 1fr">
+    <sw-button @click="onTestCredentials" ref="testCredentialsButton" :isLoading="testCredentialsIsLoading">
+        {{ $tc('paynlSettings.settingsForm.testApiKeys') }}
+    </sw-button>
+    <sw-button @click="onInstallPaymentMethods" ref="installPaymentsButton">
+        {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
+    </sw-button>
+</sw-container>

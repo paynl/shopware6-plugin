@@ -12,7 +12,8 @@
         },
         "settingsForm": {
             "save": "Opslaan",
-            "installPaymentMethods": "Betaalmethoden installeren"
+            "installPaymentMethods": "Betaalmethoden installeren",
+            "testApiKeys": "Test API Sleutel"
         }
     },
     "paynlValidation": {
@@ -26,7 +27,8 @@
             "paymentMethodsSuccessfullyInstalled": "Betaalmethoden succesvol toegevoegd.",
             "emptyCredentialsError": "Inloggegevens mogen niet leeg zijn!",
             "settingsSavedSuccessfully": "Configuratie succesvol opgeslagen.",
-            "wrongCredentials": "Onjuiste inloggegevens!"
+            "wrongCredentials": "Onjuiste inloggegevens!",
+            "correctCredentials": "Koppeling geslaagd!"
         }
     },
 

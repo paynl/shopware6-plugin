@@ -21,24 +21,10 @@ Component.register('paynl-plugin-settings', {
 
     data() {
         return {
-            isInstallLoading: false,
             isLoading: false,
             isTesting: false,
             isSaveSuccessful: false,
-            isInstallSuccessful: false,
-            isTestSuccessful: false,
             config: {},
-            tokenCodeFilled: false,
-            apiTokenFilled: false,
-            serviceIdFilled: false,
-            useSinglePaymentMethodFilled: false,
-            testModeFilled: false,
-            usePAYStylesFilled: false,
-            cocNumberRequiredFilled: false,
-            allowRefundsFilled: false,
-            femaleSalutationsFilled: false,
-            showCredentilasErrors: false,
-            paymentInstoreTerminals: [],
             currentSalesChannelId: null,
             settingsData: {
                 tokenCode: null,
@@ -60,10 +46,7 @@ Component.register('paynl-plugin-settings', {
                 orderStateWithAuthorizedTransaction: null,
                 paymentPinTerminal: null
             },
-            collapsibleState: {
-                'order_state_automation': true,
-                'payment_pin': true,
-            },
+            collapsibleState: {},
         };
     },
 
@@ -74,10 +57,6 @@ Component.register('paynl-plugin-settings', {
     },
 
     computed: {
-        credentialsEmpty: function() {
-            return !this.tokenCodeFilled || !this.apiTokenFilled || !this.serviceIdFilled;
-        },
-
         isDisabled: function () {
             return this.isLoading || !this.acl.can('paynl.editor');
         }
@@ -92,28 +71,6 @@ Component.register('paynl-plugin-settings', {
     },
 
     methods: {
-        initPaymentTerminals(salesChannelId = '') {
-            let self = this;
-
-            this.PaynlPaymentService.getPaymentTerminals(salesChannelId)
-                .then((result) => {
-                    self.paymentInstoreTerminals = [];
-                    result.data.forEach((element) => {
-                        let translationKey = 'paynl-instore-options.' + element.id;
-                        let translationValue = self.$t(translationKey);
-
-                        if (translationValue === translationKey) {
-                            translationValue = element.label;
-                        }
-
-                        self.paymentInstoreTerminals.push({
-                            'label': translationValue,
-                            'value': element.id,
-                        });
-                    });
-                });
-        },
-
         isCollapsible(card) {
             return card.name in this.collapsibleState;
         },
@@ -170,39 +127,30 @@ Component.register('paynl-plugin-settings', {
         },
 
         onConfigChange(config) {
-            const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ? this.$refs.systemConfig.currentSalesChannelId : '';
-
-            if (salesChannelId !== this.currentSalesChannelId) {
-                this.initPaymentTerminals(salesChannelId);
-            }
-            this.currentSalesChannelId = salesChannelId;
+            this.currentSalesChannelId = this.$refs.systemConfig.currentSalesChannelId ? this.$refs.systemConfig.currentSalesChannelId : '';
 
             this.config = config;
 
-            this.setCredentialsFilled();
-
             this.settingsData = {
-                tokenCode: this.config['PaynlPaymentShopware6.settings.tokenCode'],
-                allowRefunds: this.config['PaynlPaymentShopware6.settings.allowRefunds'],
-                apiToken: this.config['PaynlPaymentShopware6.settings.apiToken'],
-                serviceId: this.config['PaynlPaymentShopware6.settings.serviceId'],
-                useSinglePaymentMethod: this.config['PaynlPaymentShopware6.settings.useSinglePaymentMethod'],
-                testMode: this.config['PaynlPaymentShopware6.settings.testMode'],
-                cocNumberRequired: this.config['PaynlPaymentShopware6.settings.cocNumberRequired'],
-                showDescription: this.config['PaynlPaymentShopware6.settings.showDescription'],
-                additionalAddressFields: this.config['PaynlPaymentShopware6.settings.additionalAddressFields'],
-                femaleSalutations: this.config['PaynlPaymentShopware6.settings.femaleSalutations'],
-                usePAYStyles: this.config['PaynlPaymentShopware6.settings.usePAYStyles'],
-                paymentScreenLanguage: this.config['PaynlPaymentShopware6.settings.paymentScreenLanguage'],
-                transferGoogleAnalytics: this.config['PaynlPaymentShopware6.settings.transferGoogleAnalytics'],
-                orderStateWithPaidTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithPaidTransaction'],
-                orderStateWithFailedTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithFailedTransaction'],
-                orderStateWithCancelledTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithCancelledTransaction'],
-                orderStateWithAuthorizedTransaction: this.config['PaynlPaymentShopware6.settings.orderStateWithAuthorizedTransaction'],
-                paymentPinTerminal: this.config['PaynlPaymentShopware6.settings.paymentPinTerminal'],
+                tokenCode: this.config['PaynlPaymentShopware6.config.tokenCode'],
+                allowRefunds: this.config['PaynlPaymentShopware6.config.allowRefunds'],
+                apiToken: this.config['PaynlPaymentShopware6.config.apiToken'],
+                serviceId: this.config['PaynlPaymentShopware6.config.serviceId'],
+                useSinglePaymentMethod: this.config['PaynlPaymentShopware6.config.useSinglePaymentMethod'],
+                testMode: this.config['PaynlPaymentShopware6.config.testMode'],
+                cocNumberRequired: this.config['PaynlPaymentShopware6.config.cocNumberRequired'],
+                showDescription: this.config['PaynlPaymentShopware6.config.showDescription'],
+                additionalAddressFields: this.config['PaynlPaymentShopware6.config.additionalAddressFields'],
+                femaleSalutations: this.config['PaynlPaymentShopware6.config.femaleSalutations'],
+                usePAYStyles: this.config['PaynlPaymentShopware6.config.usePAYStyles'],
+                paymentScreenLanguage: this.config['PaynlPaymentShopware6.config.paymentScreenLanguage'],
+                transferGoogleAnalytics: this.config['PaynlPaymentShopware6.config.transferGoogleAnalytics'],
+                orderStateWithPaidTransaction: this.config['PaynlPaymentShopware6.config.orderStateWithPaidTransaction'],
+                orderStateWithFailedTransaction: this.config['PaynlPaymentShopware6.config.orderStateWithFailedTransaction'],
+                orderStateWithCancelledTransaction: this.config['PaynlPaymentShopware6.config.orderStateWithCancelledTransaction'],
+                orderStateWithAuthorizedTransaction: this.config['PaynlPaymentShopware6.config.orderStateWithAuthorizedTransaction'],
+                paymentPinTerminal: this.config['PaynlPaymentShopware6.config.paymentPinTerminal'],
             };
-
-            this.showCredentilasErrors = false;
         },
 
         getConfigValue(field) {
@@ -210,19 +158,14 @@ Component.register('paynl-plugin-settings', {
             const salesChannelId = this.$refs.systemConfig.currentSalesChannelId;
 
             if (salesChannelId === null) {
-                return this.config[`PaynlPaymentShopware6.settings.${field}`];
+                return this.config[`PaynlPaymentShopware6.config.${field}`];
             }
 
-            return this.config[`PaynlPaymentShopware6.settings.${field}`]
-                || defaultConfig[`PaynlPaymentShopware6.settings.${field}`];
+            return this.config[`PaynlPaymentShopware6.config.${field}`]
+                || defaultConfig[`PaynlPaymentShopware6.config.${field}`];
         },
 
         onSave() {
-            if (this.credentialsEmpty) {
-                this.showCredentilasErrors = true;
-                return;
-            }
-
             this.isSaveSuccessful = false;
             this.isLoading = true;
 
@@ -258,88 +201,9 @@ Component.register('paynl-plugin-settings', {
             });
         },
 
-        onInstallPaymentMethods() {
-            if (this.settingsData.useSinglePaymentMethod) {
-                return;
-            }
-
-            if (this.credentialsEmpty) {
-                this.showCredentilasErrors = true;
-                return;
-            }
-
-            this.isInstallLoading = true;
-            this.isSaveSuccessful = false;
-            this.isLoading = true;
-
-            this.$refs.systemConfig.saveAll().then(() => {
-                this.isLoading = false;
-                this.isSaveSuccessful = true;
-
-                this.createNotificationSuccess({
-                    title: this.$tc('paynlDefault.success'),
-                    message: this.$tc('paynlValidation.messages.settingsSavedSuccessfully')
-                });
-
-                this.isInstallSuccessful = false;
-
-                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?
-                    this.$refs.systemConfig.currentSalesChannelId : '';
-
-                this.PaynlPaymentService.installPaymentMethods(salesChannelId)
-                    .then((response) => {
-                        this.createNotificationSuccess({
-                            title: this.$tc('paynlDefault.success'),
-                            message: this.$tc(response.message)
-                        });
-
-                        this.isInstallSuccessful = true;
-                        this.isInstallLoading = false;
-                    })
-                    .catch(() => {
-                        this.createNotificationError({
-                            title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
-                            message: this.$tc('paynlValidation.error.paymentMethodsInstallMessage')
-                        });
-
-                        this.isInstallSuccessful = true;
-                        this.isInstallLoading = false;
-                    });
-            }).catch(() => {
-                this.isLoading = false;
-            });
-        },
-
-        setCredentialsFilled() {
-            this.tokenCodeFilled = !!this.getConfigValue('tokenCode');
-            this.apiTokenFilled = !!this.getConfigValue('apiToken');
-            this.serviceIdFilled = !!this.getConfigValue('serviceId');
-        },
-
         bindField(element, config) {
             if (config !== this.config) {
                 this.onConfigChange(config);
-            }
-
-            if (this.showCredentilasErrors) {
-                if (element.name === 'PaynlPaymentShopware6.settings.tokenCode' && !this.tokenCodeFilled) {
-                    element.config.error = {
-                        code: 1,
-                        detail: this.$tc('paynlValidation.error.shouldNotBeBlank')
-                    };
-                }
-                if (element.name === 'PaynlPaymentShopware6.settings.apiToken' && !this.apiTokenFilled) {
-                    element.config.error = {
-                        code: 1,
-                        detail: this.$tc('paynlValidation.error.shouldNotBeBlank')
-                    };
-                }
-                if (element.name === 'PaynlPaymentShopware6.settings.serviceId' && !this.serviceIdFilled) {
-                    element.config.error = {
-                        code: 1,
-                        detail: this.$tc('paynlValidation.error.shouldNotBeBlank')
-                    };
-                }
             }
 
             return element;
