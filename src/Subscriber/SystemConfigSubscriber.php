@@ -30,7 +30,13 @@ class SystemConfigSubscriber implements EventSubscriberInterface
 
     public function onSystemConfigChanged(SystemConfigChangedEvent $event)
     {
-        if ($event->getKey() === 'PaynlPaymentShopware6.config.serviceId') {
+        $paynlConfig = [
+            'PaynlPaymentShopware6.config.serviceId',
+            'PaynlPaymentShopware6.config.tokenCode',
+            'PaynlPaymentShopware6.config.apiToken',
+        ];
+
+        if (in_array($event->getKey(), $paynlConfig)) {
             $this->installPaymentMethods();
         }
     }
