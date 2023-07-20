@@ -195,6 +195,15 @@
                 </option>
             </options>
         </input-field>
+        <input-field type="bool">
+            <name>transferGoogleAnalytics</name>
+            <label>Transfer analytics to Pay.</label>
+            <label lang="nl-NL">Stuur Analytics data naar Pay.</label>
+            <label lang="de-DE">Analytik an Pay. übertragen</label>
+            <helpText>When you enable this option, the plugin will send Google Analytics data to Pay.</helpText>
+            <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
+            <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
+        </input-field>
     </card>
 
     <card>
