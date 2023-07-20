@@ -1,4 +1,6 @@
 # 1.5.1
+- Added Google analytics
+- Added plugin config button
 
 # 1.5.0
 - Support Shopware 6.5 version

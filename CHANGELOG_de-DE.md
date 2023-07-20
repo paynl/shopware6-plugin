@@ -1,4 +1,6 @@
 # 1.5.1
+- Google analytics tracking hinzugefügt
+- "Plugin-Konfiguration" Verknüpfung hinzugefügt
 
 # 1.5.0
 - Unterstützt Shopware 6.5 Version
