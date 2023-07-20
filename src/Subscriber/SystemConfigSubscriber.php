@@ -30,7 +30,7 @@ class SystemConfigSubscriber implements EventSubscriberInterface
 
     public function onSystemConfigChanged(SystemConfigChangedEvent $event)
     {
-        if ($event->getKey() === 'PaynlPaymentShopware6.config.apiToken') {
+        if ($event->getKey() === 'PaynlPaymentShopware6.config.serviceId') {
             $this->installPaymentMethods();
         }
     }
@@ -47,6 +47,13 @@ class SystemConfigSubscriber implements EventSubscriberInterface
                 $paymentMethodId = md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID);
                 $this->installHelper->setDefaultPaymentMethod($salesChannelId, $context, $paymentMethodId);
 
+                continue;
+            }
+
+            if (!$this->config->getApiToken($salesChannelId)
+                || !$this->config->getTokenCode($salesChannelId)
+                || !$this->config->getServiceId($salesChannelId)
+            ) {
                 continue;
             }
 
