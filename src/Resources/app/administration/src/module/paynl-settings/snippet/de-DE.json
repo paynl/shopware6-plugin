@@ -13,7 +13,7 @@
         "settingsForm": {
             "save": "Speichern",
             "installPaymentMethods": "Zahlungsarten installieren",
-            "testApiKeys": "Test API Keys"
+            "testApiKeys": "API-Schlüssel testen"
         }
     },
     "paynlValidation": {
@@ -28,7 +28,7 @@
             "emptyCredentialsError": "Anmeldeinformationen dürfen nicht leer sein!",
             "settingsSavedSuccessfully": "Konfigurationen wurden erfolgreich gespeichert.",
             "wrongCredentials": "Falsche Anmeldeinformationen!",
-            "correctCredentials": "Correct credentials!"
+            "correctCredentials": "Link erfolgreich!"
         }
     },
 
