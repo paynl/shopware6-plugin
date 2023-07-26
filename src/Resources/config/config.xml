@@ -83,6 +83,15 @@
             <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet werden können</helpText>
         </input-field>
         <input-field type="bool">
+            <name>surchargePaymentMethods</name>
+            <label>Surcharge payment methods</label>
+            <label lang="nl-NL">Surcharge payment methods</label>
+            <label lang="de-DE">Surcharge payment methods</label>
+            <helpText>Surcharge payment methods</helpText>
+            <helpText lang="nl-NL">Surcharge payment methods</helpText>
+            <helpText lang="de-DE">Surcharge payment methods</helpText>
+        </input-field>
+        <input-field type="bool">
             <name>usePAYStyles</name>
             <label>Use styles by PAY.</label>
             <label lang="nl-NL">Gebruik PAY. stijl</label>

@@ -29,6 +29,7 @@ Component.register('paynl-plugin-settings', {
             settingsData: {
                 tokenCode: null,
                 allowRefunds: null,
+                surchargePaymentMethods: null,
                 apiToken: null,
                 serviceId: null,
                 useSinglePaymentMethod: null,
@@ -134,6 +135,7 @@ Component.register('paynl-plugin-settings', {
             this.settingsData = {
                 tokenCode: this.config['PaynlPaymentShopware6.config.tokenCode'],
                 allowRefunds: this.config['PaynlPaymentShopware6.config.allowRefunds'],
+                surchargePaymentMethods: this.config['PaynlPaymentShopware6.config.surchargePaymentMethods'],
                 apiToken: this.config['PaynlPaymentShopware6.config.apiToken'],
                 serviceId: this.config['PaynlPaymentShopware6.config.serviceId'],
                 useSinglePaymentMethod: this.config['PaynlPaymentShopware6.config.useSinglePaymentMethod'],
