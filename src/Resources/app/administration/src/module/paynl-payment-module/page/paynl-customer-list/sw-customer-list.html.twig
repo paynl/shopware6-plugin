@@ -1,0 +1,66 @@
+<!-- eslint-disable-next-line sw-deprecation-rules/no-twigjs-blocks -->
+{% block sw_customer_list %}
+<sw-page class="sw-customer-list">
+
+    <template #content>
+        <div class="sw-customer-list__content">
+            <sw-entity-listing
+                v-if="isLoading || customers"
+                ref="swCustomerGrid"
+                class="sw-customer-list-grid"
+                identifier="sw-customer-list"
+                :items="customers"
+                :columns="customerColumns"
+                :repository="customerRepository"
+                :show-selection="false"
+                :allow-inline-edit="false"
+                :allow-bulk-edit="false"
+                :is-loading="isLoading"
+                :showActions="false"
+                :showSettings="false"
+                :allowColumnEdit="false"
+                @page-change="onPageChange"
+            >
+
+                <template slot="column-links" slot-scope="{item}">
+                    <a target="_blank" class="sw-data-grid__cell-value" href="https://my.pay.nl">
+                        my.pay.nl
+                    </a>
+                </template>
+
+                <template slot="column-order.orderNumber" slot-scope="{item}">
+                    <router-link v-if="isUserOrdersViewer"
+                                 class="sw-data-grid__cell-value"
+                                 :to="{ name: 'sw.order.detail', params: { id: item.orderId }}">
+                        {{ item.order.orderNumber }}
+                    </router-link>
+                </template>
+
+
+                <template slot="column-customer.lastName" slot-scope="{item}">
+                    <router-link v-if="isUserCustomersViewer"
+                                 class="sw-data-grid__cell-value"
+                                 :to="{ name: 'sw.customer.detail.base', params: { id: item.customerId } }">
+                        {{ item.customer.lastName }} {{ item.customer.firstName }}
+                    </router-link>
+                </template>
+
+                <template slot="column-status" slot-scope="{ item }">
+                    <sw-label :variant="getVariantFromPaymentState(item.stateMachineState.technicalName)" appearance="pill">
+                        {{ item.stateMachineState.name }}
+                    </sw-label>
+                </template>
+
+                <template slot="column-updatedAt" slot-scope="{ item }">
+                    {{ getData(item.updatedAt) }}
+                </template>
+
+                <template slot="column-createdAt" slot-scope="{ item }">
+                    {{ getData(item.createdAt) }}
+                </template>
+
+            </sw-entity-listing>
+        </div>
+    </template>
+</sw-page>
+{% endblock %}
