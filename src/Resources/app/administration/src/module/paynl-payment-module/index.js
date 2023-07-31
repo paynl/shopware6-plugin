@@ -1,5 +1,3 @@
-import './page/components/paynl-transactions-list';
-import './page/paynl-transactions-list-component';
 import './page/paynl-transaction-list';
 import './acl';
 
@@ -21,13 +19,6 @@ Module.register('paynl-payment-module', {
         'nl-NL': nlNL
     },
     routes: {
-        list: {
-            component: 'paynl-transactions-list-component',
-            path: 'list',
-            meta: {
-                privilege: 'paynl_transactions.viewer'
-            }
-        },
         transactions: {
             component: 'paynl-transaction-list',
             path: 'transactions',
@@ -39,12 +30,7 @@ Module.register('paynl-payment-module', {
             }
         }
     },
-    navigation: [{
-        parent: 'sw-order',
-        label: "module.navigation.label",
-        path: 'paynl.payment.module.list',
-        privilege: 'paynl_transactions.viewer',
-    },
+    navigation: [
         {
             parent: 'sw-order',
             label: 'module.navigation.label',
