@@ -1,6 +1,6 @@
 import './page/components/paynl-transactions-list';
 import './page/paynl-transactions-list-component';
-import './page/paynl-customer-list';
+import './page/paynl-transaction-list';
 import './acl';
 
 import deDE from './snippet/de-DE.json';
@@ -28,11 +28,11 @@ Module.register('paynl-payment-module', {
                 privilege: 'paynl_transactions.viewer'
             }
         },
-        customers: {
-            component: 'paynl-customer-list',
-            path: 'customers',
+        transactions: {
+            component: 'paynl-transaction-list',
+            path: 'transactions',
             meta: {
-                privilege: 'customer.viewer',
+                privilege: 'paynl_transactions.viewer',
                 appSystem: {
                     view: 'list',
                 },
@@ -47,9 +47,9 @@ Module.register('paynl-payment-module', {
     },
         {
             parent: 'sw-order',
-            label: "module.navigation.label",
-            path: 'paynl.payment.module.customers',
-            privilege: 'customer.viewer',
+            label: 'module.navigation.label',
+            path: 'paynl.payment.module.transactions',
+            privilege: 'paynl_transactions.viewer',
         }
     ]
 });

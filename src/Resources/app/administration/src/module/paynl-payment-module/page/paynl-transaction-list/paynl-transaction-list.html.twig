@@ -1,17 +1,16 @@
 <!-- eslint-disable-next-line sw-deprecation-rules/no-twigjs-blocks -->
-{% block sw_customer_list %}
-<sw-page class="sw-customer-list">
+{% block paynl_transaction_list %}
+<sw-page class="paynl-transaction-list">
 
     <template #content>
-        <div class="sw-customer-list__content">
+        <div class="paynl-transaction-list__content">
             <sw-entity-listing
-                v-if="isLoading || customers"
-                ref="swCustomerGrid"
-                class="sw-customer-list-grid"
-                identifier="sw-customer-list"
-                :items="customers"
-                :columns="customerColumns"
-                :repository="customerRepository"
+                v-if="isLoading || transactions"
+                ref="paynlTransactionGrid"
+                class="paynl-transaction-list-grid"
+                identifier="paynl-transaction-list"
+                :items="transactions"
+                :columns="transactionColumns"
                 :show-selection="false"
                 :allow-inline-edit="false"
                 :allow-bulk-edit="false"
