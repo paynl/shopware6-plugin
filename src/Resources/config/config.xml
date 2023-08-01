@@ -3,12 +3,13 @@
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
 
     <card>
-        <title>Configuration</title>
-        <title lang="nl-NL">Configuratie</title>
-        <title lang="de-DE">Konfiguration</title>
+        <title>API</title>
+        <title lang="de-DE">API</title>
+        <title lang="nl-NL">API</title>
 
         <input-field>
             <name>tokenCode</name>
+            <copyable>true</copyable>
             <label>Token-Code (AT-xxxx-xxxx)</label>
             <label lang="nl-NL">Token-Code (AT-xxxx-xxxx)</label>
             <label lang="de-DE">Token-Code (AT-xxxx-xxxx)</label>
@@ -18,6 +19,7 @@
         </input-field>
         <input-field>
             <name>apiToken</name>
+            <copyable>true</copyable>
             <label>API-token</label>
             <label lang="nl-NL">API-token</label>
             <label lang="de-DE">API-token</label>
@@ -27,21 +29,13 @@
         </input-field>
         <input-field>
             <name>serviceId</name>
+            <copyable>true</copyable>
             <label>Service-ID (SL-xxxx-xxxx)</label>
             <label lang="nl-NL">Service-ID (SL-xxxx-xxxx)</label>
             <label lang="de-DE">Service-ID (SL-xxxx-xxxx)</label>
             <helpText>Your Service-ID (SL-xxxx-xxxx), You can find your Service-ID at: https://admin.pay.nl/programs/programs</helpText>
             <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op: https://admin.pay.nl/programs/programs</helpText>
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
-        </input-field>
-        <input-field type="bool">
-            <name>useSinglePaymentMethod</name>
-            <label>Use a uniform payment method by PAY.</label>
-            <label lang="nl-NL">Gebruik een uniforme betaalmethode aangeboden door PAY.</label>
-            <label lang="de-DE">Verwenden Sie eine einheitliche, von PAY angebotene Zahlungsmethode.</label>
-            <helpText>This option turns off all other payment methods and redirects the user to PAY's hosted payment pages.</helpText>
-            <helpText lang="nl-NL">Deze optie deactiveert alternatieve betaalmethoden en stuurt de gebruiker door naar de hosted payment pages van PAY.</helpText>
-            <helpText lang="de-DE">Diese Option deaktiviert alternative Zahlungsmethoden und leitet den Benutzer auf die gehosteten Zahlungsseiten von PAY um.</helpText>
         </input-field>
         <input-field type="bool">
             <name>testMode</name>
@@ -52,6 +46,24 @@
             <helpText lang="nl-NL">Schakel dit in als u alle transacties in de testmodus wilt starten</helpText>
             <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie alle Transaktionen im Testmodus starten möchten</helpText>
         </input-field>
+        <input-field type="bool">
+            <name>useSinglePaymentMethod</name>
+            <label>Use a uniform payment method by PAY.</label>
+            <label lang="nl-NL">Gebruik een uniforme betaalmethode aangeboden door PAY.</label>
+            <label lang="de-DE">Verwenden Sie eine einheitliche, von PAY angebotene Zahlungsmethode.</label>
+            <helpText>This option turns off all other payment methods and redirects the user to PAY's hosted payment pages.</helpText>
+            <helpText lang="nl-NL">Deze optie deactiveert alternatieve betaalmethoden en stuurt de gebruiker door naar de hosted payment pages van PAY.</helpText>
+            <helpText lang="de-DE">Diese Option deaktiviert alternative Zahlungsmethoden und leitet den Benutzer auf die gehosteten Zahlungsseiten von PAY um.</helpText>
+        </input-field>
+        <component name="paynl-config-section-api">
+            <name>paynlConfigSectionApi</name>
+        </component>
+    </card>
+    <card>
+        <title>Payments</title>
+        <title lang="de-DE">Zahlungen</title>
+        <title lang="nl-NL">Betalingen</title>
+
         <input-field type="bool">
             <name>cocNumberRequired</name>
             <label>CoC number required</label>
@@ -182,6 +194,15 @@
                     <name lang="de-DE">Automatisch (Browser-Sprache)</name>
                 </option>
             </options>
+        </input-field>
+        <input-field type="bool">
+            <name>transferGoogleAnalytics</name>
+            <label>Transfer analytics to Pay.</label>
+            <label lang="nl-NL">Stuur Analytics data naar Pay.</label>
+            <label lang="de-DE">Analytik an Pay. übertragen</label>
+            <helpText>When you enable this option, the plugin will send Google Analytics data to Pay.</helpText>
+            <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
+            <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
         </input-field>
     </card>
 
@@ -359,6 +380,20 @@
             <label>Selected terminal</label>
             <label lang="nl-NL">Taal betaalscherm</label>
             <label lang="de-DE">Sprache des Zahlungsbildschirms</label>
+            <options>
+                <option>
+                    <id>checkout</id>
+                    <name>Choose in checkout</name>
+                    <name lang="de-DE">In der Kasse auswählen</name>
+                    <name lang="nl-NL">Kies bij het afrekenen</name>
+                </option>
+                <option>
+                    <id>checkout_save</id>
+                    <name>Choose in checkout and save</name>
+                    <name lang="de-DE">An der Kasse auswählen und sparen</name>
+                    <name lang="nl-NL">Kies bij het afrekenen en bespaar</name>
+                </option>
+            </options>
         </input-field>
     </card>
 </config>

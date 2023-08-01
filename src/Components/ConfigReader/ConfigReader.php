@@ -7,7 +7,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class ConfigReader implements ConfigReaderInterface
 {
-    public const SYSTEM_CONFIG_DOMAIN = 'PaynlPaymentShopware6.settings.';
+    public const SYSTEM_CONFIG_DOMAIN = 'PaynlPaymentShopware6.config.';
 
     /** @var SystemConfigService */
     private $systemConfigService;

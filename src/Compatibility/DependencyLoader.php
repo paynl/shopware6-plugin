@@ -84,10 +84,10 @@ class DependencyLoader
         }
 
         if ($versionCompare->gte('6.5')) {
-            $file = $pluginRoot . '/src/Resources/app/storefront/dist/paynl-payment-shopware6-65.js';
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-65.js';
             $target = $distFileFolder . '/paynl-payment-shopware6.js';
         } else {
-            $file = $pluginRoot . '/src/Resources/app/storefront/dist/paynl-payment-shopware6-64.js';
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-64.js';
             $target = $distFileFolder . '/paynl-payment-shopware6.js';
         }
 
