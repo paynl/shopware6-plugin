@@ -17,7 +17,8 @@
             "changePayment": "Try again",
             "dob": "Date of birth dd-mm-yyyy:",
             "phone": "Phone:"
-        }
+        },
+        "summarySurcharge": "Payment costs"
     },
     "transactionLabels": {
         "order": "Order: "

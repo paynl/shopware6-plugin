@@ -1,0 +1,25 @@
+{% sw_extends '@Storefront/storefront/page/account/order-history/order-detail-list-item.html.twig' %}
+
+{% block page_account_order_item_detail_image_value %}
+    {% if lineItem.type is same as('payment_surcharge') %}
+        <div class="order-item-product-image">
+            <div class="order-item-img order-item-discount-icon">
+                {% sw_icon 'euro' style {
+                    'color': 'light'
+                } %}
+            </div>
+        </div>
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}
+
+{% block page_account_order_item_detail_price_value %}
+    {% if lineItem.type is same as('payment_surcharge') %}
+        <span class="order-item-value order-item-price-value">
+            {{ lineItem.unitPrice|currency(order.currency.isoCode) }}{{ "general.star"|trans|sw_sanitize }}
+        </span>
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}

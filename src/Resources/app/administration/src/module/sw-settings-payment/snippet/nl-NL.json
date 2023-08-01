@@ -1,0 +1,13 @@
+{
+    "paymentSurchargeSettings": {
+        "titleSurchargeSettingsCard": "Toeslaginstellingen",
+        "labelAmount": "Bedrag",
+        "labelType": "Type",
+        "placeholderAmount": "0.00",
+        "labelOrderValueLimit": "Tot bestelwaarde",
+        "type": {
+            "absoluteOptionLabel": "Absoluut",
+            "percentageOptionLabel": "Percentage"
+        }
+    }
+}

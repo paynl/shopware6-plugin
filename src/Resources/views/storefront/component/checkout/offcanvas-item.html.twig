@@ -1,0 +1,15 @@
+{% sw_extends '@Storefront/storefront/component/checkout/offcanvas-item.html.twig' %}
+
+{% block component_offcanvas_product_image_inner %}
+    {% if lineItem.type is same as('payment_surcharge') %}
+        <div class="cart-item-img">
+            <div class="cart-item-icon text-center">
+                {% sw_icon 'euro' style {
+                    'color': 'success'
+                } %}
+            </div>
+        </div>
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}

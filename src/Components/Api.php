@@ -298,6 +298,24 @@ class Api
             ];
         }
 
+        $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
+        /** @var OrderLineItemEntity $item */
+        foreach ($surchargeItems as $item) {
+            $vatPercentage = 0;
+            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
+                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+            }
+
+            $products[] = [
+                'id' => 'surcharge',
+                'name' => $item->getLabel(),
+                'price' => $item->getUnitPrice(),
+                'vatPercentage' => $vatPercentage,
+                'qty' => $item->getPrice()->getQuantity(),
+                'type' => Transaction::PRODUCT_TYPE_PAYMENT,
+            ];
+        }
+
         $products[] = [
             'id' => 'shipping',
             'name' => 'Shipping',
