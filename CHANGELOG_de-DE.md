@@ -1,3 +1,5 @@
+# 1.5.2
+
 # 1.5.1
 - Google analytics tracking hinzugefügt
 - "Plugin-Konfiguration" Verknüpfung hinzugefügt
