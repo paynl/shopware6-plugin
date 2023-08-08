@@ -307,7 +307,7 @@ class Api
             }
 
             $products[] = [
-                'id' => 'surcharge',
+                'id' => 'payment',
                 'name' => $item->getLabel(),
                 'price' => $item->getUnitPrice(),
                 'vatPercentage' => $vatPercentage,
