@@ -18,6 +18,7 @@ class MediaHelper
     const MEDIA_NAME_TEMPLATE = 'paynlpayment_%s';
     const MEDIA_NAME_PREFIX = 'paynlpayment';
     const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
+    const EURO_ICON = 'euro-icon';
 
     /** @var MediaRepositoryInterface */
     private $mediaRepository;
@@ -40,10 +41,21 @@ class MediaHelper
      */
     public function getMediaId(string $paymentMethodName, Context $context): ?string
     {
+        $media = $this->getMedia($paymentMethodName, $context);
+
+        if (empty($media)) {
+            return null;
+        }
+
+        return $media->getId();
+    }
+
+    public function getMedia(string $name, Context $context): ?MediaEntity
+    {
         $criteria = (new Criteria())->addFilter(
             new EqualsFilter(
                 'fileName',
-                $this->getMediaName($paymentMethodName)
+                $this->getMediaName($name)
             )
         );
 
@@ -54,7 +66,7 @@ class MediaHelper
             return null;
         }
 
-        return $media->getId();
+        return $media;
     }
 
     public function addImageToMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
@@ -83,6 +95,36 @@ class MediaHelper
         $this->fileSaver->persistFileToMedia(
             $mediaFile,
             $this->getMediaName($paymentMethodValueObject->getName()),
+            $mediaId,
+            $context
+        );
+    }
+
+    public function addEuroIconMedia(Context $context)
+    {
+        if ($this->isAlreadyExist(self::EURO_ICON, $context)) {
+            return;
+        }
+
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, self::EURO_ICON);
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $mediaFile = new MediaFile(
+            $filePath,
+            mime_content_type($filePath),
+            pathinfo($filePath, PATHINFO_EXTENSION),
+            filesize($filePath)
+        );
+
+        $mediaId = Uuid::randomHex();
+        $mediaData = ['id' => $mediaId];
+        $this->mediaRepository->create([$mediaData], $context);
+
+        $this->fileSaver->persistFileToMedia(
+            $mediaFile,
+            $this->getMediaName(self::EURO_ICON),
             $mediaId,
             $context
         );

@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Checkout\Payment;
 
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Exceptions\PriceDefinitionInstance;
+use PaynlPayment\Shopware6\Helper\MediaHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\CartBehavior;
@@ -35,19 +36,23 @@ class PaymentSurchargeCollector implements CartDataCollectorInterface, CartProce
 
     /** @var PercentagePriceCalculator */
     protected $percentagePriceCalculator;
+    /** @var MediaHelper */
+    protected $mediaHelper;
 
     public function __construct(
         Config $config,
         PaymentMethodSurchargeService $surchargeService,
         LineItemFactoryInterface $lineItemFactory,
         AbsolutePriceCalculator $absolutePriceCalculator,
-        PercentagePriceCalculator $percentagePriceCalculator
+        PercentagePriceCalculator $percentagePriceCalculator,
+        MediaHelper $mediaHelper
     ) {
         $this->config = $config;
         $this->surchargeService = $surchargeService;
         $this->absolutePriceCalculator = $absolutePriceCalculator;
         $this->lineItemFactory = $lineItemFactory;
         $this->percentagePriceCalculator = $percentagePriceCalculator;
+        $this->mediaHelper = $mediaHelper;
     }
 
     public function collect(
@@ -145,6 +150,11 @@ class PaymentSurchargeCollector implements CartDataCollectorInterface, CartProce
         ], $salesChannelContext);
 
         $lineItem->setGood(false);
+
+        $euroIconMedia = $this->mediaHelper->getMedia(MediaHelper::EURO_ICON, $salesChannelContext->getContext());
+        if ($euroIconMedia) {
+            $lineItem->setCover($euroIconMedia);
+        }
 
         if ($updatePermissions) {
             $salesChannelContext->setPermissions($salesChannelPermissions);

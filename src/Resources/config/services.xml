@@ -232,6 +232,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Cart\LineItemFactoryHandler\CustomLineItemFactory" />
             <argument type="service" id="Shopware\Core\Checkout\Cart\Price\AbsolutePriceCalculator"/>
             <argument type="service" id="Shopware\Core\Checkout\Cart\Price\PercentagePriceCalculator"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
 
             <tag name="shopware.cart.processor" priority="3800"/>
             <tag name="shopware.cart.collector" priority="3800" />

@@ -292,6 +292,11 @@ class InstallHelper
         $this->mediaHelper->removeOldMedia($context, [$mediaId]);
     }
 
+    public function addEuroIconMedia(Context $context): void
+    {
+        $this->mediaHelper->addEuroIconMedia($context);
+    }
+
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult
     {
         $criteria = new Criteria();
