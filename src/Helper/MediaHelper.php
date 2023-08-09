@@ -18,7 +18,7 @@ class MediaHelper
     const MEDIA_NAME_TEMPLATE = 'paynlpayment_%s';
     const MEDIA_NAME_PREFIX = 'paynlpayment';
     const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
-    const EURO_ICON = 'euro-icon';
+    const SHOPPING_BASKET_ICON = 'shopping-basket-icon';
 
     /** @var MediaRepositoryInterface */
     private $mediaRepository;
@@ -100,13 +100,13 @@ class MediaHelper
         );
     }
 
-    public function addEuroIconMedia(Context $context)
+    public function addShoppingBasketIconMedia(Context $context)
     {
-        if ($this->isAlreadyExist(self::EURO_ICON, $context)) {
+        if ($this->isAlreadyExist(self::SHOPPING_BASKET_ICON, $context)) {
             return;
         }
 
-        $filePath = sprintf(self::FILE_PATH_TEMPLATE, self::EURO_ICON);
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, self::SHOPPING_BASKET_ICON);
         if (!file_exists($filePath)) {
             return;
         }
@@ -124,7 +124,7 @@ class MediaHelper
 
         $this->fileSaver->persistFileToMedia(
             $mediaFile,
-            $this->getMediaName(self::EURO_ICON),
+            $this->getMediaName(self::SHOPPING_BASKET_ICON),
             $mediaId,
             $context
         );

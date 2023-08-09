@@ -4,7 +4,7 @@
         "labelAmount": "Bedrag",
         "labelType": "Type",
         "placeholderAmount": "0.00",
-        "labelOrderValueLimit": "Tot bestelwaarde",
+        "labelOrderValueLimit": "Toeslag wordt niet toegepast op bestellingen met een totaalbedrag hoger dan:",
         "type": {
             "absoluteOptionLabel": "Absoluut",
             "percentageOptionLabel": "Percentage"

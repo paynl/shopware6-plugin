@@ -4,7 +4,7 @@
         "labelAmount": "Amount",
         "labelType": "Type",
         "placeholderAmount": "0.00",
-        "labelOrderValueLimit": "Till order value",
+        "labelOrderValueLimit": "Surcharges not applied on orders totalling more than:",
         "type": {
             "absoluteOptionLabel": "Absolute",
             "percentageOptionLabel": "Percentage"
