@@ -14,9 +14,11 @@
           {% endif %}
           >
 
-        {% block page_account_payment_form_csrf %}
-            {{ parent() }}
-        {% endblock %}
+        {% if not page.footer.extensions.PAY_custom_data.isSW65%}
+            {% block page_account_payment_form_csrf %}
+                {{ parent() }}
+            {% endblock %}
+        {% endif %}
 
         <input type="hidden" name="redirectTo" value="frontend.account.payment.page">
         {% block page_account_payment_fields %}
