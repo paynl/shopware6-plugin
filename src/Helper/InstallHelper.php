@@ -292,9 +292,9 @@ class InstallHelper
         $this->mediaHelper->removeOldMedia($context, [$mediaId]);
     }
 
-    public function addShoppingBasketIconMedia(Context $context): void
+    public function addSurchargePayStockImageMedia(Context $context): void
     {
-        $this->mediaHelper->addShoppingBasketIconMedia($context);
+        $this->mediaHelper->addSurchargePayStockImageMedia($context);
     }
 
     private function getPaymentMethodsForRemoveMedia(string $salesChannelId, Context $context): ?EntitySearchResult

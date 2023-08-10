@@ -152,7 +152,7 @@ class PaymentSurchargeCollector implements CartDataCollectorInterface, CartProce
         $lineItem->setGood(false);
 
         $shoppingBasketIconMedia = $this->mediaHelper->getMedia(
-            MediaHelper::SHOPPING_BASKET_ICON,
+            MediaHelper::SURCHARGE_PAY_STOCK_IMAGE,
             $salesChannelContext->getContext()
         );
         if ($shoppingBasketIconMedia) {

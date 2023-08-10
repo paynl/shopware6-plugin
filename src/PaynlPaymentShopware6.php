@@ -53,7 +53,7 @@ class PaynlPaymentShopware6 extends Plugin
     public function install(InstallContext $installContext): void
     {
         $this->getInstallHelper()->addPaynlMailTemplateText();
-        $this->getInstallHelper()->addShoppingBasketIconMedia($installContext->getContext());
+        $this->getInstallHelper()->addSurchargePayStockImageMedia($installContext->getContext());
     }
 
     public function uninstall(UninstallContext $uninstallContext): void
@@ -78,7 +78,7 @@ class PaynlPaymentShopware6 extends Plugin
         $this->getInstallHelper()->removeAfterPayMedia($updateContext->getContext());
         $this->getInstallHelper()->updatePaymentMethods($updateContext->getContext());
         $this->getInstallHelper()->addPaynlMailTemplateText();
-        $this->getInstallHelper()->addShoppingBasketIconMedia($updateContext->getContext());
+        $this->getInstallHelper()->addSurchargePayStockImageMedia($updateContext->getContext());
 
         try {
             $currentVersion = $this->container->getParameter('kernel.shopware_version');
