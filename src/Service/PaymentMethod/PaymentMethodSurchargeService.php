@@ -93,7 +93,7 @@ class PaymentMethodSurchargeService
             if ($surcharge->getOrderValueLimit() <= 0 || $grandTotal < $surcharge->getOrderValueLimit()) {
                 $paymentMethod->addExtension(
                     self::PAYMENT_SURCHARGE_EXTENSION,
-                    new ArrayStruct(['surcharge_amount' => $surcharge->getAmount(),])
+                    new ArrayStruct(['surcharge_amount' => $surcharge->getAmount()])
                 );
 
                 continue;
@@ -120,7 +120,7 @@ class PaymentMethodSurchargeService
         if ($surcharge && !($surcharge->getOrderValueLimit() > 0 && $grandTotal >= $surcharge->getOrderValueLimit())) {
             $chosenPaymentMethod->addExtension(
                 self::PAYMENT_SURCHARGE_EXTENSION,
-                new ArrayStruct(['surcharge_amount' => $surcharge->getAmount(),])
+                new ArrayStruct(['surcharge_amount' => $surcharge->getAmount()])
             );
 
             return $chosenPaymentMethod;
