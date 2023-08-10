@@ -44,7 +44,7 @@ class Config
 
     public function getSinglePaymentMethodInd(string $salesChannelId): bool
     {
-        return (bool)$this->get($salesChannelId,'useSinglePaymentMethod');
+        return (bool)$this->get($salesChannelId, 'useSinglePaymentMethod');
     }
 
     public function getTestMode(string $salesChannelId): int
@@ -55,6 +55,11 @@ class Config
     public function isRefundAllowed(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'allowRefunds');
+    }
+
+    public function isSurchargePaymentMethods(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'surchargePaymentMethods');
     }
 
     /**
