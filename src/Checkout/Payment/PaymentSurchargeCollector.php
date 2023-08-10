@@ -151,9 +151,12 @@ class PaymentSurchargeCollector implements CartDataCollectorInterface, CartProce
 
         $lineItem->setGood(false);
 
-        $euroIconMedia = $this->mediaHelper->getMedia(MediaHelper::EURO_ICON, $salesChannelContext->getContext());
-        if ($euroIconMedia) {
-            $lineItem->setCover($euroIconMedia);
+        $shoppingBasketIconMedia = $this->mediaHelper->getMedia(
+            MediaHelper::SURCHARGE_PAY_STOCK_IMAGE,
+            $salesChannelContext->getContext()
+        );
+        if ($shoppingBasketIconMedia) {
+            $lineItem->setCover($shoppingBasketIconMedia);
         }
 
         if ($updatePermissions) {
