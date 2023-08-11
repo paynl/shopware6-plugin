@@ -1,4 +1,5 @@
 # 1.5.2
+- Zahlungszuschläge hinzugefügt
 
 # 1.5.1
 - Google analytics tracking hinzugefügt
