@@ -1,6 +1,7 @@
 import './module/paynl-refund';
 import './module/paynl-payment-module';
 import './module/paynl-settings';
+import './module/sw-settings-payment/page/sw-settings-payment-detail';
 
 import './api/paynl-payment.service';
 

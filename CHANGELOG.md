@@ -1,3 +1,6 @@
+# 1.5.2
+- Added Payment Surcharging
+
 # 1.5.1
 - Added Google analytics
 - Added plugin config button

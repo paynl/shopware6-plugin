@@ -1,0 +1,13 @@
+{% sw_extends '@Storefront/storefront/page/checkout/checkout-item.html.twig' %}
+
+{% block page_checkout_item_info_image_link %}
+    {% if lineItem.type is same as('payment_surcharge') %}
+        <div class="cart-item-img">
+            {% sw_icon 'euro' style {
+                'color': 'light'
+            } %}
+        </div>
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}

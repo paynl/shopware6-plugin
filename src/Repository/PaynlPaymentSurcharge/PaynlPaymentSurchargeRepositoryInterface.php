@@ -1,14 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Repository\Order;
+namespace PaynlPayment\Shopware6\Repository\PaynlPaymentSurcharge;
 
-use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 
-interface OrderRepositoryInterface
+interface PaynlPaymentSurchargeRepositoryInterface
 {
     /**
      * @param array<mixed> $data
@@ -35,6 +34,4 @@ interface OrderRepositoryInterface
      * @return EntityWrittenContainerEvent
      */
     public function update(array $data, Context $context): EntityWrittenContainerEvent;
-
-    public function getOrderById(string $orderId, Context $context): OrderEntity;
 }
