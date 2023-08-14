@@ -2,11 +2,25 @@
 
 {% block page_checkout_item_info_image_link %}
     {% if lineItem.type is same as('payment_surcharge') %}
-        <div class="cart-item-img">
-            {% sw_icon 'euro' style {
-                'color': 'light'
+        {% if lineItem.cover %}
+            {% sw_thumbnails 'cart-item-img-thumbnails' with {
+                media: lineItem.cover,
+                sizes: {
+                    'default': '100px'
+                },
+                attributes: {
+                    'class': 'img-fluid cart-item-img',
+                    'alt': (lineItem.cover.translated.alt ?: ''),
+                    'title': (lineItem.cover.translated.title ?: '')
+                }
             } %}
-        </div>
+        {% else %}
+            <div class="cart-item-img">
+                {% sw_icon 'euro' style {
+                    'color': 'light'
+                } %}
+            </div>
+        {% endif %}
     {% else %}
         {{ parent() }}
     {% endif %}
