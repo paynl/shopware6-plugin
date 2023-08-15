@@ -6,8 +6,8 @@ use Exception;
 
 class PriceDefinitionInstance extends Exception
 {
-    public static function unknownPriceDefinitionProvided(): static
+    public static function unknownPriceDefinitionProvided(): PriceDefinitionInstance
     {
-        return new static('Unknown price definition instance provided');
+        return new PriceDefinitionInstance('Unknown price definition instance provided');
     }
 }
