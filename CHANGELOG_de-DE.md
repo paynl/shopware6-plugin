@@ -1,5 +1,5 @@
 # 1.5.3
-- Fixed Payment Surcharge product image on Shopware 6.4
+- Fixed Produktbild für Zahlungsaufschlag in Shopware 6.4
 
 # 1.5.2
 - Zahlungszuschläge hinzugefügt
