@@ -22,7 +22,7 @@
             >
 
                 <template slot="column-links" slot-scope="{item}">
-                    <a target="_blank" class="sw-data-grid__cell-value" href="https://my.pay.nl">
+                    <a target="_blank" class="sw-data-grid__cell-value" :href="'https://my.pay.nl/transactions/details/' + item.paynlTransactionId">
                         my.pay.nl
                     </a>
                 </template>
