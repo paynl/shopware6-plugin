@@ -25,6 +25,7 @@
 .paynl-payment-methods-custom-styles .payment-method .custom-control-label.payment-method-label,
 .paynl-payment-methods-custom-styles .payment-method .form-check-label.payment-method-label {
     display: flex;
+    flex-direction: row-reverse;
     align-items: center;
     padding-right: 0;
 }
@@ -43,6 +44,12 @@
     position: absolute;
     top: 5px;
     right: 0;
+}
+
+.paynl-payment-methods-custom-styles .payment-method .payment-method-image {
+    position: absolute;
+    top: 5px;
+    right: 40px;
 }
 
 .paynl-paynl-payment-tooltip.do_not_show {
