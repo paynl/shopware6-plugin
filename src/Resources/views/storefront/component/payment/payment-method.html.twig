@@ -100,7 +100,7 @@
                                 maxDate: "today",
                             } %}
 
-                            <div class="form-group col-4">
+                            <div class="form-group col-4 p-0">
                                 <input type="text"
                                        id="paynl-dob-{{ loop.index }}"
                                        data-paynl-date-picker="true"
@@ -112,7 +112,7 @@
                             </div>
                         {% endif %}
                         {% if not page.isPhoneNumberExists %}
-                            <div class="form-group col-4">
+                            <div class="form-group col-4 p-0">
                                 <input type="tel"
                                        pattern="^[0-9-+\s()]*$"
                                        id="paynl-phone-{{ loop.index }}"
@@ -124,7 +124,7 @@
                         {% endif %}
                     {% endif %}
                     {% if (page.paymentMethods|length > 1 and not page.footer.extensions.PAY_custom_data.isSW64) or (payment.customFields.hasAdditionalInfoInput) %}
-                        <div class="form-group col-3">
+                        <div class="form-group col-3 p-0">
                             <button class="btn btn-primary paynl-change-payment-method w-100"
                                     type="submit">
                                 {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
