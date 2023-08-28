@@ -213,6 +213,16 @@
             <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
             <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
         </input-field>
+        <input-field type="bool">
+            <name>automaticShipping</name>
+            <defaultValue>true</defaultValue>
+            <label>Automatic Shipping</label>
+            <label lang="de-DE">Automatischer Versand</label>
+            <label lang="nl-NL">Automatische Verzending</label>
+            <helpText>If enabled, the plugin will automatically trigger a shipment at PAY. when the delivery status transitions to 'shipped'.</helpText>
+            <helpText lang="de-DE">Sofern aktiv, schickt das Plugin automatisch eine Versand Mitteilung an PAY., sobald der Lieferstatus auf 'verschickt' übergeleitet wird.</helpText>
+            <helpText lang="nl-NL">Indien ingeschakeld, zal de plugin automatisch een verzending activeren bij PAY. wanneer de leveringstatus overgaat naar ‘verzonden’.</helpText>
+        </input-field>
     </card>
 
     <card>
