@@ -11,6 +11,7 @@ use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
@@ -29,6 +30,7 @@ use Paynl\Result\Transaction as Result;
 use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 class Api
 {
@@ -389,6 +391,18 @@ class Api
             return \Paynl\Transaction::refund($transactionID, $amount, $description);
         } catch (\Throwable $e) {
             throw new \Exception($e->getMessage());
+        }
+    }
+
+    /** @throws PaynlTransactionException */
+    public function capture(string $transactionID, $amount, string $salesChannelId): bool
+    {
+        $this->setCredentials($salesChannelId);
+
+        try {
+            return Transaction::capture($transactionID, $amount);
+        } catch (Throwable $exception) {
+            throw PaynlTransactionException::captureError($exception->getMessage());
         }
     }
 
