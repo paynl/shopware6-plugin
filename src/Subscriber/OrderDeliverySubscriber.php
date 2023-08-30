@@ -20,8 +20,11 @@ class OrderDeliverySubscriber implements EventSubscriberInterface
 {
     /** @var Config */
     private $config;
+    /** @var OrderDeliveryService */
     private $orderDeliveryService;
+    /** @var PaynlTransactionService */
     private $paynlTransactionService;
+    /** @var Api */
     private $api;
 
     public function __construct(

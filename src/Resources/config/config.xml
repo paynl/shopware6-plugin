@@ -219,9 +219,19 @@
             <label>Automatic Shipping</label>
             <label lang="de-DE">Automatischer Versand</label>
             <label lang="nl-NL">Automatische Verzending</label>
-            <helpText>If enabled, the plugin will automatically trigger a shipment at PAY. when the delivery status transitions to 'shipped'.</helpText>
-            <helpText lang="de-DE">Sofern aktiv, schickt das Plugin automatisch eine Versand Mitteilung an PAY., sobald der Lieferstatus auf 'verschickt' übergeleitet wird.</helpText>
-            <helpText lang="nl-NL">Indien ingeschakeld, zal de plugin automatisch een verzending activeren bij PAY. wanneer de leveringstatus overgaat naar ‘verzonden’.</helpText>
+            <helpText>Once enabled, the plugin will automatically initiate a shipment notification to PAY. when the delivery status changes to 'shipped'.</helpText>
+            <helpText lang="de-DE">Once enabled, the plugin will automatically initiate a shipment notification to PAY. when the delivery status changes to 'shipped'.</helpText>
+            <helpText lang="nl-NL">Once enabled, the plugin will automatically initiate a shipment notification to PAY. when the delivery status changes to 'shipped'.</helpText>
+        </input-field>
+        <input-field type="bool">
+            <name>automaticCancellation</name>
+            <defaultValue>true</defaultValue>
+            <label>Automatic Cancellation</label>
+            <label lang="de-DE">Automatische Stornierung</label>
+            <label lang="nl-NL">Automatische annulering</label>
+            <helpText>When activated, the plugin will automatically initiate the cancellation of PAY. orders in Shopware when they are being canceled. This functionality applies to orders that are in the authorized status.</helpText>
+            <helpText lang="de-DE">When activated, the plugin will automatically initiate the cancellation of PAY. orders in Shopware when they are being canceled. This functionality applies to orders that are in the authorized status.</helpText>
+            <helpText lang="nl-NL">When activated, the plugin will automatically initiate the cancellation of PAY. orders in Shopware when they are being canceled. This functionality applies to orders that are in the authorized status.</helpText>
         </input-field>
     </card>
 

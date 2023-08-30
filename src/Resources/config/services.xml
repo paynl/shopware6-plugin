@@ -232,6 +232,14 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\CancelOrderSubscriber">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Subscriber\OrderDeliverySubscriber">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderDeliveryService"/>

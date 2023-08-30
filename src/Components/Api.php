@@ -406,6 +406,18 @@ class Api
         }
     }
 
+    /** @throws PaynlTransactionException */
+    public function void(string $transactionID, string $salesChannelId): bool
+    {
+        $this->setCredentials($salesChannelId);
+
+        try {
+            return Transaction::void($transactionID);
+        } catch (Throwable $exception) {
+            throw PaynlTransactionException::captureError($exception->getMessage());
+        }
+    }
+
     public function isValidCredentials($tokenCode, $apiToken, $serviceId)
     {
         try {
