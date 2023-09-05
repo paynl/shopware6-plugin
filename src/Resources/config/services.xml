@@ -126,6 +126,13 @@
             <argument type="service" id="Shopware\Core\Checkout\Cart\Price\AbsolutePriceCalculator"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\OrderDeliveryService">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepository"/>
+        </service>
 
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
@@ -225,6 +232,22 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\CancelOrderSubscriber">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Subscriber\OrderDeliverySubscriber">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\OrderDeliveryService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <!-- Collector -->
         <service id="PaynlPayment\Shopware6\Checkout\Payment\PaymentSurchargeCollector">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
@@ -257,6 +280,10 @@
 
         <service id="PaynlPayment\Shopware6\Repository\Order\OrderRepository">
             <argument type="service" id="order.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepository">
+            <argument type="service" id="order_delivery.repository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Repository\OrderLineItem\OrderLineItemRepository">

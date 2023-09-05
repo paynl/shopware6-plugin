@@ -93,6 +93,16 @@ class Config
         return (bool)$this->get($salesChannelId, 'transferGoogleAnalytics');
     }
 
+    public function isAutomaticShipping(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'automaticShipping');
+    }
+
+    public function isAutomaticCancellation(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'automaticCancellation');
+    }
+
     public function getOrderStateWithPaidTransaction(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'orderStateWithPaidTransaction');
