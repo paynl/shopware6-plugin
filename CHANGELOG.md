@@ -1,4 +1,6 @@
 # 1.5.4
+- Updated storefront styles
+- Added automatic capture and void functionality
 
 # 1.5.3
 - Fixed Payment Surcharge product image on Shopware 6.4

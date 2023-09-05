@@ -1,4 +1,6 @@
 # 1.5.4
+- Storefront styles aktualisiert
+- Capture- und Void-Funktionalität hinzugefügt
 
 # 1.5.3
 - Fixed Produktbild für Zahlungsaufschlag in Shopware 6.4
