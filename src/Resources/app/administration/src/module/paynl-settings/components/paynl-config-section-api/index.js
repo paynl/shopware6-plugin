@@ -1,5 +1,4 @@
 import template from './paynl-config-section-api.html.twig';
-import './paynl-config-section-api.scss';
 
 
 // eslint-disable-next-line no-undef
