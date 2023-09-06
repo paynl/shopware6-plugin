@@ -1,3 +1,16 @@
+# 1.5.3
+- Fixed Payment Surcharge product image on Shopware 6.4
+
+# 1.5.2
+- Added Payment Surcharging
+
+# 1.5.1
+- Added Google analytics
+- Added plugin config button
+
+# 1.5.0
+- Support Shopware 6.5 version
+
 # 1.4.19
 - Fixed updating payment status from partly paid to the paid state
 

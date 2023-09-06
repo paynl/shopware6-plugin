@@ -12,21 +12,23 @@ use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
+use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 class Api
 {
@@ -46,31 +48,35 @@ class Api
     private $customerHelper;
     /** @var TransactionLanguageHelper */
     private $transactionLanguageHelper;
-    /** @var EntityRepositoryInterface */
+    /** @var StringHelper */
+    private $stringHelper;
+    /** @var ProductRepositoryInterface */
     private $productRepository;
-    /** @var EntityRepositoryInterface */
+    /** @var OrderRepositoryInterface */
     private $orderRepository;
     /** @var TranslatorInterface */
     private $translator;
-    /** @var Session */
-    private $session;
+    /** @var RequestStack */
+    private $requestStack;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
         TransactionLanguageHelper $transactionLanguageHelper,
-        EntityRepositoryInterface $productRepository,
-        EntityRepositoryInterface $orderRepository,
+        StringHelper $stringHelper,
+        ProductRepositoryInterface $productRepository,
+        OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
-        Session $session
+        RequestStack $requestStack
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
         $this->transactionLanguageHelper = $transactionLanguageHelper;
+        $this->stringHelper = $stringHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
-        $this->session = $session;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -180,7 +186,7 @@ class Api
         $customer = $salesChannelContext->getCustomer();
         $customerCustomFields = $customer->getCustomFields();
         $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->session->get('paynlIssuer'));
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->requestStack->getSession()->get('paynlIssuer'));
 
         if (!empty($bank)) {
             $orderCustomFields = (array)$order->getCustomFields();
@@ -211,6 +217,10 @@ class Api
 
         if ($this->config->getPaymentScreenLanguage($salesChannelId)) {
             $transactionInitialData['enduser']['language'] = $this->transactionLanguageHelper->getLanguageForOrder($order);
+        }
+
+        if ($this->getTransferData($salesChannelId)) {
+            $transactionInitialData['transferData'] = $this->getTransferData($salesChannelId);
         }
 
         return $transactionInitialData;
@@ -288,6 +298,24 @@ class Api
             ];
         }
 
+        $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
+        /** @var OrderLineItemEntity $item */
+        foreach ($surchargeItems as $item) {
+            $vatPercentage = 0;
+            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
+                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+            }
+
+            $products[] = [
+                'id' => 'payment',
+                'name' => $item->getLabel(),
+                'price' => $item->getUnitPrice(),
+                'vatPercentage' => $vatPercentage,
+                'qty' => $item->getPrice()->getQuantity(),
+                'type' => Transaction::PRODUCT_TYPE_PAYMENT,
+            ];
+        }
+
         $products[] = [
             'id' => 'shipping',
             'name' => 'Shipping',
@@ -298,6 +326,38 @@ class Api
         ];
 
         return $products;
+    }
+
+    /** @return mixed[] */
+    private function getTransferData(string $salesChannelId): array
+    {
+        $transferData = [];
+
+        if ($this->config->isTransferGoogleAnalytics($salesChannelId)) {
+            $transferData['gaClientId'] = $this->getGoogleAnalyticsClientId();
+        }
+
+        return $transferData;
+    }
+
+    private function getGoogleAnalyticsClientId(): string
+    {
+        $allCookies = $this->requestStack->getCurrentRequest()->cookies->all();
+        $gaCookies = array_filter($allCookies, function ($key) {
+            return $this->stringHelper->endsWith($key, '_ga');
+        }, ARRAY_FILTER_USE_KEY);
+
+        if (empty($gaCookies)) {
+            return '';
+        }
+
+        $gaCookie = reset($gaCookies);
+        $gaSplit = explode('.', $gaCookie);
+        if (isset($gaSplit[2]) && isset($gaSplit[3])) {
+            return $gaSplit[2] . '.' . $gaSplit[3];
+        }
+
+        return '';
     }
 
     /**

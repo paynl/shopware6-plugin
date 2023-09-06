@@ -16,7 +16,7 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -36,8 +36,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $pluginHelper;
     /** @var TranslatorInterface */
     private $translator;
-    /** @var Session */
-    private $session;
+    /** @var RequestStack */
+    private $requestStack;
     /** @var string */
     private $shopwareVersion;
 
@@ -48,7 +48,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         TranslatorInterface $translator,
-        Session $session,
+        RequestStack $requestStack,
         string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
@@ -57,7 +57,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
         $this->translator = $translator;
-        $this->session = $session;
+        $this->requestStack = $requestStack;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -156,6 +156,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $flashBagMessage = $this->translator->trans('checkout.messages.orderDefaultError');
         }
 
-        $this->session->getFlashBag()->add('warning', $flashBagMessage);
+        $this->requestStack->getSession()->getFlashBag()->add('warning', $flashBagMessage);
     }
 }

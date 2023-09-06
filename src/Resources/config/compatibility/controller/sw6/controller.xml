@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!-- Storefront Controller -->
+        <service id="PaynlPayment\Shopware6\Controller\Storefront\Notification\Sw6\NotificationController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Controller\Storefront\AccountOrder\Sw6\PaynlAccountOrderController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <!-- Admin API Controller -->
+        <service id="PaynlPayment\Shopware6\Controller\Api\Config\Sw6\ConfigController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\SettingsHelper"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Controller\Api\Refund\Sw6\RefundController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Controller\Api\StatusTransition\Sw6\StatusTransitionController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+    </services>
+</container>

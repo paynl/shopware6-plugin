@@ -2,7 +2,7 @@
     {% set configs = page.footer.extensions.PAY_custom_data.configs %}
 
     {% if (configs.core.loginRegistration.showAccountTypeSelection) %}
-        {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.settings.cocNumberRequired %}
+        {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.config.cocNumberRequired %}
         <div class="form-group col-12 paynl-kvk-coc-number-field"
             {% if (data.get('accountType') == 'business') %}
                 style="display: block"

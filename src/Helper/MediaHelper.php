@@ -2,12 +2,12 @@
 
 namespace PaynlPayment\Shopware6\Helper;
 
+use PaynlPayment\Shopware6\Repository\Media\MediaRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Content\Media\File\FileSaver;
 use Shopware\Core\Content\Media\File\MediaFile;
 use Shopware\Core\Content\Media\MediaEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -18,8 +18,9 @@ class MediaHelper
     const MEDIA_NAME_TEMPLATE = 'paynlpayment_%s';
     const MEDIA_NAME_PREFIX = 'paynlpayment';
     const FILE_PATH_TEMPLATE = __DIR__ . '/../Resources/public/logos/%s.png';
+    const SURCHARGE_PAY_STOCK_IMAGE = 'surcharging_stockimage';
 
-    /** @var EntityRepositoryInterface */
+    /** @var MediaRepositoryInterface */
     private $mediaRepository;
 
     /** @var FileSaver */
@@ -27,7 +28,7 @@ class MediaHelper
 
     public function __construct(
         FileSaver $fileSaver,
-        EntityRepositoryInterface $mediaRepository
+        MediaRepositoryInterface $mediaRepository
     ) {
         $this->fileSaver = $fileSaver;
         $this->mediaRepository = $mediaRepository;
@@ -40,10 +41,21 @@ class MediaHelper
      */
     public function getMediaId(string $paymentMethodName, Context $context): ?string
     {
+        $media = $this->getMedia($paymentMethodName, $context);
+
+        if (empty($media)) {
+            return null;
+        }
+
+        return $media->getId();
+    }
+
+    public function getMedia(string $name, Context $context): ?MediaEntity
+    {
         $criteria = (new Criteria())->addFilter(
             new EqualsFilter(
                 'fileName',
-                $this->getMediaName($paymentMethodName)
+                $this->getMediaName($name)
             )
         );
 
@@ -54,7 +66,7 @@ class MediaHelper
             return null;
         }
 
-        return $media->getId();
+        return $media;
     }
 
     public function addImageToMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
@@ -83,6 +95,36 @@ class MediaHelper
         $this->fileSaver->persistFileToMedia(
             $mediaFile,
             $this->getMediaName($paymentMethodValueObject->getName()),
+            $mediaId,
+            $context
+        );
+    }
+
+    public function addSurchargePayStockImageMedia(Context $context)
+    {
+        if ($this->isAlreadyExist(self::SURCHARGE_PAY_STOCK_IMAGE, $context)) {
+            return;
+        }
+
+        $filePath = sprintf(self::FILE_PATH_TEMPLATE, self::SURCHARGE_PAY_STOCK_IMAGE);
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $mediaFile = new MediaFile(
+            $filePath,
+            mime_content_type($filePath),
+            pathinfo($filePath, PATHINFO_EXTENSION),
+            filesize($filePath)
+        );
+
+        $mediaId = Uuid::randomHex();
+        $mediaData = ['id' => $mediaId];
+        $this->mediaRepository->create([$mediaData], $context);
+
+        $this->fileSaver->persistFileToMedia(
+            $mediaFile,
+            $this->getMediaName(self::SURCHARGE_PAY_STOCK_IMAGE),
             $mediaId,
             $context
         );

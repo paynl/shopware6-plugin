@@ -5,10 +5,11 @@ namespace PaynlPayment\Shopware6\Helper;
 use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
+use PaynlPayment\Shopware6\Repository\Customer\CustomerRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepositoryInterface;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
 
@@ -21,19 +22,19 @@ class CustomerHelper
     private $config;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var CustomerAddressRepositoryInterface
      */
     private $customerAddressRepository;
 
     /**
-     * @var EntityRepositoryInterface
+     * @var CustomerRepositoryInterface
      */
     private $customerRepository;
 
     public function __construct(
         Config $config,
-        EntityRepositoryInterface $customerAddressRepository,
-        EntityRepositoryInterface $customerRepository
+        CustomerAddressRepositoryInterface $customerAddressRepository,
+        CustomerRepositoryInterface $customerRepository
     ) {
         $this->config = $config;
         $this->customerAddressRepository = $customerAddressRepository;

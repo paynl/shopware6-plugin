@@ -1,7 +1,7 @@
 {# compatible with >= sw6.4 #}
 {% sw_extends '@Storefront/storefront/component/payment/payment-method.html.twig' %}
 
-{% set settingUsePAYStyles = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.usePAYStyles %}
+{% set settingUsePAYStyles = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.config.usePAYStyles %}
 
 {% block component_payment_method_input %}
     {% set paymentMethodClass = not payment.customFields.hasAdditionalInfoInput ? 'payment-method-input' : 'paynl-payment-method-input' %}
@@ -11,14 +11,18 @@
            name="paymentMethodId"
            value="{{ payment.id }}"
            {% if payment.id is same as(selectedPaymentMethodId) %}checked="checked"{% endif %}
-           class="custom-control-input {{ paymentMethodClass }}"
+           class="form-check-input custom-control-input {{ paymentMethodClass }}"
            {% if payment.translated.customFields.paynl_payment %}data-paynlId="{{ payment.translated.customFields.paynlId }}"{% endif %}>
 {% endblock %}
 
 {% block component_payment_method_description %}
     {% if (payment.customFields.paynl_payment) %}
         <div class="payment-method-description">
-            <strong>{{ payment.translated.name }}</strong>
+            {% if payment.extension('PaynlPaymentSurcharge').surcharge_amount %}
+                <strong>{{ payment.translated.name }} + {{ payment.extension('PaynlPaymentSurcharge').surcharge_amount|currency }}</strong>
+            {% else %}
+                <strong>{{ payment.translated.name }}</strong>
+            {% endif %}
             {% if not paymentMethodInvalid and payment.customFields.displayBanks %}
                 {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
                 {% if paynlIssuerSelected and context.paymentMethod.translated.customFields.banks %}
@@ -52,7 +56,7 @@
                         {% if payment.translated.customFields.banks is not empty %}
                             {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
                             <div class="form-group">
-                                <select class="form-control paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlIssuer">
+                                <select class="form-control form-select paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlIssuer">
                                     <option value="" {{ paynlIssuerSelected ?  'disabled="disabled"' : ''}}>{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
                                     {% for bank in payment.translated.customFields.banks %}
                                         <option value="{{ bank.id }}" {% if paynlIssuerSelected and bank.id is same as(paynlIssuerSelected)%} selected {% endif %}>{{ bank.visibleName }}</option>
@@ -64,10 +68,10 @@
 
                     {#Terminals#}
                     {% if payment.customFields.terminals is not empty and activeRoute != "frontend.account.payment.page" %}
-                        {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.settings.paymentPinTerminal %}
+                        {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.config.paymentPinTerminal %}
                         {% set paynlInstoreTerminalSelected = configInstoreTerminalOption is same as('checkout_save') ? (context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal ?: app.request.cookies.get('paynl_pin_terminal_id')) : '' %}
                         <div class="form-group">
-                            <select class="form-control paynl-ideal-banks-select" name="paynlInstoreTerminal" form="confirmOrderForm">
+                            <select class="form-control form-select paynl-ideal-banks-select" name="paynlInstoreTerminal" form="confirmOrderForm">
                                 {% for terminal in payment.customFields.terminals %}
                                     <option value="{{ terminal.id }}" {% if paynlInstoreTerminalSelected and terminal.id is same as(paynlInstoreTerminalSelected)%} selected {% endif %}>{{ terminal.name }}</option>
                                 {% endfor %}

@@ -1,3 +1,16 @@
+# 1.5.3
+- Fixed Produktbild für Zahlungsaufschlag in Shopware 6.4
+
+# 1.5.2
+- Zahlungszuschläge hinzugefügt
+
+# 1.5.1
+- Google analytics tracking hinzugefügt
+- "Plugin-Konfiguration" Verknüpfung hinzugefügt
+
+# 1.5.0
+- Unterstützt Shopware 6.5 Version
+
 # 1.4.19
 - Aktualisierung des Zahlungsstatus von "teilweise bezahlt" zu "bezahlt" behoben
 

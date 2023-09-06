@@ -1,0 +1,54 @@
+{% block paynl_payment %}
+<sw-page>
+    {% block paynl_payment_header %}
+    <template #smart-bar-header>
+        <h2>
+            {{ $tc('sw-settings.index.title') }}
+            <sw-icon name="small-arrow-medium-right" small></sw-icon>
+            {{ $tc('paynlSettings.general.title') }}
+        </h2>
+    </template>
+    {% endblock %}
+
+    {% block paynl_payment_actions %}
+    <template #smart-bar-actions>
+        {% block paynl_payment_settings_actions_save %}
+        <sw-button-process
+                class="sw-settings-login-registration__save-action"
+                :isLoading="isLoading"
+                :processSuccess="isSaveSuccessful"
+                :disabled="isDisabled"
+                variant="primary"
+                @process-finish="saveFinish"
+                @click="onSave">
+            {{ $tc('paynlSettings.settingsForm.save') }}
+        </sw-button-process>
+        {% endblock %}
+    </template>
+    {% endblock %}
+
+    {% block paynl_payment_settings_content %}
+    <template #content>
+        <sw-card-view>
+            <sw-system-config
+                    class="paynl-config__wrapper"
+                    ref="systemConfig"
+                    inherit
+                    @config-changed="onConfigChange"
+                    sales-channel-switchable
+                    domain="PaynlPaymentShopware6.config">
+
+                <template #beforeElements="{card, config}">
+                    <div v-if="isCollapsible(card)" class="paynl-config__collapsible-container" v-bind:class="{'collapsed': isCollapsed(card)}" >
+                        <a class="paynl-config__collapsible-handle" @click="toggleCollapsible(card)">
+                            <sw-icon small v-if="isCollapsed(card)" name="regular-chevron-down-xxs" class="paynl-config__collapsible-handle-open"></sw-icon>
+                            <sw-icon small v-if="!isCollapsed(card)" name="regular-chevron-up-xxs" class="paynl-config__collapsible-handle-close"></sw-icon>
+                        </a>
+                    </div>
+                </template>
+            </sw-system-config>
+        </sw-card-view>
+    </template>
+    {% endblock %}
+</sw-page>
+{% endblock %}

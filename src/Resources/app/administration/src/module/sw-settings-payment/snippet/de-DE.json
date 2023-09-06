@@ -1,0 +1,13 @@
+{
+    "paymentSurchargeSettings": {
+        "titleSurchargeSettingsCard": "Surcharge settings",
+        "labelAmount": "Amount",
+        "labelType": "Typ",
+        "placeholderAmount": "0.00",
+        "labelOrderValueLimit": "keine Zuschläge bei Bestellungen von insgesamt mehr als:",
+        "type": {
+            "absoluteOptionLabel": "Absolut",
+            "percentageOptionLabel": "Prozentsatz"
+        }
+    }
+}

@@ -31,4 +31,9 @@ class CustomPageDataValueObject extends Struct
     {
         return version_compare($this->shopwareVersion, '6.4', '>=');
     }
+
+    public function isSW65(): bool
+    {
+        return version_compare($this->shopwareVersion, '6.5', '>=');
+    }
 }

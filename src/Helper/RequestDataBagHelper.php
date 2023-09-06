@@ -22,4 +22,14 @@ class RequestDataBagHelper
         $request = (new Request($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER))->request;
         return $request->get($name);
     }
+
+    public function getDataBagArray(string $name, RequestDataBag $dataBag)
+    {
+        if ($dataBag->all($name)) {
+            return $dataBag->all($name);
+        }
+
+        $request = (new Request($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER))->request;
+        return $request->all($name);
+    }
 }

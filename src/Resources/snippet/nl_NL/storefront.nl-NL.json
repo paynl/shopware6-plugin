@@ -17,7 +17,8 @@
             "changePayment": "Probeer opnieuw",
             "dob": "Geboortedatum dd-mm-yyyy:",
             "phone": "Telefoon:"
-        }
+        },
+        "summarySurcharge": "Betalingskosten"
     },
     "transactionLabels": {
         "order": "Bestelling: "
