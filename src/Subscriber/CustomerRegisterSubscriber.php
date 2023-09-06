@@ -69,7 +69,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
             if (is_null($request)) {
                 return;
             }
-            $cocNumber = $request->request->getString('coc_number');
+            $cocNumber = $request->request->get('coc_number');
             $addressIdArray = $event->getIds();
             $context = $event->getContext();
             $criteria = new Criteria($addressIdArray);
@@ -88,7 +88,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
             if (is_null($request)) {
                 return;
             }
-            $cocNumber = $request->request->getString('coc_number');
+            $cocNumber = $request->request->get('coc_number');
             $context = $event->getContext();
             $customerCriteria = new Criteria();
             $payloads = $event->getPayloads();
