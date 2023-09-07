@@ -13,7 +13,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -70,7 +69,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
             if (is_null($request)) {
                 return;
             }
-            $cocNumber = $request->get('coc_number');
+            $cocNumber = $request->request->get('coc_number');
             $addressIdArray = $event->getIds();
             $context = $event->getContext();
             $criteria = new Criteria($addressIdArray);
@@ -89,7 +88,7 @@ class CustomerRegisterSubscriber implements EventSubscriberInterface
             if (is_null($request)) {
                 return;
             }
-            $cocNumber = $request->get('coc_number');
+            $cocNumber = $request->request->get('coc_number');
             $context = $event->getContext();
             $customerCriteria = new Criteria();
             $payloads = $event->getPayloads();

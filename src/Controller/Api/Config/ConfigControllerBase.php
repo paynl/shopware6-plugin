@@ -96,7 +96,7 @@ class ConfigControllerBase extends AbstractController
      */
     public function getPaymentTerminals(Request $request): JsonResponse
     {
-        $salesChannelId = $request->get('salesChannelId');
+        $salesChannelId = $request->query->get('salesChannelId');
 
         $terminals = $this->settingsHelper->getTerminalsOptions($salesChannelId);
 
@@ -142,7 +142,7 @@ class ConfigControllerBase extends AbstractController
 
     private function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
-        $salesChannelId = $request->get('salesChannelId');
+        $salesChannelId = $request->query->get('salesChannelId');
         $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
             : [$salesChannelId];
 

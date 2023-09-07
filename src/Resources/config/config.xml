@@ -213,6 +213,24 @@
             <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
             <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
         </input-field>
+        <input-field type="bool">
+            <name>automaticShipping</name>
+            <label>Automatic Capture based on Shipment status</label>
+            <label lang="de-DE">Automatische Erfassung basierend auf dem Sendungsstatus</label>
+            <label lang="nl-NL">Automatische Capture op basis van verzendstatus</label>
+            <helpText>When enabled, the plugin will automatically send a capture (payment) notification to Pay. when the delivery status changes to 'shipped'. This applies to transactions in state AUTHORIZE.</helpText>
+            <helpText lang="de-DE">Wenn diese Option aktiviert ist, sendet das Plugin automatisch eine Erfassungsbenachrichtigung (Zahlungsbenachrichtigung) an Pay, wenn sich der Lieferstatus in "versandt" ändert. Dies gilt für Transaktionen im Status AUTHORIZED.</helpText>
+            <helpText lang="nl-NL">Wanneer ingeschakeld, zal de plugin automatisch een capture naar Pay. sturen wanneer de verzendstatus verandert in 'verzonden'. Dit geldt alleen voor transacties met de status AUTHORIZE.</helpText>
+        </input-field>
+        <input-field type="bool">
+            <name>automaticCancellation</name>
+            <label>Automatic Cancellation based on Order status</label>
+            <label lang="de-DE">Automatische Void aufgrund des Auftragsstatus</label>
+            <label lang="nl-NL">Automatische annulering op basis van orderstatus</label>
+            <helpText>When activated, the plugin will automatically void a transaction in Pay. when the order status is changed to 'cancelled'. This applies to transactions in the state AUTHORIZE.</helpText>
+            <helpText lang="de-DE">Wenn diese Option aktiviert ist, wird eine Transaktion in Pay. automatisch void, wenn der Status der Bestellung auf "storniert" geändert wird. Dies gilt für Transaktionen im Status AUTHORIZE.</helpText>
+            <helpText lang="nl-NL">Wanner ingeschakeld, zal de plugin automatisch een transactie voiden in Pay. wanneer de orderstatus wordt gewijzigd in 'geannuleerd'. Dit geldt alleen voor transacties met de status AUTHORIZE. </helpText>
+        </input-field>
     </card>
 
     <card>

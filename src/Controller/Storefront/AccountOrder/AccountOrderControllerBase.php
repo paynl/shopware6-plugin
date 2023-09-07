@@ -38,8 +38,8 @@ class AccountOrderControllerBase extends StorefrontController
     {
         /** @var SalesChannelContext $salesChannelContext */
         $salesChannelContext = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
-        $dob = $request->get('dob');
-        $phone = $request->get('phone');
+        $dob = $request->request->get('dob');
+        $phone = $request->request->get('phone');
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
         /** @var CustomerAddressEntity $billingAddress */
