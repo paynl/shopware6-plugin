@@ -37,6 +37,16 @@
             <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op: https://admin.pay.nl/programs/programs</helpText>
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
+        <input-field>
+            <name>failoverGateway</name>
+            <copyable>true</copyable>
+            <label>Failover Gateway</label>
+            <label lang="nl-NL">Failover Gateway</label>
+            <label lang="de-DE">Failover Gateway</label>
+            <helpText>Leave this empty unless advised otherwise by PAY.</helpText>
+            <helpText lang="nl-NL">Leave this empty unless advised otherwise by PAY.</helpText>
+            <helpText lang="de-DE">Leave this empty unless advised otherwise by PAY.</helpText>
+        </input-field>
         <input-field type="bool">
             <name>testMode</name>
             <label>Test mode</label>
