@@ -98,6 +98,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'transferGoogleAnalytics');
     }
 
+    public function getIpSettings(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'ipSettings');
+    }
+
     public function isAutomaticShipping(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'automaticShipping');

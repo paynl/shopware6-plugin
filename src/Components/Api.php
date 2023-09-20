@@ -13,6 +13,7 @@ use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
@@ -52,6 +53,8 @@ class Api
     private $transactionLanguageHelper;
     /** @var StringHelper */
     private $stringHelper;
+    /** @var IpSettingsHelper */
+    private $ipSettingsHelper;
     /** @var ProductRepositoryInterface */
     private $productRepository;
     /** @var OrderRepositoryInterface */
@@ -66,6 +69,7 @@ class Api
         CustomerHelper $customerHelper,
         TransactionLanguageHelper $transactionLanguageHelper,
         StringHelper $stringHelper,
+        IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
@@ -75,6 +79,7 @@ class Api
         $this->customerHelper = $customerHelper;
         $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->stringHelper = $stringHelper;
+        $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
@@ -228,6 +233,10 @@ class Api
 
         if ($this->getTransferData($salesChannelId)) {
             $transactionInitialData['transferData'] = $this->getTransferData($salesChannelId);
+        }
+
+        if ($this->ipSettingsHelper->getIp($salesChannelId)) {
+            $transactionInitialData['ipaddress'] = $this->ipSettingsHelper->getIp($salesChannelId);
         }
 
         return $transactionInitialData;
