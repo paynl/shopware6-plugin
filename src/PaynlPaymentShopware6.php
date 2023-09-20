@@ -16,6 +16,7 @@ use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
+use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
@@ -199,6 +200,7 @@ class PaynlPaymentShopware6 extends Plugin
             $this->getCustomerHelper(),
             $this->getTransactionLanguageHelper(),
             new StringHelper(),
+            new IpSettingsHelper($this->getConfig()),
             new ProductRepository($productRepository),
             new OrderRepository($orderRepository),
             $translator,
