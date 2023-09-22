@@ -31,6 +31,7 @@ export default class PaynlDatePickerPlugin extends Plugin {
             closeButton: null,
             clearButton: null,
         },
+        disableMobile: true,
     };
 
     /**

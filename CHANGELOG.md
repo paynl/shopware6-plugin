@@ -1,3 +1,5 @@
+# 1.5.5
+
 # 1.5.4
 - Updated storefront styles
 - Added automatic capture and void functionality

@@ -13,6 +13,7 @@ use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
+use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
@@ -52,6 +53,8 @@ class Api
     private $transactionLanguageHelper;
     /** @var StringHelper */
     private $stringHelper;
+    /** @var IpSettingsHelper */
+    private $ipSettingsHelper;
     /** @var ProductRepositoryInterface */
     private $productRepository;
     /** @var OrderRepositoryInterface */
@@ -66,6 +69,7 @@ class Api
         CustomerHelper $customerHelper,
         TransactionLanguageHelper $transactionLanguageHelper,
         StringHelper $stringHelper,
+        IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
@@ -75,6 +79,7 @@ class Api
         $this->customerHelper = $customerHelper;
         $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->stringHelper = $stringHelper;
+        $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
@@ -93,16 +98,21 @@ class Api
             return [];
         }
 
-        $this->setCredentials($salesChannelId);
+        $this->setCredentials($salesChannelId, true);
 
         return Paymentmethods::getList();
     }
 
-    private function setCredentials(string $salesChannelId): void
+    private function setCredentials(string $salesChannelId, bool $useGateway = false): void
     {
         SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
         SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
         SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
+
+        $gateway = $this->config->getFailoverGateway($salesChannelId);
+        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
+            SDKConfig::setApiBase(trim($gateway));
+        }
     }
 
     public function startTransaction(
@@ -124,14 +134,14 @@ class Api
             $terminalId
         );
 
-        $this->setCredentials($salesChannelContext->getSalesChannel()->getId());
+        $this->setCredentials($salesChannelContext->getSalesChannel()->getId(), true);
 
         return Transaction::start($transactionInitialData);
     }
 
     public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
     {
-        $this->setCredentials($salesChannelId);
+        $this->setCredentials($salesChannelId, true);
 
         return Transaction::get($transactionId);
     }
@@ -223,6 +233,10 @@ class Api
 
         if ($this->getTransferData($salesChannelId)) {
             $transactionInitialData['transferData'] = $this->getTransferData($salesChannelId);
+        }
+
+        if ($this->ipSettingsHelper->getIp($salesChannelId)) {
+            $transactionInitialData['ipaddress'] = $this->ipSettingsHelper->getIp($salesChannelId);
         }
 
         return $transactionInitialData;

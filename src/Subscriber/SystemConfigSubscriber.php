@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Helper\InstallHelper;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\System\SystemConfig\Event\SystemConfigChangedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Throwable;
 
 class SystemConfigSubscriber implements EventSubscriberInterface
 {
@@ -65,8 +66,12 @@ class SystemConfigSubscriber implements EventSubscriberInterface
 
             $this->installHelper->removeSinglePaymentMethod($salesChannelId, $context);
 
-            $this->installHelper->installPaymentMethods($salesChannelId, $context);
-            $this->installHelper->activatePaymentMethods($context);
+            try {
+                $this->installHelper->installPaymentMethods($salesChannelId, $context);
+                $this->installHelper->activatePaymentMethods($context);
+            } catch (Throwable $exception) {
+                continue;
+            }
         }
 
     }

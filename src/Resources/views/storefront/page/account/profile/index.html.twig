@@ -7,9 +7,11 @@
           action="{{ path('frontend.account.profile.save') }}"
           data-form-validation="true">
 
-        {% block page_account_profile_personal_form_csrf %}
-            {{ parent() }}
-        {% endblock %}
+        {% if not page.footer.extensions.PAY_custom_data.isSW65 %}
+            {% block page_account_profile_personal_form_csrf %}
+                {{ parent() }}
+            {% endblock %}
+        {% endif %}
 
         {% block page_account_profile_personal_fields %}
             {{ parent() }}

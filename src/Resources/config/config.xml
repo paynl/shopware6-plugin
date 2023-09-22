@@ -37,6 +37,16 @@
             <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op: https://admin.pay.nl/programs/programs</helpText>
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
+        <input-field>
+            <name>failoverGateway</name>
+            <copyable>true</copyable>
+            <label>Failover Gateway</label>
+            <label lang="nl-NL">Failover Gateway</label>
+            <label lang="de-DE">Failover Gateway</label>
+            <helpText>Leave this empty unless advised otherwise by PAY.</helpText>
+            <helpText lang="nl-NL">Leave this empty unless advised otherwise by PAY.</helpText>
+            <helpText lang="de-DE">Leave this empty unless advised otherwise by PAY.</helpText>
+        </input-field>
         <input-field type="bool">
             <name>testMode</name>
             <label>Test mode</label>
@@ -212,6 +222,32 @@
             <helpText>When you enable this option, the plugin will send Google Analytics data to Pay.</helpText>
             <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
             <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
+        </input-field>
+        <input-field type="single-select">
+            <name>ipSettings</name>
+            <label>IP Settings</label>
+            <label lang="de-DE">IP Settings</label>
+            <label lang="nl-NL">IP Settings</label>
+            <options>
+                <option>
+                    <id>default</id>
+                    <name>Default (SDK function)</name>
+                    <name lang="de-DE">Default (SDK function) </name>
+                    <name lang="nl-NL">Default (SDK function) </name>
+                </option>
+                <option>
+                    <id>httpForwarded</id>
+                    <name>HTTP forwarded</name>
+                    <name lang="de-DE">HTTP forwarded</name>
+                    <name lang="nl-NL">HTTP forwarded</name>
+                </option>
+                <option>
+                    <id>remoteAddress</id>
+                    <name>Remote address</name>
+                    <name lang="de-DE">Remote address</name>
+                    <name lang="nl-NL">Remote address</name>
+                </option>
+            </options>
         </input-field>
         <input-field type="bool">
             <name>automaticShipping</name>

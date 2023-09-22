@@ -558,6 +558,11 @@ class InstallHelper
         SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
         SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
 
+        $gateway = $this->config->getFailoverGateway($salesChannelId);
+        if ($gateway && substr(trim($gateway), 0, 4) === "http") {
+            SDKConfig::setApiBase(trim($gateway));
+        }
+
         return Paymentmethods::getList();
     }
 
