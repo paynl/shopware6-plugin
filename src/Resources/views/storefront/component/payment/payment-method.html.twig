@@ -127,7 +127,7 @@
                     {% endif %}
                     {% if (page.paymentMethods|length > 1 and not page.footer.extensions.PAY_custom_data.isSW64) or (payment.customFields.isPayLater) %}
                         <div class="form-group col-3 p-0">
-                            <button class="btn btn-primary paynl-change-payment-method w-100"
+                            <button class="btn btn-primary paynl-change-payment-method w-100{{ payment.customFields.hasAdditionalInfoInput ? '' : ' d-none'}}"
                                     type="submit">
                                 {% if activeRoute == "frontend.checkout.confirm.page" or activeRoute == "frontend.account.edit-order.page" %}
                                     {{ "checkout.confirmChangePaymentShippingSave"|trans|sw_sanitize }}
