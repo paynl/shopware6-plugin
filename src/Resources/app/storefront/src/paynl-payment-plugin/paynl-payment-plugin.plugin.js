@@ -53,6 +53,10 @@ export default class PaynlPaymentPlugin extends Plugin {
             if (currentPaymentMethod.querySelector('.paynl-change-payment-method')) {
                 const paynlChangePaymentMethodButton = currentPaymentMethod.querySelector('.paynl-change-payment-method');
                 invalid.push(paynlChangePaymentMethodButton);
+
+                if (currentPaymentMethod.querySelector('.paynl-change-payment-method').classList.contains('d-none')) {
+                    return;
+                }
             }
 
             if (invalid.length) {
