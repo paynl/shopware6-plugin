@@ -216,14 +216,14 @@
         <input-field type="single-select">
             <name>ipSettings</name>
             <label>IP Settings</label>
-            <label lang="de-DE">IP Settings</label>
-            <label lang="nl-NL">IP Settings</label>
+            <label lang="de-DE">IP-Einstellung</label>
+            <label lang="nl-NL">IP instelling</label>
             <options>
                 <option>
                     <id>default</id>
                     <name>Default (SDK function)</name>
-                    <name lang="de-DE">Default (SDK function) </name>
-                    <name lang="nl-NL">Default (SDK function) </name>
+                    <name lang="de-DE">Default (SDK-Funktion)</name>
+                    <name lang="nl-NL">Default (SDK functie)</name>
                 </option>
                 <option>
                     <id>httpForwarded</id>
