@@ -93,7 +93,7 @@ class Api
             return [];
         }
 
-        $this->setCredentials($salesChannelId, true);
+        $this->setCredentials($salesChannelId);
 
         return Paymentmethods::getList();
     }
