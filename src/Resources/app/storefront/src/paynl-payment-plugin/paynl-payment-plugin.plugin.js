@@ -2,6 +2,7 @@ import Plugin from 'src/plugin-system/plugin.class';
 import IMask from '../../node_modules/imask/dist/imask';
 import DomAccess from 'src/helper/dom-access.helper';
 import HttpClient from 'src/service/http-client.service';
+import ButtonLoadingIndicator from 'src/utility/loading-indicator/button-loading-indicator.util';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -9,6 +10,7 @@ export default class PaynlPaymentPlugin extends Plugin {
 
         this.paymentMethodsScriptsInit();
         this.paymentPinMessageInit();
+        this.paymentAdditionalInit();
     }
 
     paymentMethodsScriptsInit() {
@@ -25,12 +27,60 @@ export default class PaynlPaymentPlugin extends Plugin {
         }
     }
 
+    paymentAdditionalInit() {
+        let formOrder = DomAccess.querySelector(document, '#confirmOrderForm');
+        let submitButton = DomAccess.querySelector(formOrder, 'button[type=submit]');
+
+        formOrder.addEventListener('submit', function (event) {
+            const invalid = [];
+            const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
+
+            if (currentPaymentMethod.querySelector('.paynl-dob')) {
+                const dobInput = currentPaymentMethod.querySelector('input.paynl-dob[type="text"]');
+                const dateRegExp = /(0[1-9]|1[0-9]|2[0-9]|3[01])-(0[1-9]|1[012])-[0-9]{4}/;
+
+                if (dateRegExp.test(dobInput.value) === false) {
+                    invalid.push(dobInput);
+                }
+            }
+
+            if (currentPaymentMethod.querySelector('.paynl-phone')) {
+                const phoneInput = currentPaymentMethod.querySelector('.paynl-phone');
+                if (phoneInput.value === '') {
+                    invalid.push(phoneInput);
+                }
+            }
+
+            if (currentPaymentMethod.querySelector('.paynl-change-payment-method')) {
+                const paynlChangePaymentMethodButton = currentPaymentMethod.querySelector('.paynl-change-payment-method');
+                invalid.push(paynlChangePaymentMethodButton);
+
+                if (currentPaymentMethod.querySelector('.paynl-change-payment-method').classList.contains('d-none')) {
+                    return;
+                }
+            }
+
+            if (invalid.length) {
+                invalid.forEach(function (element) {
+                    element.classList.add('invalid');
+                });
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const loader = new ButtonLoadingIndicator(submitButton);
+                loader.remove();
+                currentPaymentMethod.closest('.payment-method').scrollIntoView();
+            }
+        });
+    }
+
     paymentPinMessageInit() {
         const PAYNL_PIN_PAYMENT_METHOD_ID = '1927';
 
         let formOrder = DomAccess.querySelector(document, '#confirmOrderForm');
 
-        formOrder.addEventListener('submit', function () {
+        formOrder.addEventListener('submit', function (event) {
             let paymentMethod = DomAccess.querySelector(document, 'input[name="paymentMethodId"]:checked');
             let paynlPaymentMethodId = paymentMethod.dataset.paynlid;
             if (paynlPaymentMethodId === undefined) {
@@ -200,7 +250,8 @@ export default class PaynlPaymentPlugin extends Plugin {
     removeInvalid(event) {
         if (event.target.classList.contains('paynl-phone') ||
             event.target.classList.contains('paynl-dob') ||
-            event.target.classList.contains('paynl-ideal-banks-select')
+            event.target.classList.contains('paynl-ideal-banks-select') ||
+            event.target.classList.contains('paynl-change-payment-method')
         ) {
             event.target.classList.remove('invalid');
         }
