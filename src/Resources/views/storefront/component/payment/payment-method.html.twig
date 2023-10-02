@@ -99,7 +99,7 @@
                             weekNumbers: false,
                             minDate: date()|date_modify("-100 years")|date("d-m-Y"),
                             maxDate: "today",
-                            defaultDate: customerBirthday|date("d-m-Y"),
+                            defaultDate: customerBirthday ? customerBirthday|date("d-m-Y") : null,
                         } %}
 
                         <div class="form-group col-4 p-0">
