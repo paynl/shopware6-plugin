@@ -1,3 +1,7 @@
+# 1.5.5
+- Improved checkout flow
+- Fix for changing date of birth
+
 # 1.5.4
 - Updated storefront styles
 - Added automatic capture and void functionality
