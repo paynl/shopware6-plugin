@@ -16,6 +16,7 @@ export default class PaynlPaymentPlugin extends Plugin {
 
         if (trigger) {
             this.initDateOfBirthMask();
+            this.initPayLaterEvents();
 
             const form = trigger.parentNode;
             form.addEventListener('submit', this.onSavePaymentMethod);
@@ -85,6 +86,19 @@ export default class PaynlPaymentPlugin extends Plugin {
                 // and other common options
                 overwrite: true  // defaults to `false`
             });
+        });
+    }
+
+    initPayLaterEvents() {
+        const paynlPhone = document.querySelectorAll('.paynl-phone');
+        const paynlDateOfBirth = document.querySelectorAll('.paynl-dob');
+
+        paynlPhone.forEach((element) => {
+            element.addEventListener('keydown', this.showPayLaterSaveButton);
+        });
+
+        paynlDateOfBirth.forEach((element) => {
+            element.addEventListener('change', this.showPayLaterSaveButton);
         });
     }
 
@@ -190,5 +204,13 @@ export default class PaynlPaymentPlugin extends Plugin {
         ) {
             event.target.classList.remove('invalid');
         }
+    }
+
+    showPayLaterSaveButton(event) {
+        const input = event.target;
+        const paynlPaymentMethodExtra = input.closest('.paynl-payment-method-extra');
+        const saveBtn = paynlPaymentMethodExtra.querySelector('.paynl-change-payment-method');
+
+        saveBtn.classList.remove('d-none');
     }
 }
