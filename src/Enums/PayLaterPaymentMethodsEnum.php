@@ -8,12 +8,14 @@ class PayLaterPaymentMethodsEnum
     const KLARNA_ACHTERAF_BETALEN = 1717;
     const IN3 = 1813;
     const AFTERPAY = 739;
+    const AFTERPAY_RIVERTY = 2561;
     const SPRAYPAY = 1987;
     const CREDITCLICK = 2107;
     const KLARNA_KP = 2265;
 
     const PAY_LATER_PAYMENT_METHODS = [
        self::AFTERPAY,
+       self::AFTERPAY_RIVERTY,
        self::BILLINK,
        self::KLARNA_ACHTERAF_BETALEN,
        self::IN3,
