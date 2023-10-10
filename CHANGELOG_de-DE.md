@@ -1,3 +1,6 @@
+# 1.5.6
+- Fixed Pay. request notification problem
+
 # 1.5.5
 - Checkout-Flow verbessert
 - Fix für die Änderung des Geburtsdatums
