@@ -29,8 +29,8 @@ class NotificationControllerBase extends StorefrontController
      */
     public function notify(Request $request): Response
     {
-        $transactionId = $request->query->get('order_id', '');
-        $action = $request->query->get('action', '');
+        $transactionId = $request->get('order_id', '');
+        $action = $request->get('action', '');
 
         if ($action == 'pending') {
             $responseText = 'TRUE| Pending payment';
