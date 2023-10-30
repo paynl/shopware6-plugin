@@ -43,7 +43,7 @@
                                 </div>
                             </div>
 
-                            <div class="finish-header"><a class="btn btn-lg btn-primary" href="/account/order/edit/{{ page.getOrder.id }}">{{ "checkout.labels.changePayment"|trans() }}</a></div>
+                            <div class="finish-header"><a class="btn btn-lg btn-primary" href="{{ path('frontend.account.edit-order.page', {'orderId': page.getOrder.id }) }}">{{ "checkout.labels.changePayment"|trans() }}</a></div>
                         {% endif %}
                     {% else %}
                         {{ parent() }}
