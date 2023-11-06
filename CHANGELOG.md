@@ -1,3 +1,7 @@
+# 1.5.7
+- Fixed finish-details template
+- Added IP settings
+
 # 1.5.6
 - Fixed Pay. request notification issue
 

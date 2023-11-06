@@ -1,3 +1,7 @@
+# 1.5.7
+- Vorlage für Fertigstellungsdetails korrigiert
+- IP-Einstellungen hinzugefügt
+
 # 1.5.6
 - Fixed Pay. request notification problem
 
