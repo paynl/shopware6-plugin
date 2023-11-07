@@ -1,3 +1,6 @@
+# 1.5.9
+- Verbesserte Funktionsweise Failover-Gateway
+
 # 1.5.8
 - Unterstützung für Failover-Gateways hinzugefügt
 
