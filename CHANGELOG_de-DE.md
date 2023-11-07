@@ -1,3 +1,6 @@
+# 1.5.8
+- Unterstützung für Failover-Gateways hinzugefügt
+
 # 1.5.7
 - Vorlage für Fertigstellungsdetails korrigiert
 - IP-Einstellungen hinzugefügt

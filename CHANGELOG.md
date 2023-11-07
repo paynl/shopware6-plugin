@@ -1,3 +1,6 @@
+# 1.5.8
+- Added failover gateway support
+
 # 1.5.7
 - Fixed finish-details template
 - Added IP settings

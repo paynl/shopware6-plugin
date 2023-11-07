@@ -42,6 +42,11 @@ class Config
         return (string)$this->get($salesChannelId, 'serviceId');
     }
 
+    public function getFailoverGateway(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'failoverGateway');
+    }
+
     public function getSinglePaymentMethodInd(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'useSinglePaymentMethod');
