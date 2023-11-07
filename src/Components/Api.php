@@ -103,11 +103,16 @@ class Api
         return Paymentmethods::getList();
     }
 
-    private function setCredentials(string $salesChannelId): void
+    private function setCredentials(string $salesChannelId, bool $useGateway = false): void
     {
         SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
         SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
         SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
+
+        $gateway = $this->config->getFailoverGateway($salesChannelId);
+        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
+            SDKConfig::setApiBase(trim($gateway));
+        }
     }
 
     public function startTransaction(
@@ -129,14 +134,14 @@ class Api
             $terminalId
         );
 
-        $this->setCredentials($salesChannelContext->getSalesChannel()->getId());
+        $this->setCredentials($salesChannelContext->getSalesChannel()->getId(), true);
 
         return Transaction::start($transactionInitialData);
     }
 
     public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
     {
-        $this->setCredentials($salesChannelId);
+        $this->setCredentials($salesChannelId, true);
 
         return Transaction::get($transactionId);
     }
