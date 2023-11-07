@@ -2,7 +2,7 @@
     <sw-button @click="onTestCredentials" ref="testCredentialsButton" :isLoading="testCredentialsIsLoading">
         {{ $tc('paynlSettings.settingsForm.testApiKeys') }}
     </sw-button>
-    <sw-button @click="onInstallPaymentMethods" ref="installPaymentsButton">
+    <sw-button @click="onInstallPaymentMethods" ref="installPaymentsButton" :isLoading="installPaymentMethodsIsLoading">
         {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
     </sw-button>
 </sw-container>

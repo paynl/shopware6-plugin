@@ -10,6 +10,7 @@ use PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler;
 use Psr\Cache\CacheItemPoolInterface;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Storefront\Page\PageLoadedEvent;
+use Throwable;
 
 class PaymentMethodCustomFields
 {
@@ -87,8 +88,17 @@ class PaymentMethodCustomFields
         $paymentTerminalConfig = $this->config->getPaymentPinTerminal($salesChannelId);
 
         if (empty($paymentTerminalConfig) || in_array($paymentTerminalConfig, SettingsHelper::TERMINAL_DEFAULT_OPTIONS)) {
-            $terminals = $this->getPaymentTerminalsCache($salesChannelId);
-            $this->setCustomField(self::TERMINALS, $terminals);
+            try {
+                $terminals = $this->getPaymentTerminalsCache($salesChannelId);
+                $this->setCustomField(self::TERMINALS, $terminals);
+            } catch (Throwable $exception) {
+                $this->setCustomField(self::TERMINALS, [
+                    [
+                        'id' => 'error',
+                        'name' => 'Unable to retrieve instore terminals'
+                    ]
+                ]);
+            }
         }
     }
 
