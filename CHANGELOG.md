@@ -1,3 +1,6 @@
+# 1.5.9
+- Improved working of failover gateway
+
 # 1.5.8
 - Added failover gateway support
 

@@ -18,6 +18,7 @@ Component.register('paynl-config-section-api', {
     data() {
         return {
             testCredentialsIsLoading: false,
+            installPaymentMethodsIsLoading: false,
         };
     },
 
@@ -28,6 +29,10 @@ Component.register('paynl-config-section-api', {
             // Shopware <= 6.4.7.0
             const configRootOld = this.$parent.$parent.$parent.$parent;
             const configRoot = configRootNew ? configRootNew : configRootOld;
+            let salesChannelId = '';
+            if (configRoot) {
+                salesChannelId = configRoot.currentSalesChannelId ? configRoot.currentSalesChannelId : '';
+            }
 
             const tokenCodeInput = document.querySelector('input[name="PaynlPaymentShopware6.config.tokenCode"]');
             const apiTokenInput = document.querySelector('input[name="PaynlPaymentShopware6.config.apiToken"]');
@@ -45,12 +50,31 @@ Component.register('paynl-config-section-api', {
                 return;
             }
 
+            this.startInstallPaymentMethods();
             configRoot.saveAll().then(() => {
-                this.createNotificationSuccess({
-                    title: this.$tc('paynlDefault.success'),
-                    message: this.$tc('paynlValidation.messages.paymentMethodsSuccessfullyInstalled')
-                });
+                this.PaynlPaymentService.installPaymentMethods(salesChannelId)
+                    .then((response) => {
+                        this.installPaymentMethodsIsDone();
+                        if (response.success) {
+                            this.createNotificationSuccess({
+                                title: this.$tc('paynlDefault.success'),
+                                message: this.$tc(response.message)
+                            });
+                        } else {
+                            this.createNotificationError({
+                                title: this.$tc('paynlDefault.error'),
+                                message: this.$tc(response.message)
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        this.createNotificationError({
+                            title: this.$tc('paynlDefault.error'),
+                            message: error
+                        });
+                    });
             }).catch((error) => {
+                this.installPaymentMethodsIsDone();
                 this.createNotificationError({
                     title: this.$tc('paynlValidation.error.paymentMethodsInstallLabel'),
                     message: error.message
@@ -98,6 +122,14 @@ Component.register('paynl-config-section-api', {
 
         testCredentialsIsDone() {
             this.testCredentialsIsLoading = false;
+        },
+
+        startInstallPaymentMethods() {
+            this.installPaymentMethodsIsLoading = true;
+        },
+
+        installPaymentMethodsIsDone() {
+            this.installPaymentMethodsIsLoading = false;
         },
     },
 });
