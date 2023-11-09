@@ -38,7 +38,7 @@
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
         <input-field type="single-select">
-            <name>failoverGateway</name>
+            <name>failOverGateway</name>
             <label>Failover Gateway</label>
             <label lang="nl-NL">Failover Gateway</label>
             <label lang="de-DE">Failover Gateway</label>
