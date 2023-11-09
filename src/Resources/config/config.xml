@@ -37,15 +37,34 @@
             <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op: https://admin.pay.nl/programs/programs</helpText>
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
         </input-field>
-        <input-field>
+        <input-field type="single-select">
             <name>failoverGateway</name>
-            <copyable>true</copyable>
             <label>Failover Gateway</label>
             <label lang="nl-NL">Failover Gateway</label>
             <label lang="de-DE">Failover Gateway</label>
-            <helpText>Leave this empty unless advised otherwise by PAY.</helpText>
-            <helpText lang="nl-NL">Leave this empty unless advised otherwise by PAY.</helpText>
-            <helpText lang="de-DE">Leave this empty unless advised otherwise by PAY.</helpText>
+            <placeholder>Failover Gateway</placeholder>
+            <placeholder lang="nl-NL">Failover Gateway</placeholder>
+            <placeholder lang="de-DE">Failover Gateway</placeholder>
+            <options>
+                <option>
+                    <id></id>
+                    <name>Pay.nl (default)</name>
+                    <name lang="nl-NL">Pay.nl (default)</name>
+                    <name lang="de-DE">Pay.nl (default)</name>
+                </option>
+                <option>
+                    <id>rest.achterelkebetaling.nl</id>
+                    <name>Achterelkebetaling.nl</name>
+                    <name lang="nl-NL">Betaalmethode beschrijving niet tonen</name>
+                    <name lang="de-DE">Zahlungsinformationen nicht anzeigen</name>
+                </option>
+                <option>
+                    <id>rest.payments.nl</id>
+                    <name>Payments.nl</name>
+                    <name lang="nl-NL">Payments.nl</name>
+                    <name lang="de-DE">Payments.nl</name>
+                </option>
+            </options>
         </input-field>
         <input-field type="bool">
             <name>testMode</name>
