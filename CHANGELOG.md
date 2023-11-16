@@ -1,3 +1,6 @@
+# 1.5.10
+- Multicore functionality added
+
 # 1.5.9
 - Improved working of failover gateway
 
