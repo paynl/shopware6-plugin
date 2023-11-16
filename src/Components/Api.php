@@ -110,6 +110,7 @@ class Api
         SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
 
         $gateway = $this->config->getFailoverGateway($salesChannelId);
+        $gateway = $gateway ? 'https://' . $gateway : '';
         if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
             SDKConfig::setApiBase(trim($gateway));
         }
@@ -142,6 +143,13 @@ class Api
     public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
     {
         $this->setCredentials($salesChannelId, true);
+
+        // Temporary hack which should fixed when we will use SDK v2
+        if (substr($transactionId, 0, 2) == '51') {
+            SDKConfig::setApiBase('https://rest.achterelkebetaling.nl');
+        } elseif (substr($transactionId, 0, 2) == '52') {
+            SDKConfig::setApiBase('https://rest.payments.nl');
+        }
 
         return Transaction::get($transactionId);
     }
