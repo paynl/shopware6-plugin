@@ -8,6 +8,8 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Customer\CustomerRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\IpSettingsHelper"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
@@ -72,9 +74,7 @@
         <service id="PaynlPayment\Shopware6\Components\Api">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\TransactionLanguageHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\StringHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\IpSettingsHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
             <argument type="service" id="translator" />

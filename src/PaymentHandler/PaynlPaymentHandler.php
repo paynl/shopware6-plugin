@@ -122,7 +122,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
                 $this->pluginHelper->getPluginVersionFromComposer()
             );
 
-            $paynlTransactionId = $paynlTransaction->getTransactionId();
+            $paynlTransactionId = $paynlTransaction->getId();
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
                 $order,
@@ -141,8 +141,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $paynlTransactionId
         );
 
-        if (!empty($paynlTransaction->getRedirectUrl())) {
-            return $paynlTransaction->getRedirectUrl();
+        if (!empty($paynlTransaction->getPaymentUrl())) {
+            return $paynlTransaction->getPaymentUrl();
         }
 
         return '';

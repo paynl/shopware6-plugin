@@ -2,6 +2,8 @@
 
 namespace PaynlPayment\Shopware6\Helper;
 
+use PayNL\Sdk\Model\Address;
+use PayNL\Sdk\Model\Customer;
 use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
@@ -9,6 +11,7 @@ use PaynlPayment\Shopware6\Repository\Customer\CustomerRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepositoryInterface;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Salutation\SalutationEntity;
@@ -31,58 +34,155 @@ class CustomerHelper
      */
     private $customerRepository;
 
+    /**
+     * @var TransactionLanguageHelper
+     */
+    private $transactionLanguageHelper;
+    /**
+     * @var IpSettingsHelper
+     */
+    private $ipSettingsHelper;
+
     public function __construct(
         Config $config,
         CustomerAddressRepositoryInterface $customerAddressRepository,
-        CustomerRepositoryInterface $customerRepository
+        CustomerRepositoryInterface $customerRepository,
+        TransactionLanguageHelper $transactionLanguageHelper,
+        IpSettingsHelper $ipSettingsHelper
     ) {
         $this->config = $config;
         $this->customerAddressRepository = $customerAddressRepository;
         $this->customerRepository = $customerRepository;
+        $this->transactionLanguageHelper = $transactionLanguageHelper;
+        $this->ipSettingsHelper = $ipSettingsHelper;
     }
 
-    /**
-     * @param CustomerEntity $customer
-     * @return mixed[]
-     */
-    public function formatAddresses(CustomerEntity $customer, string $salesChannelId): array
+    public function getCustomer(CustomerEntity $customerEntity, OrderEntity $orderEntity, string $salesChannelId): Customer
     {
         $gender = 'M';
         $femaleSalutations = $this->config->getFemaleSalutations($salesChannelId);
         /** @var SalutationEntity $salutation */
-        $salutation = $customer->getSalutation();
+        $salutation = $customerEntity->getSalutation();
         if (in_array(trim($salutation->getSalutationKey()), $femaleSalutations)) {
             $gender = 'F';
         }
 
-        $formattedAddress = [
-            'enduser' => [
-                'initials' => $this->getValidStringValue($customer->getFirstName()),
-                'lastName' => $this->getValidStringValue($customer->getLastName()),
-                'emailAddress' => $customer->getEmail(),
-                'customerReference' => $customer->getCustomerNumber(),
-                'gender' => $gender,
-                'phoneNumber' => $customer->getDefaultBillingAddress()->getPhoneNumber(),
-            ],
-            'company' => [
-                'name' => $customer->getDefaultBillingAddress()->getCompany(),
-                'vatNumber' => $this->getCustomerVatNumber($customer),
-            ],
-            'address' => $this->getShippingAddress($customer, $salesChannelId),
-            'invoiceAddress' => $this->getInvoiceAddress($customer, $gender, $salesChannelId)
-        ];
+        $customer = new Customer();
+        $customer->setFirstName($this->getValidStringValue($customerEntity->getFirstName()));
+        $customer->setLastName($this->getValidStringValue($customerEntity->getLastName()));
 
-        $cocNumber = $customer->getDefaultBillingAddress()->getCustomFields()['cocNumber'] ?? null;
-        if (!empty($cocNumber)) {
-            $formattedAddress['company']['cocNumber'] = $cocNumber;
+        $birthDate = $customerEntity->getBirthday();
+        if ($birthDate) {
+            $customer->setBirthDate($birthDate->format('d-m-Y'));
         }
 
-        $birthDate = $customer->getBirthday();
-        if (!empty($birthDate)) {
-            $formattedAddress['enduser']['birthDate'] = $birthDate->format(self::BIRTHDATE_FORMAT);
+        $customer->setGender($gender);
+        $customer->setPhone($customerEntity->getDefaultBillingAddress()->getPhoneNumber());
+        $customer->setEmail($customerEntity->getEmail());
+        $customer->setReference($customerEntity->getCustomerNumber());
+
+        $company = new \PayNL\Sdk\Model\Company();
+        $company->setName($customerEntity->getDefaultBillingAddress()->getCompany());
+        $cocNumber = $customerEntity->getDefaultBillingAddress()->getCustomFields()['cocNumber'] ?? null;
+        if ($cocNumber) {
+            $company->setCoc($cocNumber);
+        }
+        $company->setVat($this->getCustomerVatNumber($customerEntity));
+//        $company->setCountryCode('NL');
+
+        $customer->setCompany($company);
+
+        if ($this->config->getPaymentScreenLanguage($salesChannelId)) {
+            $customer->setLanguage($this->transactionLanguageHelper->getLanguageForOrder($orderEntity));
         }
 
-        return $formattedAddress;
+        if ($this->ipSettingsHelper->getIp($salesChannelId)) {
+            $customer->setIpAddress($this->ipSettingsHelper->getIp($salesChannelId));
+        }
+
+        return $customer;
+    }
+
+    /**
+     * @param CustomerEntity $customer
+     * @param string $salesChannelId
+     * @return Address
+     */
+    public function getDeliveryAddress(CustomerEntity $customer, string $salesChannelId): Address
+    {
+        $houseNumberExtension = '';
+        /** @var CustomerAddressEntity $customerShippingAddress */
+        $customerShippingAddress = $customer->getDefaultShippingAddress();
+        /** @var CountryEntity $country */
+        $country = $customerShippingAddress->getCountry();
+        $street = $customerShippingAddress->getStreet();
+        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
+            $address = Helper::splitAddress($street);
+            $street = $address[0] ?? '';
+            $houseNumber = $address[1] ?? '';
+
+            $houseNumberArr = explode(' ', (string) $houseNumber);
+            if (count($houseNumberArr) > 1) {
+                $houseNumber = array_shift($houseNumberArr);
+                $houseNumberExtension = implode(' ', $houseNumberArr);
+            }
+        } else {
+            $houseNumber = $customerShippingAddress->getAdditionalAddressLine1();
+            $houseNumberExtension = $customerShippingAddress->getAdditionalAddressLine2();
+        }
+
+        $devAddress = new \PayNL\Sdk\Model\Address();
+//        $devAddress->setCode('dev');
+        $devAddress->setStreetName($street);
+        $devAddress->setStreetNumber($houseNumber);
+        $devAddress->setStreetNumberExtension($houseNumberExtension);
+        $devAddress->setZipCode($customerShippingAddress->getZipcode());
+        $devAddress->setCity($customerShippingAddress->getCity());
+//$devAddress->setRegionCode('ZH');
+        $devAddress->setCountryCode($country->getIso());
+
+        return $devAddress;
+    }
+
+    /**
+     * @param CustomerEntity $customer
+     * @param string $salesChannelId
+     * @return Address
+     */
+    public function getInvoiceAddress(CustomerEntity $customer, string $salesChannelId): Address
+    {
+        $houseNumberExtension = '';
+        /** @var CustomerAddressEntity $customerBillingAddress */
+        $customerBillingAddress = $customer->getDefaultBillingAddress();
+        /** @var CountryEntity $country */
+        $country = $customerBillingAddress->getCountry();
+        $street = $customerBillingAddress->getStreet();
+        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
+            $address = Helper::splitAddress($street);
+            $street = $address[0] ?? '';
+            $houseNumber = $address[1] ?? '';
+
+            $houseNumberArr = explode(' ', (string) $houseNumber);
+            if (count($houseNumberArr) > 1) {
+                $houseNumber = array_shift($houseNumberArr);
+                $houseNumberExtension = implode(' ', $houseNumberArr);
+            }
+        } else {
+            $houseNumber = $customerBillingAddress->getAdditionalAddressLine1();
+            $houseNumberExtension = $customerBillingAddress->getAdditionalAddressLine2();
+        }
+
+        $invoiceAddress = new Address();
+//        $invAddress->setCode('inv');
+        $invoiceAddress->setStreetName($street);
+        $invoiceAddress->setStreetNumber($houseNumber);
+        $invoiceAddress->setStreetNumberExtension($houseNumberExtension);
+        $invoiceAddress->setZipCode($customerBillingAddress->getZipcode());
+        $invoiceAddress->setCity($customerBillingAddress->getCity());
+//$devAddress->setRegionCode('ZH');
+        $invoiceAddress->setCountryCode($country->getIso());
+
+        return $invoiceAddress;
     }
 
     public function saveCocNumber(CustomerAddressEntity $customerAddress, string $cocNumber, Context $context): void
@@ -161,85 +261,6 @@ class CustomerHelper
             'id' => $customer->getId(),
             'customFields' => $customFields
         ]], $context);
-    }
-
-    /**
-     * @param CustomerEntity $customer
-     * @return mixed[]
-     */
-    private function getShippingAddress(CustomerEntity $customer, string $salesChannelId): array
-    {
-        $houseNumberExtension = '';
-        /** @var CustomerAddressEntity $customerShippingAddress */
-        $customerShippingAddress = $customer->getDefaultShippingAddress();
-        /** @var CountryEntity $country */
-        $country = $customerShippingAddress->getCountry();
-        $street = $customerShippingAddress->getStreet();
-        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
-            $address = Helper::splitAddress($street);
-            $street = $address[0] ?? '';
-            $houseNumber = $address[1] ?? '';
-
-            $houseNumberArr = explode(' ', (string) $houseNumber);
-            if (count($houseNumberArr) > 1) {
-                $houseNumber = array_shift($houseNumberArr);
-                $houseNumberExtension = implode(' ', $houseNumberArr);
-            }
-        } else {
-            $houseNumber = $customerShippingAddress->getAdditionalAddressLine1();
-            $houseNumberExtension = $customerShippingAddress->getAdditionalAddressLine2();
-        }
-
-
-        return [
-            'streetName' => $street,
-            'houseNumber' => $houseNumber,
-            'houseNumberExtension' => $houseNumberExtension,
-            'zipCode' => $customerShippingAddress->getZipcode(),
-            'city' => $customerShippingAddress->getCity(),
-            'country' => $country->getIso()
-        ];
-    }
-
-    /**
-     * @param CustomerEntity $customer
-     * @param string $gender
-     * @return mixed[]
-     */
-    private function getInvoiceAddress(CustomerEntity $customer, string $gender, string $salesChannelId): array
-    {
-        $houseNumberExtension = '';
-        /** @var CustomerAddressEntity $customerBillingAddress */
-        $customerBillingAddress = $customer->getDefaultBillingAddress();
-        /** @var CountryEntity $country */
-        $country = $customerBillingAddress->getCountry();
-        $street = $customerBillingAddress->getStreet();
-        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
-            $address = Helper::splitAddress($street);
-            $street = $address[0] ?? '';
-            $houseNumber = $address[1] ?? '';
-
-            $houseNumberArr = explode(' ', (string) $houseNumber);
-            if (count($houseNumberArr) > 1) {
-                $houseNumber = array_shift($houseNumberArr);
-                $houseNumberExtension = implode(' ', $houseNumberArr);
-            }
-        } else {
-            $houseNumber = $customerBillingAddress->getAdditionalAddressLine1();
-            $houseNumberExtension = $customerBillingAddress->getAdditionalAddressLine2();
-        }
-
-        return  [
-            'initials' => $this->getValidStringValue($customerBillingAddress->getFirstName()),
-            'lastName' => $this->getValidStringValue($customerBillingAddress->getLastName()),
-            'streetName' => $street,
-            'houseNumber' => $houseNumber,
-            'houseNumberExtension' => $houseNumberExtension,
-            'zipCode' => $customerBillingAddress->getZipcode(),
-            'city' => $customerBillingAddress->getCity(),
-            'country' => $country->getIso(),
-            'gender' => $gender
-        ];
     }
 
     private function getCustomerVatNumber(CustomerEntity $customer): string
