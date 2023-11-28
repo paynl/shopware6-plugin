@@ -8,6 +8,7 @@ use PaynlPayment\Shopware6\Repository\Media\MediaRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderLineItem\OrderLineItemRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlPaymentSurcharge\PaynlPaymentSurchargeRepositoryInterface;
+use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Content\Product\Cart\ProductCartProcessor;
 use Shopware\Core\Framework\Context;
@@ -275,9 +276,13 @@ class PaymentMethodSurchargeService
         $context->scope(Context::SYSTEM_SCOPE, function (Context $context) use ($orderData): void {
             unset($orderData['deliveries']);
 
+            $lineItems = array_filter($orderData['lineItems'], function ($orderItem) {
+                return $orderItem['type'] !== LineItem::PROMOTION_LINE_ITEM_TYPE;
+            });
+
             $this->orderRepository->upsert([[
                 'id' => $orderData['id'],
-                'lineItems' => $orderData['lineItems'],
+                'lineItems' => $lineItems,
                 'price' => $orderData['price'],
             ]], $context);
         });
