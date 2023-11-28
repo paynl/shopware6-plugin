@@ -1,3 +1,7 @@
+# 1.5.11
+- Fehler bei der Aufpreisberechnung nach Stornierung behoben
+- Verbesserte Unterstützung für Multistore
+
 # 1.5.10
 - Multicore-Funktionalität hinzugefügt
 

@@ -1,3 +1,7 @@
+# 1.5.11
+- Fixed error in surcharging after cancellation
+- Improved support for multistore
+
 # 1.5.10
 - Multicore functionality added
 
