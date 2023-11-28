@@ -26,7 +26,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
     /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
-    /** @var RouterInterface */
+    /** @var UrlGeneratorInterface */
     private $router;
     /** @var Api */
     private $paynlApi;
