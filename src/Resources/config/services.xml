@@ -142,7 +142,7 @@
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
-            <argument type="service" id="router.default"/>
+            <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
