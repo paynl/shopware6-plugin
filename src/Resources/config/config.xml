@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
 
-    <card>
+<card>
         <title>API</title>
         <title lang="de-DE">API</title>
         <title lang="nl-NL">API</title>
@@ -448,6 +448,24 @@
                     <name lang="nl-NL">Geannuleerd</name>
                 </option>
             </options>
+        </input-field>
+    </card>
+
+    <card>
+        <title>iDEAL</title>
+        <title lang="de-DE">iDEAL</title>
+
+        <name>payment_ideal</name>
+
+        <input-field type="bool">
+            <name>paymentIdealBankDropdownEnabled</name>
+            <defaultValue>true</defaultValue>
+            <label>Bank selection dropdown</label>
+            <label lang="nl-NL">Bankselectie dropdown</label>
+            <label lang="de-DE">Dropdown-Liste für die Bankauswahl</label>
+            <helpText>Enable this option to show a dropdown with all available banks in the checkout. When this option is disabled, customers will be redirected to a bank selection page.</helpText>
+            <helpText lang="nl-NL">Schakel deze optie in om een dropdown te tonen in de checkout met alle beschikbare banken. Indien deze optie is uitgeschakeld, worden klanten doorgestuurd naar een bankselectie pagina.</helpText>
+            <helpText lang="de-DE">Aktivieren Sie diese Option, um eine Auswahlliste mit allen verfügbaren Banken in der Checkout anzuzeigen. Wenn diese Option deaktiviert ist, werden die Kunden zu einer Bankauswahlseite weitergeleitet.</helpText>
         </input-field>
     </card>
 
