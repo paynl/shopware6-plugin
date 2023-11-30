@@ -17,6 +17,7 @@ use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\PaymentMethodTranslation\PaymentMethodTranslationRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
@@ -26,6 +27,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
@@ -42,6 +44,7 @@ class Api
     const PAYMENT_METHOD_BRAND = 'brand';
     const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
     const PAYMENT_METHOD_BRAND_ID = 'id';
+    const PAYMENT_METHOD_PAY_NL_ID = 'paynlId';
 
     const ACTION_PENDING = 'pending';
 
@@ -59,6 +62,8 @@ class Api
     private $productRepository;
     /** @var OrderRepositoryInterface */
     private $orderRepository;
+    /** @var PaymentMethodTranslationRepository */
+    private $paymentMethodTranslationRepository;
     /** @var TranslatorInterface */
     private $translator;
     /** @var RequestStack */
@@ -72,6 +77,7 @@ class Api
         IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
+        PaymentMethodTranslationRepository $paymentMethodTranslationRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack
     ) {
@@ -82,6 +88,7 @@ class Api
         $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
+        $this->paymentMethodTranslationRepository = $paymentMethodTranslationRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
     }
@@ -175,9 +182,11 @@ class Api
         ?string $terminalId = null
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $shopwarePaymentMethodCustomFields = $salesChannelContext->getPaymentMethod()->getCustomFields();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $paynlPaymentMethodId = $shopwarePaymentMethodCustomFields['paynlId'] ?? '';
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware(
+            $shopwarePaymentMethodId,
+            $salesChannelContext
+        );
         $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
@@ -266,6 +275,40 @@ class Api
         }
 
         return (int)$paynlPaymentMethod[self::PAYMENT_METHOD_ID];
+    }
+
+    /** @throws PaynlPaymentException */
+    public function getPaynlPaymentMethodIdFromShopware(
+        string $shopwarePaymentMethodId,
+        SalesChannelContext $salesChannelContext
+    ): int {
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
+            return 0;
+        }
+
+        $context = $salesChannelContext->getContext();
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('paymentMethodId', $shopwarePaymentMethodId));
+
+        $paymentMethodTranslations = $this->paymentMethodTranslationRepository->search($criteria, $context);
+        foreach ($paymentMethodTranslations as $paymentMethodTranslation) {
+            if (!$paymentMethodTranslation->get('customFields')) {
+                continue;
+            }
+
+            $customFields = $paymentMethodTranslation->get('customFields');
+            if (isset($customFields[self::PAYMENT_METHOD_PAY_NL_ID])) {
+                return (int) $customFields[self::PAYMENT_METHOD_PAY_NL_ID];
+            }
+        }
+
+        if (!$paymentMethodTranslations->getTotal()) {
+            throw new PaynlPaymentException('Could not detect payment method.');
+        }
+
+        return 0;
     }
 
     /**
