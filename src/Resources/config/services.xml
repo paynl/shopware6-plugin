@@ -77,6 +77,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\IpSettingsHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethodTranslation\PaymentMethodTranslationRepository"/>
             <argument type="service" id="translator" />
             <argument type="service" id="request_stack"/>
         </service>
@@ -295,6 +296,10 @@
 
         <service id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository">
             <argument type="service" id="payment_method.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\PaymentMethodTranslation\PaymentMethodTranslationRepository">
+            <argument type="service" id="payment_method_translation.repository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Repository\PaynlPaymentSurcharge\PaynlPaymentSurchargeRepository">
