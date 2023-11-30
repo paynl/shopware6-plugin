@@ -207,11 +207,8 @@ class Api
         $customer = $salesChannelContext->getCustomer();
         $customerCustomFields = $customer->getCustomFields();
         $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-
-        $bank = (int)$paymentSelectedData[$shopwarePaymentMethodId]['issuer'];
-        if (empty($bank)) {
-            $bank = $this->requestStack->getSession()->get('paynlIssuer');
-        }
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer']
+            ?? $this->requestStack->getSession()->get('paynlIssuer'));
 
         if ($bank && $this->getIsIdealBankEnabled($paynlPaymentMethodId, $salesChannelId)) {
             $orderCustomFields = (array)$order->getCustomFields();
