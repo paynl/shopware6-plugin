@@ -480,18 +480,21 @@
             <label>Selected terminal</label>
             <label lang="nl-NL">Taal betaalscherm</label>
             <label lang="de-DE">Sprache des Zahlungsbildschirms</label>
+            <label lang="fr-FR">Terminal sélectionné</label>
             <options>
                 <option>
                     <id>checkout</id>
                     <name>Choose in checkout</name>
                     <name lang="de-DE">In der Kasse auswählen</name>
                     <name lang="nl-NL">Kies bij het afrekenen</name>
+                    <name lang="fr-FR">Choisissez à la caisse</name>
                 </option>
                 <option>
                     <id>checkout_save</id>
                     <name>Choose in checkout and save</name>
                     <name lang="de-DE">An der Kasse auswählen und sparen</name>
                     <name lang="nl-NL">Kies bij het afrekenen en bespaar</name>
+                    <name lang="fr-FR">Choisissez lors du paiement et enregistrez</name>
                 </option>
             </options>
         </input-field>
