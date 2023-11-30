@@ -61,7 +61,8 @@
             <div class="paynl-payment-method-extra-wrapper w-100">
                 <div class="paynl-payment-method-extra w-100{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
                     {#Banks#}
-                    {% if payment.translated.customFields.displayBanks %}
+                    {% set configIdealBankDropdownEnabled = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.config.paymentIdealBankDropdownEnabled %}
+                    {% if payment.translated.customFields.displayBanks and configIdealBankDropdownEnabled %}
                         {% if payment.translated.customFields.banks is not empty %}
                             {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
                             <div class="form-group w-100">
