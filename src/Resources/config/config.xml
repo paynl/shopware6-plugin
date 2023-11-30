@@ -55,8 +55,8 @@
                 <option>
                     <id>rest.achterelkebetaling.nl</id>
                     <name>Achterelkebetaling.nl</name>
-                    <name lang="nl-NL">Betaalmethode beschrijving niet tonen</name>
-                    <name lang="de-DE">Zahlungsinformationen nicht anzeigen</name>
+                    <name lang="nl-NL">Achterelkebetaling.nl</name>
+                    <name lang="de-DE">Achterelkebetaling.nl</name>
                 </option>
                 <option>
                     <id>rest.payments.nl</id>
