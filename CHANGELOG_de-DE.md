@@ -1,3 +1,8 @@
+# 1.5.12
+- Notify-Route für POST-Anfragen behoben
+- Failover exchange verbessert
+- Problem mit nicht gesendeter paymentOptionId behoben
+
 # 1.5.11
 - Fehler bei der Aufpreisberechnung nach Stornierung behoben
 - Verbesserte Unterstützung für Multistore

@@ -1,3 +1,8 @@
+# 1.5.12
+- Fixed notify route for POST requests
+- Failover exchange improved
+- Fixed issue with paymentOptionId not being sent
+
 # 1.5.11
 - Fixed error in surcharging after cancellation
 - Improved support for multistore
