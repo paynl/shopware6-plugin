@@ -17,7 +17,6 @@ use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
-use PaynlPayment\Shopware6\Repository\PaymentMethodTranslation\PaymentMethodTranslationRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
@@ -62,8 +61,6 @@ class Api
     private $productRepository;
     /** @var OrderRepositoryInterface */
     private $orderRepository;
-    /** @var PaymentMethodTranslationRepository */
-    private $paymentMethodTranslationRepository;
     /** @var TranslatorInterface */
     private $translator;
     /** @var RequestStack */
@@ -77,7 +74,6 @@ class Api
         IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
-        PaymentMethodTranslationRepository $paymentMethodTranslationRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack
     ) {
@@ -88,7 +84,6 @@ class Api
         $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
-        $this->paymentMethodTranslationRepository = $paymentMethodTranslationRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
     }
@@ -183,10 +178,7 @@ class Api
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware(
-            $shopwarePaymentMethodId,
-            $salesChannelContext
-        );
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
@@ -278,37 +270,21 @@ class Api
     }
 
     /** @throws PaynlPaymentException */
-    public function getPaynlPaymentMethodIdFromShopware(
-        string $shopwarePaymentMethodId,
-        SalesChannelContext $salesChannelContext
-    ): int {
+    public function getPaynlPaymentMethodIdFromShopware(SalesChannelContext $salesChannelContext): int
+    {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             return 0;
         }
 
-        $context = $salesChannelContext->getContext();
-
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('paymentMethodId', $shopwarePaymentMethodId));
-
-        $paymentMethodTranslations = $this->paymentMethodTranslationRepository->search($criteria, $context);
-        foreach ($paymentMethodTranslations as $paymentMethodTranslation) {
-            if (!$paymentMethodTranslation->get('customFields')) {
-                continue;
-            }
-
-            $customFields = $paymentMethodTranslation->get('customFields');
-            if (isset($customFields[self::PAYMENT_METHOD_PAY_NL_ID])) {
-                return (int) $customFields[self::PAYMENT_METHOD_PAY_NL_ID];
-            }
-        }
-
-        if (!$paymentMethodTranslations->getTotal()) {
+        $paymentMethodTranslated = $salesChannelContext->getPaymentMethod()->getTranslated();
+        if (!isset($paymentMethodTranslated['customFields'])
+            || !$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID]
+        ) {
             throw new PaynlPaymentException('Could not detect payment method.');
         }
 
-        return 0;
+        return (int)$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID];
     }
 
     /**

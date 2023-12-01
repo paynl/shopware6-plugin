@@ -75,11 +75,7 @@ class ProcessingHelper
         string $paynlTransactionId,
         ?Throwable $exception = null
     ): void {
-        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $paymentId = $this->paynlApi->getPaynlPaymentMethodIdFromShopware(
-            $shopwarePaymentMethodId,
-            $salesChannelContext
-        );
+        $paymentId = $this->paynlApi->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
         $transactionData = [
