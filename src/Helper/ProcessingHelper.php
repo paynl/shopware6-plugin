@@ -75,8 +75,7 @@ class ProcessingHelper
         string $paynlTransactionId,
         ?Throwable $exception = null
     ): void {
-        $shopwarePaymentMethodCustomFields = $salesChannelContext->getPaymentMethod()->getCustomFields();
-        $paymentId = $shopwarePaymentMethodCustomFields['paynlId'] ?? '';
+        $paymentId = $this->paynlApi->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         /** @var CustomerEntity $customer */
         $customer = $salesChannelContext->getCustomer();
         $transactionData = [

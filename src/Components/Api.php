@@ -26,6 +26,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
@@ -42,6 +43,7 @@ class Api
     const PAYMENT_METHOD_BRAND = 'brand';
     const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
     const PAYMENT_METHOD_BRAND_ID = 'id';
+    const PAYMENT_METHOD_PAY_NL_ID = 'paynlId';
 
     const ACTION_PENDING = 'pending';
 
@@ -175,9 +177,8 @@ class Api
         ?string $terminalId = null
     ): array {
         $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $shopwarePaymentMethodCustomFields = $salesChannelContext->getPaymentMethod()->getCustomFields();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $paynlPaymentMethodId = $shopwarePaymentMethodCustomFields['paynlId'] ?? '';
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
@@ -207,9 +208,10 @@ class Api
         $customer = $salesChannelContext->getCustomer();
         $customerCustomFields = $customer->getCustomFields();
         $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->requestStack->getSession()->get('paynlIssuer'));
+        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer']
+            ?? $this->requestStack->getSession()->get('paynlIssuer'));
 
-        if (!empty($bank)) {
+        if ($bank && $this->getIsIdealBankEnabled($paynlPaymentMethodId, $salesChannelId)) {
             $orderCustomFields = (array)$order->getCustomFields();
             $orderCustomFields['paynlIssuer'] = $bank;
 
@@ -266,6 +268,24 @@ class Api
         }
 
         return (int)$paynlPaymentMethod[self::PAYMENT_METHOD_ID];
+    }
+
+    /** @throws PaynlPaymentException */
+    public function getPaynlPaymentMethodIdFromShopware(SalesChannelContext $salesChannelContext): int
+    {
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
+            return 0;
+        }
+
+        $paymentMethodTranslated = $salesChannelContext->getPaymentMethod()->getTranslated();
+        if (!isset($paymentMethodTranslated['customFields'])
+            || !$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID]
+        ) {
+            throw new PaynlPaymentException('Could not detect payment method.');
+        }
+
+        return (int)$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID];
     }
 
     /**
@@ -480,5 +500,14 @@ class Api
         $this->setCredentials($salesChannelId);
 
         return (array)Instore::getAllTerminals()->getList();
+    }
+
+    private function getIsIdealBankEnabled(int $payPaymentId, string $salesChannelId): bool
+    {
+        if ($payPaymentId !== PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT) {
+            return true;
+        }
+
+        return $this->config->getPaymentIdealBankDropdownEnabled($salesChannelId);
     }
 }
