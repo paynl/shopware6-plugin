@@ -26,7 +26,6 @@ use PaynlPayment\Shopware6\Repository\Language\LanguageRepository;
 use PaynlPayment\Shopware6\Repository\Media\MediaRepository;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepository;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
-use PaynlPayment\Shopware6\Repository\PaymentMethodTranslation\PaymentMethodTranslationRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepository;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository;
 use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository;
@@ -191,8 +190,6 @@ class PaynlPaymentShopware6 extends Plugin
         $productRepository = $this->container->get('product.repository');
         /** @var EntityRepository $orderRepository */
         $orderRepository = $this->container->get('order.repository');
-        /** @var EntityRepository $paymentMethodTranslationRepository */
-        $paymentMethodTranslationRepository = $this->container->get('payment_method_translation.repository');
         /** @var TranslatorInterface $translator */
         $translator = $this->container->get('translator');
         /** @var RequestStack $requestStack */
@@ -206,7 +203,6 @@ class PaynlPaymentShopware6 extends Plugin
             new IpSettingsHelper($this->getConfig()),
             new ProductRepository($productRepository),
             new OrderRepository($orderRepository),
-            new PaymentMethodTranslationRepository($paymentMethodTranslationRepository),
             $translator,
             $requestStack
         );
