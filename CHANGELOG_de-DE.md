@@ -2,6 +2,7 @@
 - Notify-Route für POST-Anfragen behoben
 - Failover exchange verbessert
 - Problem mit nicht gesendeter paymentOptionId behoben
+- Made iDEAL bank selection optional with a toggle
 
 # 1.5.11
 - Fehler bei der Aufpreisberechnung nach Stornierung behoben
