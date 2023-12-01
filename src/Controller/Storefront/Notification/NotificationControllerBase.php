@@ -30,6 +30,10 @@ class NotificationControllerBase extends StorefrontController
     public function notify(Request $request): Response
     {
         $transactionId = $request->get('order_id', '');
+        if (empty($transactionId)) {
+            $transactionId = $request->get('orderId', '');
+        }
+
         $action = $request->get('action', '');
 
         if ($action == 'pending') {
