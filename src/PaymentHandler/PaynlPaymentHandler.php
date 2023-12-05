@@ -8,6 +8,7 @@ use Exception;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
@@ -112,14 +113,20 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $order = $transaction->getOrder();
         $orderTransaction = $transaction->getOrderTransaction();
 
+        $additionalTransactionInfo = new AdditionalTransactionInfo(
+            $transaction->getReturnUrl(),
+            $exchangeUrl,
+            $this->shopwareVersion,
+            $this->pluginHelper->getPluginVersionFromComposer(),
+            null
+        );
+
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
+                $orderTransaction,
                 $order,
                 $salesChannelContext,
-                $transaction->getReturnUrl(),
-                $exchangeUrl,
-                $this->shopwareVersion,
-                $this->pluginHelper->getPluginVersionFromComposer()
+                $additionalTransactionInfo
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
