@@ -5,3 +5,14 @@
     {{ parent() }}
 {% endblock %}
 
+{% block page_checkout_aside_actions %}
+    {% set formAddHistoryOptions = {
+        entries: [{
+            state: {},
+            title: 'account.ordersTitle'|trans,
+            url: path('frontend.checkout.Paynl.history.back')
+        }]
+    } %}
+    {{ parent() }}
+{% endblock %}
+
