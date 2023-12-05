@@ -5,14 +5,20 @@
     {{ parent() }}
 {% endblock %}
 
+{% set configs = page.footer.extensions.PAY_custom_data.configs %}
+{% set isRestoreShoppingCart = configs.PaynlPaymentShopware6.config.restoreShoppingCart %}
+
 {% block page_checkout_aside_actions %}
-    {% set formAddHistoryOptions = {
-        entries: [{
-            state: {},
-            title: 'account.ordersTitle'|trans,
-            url: path('frontend.checkout.Paynl.history.back')
-        }]
-    } %}
+    {% if isRestoreShoppingCart %}
+        {% set formAddHistoryOptions = {
+            entries: [{
+                state: {},
+                title: 'account.ordersTitle'|trans,
+                url: path('frontend.checkout.Paynl.history.back')
+            }]
+        } %}
+    {% endif %}
+
     {{ parent() }}
 {% endblock %}
 
