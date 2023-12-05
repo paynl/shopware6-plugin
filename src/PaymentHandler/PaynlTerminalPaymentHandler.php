@@ -19,6 +19,7 @@ use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
@@ -157,15 +158,20 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
+        $additionalTransactionInfo = new AdditionalTransactionInfo(
+            $returnUrl,
+            '',
+            $this->shopwareVersion,
+            $this->pluginHelper->getPluginVersionFromComposer(),
+            $terminalId
+        );
+
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
+                $orderTransaction,
                 $order,
                 $salesChannelContext,
-                $returnUrl,
-                '',
-                $this->shopwareVersion,
-                $this->pluginHelper->getPluginVersionFromComposer(),
-                $terminalId
+                $additionalTransactionInfo
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();

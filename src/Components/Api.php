@@ -18,9 +18,11 @@ use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -119,22 +121,16 @@ class Api
     }
 
     public function startTransaction(
+        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
-        string $returnUrl,
-        string $exchangeUrl,
-        string $shopwareVersion,
-        string $pluginVersion,
-        ?string $terminalId = null
+        AdditionalTransactionInfo $additionalTransactionInfo
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
+            $orderTransaction,
             $order,
             $salesChannelContext,
-            $returnUrl,
-            $exchangeUrl,
-            $shopwareVersion,
-            $pluginVersion,
-            $terminalId
+            $additionalTransactionInfo
         );
 
         $this->setCredentials($salesChannelContext->getSalesChannel()->getId(), true);
@@ -157,26 +153,20 @@ class Api
     }
 
     /**
+     * @param OrderTransactionEntity $orderTransaction
      * @param OrderEntity $order
      * @param SalesChannelContext $salesChannelContext
-     * @param string $returnUrl
-     * @param string $exchangeUrl
-     * @param string $shopwareVersion
-     * @param string $pluginVersion
-     * @param string|null $terminalId
+     * @param AdditionalTransactionInfo $additionalTransactionInfo
      * @return array
      * @throws PaynlPaymentException
      */
     private function getTransactionInitialData(
+        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
-        string $returnUrl,
-        string $exchangeUrl,
-        string $shopwareVersion,
-        string $pluginVersion,
-        ?string $terminalId = null
+        AdditionalTransactionInfo $additionalTransactionInfo
     ): array {
-        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
+        $shopwarePaymentMethodId = $orderTransaction->getPaymentMethod()->getId();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         $amount = $order->getAmountTotal();
@@ -197,12 +187,16 @@ class Api
             ),
 
             // Urls
-            'returnUrl' => $returnUrl,
-            'exchangeUrl' => $exchangeUrl,
+            'returnUrl' => $additionalTransactionInfo->getReturnUrl(),
+            'exchangeUrl' => $additionalTransactionInfo->getExchangeUrl(),
 
             // Products
             'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
-            'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
+            'object' => sprintf(
+                'Shopware v%s %s',
+                $additionalTransactionInfo->getShopwareVersion(),
+                $additionalTransactionInfo->getPluginVersion()
+            ),
         ];
 
         $customer = $salesChannelContext->getCustomer();
@@ -226,7 +220,7 @@ class Api
         }
 
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
-            $transactionInitialData['bank'] = $terminalId;
+            $transactionInitialData['bank'] = $additionalTransactionInfo->getTerminalId();
         }
 
         if ($customer instanceof CustomerEntity) {
