@@ -1,4 +1,6 @@
 # 1.5.13
+- Added new payment methods
+- Payment method ID now taken from order
 
 # 1.5.12
 - Fixed notify route for POST requests
