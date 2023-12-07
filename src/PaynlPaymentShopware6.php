@@ -78,7 +78,7 @@ class PaynlPaymentShopware6 extends Plugin
 
     public function update(UpdateContext $updateContext): void
     {
-        $this->getInstallHelper()->removeAfterPayMedia($updateContext->getContext());
+        $this->getInstallHelper()->removePaymentMethodOldLogos($updateContext->getContext());
         $this->getInstallHelper()->updatePaymentMethods($updateContext->getContext());
         $this->getInstallHelper()->addPaynlMailTemplateText();
         $this->getInstallHelper()->addSurchargePayStockImageMedia($updateContext->getContext());
