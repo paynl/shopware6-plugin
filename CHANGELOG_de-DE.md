@@ -1,3 +1,7 @@
+# 1.5.13
+- Neue Zahlungsarten hinzugefügt
+- Die ID der Zahlungsmethode wird jetzt aus der Bestellung übernommen
+
 # 1.5.12
 - Notify-Route für POST-Anfragen behoben
 - Failover exchange verbessert
