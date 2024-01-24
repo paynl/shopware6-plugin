@@ -1,4 +1,6 @@
 # 1.5.14
+- Fixed service class name
+- Fixed date picker for IOS devices
 
 # 1.5.13
 - Added new payment methods
