@@ -1,3 +1,7 @@
+# 1.5.14
+- Name der Serviceklasse korrigiert
+- Datumsauswahl für IOS-Geräte korrigiert
+
 # 1.5.13
 - Neue Zahlungsarten hinzugefügt
 - Die ID der Zahlungsmethode wird jetzt aus der Bestellung übernommen

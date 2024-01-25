@@ -11,7 +11,7 @@
             </call>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Controller\Storefront\AccountOrder\Sw65\PaynlAccountOrderController" public="true">
+        <service id="PaynlPayment\Shopware6\Controller\Storefront\AccountOrder\Sw65\AccountOrderController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
