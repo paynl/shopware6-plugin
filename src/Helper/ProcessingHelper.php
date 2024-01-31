@@ -324,6 +324,7 @@ class ProcessingHelper
      * @param string $transitionName
      * @param int $paynlTransactionStatusCode
      * @return void
+     * @throws Exception
      */
     private function updateTransactionStatus(
         PaynlTransactionEntity $paynlTransactionEntity,
@@ -544,6 +545,8 @@ class ProcessingHelper
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
         $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
         $criteria->addAssociation('order');
+        $criteria->addAssociation('orderTransaction.stateMachineState');
+        $criteria->addAssociation('orderTransaction.order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }

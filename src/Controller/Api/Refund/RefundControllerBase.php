@@ -44,59 +44,41 @@ class RefundControllerBase extends AbstractController
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    /**
-     * @Route(
-     *     "/api/paynl/get-refund-data",
-     *     name="api.PaynlPayment.getRefundDataSW64",
-     *     methods={"GET"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function getRefundDataSW64(Request $request): JsonResponse
-    {
-        return $this->getRefundDataResponse($request);
-    }
-
-    /**
-     * @Route(
-     *     "/api/v{version}/paynl/get-refund-data",
-     *     name="api.PaynlPayment.getRefundData",
-     *     methods={"GET"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
+    #[Route(
+        path: '/api/paynl/get-refund-data',
+        name: 'api.PaynlPayment.getRefundData',
+        defaults: ['_routeScope' => ['api']],
+        methods: ['GET']
+    )]
     public function getRefundData(Request $request): JsonResponse
     {
-        return $this->getRefundDataResponse($request);
+        $paynlTransactionId = $request->query->get('transactionId');
+        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+
+        try {
+            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
+            $refundedAmount = $apiTransaction->getRefundedAmount();
+            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+
+            return new JsonResponse([
+                'refundedAmount' => $refundedAmount,
+                'availableForRefund' => $availableForRefund
+            ]);
+        } catch (Error\Api $exception) {
+            return new JsonResponse([
+                'errorMessage' => $exception->getMessage()
+            ], 400);
+        }
     }
 
-    /**
-     * @Route(
-     *     "/api/paynl/refund",
-     *     name="frontend.PaynlPayment.refundSW64",
-     *     methods={"POST"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function refundSW64(Request $request): JsonResponse
-    {
-        return $this->getRefundResponse($request);
-    }
-
-    /**
-     * @Route(
-     *     "/api/v{version}/paynl/refund",
-     *     name="frontend.PaynlPayment.refund",
-     *     methods={"POST"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
+    #[Route(
+        path: '/api/paynl/refund',
+        name: 'frontend.PaynlPayment.refund',
+        defaults: ['_routeScope' => ['api']],
+        methods: ['POST']
+    )]
     public function refund(Request $request): JsonResponse
-    {
-        return $this->getRefundResponse($request);
-    }
-
-    private function getRefundResponse(Request $request): JsonResponse
     {
         $post = $request->request->all();
         $paynlTransactionId = $post['transactionId'];
@@ -123,28 +105,6 @@ class RefundControllerBase extends AbstractController
         }
 
         return new JsonResponse($messages);
-    }
-
-    private function getRefundDataResponse(Request $request): JsonResponse
-    {
-        $paynlTransactionId = $request->query->get('transactionId');
-        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
-        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
-
-        try {
-            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
-            $refundedAmount = $apiTransaction->getRefundedAmount();
-            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
-
-            return new JsonResponse([
-                'refundedAmount' => $refundedAmount,
-                'availableForRefund' => $availableForRefund
-            ]);
-        } catch (Error\Api $exception) {
-            return new JsonResponse([
-                'errorMessage' => $exception->getMessage()
-            ], 400);
-        }
     }
 
     /**

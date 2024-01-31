@@ -24,16 +24,12 @@ class AccountOrderControllerBase extends StorefrontController
         $this->customerHelper = $customerHelper;
     }
 
-    /**
-     * @Route(
-     *     "/PaynlPayment/order/change/paylater-fields",
-     *     name="frontend.PaynlPayment.edit-order.change-paylater-fields",
-     *     methods={"POST"},
-     *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}},
-     *     )
-     * @param Request $request
-     * @return JsonResponse
-     */
+    #[Route(
+        path: '/PaynlPayment/order/change/paylater-fields',
+        name: 'frontend.PaynlPayment.edit-order.change-paylater-fields',
+        defaults: ['csrf_protected' => false, '_routeScope' => ['storefront']],
+        methods: ['POST']
+    )]
     public function orderChangePaylaterFields(Request $request): JsonResponse
     {
         /** @var SalesChannelContext $salesChannelContext */

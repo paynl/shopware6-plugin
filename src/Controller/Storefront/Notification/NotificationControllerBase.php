@@ -32,6 +32,13 @@ class NotificationControllerBase extends StorefrontController
      *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}}
      * )
      */
+    #[Route(
+        path: '/PaynlPayment/notify',
+        name: 'frontend.PaynlPayment.notify',
+        options: ['seo' => false],
+        defaults: ['csrf_protected' => false, '_routeScope' => ['storefront']],
+        methods: ['GET', 'POST']
+    )]
     public function notify(Request $request): Response
     {
         $transactionId = $this->getNotifyRequestTransactionId($request);

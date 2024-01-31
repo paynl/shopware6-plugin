@@ -12,6 +12,7 @@ use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -67,7 +68,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
      * @param RequestDataBag $dataBag
      * @param SalesChannelContext $salesChannelContext
      * @return RedirectResponse
-     * @throws AsyncPaymentProcessException
+     * @throws PaymentException
      * @throws Throwable
      */
     public function pay(
@@ -79,7 +80,14 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
         } catch (Exception $e) {
             $this->displaySafeErrorMessages($e->getMessage());
-            throw new AsyncPaymentProcessException(
+            if (class_exists('Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException')) {
+                throw new AsyncPaymentProcessException(
+                    $transaction->getOrderTransaction()->getId(),
+                    'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
+                );
+            }
+
+            throw PaymentException::asyncProcessInterrupted(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
             );

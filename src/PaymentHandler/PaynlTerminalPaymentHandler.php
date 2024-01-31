@@ -22,10 +22,9 @@ use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositor
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
-use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
@@ -129,7 +128,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             $this->processTerminalState($transaction, $paynlTransactionId, $hash);
 
         } catch (Exception $e) {
-            throw new SyncPaymentProcessException(
+            throw PaymentException::syncProcessInterrupted(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
             );
