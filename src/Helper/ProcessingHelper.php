@@ -532,6 +532,8 @@ class ProcessingHelper
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
         $criteria->addAssociation('order');
+        $criteria->addAssociation('orderTransaction.stateMachineState');
+        $criteria->addAssociation('orderTransaction.order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
