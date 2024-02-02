@@ -41,7 +41,7 @@ class StatusTransitionControllerBase extends AbstractController
         defaults: ['_routeScope' => ['api']],
         methods: ['POST']
     )]
-    public function changeTransactionStatusSW64(Request $request): JsonResponse
+    public function changeTransactionStatus(Request $request): JsonResponse
     {
         $orderTransactionId = $request->request->get('transactionId', '');
         $currentActionName = $request->request->get('currentActionName', '');
