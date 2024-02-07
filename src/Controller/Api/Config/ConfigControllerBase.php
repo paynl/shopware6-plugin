@@ -12,7 +12,6 @@ use Shopware\Core\Framework\Context;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 
 class ConfigControllerBase extends AbstractController
 {
@@ -30,12 +29,7 @@ class ConfigControllerBase extends AbstractController
         $this->settingsHelper = $settingsHelper;
     }
 
-    #[Route(
-        path: '/api/paynl/install-payment-methods',
-        name: 'api.action.PaynlPayment.installPaymentMethods',
-        methods: ['GET']
-    )]
-    public function installPaymentMethods(Request $request, Context $context): JsonResponse
+    protected function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
     {
         $salesChannelId = $request->query->get('salesChannelId');
         $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
@@ -57,12 +51,7 @@ class ConfigControllerBase extends AbstractController
         }
     }
 
-    #[Route(
-        path: '/api/paynl/store-settings',
-        name: 'api.action.PaynlPayment.storeSettings',
-        methods: ['POST']
-    )]
-    public function storeSettings(Request $request, Context $context): JsonResponse
+    protected function getStoreSettingsResponse(Request $request, Context $context): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $salesChannelId = $data['salesChannelId'] ?? '';
@@ -85,12 +74,7 @@ class ConfigControllerBase extends AbstractController
         return $this->json(['success' => true]);
     }
 
-    #[Route(
-        path: '/api/paynl/get-payment-terminals',
-        name: 'api.action.PaynlPayment.getPaymentTerminals',
-        methods: ['GET']
-    )]
-    public function getPaymentTerminals(Request $request): JsonResponse
+    protected function getPaymentTerminalsResponse(Request $request): JsonResponse
     {
         $salesChannelId = $request->query->get('salesChannelId');
 
@@ -99,12 +83,7 @@ class ConfigControllerBase extends AbstractController
         return $this->json(['success' => true, 'data' => $terminals]);
     }
 
-    #[Route(
-        path: '/api/paynl/test-api-keys',
-        name: 'api.action.PaynlPayment.testApiKeys',
-        methods: ['POST']
-    )]
-    public function testApiKeys(Request $request): JsonResponse
+    protected function getTestApiKeysResponse(Request $request): JsonResponse
     {
         $tokenCode = $request->get('tokenCode');
         $apiToken = $request->get('apiToken');

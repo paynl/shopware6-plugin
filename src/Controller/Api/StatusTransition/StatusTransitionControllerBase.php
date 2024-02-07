@@ -14,7 +14,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 
 class StatusTransitionControllerBase extends AbstractController
 {
@@ -35,13 +34,7 @@ class StatusTransitionControllerBase extends AbstractController
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    #[Route(
-        path: '/api/paynl/change-transaction-status',
-        name: 'api.PaynlPayment.changeTransactionStatus',
-        defaults: ['_routeScope' => ['api']],
-        methods: ['POST']
-    )]
-    public function changeTransactionStatus(Request $request): JsonResponse
+    protected function getChangeTransactionStatusResponse(Request $request): JsonResponse
     {
         $orderTransactionId = $request->request->get('transactionId', '');
         $currentActionName = $request->request->get('currentActionName', '');

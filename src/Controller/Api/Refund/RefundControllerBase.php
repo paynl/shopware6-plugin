@@ -15,7 +15,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 
 class RefundControllerBase extends AbstractController
 {
@@ -44,13 +43,7 @@ class RefundControllerBase extends AbstractController
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    #[Route(
-        path: '/api/paynl/get-refund-data',
-        name: 'api.PaynlPayment.getRefundData',
-        defaults: ['_routeScope' => ['api']],
-        methods: ['GET']
-    )]
-    public function getRefundData(Request $request): JsonResponse
+    protected function getRefundDataResponse(Request $request): JsonResponse
     {
         $paynlTransactionId = $request->query->get('transactionId');
         $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
@@ -72,13 +65,7 @@ class RefundControllerBase extends AbstractController
         }
     }
 
-    #[Route(
-        path: '/api/paynl/refund',
-        name: 'frontend.PaynlPayment.refund',
-        defaults: ['_routeScope' => ['api']],
-        methods: ['POST']
-    )]
-    public function refund(Request $request): JsonResponse
+    protected function getRefundResponse(Request $request): JsonResponse
     {
         $post = $request->request->all();
         $paynlTransactionId = $post['transactionId'];
