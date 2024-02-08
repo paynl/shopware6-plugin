@@ -87,6 +87,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
                 );
             }
 
+            /** @phpstan-ignore-next-line */
             throw PaymentException::asyncProcessInterrupted(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
