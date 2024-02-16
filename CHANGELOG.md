@@ -1,4 +1,6 @@
 # 1.5.15
+- Fixed shipping costs calculation
+- Fixed order state update
 
 # 1.5.14
 - Fixed service class name

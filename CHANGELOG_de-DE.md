@@ -1,4 +1,6 @@
 # 1.5.15
+- Berechnung der festen Versandkosten
+- Aktualisierung des Bestellstatus behoben
 
 # 1.5.14
 - Name der Serviceklasse korrigiert
