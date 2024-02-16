@@ -42,7 +42,7 @@ class OrderStateService
 
         $currentStatus = $order->getStateMachineState()->getTechnicalName();
 
-        if ($currentStatus === $orderState) {
+        if ($currentStatus === $orderState || $currentStatus === OrderStates::STATE_COMPLETED) {
             return false;
         }
 
