@@ -1,3 +1,5 @@
+# 1.5.16
+
 # 1.5.15
 - Berechnung der festen Versandkosten
 - Aktualisierung des Bestellstatus behoben
