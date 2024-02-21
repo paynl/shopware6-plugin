@@ -20,6 +20,7 @@ use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
@@ -54,6 +55,8 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
     /** @var Api */
     private $paynlApi;
+    /** @var LoggerInterface */
+    private $logger;
 
     /** @var CustomerHelper */
     private $customerHelper;
@@ -78,6 +81,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         RequestStack $requestStack,
         Config $config,
         Api $api,
+        LoggerInterface $logger,
         CustomerHelper $customerHelper,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
@@ -89,6 +93,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->requestStack = $requestStack;
         $this->config = $config;
         $this->paynlApi = $api;
+        $this->logger = $logger;
         $this->customerHelper = $customerHelper;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
@@ -109,6 +114,18 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): void {
+        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+
+        $this->logger->info(
+            'Starting order ' . $transaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'cart' => [
+                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                ],
+            ]
+        );
 
         try {
             $requestData = $this->fetchRequestData();
@@ -129,6 +146,13 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             $this->processTerminalState($transaction, $paynlTransactionId, $hash);
 
         } catch (Exception $e) {
+            $this->logger->error(
+                'Error on starting PAY. payment: ' . $e->getMessage(),
+                [
+                    'exception' => $e
+                ]
+            );
+
             throw new SyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
@@ -166,6 +190,16 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             $terminalId
         );
 
+        $this->logger->info(
+            'Starting terminal transaction with terminalId ' . $terminalId,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'cart' => [
+                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                ],
+            ]
+        );
+
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $orderTransaction,
@@ -176,6 +210,10 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
+            $this->logger->error($exception->getMessage(), [
+                'exception' => $exception
+            ]);
+
             $this->processingHelper->storePaynlTransactionData(
                 $order,
                 $orderTransaction,

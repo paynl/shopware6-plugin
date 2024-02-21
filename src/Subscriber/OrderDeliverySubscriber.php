@@ -9,6 +9,7 @@ use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Service\OrderDeliveryService;
 use PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
@@ -26,17 +27,21 @@ class OrderDeliverySubscriber implements EventSubscriberInterface
     private $paynlTransactionService;
     /** @var Api */
     private $api;
+    /** @var LoggerInterface */
+    private $logger;
 
     public function __construct(
         Config $config,
         OrderDeliveryService $orderDeliveryService,
         PaynlTransactionService $paynlTransactionService,
-        Api $api
+        Api $api,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->orderDeliveryService = $orderDeliveryService;
         $this->paynlTransactionService = $paynlTransactionService;
         $this->api = $api;
+        $this->logger = $logger;
     }
 
     /**
@@ -80,13 +85,17 @@ class OrderDeliverySubscriber implements EventSubscriberInterface
         }
 
         try {
+            $this->logger->info('Starting capture PAY. transaction ' . $paynlTransaction->getPaynlTransactionId(), [
+                'amount' => $paynlTransaction->getAmount(),
+            ]);
+
             $this->api->capture(
                 $paynlTransaction->getPaynlTransactionId(),
                 $paynlTransaction->getAmount(),
                 (string) $event->getSalesChannelId()
             );
         } catch (PaynlTransactionException $exception) {
-
+            $this->logger->error($exception->getMessage());
         }
     }
 
