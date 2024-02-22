@@ -95,7 +95,9 @@ class OrderDeliverySubscriber implements EventSubscriberInterface
                 (string) $event->getSalesChannelId()
             );
         } catch (PaynlTransactionException $exception) {
-            $this->logger->error($exception->getMessage());
+            $this->logger->error('Error on capturing PAY. transaction ' . $paynlTransaction->getPaynlTransactionId(), [
+                'exception' => $exception
+            ]);
         }
     }
 

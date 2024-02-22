@@ -131,7 +131,10 @@ class RefundControllerBase extends AbstractController
                 'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
             ];
         } catch (\Throwable $e) {
-            $this->logger->error($e->getMessage());
+            $this->logger->error('Error on refunding transaction ' . $paynlTransactionId, [
+                'exception' => $e,
+                'amount' => $amount
+            ]);
 
             $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
         }
@@ -157,7 +160,9 @@ class RefundControllerBase extends AbstractController
                 'availableForRefund' => $availableForRefund
             ]);
         } catch (Error\Api $exception) {
-            $this->logger->error($exception->getMessage());
+            $this->logger->error('Error on getting refund data for transaction ' . $paynlTransactionId, [
+                'exception' => $exception
+            ]);
 
             return new JsonResponse([
                 'errorMessage' => $exception->getMessage()

@@ -244,8 +244,9 @@ class ProcessingHelper
         try {
             return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
-            $this->logger->error($e->getMessage(), [
-                'transactionId' => $paynlTransactionId
+            $this->logger->error('Error on notifying transaction.', [
+                'transactionId' => $paynlTransactionId,
+                'exception' => $e
             ]);
 
             return sprintf(

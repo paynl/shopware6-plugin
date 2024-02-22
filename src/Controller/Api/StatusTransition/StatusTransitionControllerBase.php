@@ -96,7 +96,11 @@ class StatusTransitionControllerBase extends AbstractController
 
             return new JsonResponse($request->request->all());
         } catch (Error\Api $exception) {
-            $this->logger->error($exception->getMessage());
+            $this->logger->error('Error on changing transaction status.', [
+                'exception' => $exception,
+                'transactionId' => $orderTransactionId,
+                'actionName' => $currentActionName
+            ]);
 
             return new JsonResponse([
                 'errorMessage' => $exception->getMessage()

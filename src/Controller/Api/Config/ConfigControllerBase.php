@@ -163,7 +163,9 @@ class ConfigControllerBase extends AbstractController
                 'message' => "paynlValidation.messages.paymentMethodsSuccessfullyInstalled"
             ]);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            $this->logger->error('Error on installing payment methods', [
+                'exception' => $e
+            ]);
 
             return $this->json(['success' => false, 'message' => $e->getMessage()]);
         }

@@ -82,7 +82,9 @@ class CancelOrderSubscriber implements EventSubscriberInterface
 
             $this->api->void($paynlTransaction->getPaynlTransactionId(), $order->getSalesChannelId());
         } catch (PaynlTransactionException $exception) {
-            $this->logger->error($exception->getMessage());
+            $this->logger->error('Error on voiding PAY. transaction ' . $paynlTransaction->getPaynlTransactionId(), [
+                'exception' => $exception->getMessage()
+            ]);
         }
     }
 }

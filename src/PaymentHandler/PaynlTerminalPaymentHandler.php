@@ -210,7 +210,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
-            $this->logger->error($exception->getMessage(), [
+            $this->logger->error('Error on starting terminal transaction with terminal ' . $terminalId, [
                 'exception' => $exception
             ]);
 

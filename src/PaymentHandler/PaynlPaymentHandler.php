@@ -167,7 +167,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
-            $this->logger->error($exception->getMessage(), [
+            $this->logger->error('Error on starting transaction', [
                 'exception' => $exception
             ]);
 
