@@ -9,6 +9,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
@@ -31,6 +32,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $router;
     /** @var Api */
     private $paynlApi;
+    /** @var LoggerInterface */
+    private $logger;
     /** @var ProcessingHelper */
     private $processingHelper;
     /** @var PluginHelper */
@@ -46,6 +49,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
         Api $api,
+        LoggerInterface $logger,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         TranslatorInterface $translator,
@@ -55,6 +59,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
+        $this->logger = $logger;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
         $this->translator = $translator;
@@ -75,9 +80,29 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): RedirectResponse {
+        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+
+        $this->logger->info(
+            'Starting order ' . $transaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'cart' => [
+                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                ],
+            ]
+        );
+
         try {
             $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
         } catch (Exception $e) {
+            $this->logger->error(
+                'Error on starting PAY. payment: ' . $e->getMessage(),
+                [
+                    'exception' => $e
+                ]
+            );
+
             $this->displaySafeErrorMessages($e->getMessage());
             throw new AsyncPaymentProcessException(
                 $transaction->getOrderTransaction()->getId(),
@@ -100,7 +125,18 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
-        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($transaction->getOrder()->getId());
+        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+        $order = $transaction->getOrder();
+
+        $this->logger->info(
+            'Finalizing PAY. payment for order ' . $order->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+            ]
+        );
+
+        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($order->getId());
     }
 
     private function sendReturnUrlToExternalGateway(
@@ -131,6 +167,10 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
+            $this->logger->error('Error on starting transaction', [
+                'exception' => $exception
+            ]);
+
             $this->processingHelper->storePaynlTransactionData(
                 $order,
                 $orderTransaction,

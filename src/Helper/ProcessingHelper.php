@@ -10,6 +10,7 @@ use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositor
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -36,6 +37,8 @@ class ProcessingHelper
 {
     /** @var Api */
     private $paynlApi;
+    /** @var LoggerInterface */
+    private $logger;
 
     /** @var PaynlTransactionsRepositoryInterface */
     private $paynlTransactionRepository;
@@ -54,6 +57,7 @@ class ProcessingHelper
 
     public function __construct(
         Api $api,
+        LoggerInterface $logger,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
         OrderTransactionRepositoryInterface $orderTransactionRepository,
         StateMachineTransitionRepositoryInterface $stateMachineTransitionRepository,
@@ -61,6 +65,7 @@ class ProcessingHelper
         OrderStatusUpdater $orderStatusUpdater
     ) {
         $this->paynlApi = $api;
+        $this->logger = $logger;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
@@ -239,6 +244,11 @@ class ProcessingHelper
         try {
             return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
+            $this->logger->error('Error on notifying transaction.', [
+                'transactionId' => $paynlTransactionId,
+                'exception' => $e
+            ]);
+
             return sprintf(
                 'FALSE| Error "%s" in file %s',
                 $e->getMessage(),

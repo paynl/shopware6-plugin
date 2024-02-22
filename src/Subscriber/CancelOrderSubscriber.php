@@ -9,6 +9,7 @@ use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
 use Shopware\Core\System\StateMachine\Event\StateMachineStateChangeEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,17 +24,21 @@ class CancelOrderSubscriber implements EventSubscriberInterface
     private $paynlTransactionService;
     /** @var Api */
     private $api;
+    /** @var LoggerInterface */
+    private $logger;
 
     public function __construct(
         Config $config,
         OrderRepositoryInterface $orderRepository,
         PaynlTransactionService $paynlTransactionService,
-        Api $api
+        Api $api,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->orderRepository = $orderRepository;
         $this->paynlTransactionService = $paynlTransactionService;
         $this->api = $api;
+        $this->logger = $logger;
     }
 
     /**
@@ -71,9 +76,15 @@ class CancelOrderSubscriber implements EventSubscriberInterface
         }
 
         try {
+            $this->logger->info('Starting void PAY. transaction ' . $paynlTransaction->getPaynlTransactionId(), [
+                'salesChannel' => $order->getSalesChannel() ? $order->getSalesChannel()->getName() : '',
+            ]);
+
             $this->api->void($paynlTransaction->getPaynlTransactionId(), $order->getSalesChannelId());
         } catch (PaynlTransactionException $exception) {
-
+            $this->logger->error('Error on voiding PAY. transaction ' . $paynlTransaction->getPaynlTransactionId(), [
+                'exception' => $exception->getMessage()
+            ]);
         }
     }
 }

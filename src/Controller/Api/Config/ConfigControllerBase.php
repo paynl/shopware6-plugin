@@ -8,6 +8,7 @@ use Paynl\Paymentmethods;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,15 +20,19 @@ class ConfigControllerBase extends AbstractController
     public $installHelper;
     private $config;
     private $settingsHelper;
+    /** @var LoggerInterface */
+    private $logger;
 
     public function __construct(
         InstallHelper $installHelper,
         Config $config,
-        SettingsHelper $settingsHelper
+        SettingsHelper $settingsHelper,
+        LoggerInterface $logger
     ) {
         $this->installHelper = $installHelper;
         $this->config = $config;
         $this->settingsHelper = $settingsHelper;
+        $this->logger = $logger;
     }
 
     /**
@@ -158,6 +163,10 @@ class ConfigControllerBase extends AbstractController
                 'message' => "paynlValidation.messages.paymentMethodsSuccessfullyInstalled"
             ]);
         } catch (\Exception $e) {
+            $this->logger->error('Error on installing payment methods', [
+                'exception' => $e
+            ]);
+
             return $this->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }

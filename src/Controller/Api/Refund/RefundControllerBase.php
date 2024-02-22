@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -21,6 +22,8 @@ class RefundControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
+    /** @var LoggerInterface */
+    private $logger;
     private $transactionRepository;
     private $productRepository;
     private $paynlTransactionRepository;
@@ -31,6 +34,7 @@ class RefundControllerBase extends AbstractController
     public function __construct(
         Api $paynlApi,
         Config $paynlConfig,
+        LoggerInterface $logger,
         EntityRepository $transactionRepository,
         EntityRepository $productRepository,
         ProcessingHelper $processingHelper,
@@ -38,6 +42,7 @@ class RefundControllerBase extends AbstractController
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
+        $this->logger = $logger;
         $this->transactionRepository = $transactionRepository;
         $this->productRepository = $productRepository;
         $this->processingHelper = $processingHelper;
@@ -107,8 +112,15 @@ class RefundControllerBase extends AbstractController
 
         $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+        $salesChannel = $paynlTransaction->getOrder()->getSalesChannel();
 
         try {
+            $this->logger->info('Start refunding for transaction ' . $paynlTransactionId, [
+                'transactionId' => $paynlTransactionId,
+                'amount' => $amount,
+                'salesChannel' => $salesChannel ? $salesChannel->getName() : ''
+            ]);
+
             // TODO: need newer version of PAYNL/SDK
             $this->paynlApi->refund($paynlTransactionId, $amount, $salesChannelId, $description);
             $this->restock($products);
@@ -119,6 +131,11 @@ class RefundControllerBase extends AbstractController
                 'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
             ];
         } catch (\Throwable $e) {
+            $this->logger->error('Error on refunding transaction ' . $paynlTransactionId, [
+                'exception' => $e,
+                'amount' => $amount
+            ]);
+
             $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
         }
 
@@ -132,6 +149,8 @@ class RefundControllerBase extends AbstractController
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 
         try {
+            $this->logger->info('Refund data for transaction ' . $paynlTransactionId);
+
             $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
             $refundedAmount = $apiTransaction->getRefundedAmount();
             $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
@@ -141,6 +160,10 @@ class RefundControllerBase extends AbstractController
                 'availableForRefund' => $availableForRefund
             ]);
         } catch (Error\Api $exception) {
+            $this->logger->error('Error on getting refund data for transaction ' . $paynlTransactionId, [
+                'exception' => $exception
+            ]);
+
             return new JsonResponse([
                 'errorMessage' => $exception->getMessage()
             ], 400);
