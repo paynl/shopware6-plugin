@@ -24,7 +24,12 @@
         "order": "Order: "
     },
     "payment": {
-        "selectIssuer": "Select Issuer"
+        "selectIssuer": "Select Issuer",
+        "paypalExpress": {
+            "buttonTitle": "PayPal Express",
+            "buttonImage": "checkout-logo-medium-de.png",
+            "buttonImage2x": "checkout-logo-medium-de-2x.png"
+        }
     },
     "coc": {
         "label": "KVK/COC Number",

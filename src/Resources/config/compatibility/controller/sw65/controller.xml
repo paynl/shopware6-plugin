@@ -18,6 +18,27 @@
             </call>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Controller\Storefront\Ideal\Sw65\IdealExpressController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" />
+            <argument type="service" id="PaynlPayment\Shopware6\Service\CartService" />
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
+            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\RegisterRoute" />
+            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\AccountService" />
+            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory" />
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
+            <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher" />
+            <argument type="service" id="Shopware\Storefront\Framework\Routing\Router"/>
+            <argument type="service" id="session.flash_bag" on-invalid="null"/>
+
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+            <call method="setTwig">
+                <argument type="service" id="twig"/>
+            </call>
+        </service>
+
         <!-- Admin API Controller -->
         <service id="PaynlPayment\Shopware6\Controller\Api\Config\Sw65\ConfigController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
