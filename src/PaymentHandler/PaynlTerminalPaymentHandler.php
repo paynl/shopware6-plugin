@@ -142,6 +142,8 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             $paynlTransactionId = $paynlTransaction->getTransactionId();
             $paynlTransactionData = $paynlTransaction->getData();
 
+            $this->logger->info('PAY. terminal transaction was successfully created: ' . $paynlTransactionId);
+
             $hash = (string)($paynlTransactionData[self::TERMINAL][self::HASH] ?? '');
             $this->processTerminalState($transaction, $paynlTransactionId, $hash);
 

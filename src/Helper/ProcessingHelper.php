@@ -132,6 +132,11 @@ class ProcessingHelper
             return sprintf('TRUE| No change made (%s)', $apiTransactionData['paymentDetails']['stateName']);
         }
 
+        $this->logger->info('PAY. transaction was successfully updated', [
+            'transactionId' => $paynlTransactionId,
+            'statusCode' => $paynlTransactionStatusCode
+        ]);
+
         return sprintf(
             'TRUE| Status updated to: %s (%s) orderNumber: %s',
             $apiTransactionData['paymentDetails']['stateName'],
@@ -198,6 +203,11 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
+        $this->logger->info('Transaction status was successfully updated', [
+            'transactionId' => $paynlTransactionId,
+            'statusCode' => $paynlTransactionStatusCode
+        ]);
     }
 
     /**
