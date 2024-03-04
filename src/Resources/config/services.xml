@@ -224,6 +224,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodRouteRequestSubscriber">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService" />
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository" />
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderLineItem\OrderLineItemRepository" />
