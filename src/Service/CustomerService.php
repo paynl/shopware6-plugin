@@ -169,6 +169,27 @@ class CustomerService implements CustomerServiceInterface
         return $customer;
     }
 
+    public function getCustomerByNumber(string $customerNumber, Context $context): ?CustomerEntity
+    {
+        $customer = null;
+
+        try {
+            $criteria = new Criteria();
+            $criteria->addFilter(new EqualsFilter('customerNumber', $customerNumber));
+            $criteria->addAssociations([
+                'defaultShippingAddress.country',
+                'defaultBillingAddress.country',
+            ]);
+
+            /** @var CustomerEntity $customer */
+            $customer = $this->customerRepository->search($criteria, $context)->first();
+        } catch (\Exception $e) {
+            // Should error be (re)thrown here, instead of returning null?
+        }
+
+        return $customer;
+    }
+
     /**
      * Return an array of address data.
      *
@@ -243,6 +264,13 @@ class CustomerService implements CustomerServiceInterface
         $this->customerRepository->upsert([$customer], $context->getContext());
 
         return $this->getCustomer($customerId, $context->getContext());
+    }
+
+    public function updateCustomer(array $customerData, SalesChannelContext $salesChannelContext): ?CustomerEntity
+    {
+        $this->customerRepository->update([$customerData], $salesChannelContext->getContext());
+
+        return $this->getCustomer($customerData['id'], $salesChannelContext->getContext());
     }
 
     /**

@@ -5,6 +5,7 @@ namespace PaynlPayment\Shopware6\Repository\Country;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
 class CountryRepository implements CountryRepositoryInterface
@@ -20,6 +21,16 @@ class CountryRepository implements CountryRepositoryInterface
     public function __construct($countryRepository)
     {
         $this->countryRepository = $countryRepository;
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param Context $context
+     * @return EntitySearchResult
+     */
+    public function search(Criteria $criteria, Context $context): EntitySearchResult
+    {
+        return $this->countryRepository->search($criteria, $context);
     }
 
     /**

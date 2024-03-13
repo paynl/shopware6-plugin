@@ -105,6 +105,9 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderAddressRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository"/>
         </service>
 
         <!--Definition Extensions-->
@@ -360,6 +363,10 @@
 
         <service id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository">
             <argument type="service" id="order_transaction.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository">
+            <argument type="service" id="order_customer.repository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository">

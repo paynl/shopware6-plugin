@@ -22,12 +22,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
-            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\RegisterRoute" />
-            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\AccountService" />
-            <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory" />
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
-            <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher" />
+            <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService" />
             <argument type="service" id="Shopware\Storefront\Framework\Routing\Router"/>
             <argument type="service" id="session.flash_bag" on-invalid="null"/>
 

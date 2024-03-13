@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Repository\PaymentMethod;
 
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -78,13 +79,19 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
         $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
         $criteria->addFilter(new EqualsFilter('active', true));
 
-        /** @var array<string> $paymentMethods */
-        $paymentMethods = $this->paymentMethodRepository->searchIds($criteria, $context)->getIds();
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
 
-        if (count($paymentMethods) <= 0) {
-            throw new \Exception('Payment Method IDEAL Express not found in system');
+        foreach ($paymentMethods as $paymentMethod) {
+            $customFields = $paymentMethod->getTranslation('customFields');
+            if (!isset($customFields['paynlId']) || empty($customFields['paynlId'])) {
+                continue;
+            }
+
+            if ($customFields['paynlId'] === PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT) {
+                return (string) $paymentMethod->get('id');
+            }
         }
 
-        return (string)$paymentMethods[0];
+        throw new \Exception('Payment Method IDEAL Express not found in system');
     }
 }

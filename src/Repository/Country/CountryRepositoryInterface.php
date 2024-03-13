@@ -12,6 +12,13 @@ interface CountryRepositoryInterface
     /**
      * @param Criteria $criteria
      * @param Context $context
+     * @return EntitySearchResult
+     */
+    public function search(Criteria $criteria, Context $context): EntitySearchResult;
+
+    /**
+     * @param Criteria $criteria
+     * @param Context $context
      * @return IdSearchResult
      */
     public function searchIds(Criteria $criteria, Context $context): IdSearchResult;

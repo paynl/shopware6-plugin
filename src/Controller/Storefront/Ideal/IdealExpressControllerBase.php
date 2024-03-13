@@ -10,35 +10,25 @@ use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Salutation\SalutationRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
-use PayonePayment\Storefront\Struct\CheckoutCartPaymentData;
-use Shopware\Core\Checkout\Cart\Cart;
+use PaynlPayment\Shopware6\Service\OrderService;
 use Shopware\Core\Checkout\Customer\SalesChannel\AbstractRegisterRoute;
 use Shopware\Core\Checkout\Customer\SalesChannel\AccountService;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
-use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Shopware\Core\System\SalesChannel\StoreApiResponse;
-use Shopware\Core\System\Salutation\SalutationEntity;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
 class IdealExpressControllerBase extends StorefrontController
 {
-    private const SNIPPET_ERROR = 'molliePayments.payments.applePayDirect.paymentError';
-
     /** @var IdealExpress */
     private $idealExpress;
 
@@ -46,45 +36,25 @@ class IdealExpressControllerBase extends StorefrontController
     private $cartService;
     /** @var CartBackupService */
     private $cartBackupService;
-    /** @var AbstractRegisterRoute */
-    private $registerRoute;
-    /** @var AccountService */
-    private $accountService;
-    /** @var AbstractSalesChannelContextFactory */
-    private $salesChannelContextFactory;
-    /** @var EntityRepository */
-    private $salutationRepository;
-    /** @var EntityRepository */
-    private $countryRepository;
-    /** @var SalesChannelContextSwitcher */
-    private $salesChannelContextSwitcher;
+    /** @var OrderService */
+    private $orderService;
     /** @var RouterInterface */
     private $router;
     /** @var ?FlashBag */
     private $flashBag;
 
     public function __construct(
-        IdealExpress                       $idealExpress,
-        CartService                        $cartService,
-        CartBackupService                  $cartBackupService,
-        AbstractRegisterRoute              $registerRoute,
-        AccountService                     $accountService,
-        AbstractSalesChannelContextFactory $salesChannelContextFactory,
-        SalutationRepositoryInterface      $salutationRepository,
-        CountryRepositoryInterface         $countryRepository,
-        SalesChannelContextSwitcher        $salesChannelContextSwitcher,
-        RouterInterface                    $router,
-        ?FlashBag                          $flashBag
+        IdealExpress $idealExpress,
+        CartService $cartService,
+        CartBackupService $cartBackupService,
+        OrderService $orderService,
+        RouterInterface $router,
+        ?FlashBag $flashBag
     ) {
         $this->idealExpress = $idealExpress;
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
-        $this->registerRoute = $registerRoute;
-        $this->accountService = $accountService;
-        $this->salesChannelContextFactory = $salesChannelContextFactory;
-        $this->salutationRepository = $salutationRepository;
-        $this->countryRepository = $countryRepository;
-        $this->salesChannelContextSwitcher = $salesChannelContextSwitcher;
+        $this->orderService = $orderService;
         $this->router = $router;
         $this->flashBag = $flashBag;
     }
@@ -97,25 +67,57 @@ class IdealExpressControllerBase extends StorefrontController
     ]
     public function startPayment(SalesChannelContext $context, Request $request): Response
     {
+        $finishUrl = (string)$request->get('finishUrl', '');
+
         try {
-            # we clear our cart backup now
-            # we are in the user redirection process where a restoring wouldnt make sense
-            # because from now on we would end on the cart page where we could even switch payment method.
+
             $this->cartBackupService->clearBackup($context);
 
-            $paypalID = '013d407166ec4fa56eb1e1f8cbe183b9';
+            $idealID = $this->idealExpress->getActiveIdealID($context);
 
-            // Start payment on IDEAL PAY. API
+            $this->cartService->updatePaymentMethod($context, $idealID);
 
-            $this->cartService->updatePaymentMethod($context, $paypalID);
+            $email = 'temp@temp.com';
+            $firstname = 'Temp';
+            $lastname = 'Temp';
+            $street = 'temp';
+            $city = 'Temp';
+            $zipcode = '23456';
+            $countryCode = 'de';
 
-            return new RedirectResponse($this->router->generate('frontend.account.PaynlPayment.paypal.finish-payment'));
+            $newContext = $this->idealExpress->prepareCustomer(
+                $firstname,
+                $lastname,
+                $email,
+                $street,
+                $zipcode,
+                $city,
+                $countryCode,
+                $context
+            );
+
+            $order = $this->idealExpress->createOrder($newContext);
+
+            $this->idealExpress->createPayment(
+                $order,
+                $finishUrl,
+                $firstname,
+                $lastname,
+                $street,
+                $zipcode,
+                $city,
+                $countryCode,
+                $context
+            );
+
+            $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
+
+            return new RedirectResponse($returnUrl);
         } catch (\Throwable $ex) {
-            # if we have an error here, we have to redirect to the confirm page
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
-            # also add an error for our target page
+
             if ($this->flashBag !== null) {
-                $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
+                $this->flashBag->add('danger', $this->trans('paynl.error'));
             }
 
             return new RedirectResponse($returnUrl);
@@ -127,70 +129,22 @@ class IdealExpressControllerBase extends StorefrontController
         path: '/PaynlPayment/paypal/finish-payment',
         name: 'frontend.account.PaynlPayment.paypal.finish-payment',
         options: ['seo' => false],
-        methods: ['GET'])
+        methods: ['POST', 'GET'])
     ]
     public function finishPayment(RequestDataBag $data, SalesChannelContext $context): Response
     {
-        $email = (string)$data->get('email', '');
-        $firstname = (string)$data->get('firstname', '');
-        $lastname = (string)$data->get('lastname', '');
-        $street = (string)$data->get('street', '');
-        $city = (string)$data->get('city', '');
-        $zipcode = (string)$data->get('postalCode', '');
-        $countryCode = (string)$data->get('countryCode', '');
-
-        $finishUrl = (string)$data->get('finishUrl', '');
-        $errorUrl = (string)$data->get('errorUrl', '');
-
-        $email = 'test@test.com';
-        $firstname = 'Test';
-        $lastname = 'Test';
-        $street = 'test';
-        $city = 'test';
-        $zipcode = '214';
-        $countryCode = 'de';
-
-        # make sure to create a customer if necessary
-        # then update to our IDEAL Express payment method
-        # and return the new context
-        $newContext = $this->idealExpress->prepareCustomer(
-            $firstname,
-            $lastname,
-            $email,
-            $street,
-            $zipcode,
-            $city,
-            $countryCode,
-            $context
-        );
-
-        # we only start our TRY/CATCH here!
-        # we always need to throw exceptions on an API level
-        # but if something BELOW breaks, we want to navigate to the error page.
-        # customers are ready, data is ready, but the handling has a problem.
+        $orderNumber = (string)$data->get('reference', '');
 
         try {
-            # create our new Shopware Order
-            $order = $this->idealExpress->createOrder($newContext);
+            $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
 
-            # now create the Mollie payment for it
-            # there should not be a checkout URL required for IDEAL Express,
-            # so we just create the payment and redirect.
-            $this->idealExpress->createPayment(
-                $order,
-                $finishUrl,
-                $firstname,
-                $lastname,
-                $street,
-                $zipcode,
-                $city,
-                $countryCode,
-                $newContext
-            );
+            $this->idealExpress->updateOrder($order, $data->all(), $context);
 
-            $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
+            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $data->all(), $context);
 
-            return new RedirectResponse($returnUrl);
+            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $data->all(), $context);
+
+            return new Response(json_encode(['success' => true]));
         } catch (Throwable $ex) {
             return new Response($ex->getMessage());
         }
@@ -223,98 +177,5 @@ class IdealExpressControllerBase extends StorefrontController
             ],
             $router::ABSOLUTE_URL
         );
-    }
-
-    protected function addCartExtension(
-        Cart $cart,
-        SalesChannelContext $context,
-        string $workOrderId
-    ): void {
-        $cartData = new CheckoutCartPaymentData();
-
-        $cartData->assign(array_filter([
-            'workOrderId' => $workOrderId,
-            'cartHash' => $this->cartHasher->generate($cart, $context),
-        ]));
-
-        $cart->addExtension(CheckoutCartPaymentData::EXTENSION_NAME, $cartData);
-
-        $this->cartService->recalculate($cart, $context);
-    }
-
-    private function getCustomerDataBagFromResponse(array $response, Context $context): RequestDataBag
-    {
-        $salutationId = $this->getSalutationId($context);
-        $countryId = $this->getCountryIdByCode($response['addpaydata']['shipping_country'], $context);
-
-        return new RequestDataBag([
-            'guest' => true,
-            'salutationId' => $salutationId,
-            'email' => $response['addpaydata']['email'],
-            'firstName' => $response['addpaydata']['shipping_firstname'],
-            'lastName' => $response['addpaydata']['shipping_lastname'],
-            'acceptedDataProtection' => true,
-            'billingAddress' => array_filter([
-                'firstName' => $response['addpaydata']['shipping_firstname'],
-                'lastName' => $response['addpaydata']['shipping_lastname'],
-                'salutationId' => $salutationId,
-                'street' => $response['addpaydata']['shipping_street'],
-                'zipcode' => $response['addpaydata']['shipping_zip'],
-                'countryId' => $countryId,
-                'phone' => $response['addpaydata']['telephonenumber'],
-                'city' => $response['addpaydata']['shipping_city'],
-                'additionalAddressLine1' => $response['addpaydata']['shipping_addressaddition']
-                    ?? null,
-            ]),
-        ]);
-    }
-
-    private function getSalutationId(Context $context): string
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(
-            new EqualsFilter('salutationKey', 'not_specified')
-        );
-
-        /** @var SalutationEntity|null $salutation */
-        $salutation = $this->salutationRepository->search($criteria, $context)->first();
-
-        if ($salutation === null) {
-            throw new \RuntimeException($this->trans('PayonePayment.errorMessages.genericError'));
-        }
-
-        return $salutation->getId();
-    }
-
-    private function getCountryIdByCode(string $code, Context $context): ?string
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(
-            new EqualsFilter('iso', $code)
-        );
-
-        /** @var CountryEntity|null $country */
-        $country = $this->countryRepository->search($criteria, $context)->first();
-
-        if (!$country instanceof CountryEntity) {
-            return null;
-        }
-
-        return $country->getId();
-    }
-
-    private function handleStateResponse(string $state): void
-    {
-        if (empty($state)) {
-            throw new \RuntimeException($this->trans('PayonePayment.errorMessages.genericError'));
-        }
-
-        if ($state === 'cancel') {
-            throw new \RuntimeException($this->trans('PayonePayment.errorMessages.genericError'));
-        }
-
-        if ($state === 'error') {
-            throw new \RuntimeException($this->trans('PayonePayment.errorMessages.genericError'));
-        }
     }
 }
