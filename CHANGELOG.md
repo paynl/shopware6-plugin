@@ -1,3 +1,6 @@
+# 1.5.16
+- Fixed the wrong order amount when the line item price was set manually
+
 # 1.5.15
 - Fixed shipping costs calculation
 - Fixed order state update
