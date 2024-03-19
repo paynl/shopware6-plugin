@@ -91,23 +91,22 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\Services\IdealExpressFormatter"/>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Service\OrderService" class="PaynlPayment\Shopware6\Service\OrderService">
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
-            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\OrderService"/>
-        </service>
-
         <service id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\Services\IdealExpressShippingBuilder"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="router.default"/>
+            <argument type="service" id="translator"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\CustomerService"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PAY\v1\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderAddressRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
         </service>
 
         <!--Definition Extensions-->
@@ -201,6 +200,19 @@
 
         <service id="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway" class="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway">
             <factory service="PaynlPayment\Shopware6\Compatibility\CompatibilityFactory" method="createGateway"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\OrderService" class="PaynlPayment\Shopware6\Service\OrderService">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
+            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\OrderService"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PAY\v1\OrderService" class="PaynlPayment\Shopware6\Service\PAY\v1\OrderService">
+            <argument type="service" id="paynl.app_system.guzzle"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+        </service>
+
+        <service id="paynl.app_system.guzzle" class="GuzzleHttp\Client">
         </service>
 
         <!--Payment handler-->

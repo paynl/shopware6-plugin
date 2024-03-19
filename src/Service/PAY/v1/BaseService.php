@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\Service\PAY\v1;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class BaseService
@@ -19,11 +20,12 @@ abstract class BaseService
         $this->client = $client;
     }
 
-    protected function request(string $method, string $url, string $bearerToken, array $data = []): array
+    /** @throws PayPaymentApi */
+    protected function request(string $method, string $url, string $basicToken, array $data = []): array
     {
         $options = [
             'headers' => [
-                'Authorization' => "Bearer {$bearerToken}",
+                'Authorization' => "Basic {$basicToken}",
                 'Content-Type' => 'application/json'
             ],
         ];
@@ -34,14 +36,11 @@ abstract class BaseService
 
         try {
             $response = $this->client->request($method, $this->getFullRequestUrl($url), $options);
-        } catch (GuzzleException $exception) {
-            return [
-                'errorMessage' => $exception->getMessage(),
-                'errorCode' => $exception->getCode(),
-            ];
-        }
 
-        return $this->getResponseArray($response);
+            return $this->getResponseArray($response);
+        } catch (GuzzleException $exception) {
+            throw PayPaymentApi::paymentResponseError($exception->getMessage(), $exception->getCode());
+        }
     }
 
     protected function getBaseUrl(): string

@@ -4,19 +4,11 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\Ideal;
 
-use Exception;
 use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
-use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
-use PaynlPayment\Shopware6\Repository\Salutation\SalutationRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
-use Shopware\Core\Checkout\Customer\SalesChannel\AbstractRegisterRoute;
-use Shopware\Core\Checkout\Customer\SalesChannel\AccountService;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
-use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
-use Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -67,10 +59,7 @@ class IdealExpressControllerBase extends StorefrontController
     ]
     public function startPayment(SalesChannelContext $context, Request $request): Response
     {
-        $finishUrl = (string)$request->get('finishUrl', '');
-
         try {
-
             $this->cartBackupService->clearBackup($context);
 
             $idealID = $this->idealExpress->getActiveIdealID($context);
@@ -98,9 +87,11 @@ class IdealExpressControllerBase extends StorefrontController
 
             $order = $this->idealExpress->createOrder($newContext);
 
-            $this->idealExpress->createPayment(
+            $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
+
+            $redirectUrl = $this->idealExpress->createPayment(
                 $order,
-                $finishUrl,
+                $returnUrl,
                 $firstname,
                 $lastname,
                 $street,
@@ -110,9 +101,7 @@ class IdealExpressControllerBase extends StorefrontController
                 $context
             );
 
-            $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
-
-            return new RedirectResponse($returnUrl);
+            return new RedirectResponse($redirectUrl);
         } catch (\Throwable $ex) {
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 

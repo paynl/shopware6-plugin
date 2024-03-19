@@ -2,35 +2,51 @@
 
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
+use Paynl\Transaction;
 use PaynlPayment\Shopware6\Components\IdealExpress\Services\IdealExpressShippingBuilder;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Salutation\SalutationRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartServiceInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
+use PaynlPayment\Shopware6\Service\PAY\v1\OrderService as PayOrderService;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Optimize;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Order;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\PaymentMethod;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Product;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\Salutation\SalutationEntity;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class IdealExpress
 {
@@ -61,6 +77,16 @@ class IdealExpress
     private $config;
 
     /**
+     * @var RouterInterface
+     */
+    private $router;
+
+    /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * @var CustomerService
      */
     private $customerService;
@@ -81,9 +107,14 @@ class IdealExpress
     private $orderService;
 
     /**
+     * @var PayOrderService
+     */
+    private $payOrderService;
+
+    /**
      * @var OrderAddressRepositoryInterface
      */
-    private $repoOrderAdresses;
+    private $repoOrderAddresses;
 
     /**
      * @var CountryRepositoryInterface
@@ -100,30 +131,43 @@ class IdealExpress
      */
     private $orderCustomerRepository;
 
+    /**
+     * @var ProductRepositoryInterface
+     */
+    private $productRepository;
+
     public function __construct(
         CartServiceInterface $cartService,
         IdealExpressShippingBuilder $shippingBuilder,
         Config $config,
+        RouterInterface $router,
+        TranslatorInterface $translator,
         CustomerService $customerService,
-        PaymentMethodRepository $repoPaymentMethods,
         CartBackupService $cartBackupService,
         OrderService $orderService,
-        OrderAddressRepositoryInterface $repoOrderAdresses,
+        PayOrderService $payOrderService,
+        OrderAddressRepositoryInterface $repoOrderAddresses,
         CountryRepositoryInterface $countryRepository,
         SalutationRepositoryInterface $salutationRepository,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
+        PaymentMethodRepository $repoPaymentMethods,
+        ProductRepositoryInterface $productRepository,
     ) {
         $this->cartService = $cartService;
         $this->shippingBuilder = $shippingBuilder;
         $this->config = $config;
+        $this->router = $router;
+        $this->translator = $translator;
         $this->customerService = $customerService;
         $this->repoPaymentMethods = $repoPaymentMethods;
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
-        $this->repoOrderAdresses = $repoOrderAdresses;
+        $this->payOrderService = $payOrderService;
+        $this->repoOrderAddresses = $repoOrderAddresses;
         $this->countryRepository = $countryRepository;
         $this->salutationRepository = $salutationRepository;
         $this->orderCustomerRepository = $orderCustomerRepository;
+        $this->productRepository = $productRepository;
     }
 
     public function getActiveIdealID(SalesChannelContext $context): string
@@ -270,7 +314,7 @@ class IdealExpress
 
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
-                $this->repoOrderAdresses->updateAddress(
+                $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
                     $checkoutData['customer']['firstName'],
                     $checkoutData['customer']['lastName'],
@@ -364,6 +408,24 @@ class IdealExpress
      */
     public function createOrder(SalesChannelContext $context): OrderEntity
     {
+        $this->payOrderService->create(
+            new CreateOrder(
+                'SL-4241-3001',
+                new Amount(
+                    100,
+                    'EUR'
+                ),
+                'TEST_DESCRIPTION_10',
+                'TESTREFERENCE10',
+                null,
+                null,
+                new PaymentMethod(10, null),
+                null
+            ),
+            $context->getSalesChannel()->getId()
+        );
+
+
         $data = new DataBag();
 
         # we have to agree to the terms of services
@@ -398,7 +460,7 @@ class IdealExpress
             foreach ($order->getAddresses() as $address) {
                 # attention, IDEAL Express does not have a company name
                 # therefore we always need to make sure to remove the company field in our order
-                $this->repoOrderAdresses->updateAddress(
+                $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
                     $firstname,
                     $lastname,
@@ -429,15 +491,13 @@ class IdealExpress
         # This is required, because we will immediately bring the user to this page.
         $asyncPaymentTransition = new AsyncPaymentTransactionStruct($transaction, $order, $shopwareReturnUrl);
 
-        # now set the IDEAL Express payment token for our payment handler.
-        # This is required for a smooth checkout with our already validated IDEAL Express transaction.
-//        $this->paymentHandler->setToken($paymentToken);
+//        return 'https://connect.payments.nl/to/payment/65f874ec-5223-8f4f-2087-052300802022';
 
-//        $paymentData = $this->molliePayments->startMolliePayment(ApplePayPayment::PAYMENT_METHOD_NAME, $asyncPaymentTransition, $context, $this->paymentHandler);
+        $orderResponse = $this->createPayIdealExpressOrder($asyncPaymentTransition, $context);
 
-//        if (empty($paymentData->getCheckoutURL())) {
-//            throw new \Exception('Error when creating IDEAL Express Direct order in Mollie');
-//        }
+        if (empty($orderResponse->getLinks()->getRedirect())) {
+            throw new \Exception('Error when creating IDEAL Express Direct order in PAY');
+        }
 
 
         # now also update the custom fields of our order
@@ -453,7 +513,154 @@ class IdealExpress
 
 
 //        return $paymentData->getMollieID();
-        return '';
+        return $orderResponse->getLinks()->getRedirect();
+    }
+
+    private function createPayIdealExpressOrder(AsyncPaymentTransactionStruct $asyncPaymentTransition, SalesChannelContext $salesChannelContext)
+    {
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $order = $asyncPaymentTransition->getOrder();
+        $orderNumber = $order->getOrderNumber();
+
+        $exchangeUrl = $this->router->generate(
+            'frontend.account.PaynlPayment.paypal.finish-payment',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
+        $amount = (int) round($order->getAmountTotal() * 100);
+        $currency = $salesChannelContext->getCurrency()->getIsoCode();
+
+        $amount = new Amount($amount, $currency);
+
+        $description = sprintf(
+            '%s %s',
+            $this->translator->trans('transactionLabels.order'),
+            $orderNumber
+        );
+
+        $optimize = new Optimize(
+            'fastCheckout',
+            true,
+            true,
+            true
+        );
+
+        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, $optimize);
+        $products = $this->getOrderProducts($order, $salesChannelContext);
+        $order = new Order($products);
+
+        $createOrder = new CreateOrder(
+            $this->config->getServiceId($salesChannelId),
+            $amount,
+            $description,
+            $orderNumber,
+            $asyncPaymentTransition->getReturnUrl(),
+            $exchangeUrl,
+            $paymentMethod,
+            $order
+        );
+
+        return $this->payOrderService->create($createOrder, $salesChannelId);
+    }
+
+    public function testCreatePAYOrder(string $salesChannelId)
+    {
+        $createOrder = new CreateOrder(
+            'SL-4241-3001',
+            new Amount(
+                100,
+                'EUR'
+            ),
+            'TEST_DESCRIPTION_10',
+            'TESTREFERENCE10',
+            null,
+            null,
+            new PaymentMethod(
+                10,
+                null
+            ),
+            null
+        );
+
+        $order = $this->payOrderService->create($createOrder, $salesChannelId);
+
+        return $order;
+    }
+
+    private function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): array
+    {
+        $currency = $salesChannelContext->getCurrency()->getIsoCode();
+        $context = $salesChannelContext->getContext();
+
+        /** @var OrderLineItemCollection $orderLineItems*/
+        $orderLineItems = $order->getLineItems();
+        $productsItems = $orderLineItems->filterByProperty('type', 'product');
+        $productsIds = [];
+
+        foreach ($productsItems as $product) {
+            $productsIds[] = $product->getReferencedId();
+        }
+
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsAnyFilter('product.id', $productsIds));
+        $entities = $this->productRepository->search($criteria, $context);
+        $elements = $entities->getElements();
+
+        /** @var OrderLineItemEntity $item */
+        foreach ($productsItems as $item) {
+            $vatPercentage = 0;
+            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
+                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+            }
+
+            $products[] = new Product(
+                new Amount(
+                    (int) round($item->getUnitPrice() * 100),
+                    $currency
+                ),
+                (string) $elements[$item->getReferencedId()]->get('autoIncrement'),
+                $item->getLabel(),
+                Transaction::PRODUCT_TYPE_ARTICLE,
+                $item->getPrice()->getQuantity(),
+                $vatPercentage
+            );
+        }
+
+        $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
+        /** @var OrderLineItemEntity $item */
+        foreach ($surchargeItems as $item) {
+            $vatPercentage = 0;
+            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
+                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+            }
+
+            $products[] = new Product(
+                new Amount(
+                    (int) round($item->getUnitPrice() * 100),
+                    $currency
+                ),
+                'payment',
+                $item->getLabel(),
+                Transaction::PRODUCT_TYPE_PAYMENT,
+                $item->getPrice()->getQuantity(),
+                $vatPercentage
+            );
+        }
+
+        $products[] = new Product(
+            new Amount(
+                (int) round($order->getShippingTotal() * 100),
+                $currency
+            ),
+            'shipping',
+            'Shipping',
+            Transaction::PRODUCT_TYPE_SHIPPING,
+            1,
+            $order->getShippingCosts()->getCalculatedTaxes()->getAmount()
+        );
+
+        return $products;
     }
 
     /**
