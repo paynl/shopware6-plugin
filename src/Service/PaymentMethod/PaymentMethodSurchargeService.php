@@ -156,6 +156,7 @@ class PaymentMethodSurchargeService
         bool $keepPaymentSurchargeLineItems = false
     ): OrderEntity {
         $context = $salesChannelContext->getContext();
+        $context->setRuleIds($order->getRuleIds());
 
         $cart = $this->orderConverter->convertToCart($order, $salesChannelContext->getContext());
 
