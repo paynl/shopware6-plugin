@@ -6,21 +6,21 @@ namespace PaynlPayment\Shopware6\Service\PAY\v1;
 
 use GuzzleHttp\Client;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\ValueObjects\PAY\CreateOrderDataMapper;
+use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 
 class OrderService extends BaseService
 {
     private Config $config;
-    private CreateOrderDataMapper $createOrderDataMapper;
+    private OrderDataMapper $createOrderDataMapper;
 
     public function __construct(Client $client, Config $config)
     {
         parent::__construct($client);
 
         $this->config = $config;
-        $this->createOrderDataMapper = new CreateOrderDataMapper();
+        $this->createOrderDataMapper = new OrderDataMapper();
     }
 
     public function create(CreateOrder $order, string $salesChannelId): CreateOrderResponse

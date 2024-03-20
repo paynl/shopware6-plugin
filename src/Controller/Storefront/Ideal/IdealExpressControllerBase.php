@@ -133,6 +133,8 @@ class IdealExpressControllerBase extends StorefrontController
 
             $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $data->all(), $context);
 
+            $this->idealExpress->updatePaymentTransaction($data->all());
+
             return new Response(json_encode(['success' => true]));
         } catch (Throwable $ex) {
             return new Response($ex->getMessage());

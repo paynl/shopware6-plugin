@@ -2,10 +2,16 @@
 
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
+use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
+use Throwable;
+use Exception;
+use RuntimeException;
 use Paynl\Transaction;
 use PaynlPayment\Shopware6\Components\IdealExpress\Services\IdealExpressShippingBuilder;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
@@ -112,6 +118,11 @@ class IdealExpress
     private $payOrderService;
 
     /**
+     * @var ProcessingHelper
+     */
+    private $processingHelper;
+
+    /**
      * @var OrderAddressRepositoryInterface
      */
     private $repoOrderAddresses;
@@ -146,6 +157,7 @@ class IdealExpress
         CartBackupService $cartBackupService,
         OrderService $orderService,
         PayOrderService $payOrderService,
+        ProcessingHelper $processingHelper,
         OrderAddressRepositoryInterface $repoOrderAddresses,
         CountryRepositoryInterface $countryRepository,
         SalutationRepositoryInterface $salutationRepository,
@@ -163,6 +175,7 @@ class IdealExpress
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
         $this->payOrderService = $payOrderService;
+        $this->processingHelper = $processingHelper;
         $this->repoOrderAddresses = $repoOrderAddresses;
         $this->countryRepository = $countryRepository;
         $this->salutationRepository = $salutationRepository;
@@ -198,7 +211,7 @@ class IdealExpress
                         break;
                     }
                 }
-            } catch (\Exception $ex) {
+            } catch (Exception $ex) {
                 # it can happen that IDEAL Express is just not active in the system
             }
         }
@@ -294,7 +307,7 @@ class IdealExpress
             );
 
             if (!$customer instanceof CustomerEntity) {
-                throw new \Exception('Error when creating customer!');
+                throw new Exception('Error when creating customer!');
             }
 
             # now start the login of our customer.
@@ -402,30 +415,8 @@ class IdealExpress
         return $this->customerService->updateCustomer($customerData, $context);
     }
 
-    /**
-     * @param SalesChannelContext $context
-     * @return OrderEntity
-     */
     public function createOrder(SalesChannelContext $context): OrderEntity
     {
-        $this->payOrderService->create(
-            new CreateOrder(
-                'SL-4241-3001',
-                new Amount(
-                    100,
-                    'EUR'
-                ),
-                'TEST_DESCRIPTION_10',
-                'TESTREFERENCE10',
-                null,
-                null,
-                new PaymentMethod(10, null),
-                null
-            ),
-            $context->getSalesChannel()->getId()
-        );
-
-
         $data = new DataBag();
 
         # we have to agree to the terms of services
@@ -484,36 +475,51 @@ class IdealExpress
         $transaction = $transactions->last();
 
         if (!$transaction instanceof OrderTransactionEntity) {
-            throw new \Exception('Created IDEAL Express Direct order has not OrderTransaction!');
+            throw new Exception('Created IDEAL Express Direct order has not OrderTransaction!');
         }
 
         # generate the finish URL for our shopware page.
         # This is required, because we will immediately bring the user to this page.
         $asyncPaymentTransition = new AsyncPaymentTransactionStruct($transaction, $order, $shopwareReturnUrl);
 
-//        return 'https://connect.payments.nl/to/payment/65f874ec-5223-8f4f-2087-052300802022';
+        try {
+            $orderResponse = $this->createPayIdealExpressOrder($asyncPaymentTransition, $context);
 
-        $orderResponse = $this->createPayIdealExpressOrder($asyncPaymentTransition, $context);
+            $this->processingHelper->storePaynlTransactionData(
+                $order,
+                $transaction,
+                $context,
+                $orderResponse->getOrderId(),
+            );
+        } catch (Throwable $exception) {
+            $this->processingHelper->storePaynlTransactionData(
+                $order,
+                $transaction,
+                $context,
+                '',
+                $exception
+            );
 
-        if (empty($orderResponse->getLinks()->getRedirect())) {
-            throw new \Exception('Error when creating IDEAL Express Direct order in PAY');
+            throw $exception;
         }
 
-
-        # now also update the custom fields of our order
-        # we want to have the mollie metadata in the
-        # custom fields in Shopware too
-//        $this->orderService->updateMollieDataCustomFields(
-//            $order,
-//            $paymentData->getMollieID(),
-//            '',
-//            $transaction->getId(),
-//            $context->getContext()
-//        );
-
-
-//        return $paymentData->getMollieID();
         return $orderResponse->getLinks()->getRedirect();
+    }
+
+    /** @throws Exception */
+    public function updatePaymentTransaction(array $orderData): void
+    {
+        $orderDataMapper = new OrderDataMapper();
+        $order = $orderDataMapper->mapArray($orderData);
+        $statusCode = $order->getStatus()->getCode();
+
+        $stateActionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$order->getStatus()->getCode()] ?? null;
+
+        if (empty($stateActionName)) {
+            throw new Exception('State action name was not defined');
+        }
+
+        $this->processingHelper->instorePaymentUpdateState($order->getOrderId(), $stateActionName, $statusCode);
     }
 
     private function createPayIdealExpressOrder(AsyncPaymentTransactionStruct $asyncPaymentTransition, SalesChannelContext $salesChannelContext)
@@ -716,7 +722,7 @@ class IdealExpress
         $salutation = $this->salutationRepository->search($criteria, $context)->first();
 
         if ($salutation === null) {
-            throw new \RuntimeException();
+            throw new RuntimeException();
         }
 
         return $salutation->getId();

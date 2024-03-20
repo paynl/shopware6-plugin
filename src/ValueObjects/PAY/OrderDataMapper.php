@@ -9,7 +9,7 @@ use PaynlPayment\Shopware6\ValueObjects\PAY\Response\Links;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\Status;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 
-class CreateOrderDataMapper implements ArrayDataMapperInterface
+class OrderDataMapper implements ArrayDataMapperInterface
 {
     public function mapArray(array $data): CreateOrderResponse
     {
