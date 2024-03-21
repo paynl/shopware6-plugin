@@ -1,3 +1,5 @@
+# 1.5.17
+
 # 1.5.16
 - Fixed the wrong order amount when the line item price was set manually
 

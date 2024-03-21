@@ -1,3 +1,5 @@
+# 1.5.17
+
 # 1.5.16
 - Der falsche Bestellbetrag wurde behoben, wenn der Einzelpostenpreis manuell festgelegt wurde
 
