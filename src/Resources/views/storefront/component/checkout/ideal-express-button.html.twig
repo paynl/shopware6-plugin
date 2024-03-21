@@ -1,10 +1,10 @@
 {% block component_paynl_paypal_button %}
-    <a href="{{ path('frontend.account.PaynlPayment.paypal.start-payment') }}" title="{{ "payment.paypalExpress.buttonTitle" | trans }}">
+    <a href="{{ path('frontend.account.PaynlPayment.paypal.start-payment') }}" title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">
         <img
-            src="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/' ~ ('payment.paypalExpress.buttonImage' | trans)) }}"
-            srcset="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/' ~ ('payment.paypalExpress.buttonImage' | trans)) }}, {{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/' ~ ('payment.paypalExpress.buttonImage2x' | trans)) }} 2x"
-            title="{{ "payment.paypalExpress.buttonTitle" | trans }}"
-            alt="PayPal Express Checkout Button"
+            src="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/' ~ ('payment.idealExpressCheckout.buttonImage' | trans)) }}"
+            srcset="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/' ~ ('payment.idealExpressCheckout.buttonImage' | trans)) }}, {{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/' ~ ('payment.idealExpressCheckout.buttonImage2x' | trans)) }} 2x"
+            title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}"
+            alt="IDEAL Express Checkout Button"
         >
     </a>
 {% endblock %}

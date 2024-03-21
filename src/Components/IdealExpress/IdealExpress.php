@@ -4,11 +4,11 @@ namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use Throwable;
 use Exception;
 use RuntimeException;
 use Paynl\Transaction;
-use PaynlPayment\Shopware6\Components\IdealExpress\Services\IdealExpressShippingBuilder;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
@@ -29,8 +29,6 @@ use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Optimize;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Order;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\PaymentMethod;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Product;
-use Shopware\Core\Checkout\Cart\Cart;
-use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressCollection;
@@ -67,89 +65,53 @@ class IdealExpress
         'additionalAddressLine1',
     ];
 
-    /**
-     * @var CartServiceInterface
-     */
+    /** @var CartServiceInterface */
     private $cartService;
 
-    /**
-     * @var IdealExpressShippingBuilder
-     */
-    private $shippingBuilder;
-
-    /**
-     * @var Config
-     */
+    /** @var Config */
     private $config;
 
-    /**
-     * @var RouterInterface
-     */
+    /** @var RouterInterface */
     private $router;
 
-    /**
-     * @var TranslatorInterface
-     */
+    /** @var TranslatorInterface */
     private $translator;
 
-    /**
-     * @var CustomerService
-     */
+    /** @var CustomerService */
     private $customerService;
 
-    /**
-     * @var PaymentMethodRepository
-     */
+    /** @var PaymentMethodRepository */
     private $repoPaymentMethods;
 
-    /**
-     * @var CartBackupService
-     */
+    /** @var CartBackupService */
     private $cartBackupService;
 
-    /**
-     * @var OrderService
-     */
+    /** @var OrderService */
     private $orderService;
 
-    /**
-     * @var PayOrderService
-     */
+    /** @var PayOrderService */
     private $payOrderService;
 
-    /**
-     * @var ProcessingHelper
-     */
+    /** @var ProcessingHelper */
     private $processingHelper;
 
-    /**
-     * @var OrderAddressRepositoryInterface
-     */
+    /** @var OrderAddressRepositoryInterface */
     private $repoOrderAddresses;
 
-    /**
-     * @var CountryRepositoryInterface
-     */
+    /** @var CountryRepositoryInterface */
     private $countryRepository;
 
-    /**
-     * @var SalutationRepositoryInterface
-     */
+    /** @var SalutationRepositoryInterface */
     private $salutationRepository;
 
-    /**
-     * @var OrderCustomerRepositoryInterface
-     */
+    /** @var OrderCustomerRepositoryInterface */
     private $orderCustomerRepository;
 
-    /**
-     * @var ProductRepositoryInterface
-     */
+    /** @var ProductRepositoryInterface */
     private $productRepository;
 
     public function __construct(
         CartServiceInterface $cartService,
-        IdealExpressShippingBuilder $shippingBuilder,
         Config $config,
         RouterInterface $router,
         TranslatorInterface $translator,
@@ -166,7 +128,6 @@ class IdealExpress
         ProductRepositoryInterface $productRepository,
     ) {
         $this->cartService = $cartService;
-        $this->shippingBuilder = $shippingBuilder;
         $this->config = $config;
         $this->router = $router;
         $this->translator = $translator;
@@ -188,91 +149,6 @@ class IdealExpress
         return $this->repoPaymentMethods->getActiveIdealID($context->getContext());
     }
 
-    public function isIdealExpressEnabled(SalesChannelContext $context): bool
-    {
-        return true;
-
-        $isIdealExpressEnabled = true;
-
-        /** @var null|array<mixed> $salesChannelPaymentIDs */
-        $salesChannelPaymentIDs = $context->getSalesChannel()->getPaymentMethodIds();
-
-        $enabled = false;
-
-        if (is_array($salesChannelPaymentIDs) && $isIdealExpressEnabled) {
-            try {
-                $idealExpressID = $this->repoPaymentMethods->getActiveIdealID($context->getContext());
-
-                foreach ($salesChannelPaymentIDs as $tempID) {
-                    # verify if our IDEAL Express payment method is indeed in use
-                    # for the current sales channel
-                    if ($tempID === $idealExpressID) {
-                        $enabled = true;
-                        break;
-                    }
-                }
-            } catch (Exception $ex) {
-                # it can happen that IDEAL Express is just not active in the system
-            }
-        }
-
-        return $enabled;
-    }
-
-    public function addProduct(string $productId, int $quantity, SalesChannelContext $context): Cart
-    {
-        # if we already have a backup cart, then do NOT backup again.
-        # because this could backup our temp. IDEAL Express cart
-        if (!$this->cartBackupService->isBackupExisting($context)) {
-            $this->cartBackupService->backupCart($context);
-        }
-
-        $cart = $this->cartService->getCalculatedMainCart($context);
-
-        # clear existing cart and also update it to save it
-        $cart->setLineItems(new LineItemCollection());
-        $this->cartService->updateCart($cart);
-
-        # add new product to cart
-        $this->cartService->addProduct($productId, $quantity, $context);
-
-        return $this->cartService->getCalculatedMainCart($context);
-    }
-
-    public function setShippingMethod(string $shippingMethodID, SalesChannelContext $context): SalesChannelContext
-    {
-        return $this->cartService->updateShippingMethod($context, $shippingMethodID);
-    }
-
-    public function getShippingMethods(string $countryCode, SalesChannelContext $context): array
-    {
-        $currentMethodID = $context->getShippingMethod()->getId();
-
-        $countryID = (string)$this->customerService->getCountryId($countryCode, $context->getContext());
-
-        # get all available shipping methods of
-        # our current country for IDEAL Express
-        $shippingMethods = $this->shippingBuilder->getShippingMethods($countryID, $context);
-
-        # restore our previously used shipping method
-        # this is very important to avoid accidental changes in the context
-        $this->cartService->updateShippingMethod($context, $currentMethodID);
-
-        return $shippingMethods;
-    }
-
-    /**
-     * @param SalesChannelContext $context
-     */
-    public function restoreCart(SalesChannelContext $context): void
-    {
-        if ($this->cartBackupService->isBackupExisting($context)) {
-            $this->cartBackupService->restoreCart($context);
-        }
-
-        $this->cartBackupService->clearBackup($context);
-    }
-
     public function prepareCustomer(
         string $firstname,
         string $lastname,
@@ -283,15 +159,10 @@ class IdealExpress
         string $countryCode,
         SalesChannelContext $context
     ): SalesChannelContext {
-        # we clear our cart backup now
-        # we are in the user redirection process where a restoring wouldn't make sense
-        # because from now on we would end on the cart page where we could even switch payment method.
         $this->cartBackupService->clearBackup($context);
 
         $idealExpressID = $this->getActiveIdealID($context);
 
-        # if we are not logged in,
-        # then we have to create a new guest customer for our express order
         if (!$this->customerService->isCustomerLoggedIn($context)) {
             $customer = $this->customerService->createIdealExpressCustomer(
                 $firstname,
@@ -310,16 +181,14 @@ class IdealExpress
                 throw new Exception('Error when creating customer!');
             }
 
-            # now start the login of our customer.
-            # Our SalesChannelContext will be correctly updated after our
-            # forward to the finish-payment page.
             $this->customerService->customerLogin($customer, $context);
         }
 
-        # also (always) update our payment method to use IDEAL Express for our cart
+        // update our payment method to use IDEAL Express for our cart
         return $this->cartService->updatePaymentMethod($context, $idealExpressID);
     }
 
+    /** @throws Exception */
     public function updateOrder(OrderEntity $order, array $webhookData, SalesChannelContext $context): ?OrderEntity
     {
         $checkoutData = reset($webhookData['checkoutData']);
@@ -354,7 +223,7 @@ class IdealExpress
         OrderCustomerEntity $customer,
         array $webhookData,
         SalesChannelContext $context
-    ) {
+    ): void {
         $checkoutData = reset($webhookData['checkoutData']);
 
         $this->orderCustomerRepository->update([
@@ -365,11 +234,6 @@ class IdealExpress
                 'lastName' => $checkoutData['customer']['lastName'],
             ]
         ], $context->getContext());
-    }
-
-    public function getCustomer(string $customerNumber, SalesChannelContext $context): ?CustomerEntity
-    {
-        return $this->customerService->getCustomerByNumber($customerNumber, $context->getContext());
     }
 
     public function updateCustomer(
@@ -405,7 +269,7 @@ class IdealExpress
             'lastName' => $checkoutData['customer']['lastName'],
             'salutationId' => $salutationId,
             'addresses' => [
-                \array_merge($addressData, [
+                array_merge($addressData, [
                     'id' => $addressId,
                     'salutationId' => $salutationId,
                 ]),
@@ -439,18 +303,10 @@ class IdealExpress
         string $countryCode,
         SalesChannelContext $context
     ): string {
-        # immediately try to get the country of the buyer.
-        # maybe this could lead to an exception if that country is not possible.
-        # that's why we do it within these first steps.
         $countryID = (string)$this->customerService->getCountryId($countryCode, $context->getContext());
 
-
-        # always make sure to use the correct address from IDEAL Express
-        # and never the one from the customer (if already existing)
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
-                # attention, IDEAL Express does not have a company name
-                # therefore we always need to make sure to remove the company field in our order
                 $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
                     $firstname,
@@ -468,8 +324,6 @@ class IdealExpress
         }
 
 
-        # get the latest new transaction.
-        # we need this for our payment handler
         /** @var OrderTransactionCollection $transactions */
         $transactions = $order->getTransactions();
         $transaction = $transactions->last();
@@ -478,8 +332,6 @@ class IdealExpress
             throw new Exception('Created IDEAL Express Direct order has not OrderTransaction!');
         }
 
-        # generate the finish URL for our shopware page.
-        # This is required, because we will immediately bring the user to this page.
         $asyncPaymentTransition = new AsyncPaymentTransactionStruct($transaction, $order, $shopwareReturnUrl);
 
         try {
@@ -522,8 +374,10 @@ class IdealExpress
         $this->processingHelper->instorePaymentUpdateState($order->getOrderId(), $stateActionName, $statusCode);
     }
 
-    private function createPayIdealExpressOrder(AsyncPaymentTransactionStruct $asyncPaymentTransition, SalesChannelContext $salesChannelContext)
-    {
+    private function createPayIdealExpressOrder(
+        AsyncPaymentTransactionStruct $asyncPaymentTransition,
+        SalesChannelContext $salesChannelContext
+    ): CreateOrderResponse {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $order = $asyncPaymentTransition->getOrder();
         $orderNumber = $order->getOrderNumber();

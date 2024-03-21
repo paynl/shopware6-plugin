@@ -3,11 +3,11 @@
 {% block component_offcanvas_cart_actions %}
     {{ parent() }}
 
-{#    {% if not context.customer and page.cart.price.totalPrice > 0 %}#}
+    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled') and not context.customer and page.cart.price.totalPrice > 0 %}
         {% block utilities_offcanvas_paynl_paypal_express_button %}
             <div class="text-center mt-3">
                 {% sw_include '@PaynlPaymentShopware6/storefront/component/checkout/ideal-express-button.html.twig' %}
             </div>
         {% endblock %}
-{#    {% endif %}#}
+    {% endif %}
 {% endblock %}

@@ -21,17 +21,23 @@ use Throwable;
 
 class IdealExpressControllerBase extends StorefrontController
 {
+    private const SNIPPET_ERROR = 'payment.idealExpressCheckout.paymentError';
+
     /** @var IdealExpress */
     private $idealExpress;
 
     /** @var CartService */
     private $cartService;
+
     /** @var CartBackupService */
     private $cartBackupService;
+
     /** @var OrderService */
     private $orderService;
+
     /** @var RouterInterface */
     private $router;
+
     /** @var ?FlashBag */
     private $flashBag;
 
@@ -106,7 +112,7 @@ class IdealExpressControllerBase extends StorefrontController
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 
             if ($this->flashBag !== null) {
-                $this->flashBag->add('danger', $this->trans('paynl.error'));
+                $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
             }
 
             return new RedirectResponse($returnUrl);
