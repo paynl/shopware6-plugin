@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
@@ -57,13 +56,7 @@ class IdealExpressControllerBase extends StorefrontController
         $this->flashBag = $flashBag;
     }
 
-    #[Route(
-        path: '/PaynlPayment/paypal/start-payment',
-        name: 'frontend.account.PaynlPayment.paypal.start-payment',
-        options: ['seo' => false],
-        methods: ['GET'])
-    ]
-    public function startPayment(SalesChannelContext $context, Request $request): Response
+    public function getStartPaymentResponse(SalesChannelContext $context, Request $request): Response
     {
         try {
             $this->cartBackupService->clearBackup($context);
@@ -119,14 +112,7 @@ class IdealExpressControllerBase extends StorefrontController
         }
     }
 
-
-    #[Route(
-        path: '/PaynlPayment/paypal/finish-payment',
-        name: 'frontend.account.PaynlPayment.paypal.finish-payment',
-        options: ['seo' => false],
-        methods: ['POST', 'GET'])
-    ]
-    public function finishPayment(RequestDataBag $data, SalesChannelContext $context): Response
+    public function getFinishPaymentResponse(RequestDataBag $data, SalesChannelContext $context): Response
     {
         $orderNumber = (string)$data->get('reference', '');
 
@@ -151,7 +137,7 @@ class IdealExpressControllerBase extends StorefrontController
      * @param RouterInterface $router
      * @return string
      */
-    public function getCheckoutConfirmPage(RouterInterface $router): string
+    protected function getCheckoutConfirmPage(RouterInterface $router): string
     {
         return $router->generate(
             'frontend.checkout.confirm.page',
@@ -165,7 +151,7 @@ class IdealExpressControllerBase extends StorefrontController
      * @param RouterInterface $router
      * @return string
      */
-    public function getCheckoutFinishPage(string $orderId, RouterInterface $router): string
+    protected function getCheckoutFinishPage(string $orderId, RouterInterface $router): string
     {
         return $router->generate(
             'frontend.checkout.finish.page',
