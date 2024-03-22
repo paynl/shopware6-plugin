@@ -138,6 +138,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'paymentIdealBankDropdownEnabled');
     }
 
+    public function getPaymentIdealExpressCheckoutEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutEnabled');
+    }
+
     public function getPaymentPinTerminal(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'paymentPinTerminal');

@@ -2,12 +2,15 @@
 
 namespace PaynlPayment\Shopware6\Repository\PaymentMethod;
 
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
+use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
 class PaymentMethodRepository implements PaymentMethodRepositoryInterface
 {
@@ -63,5 +66,32 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
     public function update(array $data, Context $context): EntityWrittenContainerEvent
     {
         return $this->paymentMethodRepository->update($data, $context);
+    }
+
+    /**
+     * @param Context $context
+     * @throws \Exception
+     * @return string
+     */
+    public function getActiveIdealID(Context $context): string
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new EqualsFilter('active', true));
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $customFields = $paymentMethod->getTranslation('customFields');
+            if (!isset($customFields['paynlId']) || empty($customFields['paynlId'])) {
+                continue;
+            }
+
+            if ($customFields['paynlId'] === PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT) {
+                return (string) $paymentMethod->get('id');
+            }
+        }
+
+        throw new \Exception('Payment Method IDEAL Express not found in system');
     }
 }
