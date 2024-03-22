@@ -6,7 +6,6 @@ use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 class NotificationControllerBase extends StorefrontController
 {
@@ -23,16 +22,7 @@ class NotificationControllerBase extends StorefrontController
         $this->processingHelper = $processingHelper;
     }
 
-    /**
-     * @Route(
-     *     "/PaynlPayment/notify",
-     *     name="frontend.PaynlPayment.notify",
-     *     options={"seo"="false"},
-     *     methods={"POST", "GET"},
-     *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}}
-     * )
-     */
-    public function notify(Request $request): Response
+    protected function getNotifyResponse(Request $request): Response
     {
         $transactionId = $this->getNotifyRequestTransactionId($request);
         $action = $this->getNotifyRequestAction($request);

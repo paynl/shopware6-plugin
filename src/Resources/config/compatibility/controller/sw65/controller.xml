@@ -39,6 +39,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\SettingsHelper"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
@@ -47,6 +48,7 @@
         <service id="PaynlPayment\Shopware6\Controller\Api\Refund\Sw65\RefundController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <argument type="service" id="product.repository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
@@ -59,6 +61,7 @@
         <service id="PaynlPayment\Shopware6\Controller\Api\StatusTransition\Sw65\StatusTransitionController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <call method="setContainer">

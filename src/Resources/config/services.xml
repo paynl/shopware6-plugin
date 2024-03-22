@@ -3,6 +3,17 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
+        <!--Logger-->
+        <service id="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory" class="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument>%kernel.logs_dir%/paynl_%kernel.environment%.log</argument>
+            <argument>14</argument>
+        </service>
+
+        <service id="paynl_payments.logger" class="Monolog\Logger">
+            <factory service="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory" method="createLogger"/>
+        </service>
+
         <!--Helpers-->
         <service id="PaynlPayment\Shopware6\Helper\CustomerHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
@@ -12,6 +23,7 @@
 
         <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepository"/>
@@ -79,6 +91,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
             <argument type="service" id="translator" />
             <argument type="service" id="request_stack"/>
+            <argument type="service" id="paynl_payments.logger"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" public="true">
@@ -207,6 +220,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="translator"/>
@@ -220,6 +234,7 @@
             <argument type="service" id="request_stack"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
@@ -287,6 +302,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodRouteRequestSubscriber">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService" />
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository" />
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderLineItem\OrderLineItemRepository" />
@@ -299,6 +315,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
@@ -307,6 +324,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderDeliveryService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
