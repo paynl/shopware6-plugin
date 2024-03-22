@@ -127,7 +127,7 @@ class IdealExpress
         SalutationRepositoryInterface $salutationRepository,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         PaymentMethodRepository $repoPaymentMethods,
-        ProductRepositoryInterface $productRepository,
+        ProductRepositoryInterface $productRepository
     ) {
         $this->cartService = $cartService;
         $this->config = $config;
@@ -345,6 +345,8 @@ class IdealExpress
                 $context,
                 $orderResponse->getOrderId(),
             );
+
+            $this->updatePaymentTransaction($orderResponse->getData());
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
                 $order,
