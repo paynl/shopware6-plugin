@@ -49,7 +49,8 @@ class OrderDataMapper implements ArrayDataMapperInterface
             $amount,
             $authorizedAmount,
             $capturedAmount,
-            $links
+            $links,
+            $data
         );
     }
 }

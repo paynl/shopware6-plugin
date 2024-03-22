@@ -19,7 +19,9 @@ class CreateOrderResponse
     private Amount $capturedAmount;
     private Links $links;
 
-    public function __construct(string $id, string $serviceId, string $reference, string $orderId, string $uuid, Status $status, Amount $amount, Amount $authorizedAmount, Amount $capturedAmount, Links $links)
+    private array $data;
+
+    public function __construct(string $id, string $serviceId, string $reference, string $orderId, string $uuid, Status $status, Amount $amount, Amount $authorizedAmount, Amount $capturedAmount, Links $links, array $data)
     {
         $this->id = $id;
         $this->serviceId = $serviceId;
@@ -31,6 +33,7 @@ class CreateOrderResponse
         $this->authorizedAmount = $authorizedAmount;
         $this->capturedAmount = $capturedAmount;
         $this->links = $links;
+        $this->data = $data;
     }
 
     public function getId(): string
@@ -81,5 +84,10 @@ class CreateOrderResponse
     public function getLinks(): Links
     {
         return $this->links;
+    }
+
+    public function getData(): array
+    {
+        return $this->data;
     }
 }

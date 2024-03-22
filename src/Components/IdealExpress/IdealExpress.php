@@ -345,6 +345,8 @@ class IdealExpress
                 $context,
                 $orderResponse->getOrderId(),
             );
+
+            $this->updatePaymentTransaction($orderResponse->getData());
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
                 $order,
