@@ -1,3 +1,7 @@
+# 1.6.0
+- Unterstützt Shopware 6.5 Version
+- Protokollierungsfunktion hinzugefügt
+
 # 1.5.16
 - Der falsche Bestellbetrag wurde behoben, wenn der Einzelpostenpreis manuell festgelegt wurde
 

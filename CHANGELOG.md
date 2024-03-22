@@ -1,3 +1,7 @@
+# 1.6.0
+- Support Shopware 6.6 version
+- Added logging functionality
+
 # 1.5.16
 - Fixed the wrong order amount when the line item price was set manually
 
