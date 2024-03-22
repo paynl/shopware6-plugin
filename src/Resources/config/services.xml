@@ -158,9 +158,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\CartService" class="PaynlPayment\Shopware6\Service\CartService" public="true">
-            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher"/>
-            <argument type="service" id="Shopware\Core\Content\Product\Cart\ProductLineItemFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway"/>
         </service>
 
@@ -185,7 +183,6 @@
         <service id="PaynlPayment\Shopware6\Compatibility\CompatibilityFactory" class="PaynlPayment\Shopware6\Compatibility\CompatibilityFactory">
             <argument>%kernel.shopware_version%</argument>
             <argument type="service" id="Shopware\Core\System\SalesChannel\Context\SalesChannelContextService"/>
-            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway" class="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway">

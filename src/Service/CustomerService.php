@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PaynlPayment\Shopware6\Service;
 
 use Exception;
@@ -22,14 +24,10 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class CustomerService implements CustomerServiceInterface
 {
-    /**
-     * @var CountryRepositoryInterface
-     */
+    /** @var CountryRepositoryInterface */
     private $countryRepository;
 
-    /**
-     * @var CustomerRepositoryInterface
-     */
+    /** @var CustomerRepositoryInterface */
     private $customerRepository;
 
     /** @var EventDispatcherInterface */

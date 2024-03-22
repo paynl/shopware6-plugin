@@ -70,7 +70,7 @@ class IdealExpressControllerBase extends StorefrontController
 
             $idealID = $this->idealExpress->getActiveIdealID($context);
 
-            $this->cartService->updatePaymentMethod($context, $idealID);
+            $context = $this->cartService->updatePaymentMethod($context, $idealID);
 
             $email = 'temp@temp.com';
             $firstname = 'Temp';
@@ -104,7 +104,7 @@ class IdealExpressControllerBase extends StorefrontController
                 $zipcode,
                 $city,
                 $countryCode,
-                $context
+                $newContext
             );
 
             return new RedirectResponse($redirectUrl);

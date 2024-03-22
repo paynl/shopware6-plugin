@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Compatibility\Gateway;
 
@@ -6,24 +8,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 interface CompatibilityGatewayInterface
 {
-    /**
-     * @param SalesChannelContext $context
-     * @return string
-     */
     public function getSalesChannelID(SalesChannelContext $context): string;
 
-    /**
-     * @param string $salesChannelID
-     * @param string $token
-     * @return SalesChannelContext
-     */
     public function getSalesChannelContext(string $salesChannelID, string $token): SalesChannelContext;
-
-    /**
-     * @return string
-     */
-    public function getLineItemPromotionType(): string;
-
-
-    public function getChargebackOrderTransactionState(): string;
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Compatibility;
 
@@ -8,30 +10,18 @@ use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceInterfac
 
 class CompatibilityFactory
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $shopwareVersion;
 
-    /**
-     * @var SalesChannelContextServiceInterface
-     */
+    /** @var SalesChannelContextServiceInterface */
     private $salesChannelContextService;
 
-
-    /**
-     * @param string $shopwareVersion
-     * @param SalesChannelContextServiceInterface $salesChannelContextService
-     */
     public function __construct(string $shopwareVersion, SalesChannelContextServiceInterface $salesChannelContextService)
     {
         $this->shopwareVersion = $shopwareVersion;
         $this->salesChannelContextService = $salesChannelContextService;
     }
 
-    /**
-     * @return CompatibilityGatewayInterface
-     */
     public function createGateway(): CompatibilityGatewayInterface
     {
         return new CompatibilityGateway(
