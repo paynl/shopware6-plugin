@@ -9,9 +9,11 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -31,6 +33,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
     private $router;
     /** @var Api */
     private $paynlApi;
+    /** @var LoggerInterface */
+    private $logger;
     /** @var ProcessingHelper */
     private $processingHelper;
     /** @var PluginHelper */
@@ -46,6 +50,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
         Api $api,
+        LoggerInterface $logger,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         TranslatorInterface $translator,
@@ -55,6 +60,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
+        $this->logger = $logger;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
         $this->translator = $translator;
@@ -67,7 +73,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
      * @param RequestDataBag $dataBag
      * @param SalesChannelContext $salesChannelContext
      * @return RedirectResponse
-     * @throws AsyncPaymentProcessException
+     * @throws PaymentException
      * @throws Throwable
      */
     public function pay(
@@ -75,11 +81,39 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): RedirectResponse {
+        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+
+        $this->logger->info(
+            'Starting order ' . $transaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'cart' => [
+                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                ],
+            ]
+        );
+
         try {
             $redirectUrl = $this->sendReturnUrlToExternalGateway($transaction, $salesChannelContext);
         } catch (Exception $e) {
+            $this->logger->error(
+                'Error on starting PAY. payment: ' . $e->getMessage(),
+                [
+                    'exception' => $e
+                ]
+            );
+
             $this->displaySafeErrorMessages($e->getMessage());
-            throw new AsyncPaymentProcessException(
+            if (class_exists('Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException')) {
+                throw new AsyncPaymentProcessException(
+                    $transaction->getOrderTransaction()->getId(),
+                    'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
+                );
+            }
+
+            /** @phpstan-ignore-next-line */
+            throw PaymentException::asyncProcessInterrupted(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
             );
@@ -100,7 +134,18 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         Request $request,
         SalesChannelContext $salesChannelContext
     ): void {
-        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($transaction->getOrder()->getId());
+        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+        $order = $transaction->getOrder();
+
+        $this->logger->info(
+            'Finalizing PAY. payment for order ' . $order->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+            ]
+        );
+
+        $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($order->getId());
     }
 
     private function sendReturnUrlToExternalGateway(
@@ -130,7 +175,13 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
+
+            $this->logger->info('PAY. transaction was successfully created: ' . $paynlTransactionId);
         } catch (Throwable $exception) {
+            $this->logger->error('Error on starting transaction', [
+                'exception' => $exception
+            ]);
+
             $this->processingHelper->storePaynlTransactionData(
                 $order,
                 $orderTransaction,

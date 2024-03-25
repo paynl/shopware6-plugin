@@ -10,6 +10,7 @@ use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositor
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -36,6 +37,8 @@ class ProcessingHelper
 {
     /** @var Api */
     private $paynlApi;
+    /** @var LoggerInterface */
+    private $logger;
 
     /** @var PaynlTransactionsRepositoryInterface */
     private $paynlTransactionRepository;
@@ -54,6 +57,7 @@ class ProcessingHelper
 
     public function __construct(
         Api $api,
+        LoggerInterface $logger,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
         OrderTransactionRepositoryInterface $orderTransactionRepository,
         StateMachineTransitionRepositoryInterface $stateMachineTransitionRepository,
@@ -61,6 +65,7 @@ class ProcessingHelper
         OrderStatusUpdater $orderStatusUpdater
     ) {
         $this->paynlApi = $api;
+        $this->logger = $logger;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
@@ -126,6 +131,11 @@ class ProcessingHelper
         if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
             return sprintf('TRUE| No change made (%s)', $apiTransactionData['paymentDetails']['stateName']);
         }
+
+        $this->logger->info('PAY. transaction was successfully updated', [
+            'transactionId' => $paynlTransactionId,
+            'statusCode' => $paynlTransactionStatusCode
+        ]);
 
         return sprintf(
             'TRUE| Status updated to: %s (%s) orderNumber: %s',
@@ -193,6 +203,11 @@ class ProcessingHelper
         $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+
+        $this->logger->info('Transaction status was successfully updated', [
+            'transactionId' => $paynlTransactionId,
+            'statusCode' => $paynlTransactionStatusCode
+        ]);
     }
 
     /**
@@ -239,6 +254,11 @@ class ProcessingHelper
         try {
             return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
+            $this->logger->error('Error on notifying transaction.', [
+                'transactionId' => $paynlTransactionId,
+                'exception' => $e
+            ]);
+
             return sprintf(
                 'FALSE| Error "%s" in file %s',
                 $e->getMessage(),
@@ -324,6 +344,7 @@ class ProcessingHelper
      * @param string $transitionName
      * @param int $paynlTransactionStatusCode
      * @return void
+     * @throws Exception
      */
     private function updateTransactionStatus(
         PaynlTransactionEntity $paynlTransactionEntity,
@@ -531,6 +552,8 @@ class ProcessingHelper
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
         $criteria->addAssociation('order');
+        $criteria->addAssociation('orderTransaction.stateMachineState');
+        $criteria->addAssociation('orderTransaction.order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
@@ -544,6 +567,8 @@ class ProcessingHelper
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
         $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
         $criteria->addAssociation('order');
+        $criteria->addAssociation('orderTransaction.stateMachineState');
+        $criteria->addAssociation('orderTransaction.order');
 
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }

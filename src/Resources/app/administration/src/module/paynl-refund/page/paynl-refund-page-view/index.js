@@ -1,8 +1,8 @@
 import template from './paynl-refund-page-view.html.twig';
 import './paynl-refund-card.scss';
 
-const {Component, Mixin} = Shopware;
-const {Criteria} = Shopware.Data;
+const { Component, Mixin } = Shopware;
+const { Criteria } = Shopware.Data;
 
 Component.register('paynl-refund-page-view', {
     template,
@@ -73,6 +73,9 @@ Component.register('paynl-refund-page-view', {
         },
         showHelpText() {
             return (!this.withShipping && this.order.shippingTotal > 0);
+        },
+        currencyFilter() {
+            return Shopware.Filter.getByName('currency');
         }
     },
 

@@ -1,5 +1,5 @@
 {% block sw_order_list_grid_columns_actions %}
-    <template slot="actions" slot-scope="{ item }">
+    <template #actions="{ item }">
         {% block sw_customer_list_grid_columns_actions_view %}
             <sw-context-menu-item class="sw-order-list__order-view-action" :routerLink="{ name: 'sw.order.detail', params: { id: item.id } }">
                 {{ $tc('sw-order.list.contextMenuView') }}

@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -14,52 +15,31 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 
 class StatusTransitionControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
+    /** @var LoggerInterface */
+    private $logger;
     private $processingHelper;
     private $paynlTransactionRepository;
 
     public function __construct(
         Api $paynlApi,
         Config $paynlConfig,
+        LoggerInterface $logger,
         ProcessingHelper $processingHelper,
         EntityRepository $paynlTransactionRepository
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
+        $this->logger = $logger;
         $this->processingHelper = $processingHelper;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    /**
-     * @Route("/api/paynl/change-transaction-status",
-     *     name="api.PaynlPayment.changeTransactionStatusSW64",
-     *     methods={"POST"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function changeTransactionStatusSW64(Request $request): JsonResponse
-    {
-        return $this->getChangeTransactionStatusResponse($request);
-    }
-
-    /**
-     * @Route("/api/v{version}/paynl/change-transaction-status",
-     *     name="api.PaynlPayment.changeTransactionStatus",
-     *     methods={"POST"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function changeTransactionStatus(Request $request): JsonResponse
-    {
-        return $this->getChangeTransactionStatusResponse($request);
-    }
-
-    private function getChangeTransactionStatusResponse(Request $request): JsonResponse
+    protected function getChangeTransactionStatusResponse(Request $request): JsonResponse
     {
         $orderTransactionId = $request->request->get('transactionId', '');
         $currentActionName = $request->request->get('currentActionName', '');
@@ -91,6 +71,12 @@ class StatusTransitionControllerBase extends AbstractController
 
             return new JsonResponse($request->request->all());
         } catch (Error\Api $exception) {
+            $this->logger->error('Error on changing transaction status.', [
+                'exception' => $exception,
+                'transactionId' => $orderTransactionId,
+                'actionName' => $currentActionName
+            ]);
+
             return new JsonResponse([
                 'errorMessage' => $exception->getMessage()
             ], 400);
