@@ -1,5 +1,7 @@
+# 1.6.1
+
 # 1.6.0
-- Unterstützt Shopware 6.5 Version
+- Unterstützt Shopware 6.6 Version
 - Protokollierungsfunktion hinzugefügt
 
 # 1.5.16

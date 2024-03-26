@@ -1,3 +1,5 @@
+# 1.6.1
+
 # 1.6.0
 - Support Shopware 6.6 version
 - Added logging functionality
