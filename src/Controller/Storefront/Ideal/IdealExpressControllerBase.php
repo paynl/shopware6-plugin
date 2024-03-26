@@ -114,23 +114,35 @@ class IdealExpressControllerBase extends StorefrontController
 
     public function getFinishPaymentResponse(RequestDataBag $data, SalesChannelContext $context): Response
     {
-        $orderNumber = (string)$data->get('reference', '');
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Request exchange:', FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', file_get_contents('php://input'), FILE_APPEND);
+
+        $orderNumber = (string) $data->get('object')->get('reference');
+        $dataObject = (array) $data->all()['object'] ?? [];
 
         try {
             $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
 
-            $this->idealExpress->updateOrder($order, $data->all(), $context);
+            $this->idealExpress->updateOrder($order,$dataObject, $context);
 
-            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $data->all(), $context);
+            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $dataObject, $context);
 
-            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $data->all(), $context);
+            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $dataObject, $context);
 
-            $this->idealExpress->updatePaymentTransaction($data->all());
+            $this->idealExpress->updatePaymentTransaction($dataObject);
+
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Success', FILE_APPEND);
+
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
 
             return new Response(json_encode(['success' => true]));
         } catch (Throwable $ex) {
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', $ex->getMessage(), FILE_APPEND);
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
+
             return new Response($ex->getMessage());
         }
+
     }
 
     /**

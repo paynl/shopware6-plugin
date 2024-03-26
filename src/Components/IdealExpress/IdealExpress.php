@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use Throwable;
@@ -193,6 +194,10 @@ class IdealExpress
     /** @throws Exception */
     public function updateOrder(OrderEntity $order, array $webhookData, SalesChannelContext $context): ?OrderEntity
     {
+        if (empty($webhookData['checkoutData'])) {
+            return $order;
+        }
+
         $checkoutData = reset($webhookData['checkoutData']);
         $countryId = $this->getCountryIdByCode($checkoutData['invoiceAddress']['countryCode'], $context->getContext());
 
@@ -226,6 +231,10 @@ class IdealExpress
         array $webhookData,
         SalesChannelContext $context
     ): void {
+        if (empty($webhookData['checkoutData'])) {
+            return;
+        }
+
         $checkoutData = reset($webhookData['checkoutData']);
 
         $this->orderCustomerRepository->update([
@@ -243,6 +252,10 @@ class IdealExpress
         array $webhookData,
         SalesChannelContext $context
     ): ?CustomerEntity {
+        if (empty($webhookData['checkoutData'])) {
+            return $customer;
+        }
+
         $checkoutData = reset($webhookData['checkoutData']);
         $addressData = $this->getAddressData($webhookData, $context->getContext());
 
@@ -387,7 +400,7 @@ class IdealExpress
         $orderNumber = $order->getOrderNumber();
 
         $exchangeUrl = $this->router->generate(
-            'frontend.account.PaynlPayment.paypal.finish-payment',
+            'frontend.account.PaynlPayment.ideal-express.finish-payment',
             [],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
@@ -414,6 +427,8 @@ class IdealExpress
         $products = $this->getOrderProducts($order, $salesChannelContext);
         $order = new Order($products);
 
+        $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
+
         $createOrder = new CreateOrder(
             $this->config->getServiceId($salesChannelId),
             $amount,
@@ -422,8 +437,13 @@ class IdealExpress
             $asyncPaymentTransition->getReturnUrl(),
             $exchangeUrl,
             $paymentMethod,
+            $integration,
             $order
         );
+
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Payment:', FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
 
         return $this->payOrderService->create($createOrder, $salesChannelId);
     }

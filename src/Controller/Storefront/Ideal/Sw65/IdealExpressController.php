@@ -26,8 +26,8 @@ class IdealExpressController extends IdealExpressControllerBase
     }
 
     #[Route(
-        path: '/PaynlPayment/paypal/finish-payment',
-        name: 'frontend.account.PaynlPayment.paypal.finish-payment',
+        path: '/PaynlPayment/ideal-express/finish-payment',
+        name: 'frontend.account.PaynlPayment.ideal-express.finish-payment',
         options: ['seo' => false],
         methods: ['POST', 'GET'])
     ]

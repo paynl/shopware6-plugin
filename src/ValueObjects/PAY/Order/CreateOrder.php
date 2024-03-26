@@ -13,6 +13,7 @@ class CreateOrder
     private ?string $returnUrl;
     private ?string $exchangeUrl;
     private ?PaymentMethod $paymentMethod;
+    private ?Integration $integration;
     private ?Order $order;
 
     public function __construct(
@@ -23,6 +24,7 @@ class CreateOrder
         ?string $returnUrl,
         ?string $exchangeUrl,
         ?PaymentMethod $paymentMethod,
+        ?Integration $integration,
         ?Order $order
     ) {
         $this->serviceId = $serviceId;
@@ -32,6 +34,7 @@ class CreateOrder
         $this->returnUrl = $returnUrl;
         $this->exchangeUrl = $exchangeUrl;
         $this->paymentMethod = $paymentMethod;
+        $this->integration = $integration;
         $this->order = $order;
     }
 
@@ -70,6 +73,11 @@ class CreateOrder
         return $this->paymentMethod;
     }
 
+    public function getIntegration(): ?Integration
+    {
+        return $this->integration;
+    }
+
     public function getOrder(): ?Order
     {
         return $this->order;
@@ -85,6 +93,7 @@ class CreateOrder
             'returnUrl' => $this->returnUrl,
             'exchangeUrl' => $this->exchangeUrl,
             'paymentMethod' => $this->paymentMethod ? $this->paymentMethod->toArray() : null,
+            'integration' => $this->integration ? $this->integration->toArray() : null,
             'order' => $this->order ? $this->order->toArray() : null
         ]);
     }
