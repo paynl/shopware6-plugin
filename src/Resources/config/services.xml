@@ -265,6 +265,12 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\OrderSubscriber">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="request_stack"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <!-- Collector -->
         <service id="PaynlPayment\Shopware6\Checkout\Payment\PaymentSurchargeCollector">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
