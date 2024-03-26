@@ -5,7 +5,6 @@ namespace PaynlPayment\Shopware6\Controller\Storefront\CheckoutHistoryBack;
 use PaynlPayment\Shopware6\Subscriber\OrderSubscriber;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckoutHistoryBackControllerBase extends StorefrontController
@@ -18,16 +17,7 @@ class CheckoutHistoryBackControllerBase extends StorefrontController
         $this->requestStack = $requestStack;
     }
 
-    /**
-     * @Route(
-     *     "/checkout/history/back",
-     *     name="frontend.checkout.Paynl.history.back",
-     *     options={"seo"="false"},
-     *     methods={"GET"},
-     *     defaults={"_loginRequired"=true, "_loginRequiredAllowGuest"=true, "_noStore"=true, "_routeScope"={"storefront"}}
-     * )
-     */
-    public function historyBackProxy(): Response
+    public function getHistoryBackProxy(): Response
     {
         if ($lastOrderId = $this->getBackOrderHistoryData()) {
             return $this->redirectToRoute('frontend.account.edit-order.page', ['orderId' => $lastOrderId]);

@@ -302,8 +302,8 @@
             <label lang="de-DE">Shopping cart wiederherstellen</label>
             <label lang="nl-NL">Winkelwagen terugzetten</label>
             <helpText>This option restores the shopping cart after the user clicks the Back button in the browser. This prevents your user losing their products when trying to navigate back.</helpText>
-            <helpText lang="de-DE">This option restores the shopping cart after the user clicks the Back button in the browser. This prevents your user losing their products when trying to navigate back.</helpText>
-            <helpText lang="nl-NL">This option restores the shopping cart after the user clicks the Back button in the browser. This prevents your user losing their products when trying to navigate back.</helpText>
+            <helpText lang="de-DE">Diese Option stellt den Warenkorb wieder her, nachdem der Benutzer im Browser auf die Schaltfläche „Zurück“ geklickt hat. Dies verhindert, dass Ihr Benutzer seine Produkte verliert, wenn er versucht, zurück zu navigieren.</helpText>
+            <helpText lang="nl-NL">Deze optie herstelt het winkelwagentje nadat de gebruiker op de knop Terug in de browser heeft geklikt. Dit voorkomt dat uw gebruiker zijn producten kwijtraakt wanneer hij probeert terug te navigeren.</helpText>
         </input-field>
     </card>
 
