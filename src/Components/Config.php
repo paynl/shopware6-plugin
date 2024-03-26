@@ -118,6 +118,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'automaticCancellation');
     }
 
+    public function isRestoreShippingCart(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'restoreShoppingCart');
+    }
+
     public function getOrderStateWithPaidTransaction(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'orderStateWithPaidTransaction');

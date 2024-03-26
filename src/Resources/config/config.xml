@@ -296,6 +296,15 @@
             <helpText lang="de-DE">Wenn diese Option aktiviert ist, wird eine Transaktion in Pay. automatisch void, wenn der Status der Bestellung auf "storniert" geändert wird. Dies gilt für Transaktionen im Status AUTHORIZE.</helpText>
             <helpText lang="nl-NL">Wanner ingeschakeld, zal de plugin automatisch een transactie voiden in Pay. wanneer de orderstatus wordt gewijzigd in 'geannuleerd'. Dit geldt alleen voor transacties met de status AUTHORIZE. </helpText>
         </input-field>
+        <input-field type="bool">
+            <name>restoreShoppingCart</name>
+            <label>Restore shopping cart</label>
+            <label lang="de-DE">Shopping cart wiederherstellen</label>
+            <label lang="nl-NL">Winkelwagen terugzetten</label>
+            <helpText>This option restores the shopping cart after the user clicks the Back button in the browser. This prevents your user losing their products when trying to navigate back.</helpText>
+            <helpText lang="de-DE">Diese Option stellt den Warenkorb wieder her, nachdem der Benutzer im Browser auf die Schaltfläche „Zurück“ geklickt hat. Dies verhindert, dass Ihr Benutzer seine Produkte verliert, wenn er versucht, zurück zu navigieren.</helpText>
+            <helpText lang="nl-NL">Deze optie herstelt het winkelwagentje nadat de gebruiker op de knop Terug in de browser heeft geklikt. Dit voorkomt dat uw gebruiker zijn producten kwijtraakt wanneer hij probeert terug te navigeren.</helpText>
+        </input-field>
     </card>
 
     <card>
