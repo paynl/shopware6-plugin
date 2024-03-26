@@ -24,11 +24,14 @@ Component.register('paynl-config-section-api', {
 
     methods: {
         onInstallPaymentMethods() {
-            // Shopware > 6.4.7.0
+            // Shopware >= 6.6
+            const configRootSw66 = this.$parent.$parent.$parent.$parent.$parent.$parent.$parent;
+            // 6.6 > Shopware > 6.4.7.0
             const configRootNew = this.$parent.$parent.$parent.$parent.$parent;
             // Shopware <= 6.4.7.0
             const configRootOld = this.$parent.$parent.$parent.$parent;
-            const configRoot = configRootNew ? configRootNew : configRootOld;
+            const configRoot = configRootSw66 && ('saveAll' in configRootSw66)
+                ? configRootSw66 : configRootNew ? configRootNew : configRootOld;
             let salesChannelId = '';
             if (configRoot) {
                 salesChannelId = configRoot.currentSalesChannelId ? configRoot.currentSalesChannelId : '';

@@ -1,3 +1,22 @@
+# 1.6.0
+- Support Shopware 6.6 version
+- Added logging functionality
+
+# 1.5.16
+- Fixed the wrong order amount when the line item price was set manually
+
+# 1.5.15
+- Fixed shipping costs calculation
+- Fixed order state update
+
+# 1.5.14
+- Fixed service class name
+- Fixed date picker for IOS devices
+
+# 1.5.13
+- Added new payment methods
+- Payment method ID now taken from order
+
 # 1.5.12
 - Fixed notify route for POST requests
 - Failover exchange improved

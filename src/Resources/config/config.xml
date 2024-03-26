@@ -242,6 +242,16 @@
             <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
             <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
         </input-field>
+        <input-field type="bool">
+            <name>logging</name>
+            <label>Logging</label>
+            <label lang="de-DE">Logging</label>
+            <label lang="nl-NL">Logging</label>
+            <defaultValue>true</defaultValue>
+            <helpText>PAY. has a custom log file in the Shopware log directory. This feature enables the extended logs with more information that could help to solve problems.</helpText>
+            <helpText lang="de-DE">PAY. hat eine eigene LOG Datei im Shopware Log Verzeichnis. Dieser Modus kümmert sich um erweiterte Informationen in diesen Log Dateien, die zusätzlich bei der Analyse von Fehlern beitragen können.</helpText>
+            <helpText lang="nl-NL">PAY. heeft een op maat logbestand in de Shopware logboek-map. Deze functie maakt uitgebreide logs mogelijk met meer informatie die helpen bij het oplossen van problemen.</helpText>
+        </input-field>
         <input-field type="single-select">
             <name>ipSettings</name>
             <label>IP Settings</label>

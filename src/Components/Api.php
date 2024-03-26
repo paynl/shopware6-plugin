@@ -18,15 +18,17 @@ use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Paynl\Result\Transaction as Result;
 use Exception;
@@ -65,6 +67,8 @@ class Api
     private $translator;
     /** @var RequestStack */
     private $requestStack;
+    /** @var LoggerInterface */
+    private $logger;
 
     public function __construct(
         Config $config,
@@ -75,7 +79,8 @@ class Api
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
@@ -86,6 +91,7 @@ class Api
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
+        $this->logger = $logger;
     }
 
     /**
@@ -97,6 +103,9 @@ class Api
         if (empty($this->config->getTokenCode($salesChannelId))
             || empty($this->config->getApiToken($salesChannelId))
             || empty($this->config->getServiceId($salesChannelId))) {
+
+            $this->logger->warning('PAY. credentials are missing.');
+
             return [];
         }
 
@@ -119,22 +128,16 @@ class Api
     }
 
     public function startTransaction(
+        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
-        string $returnUrl,
-        string $exchangeUrl,
-        string $shopwareVersion,
-        string $pluginVersion,
-        ?string $terminalId = null
+        AdditionalTransactionInfo $additionalTransactionInfo
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
+            $orderTransaction,
             $order,
             $salesChannelContext,
-            $returnUrl,
-            $exchangeUrl,
-            $shopwareVersion,
-            $pluginVersion,
-            $terminalId
+            $additionalTransactionInfo
         );
 
         $this->setCredentials($salesChannelContext->getSalesChannel()->getId(), true);
@@ -157,26 +160,20 @@ class Api
     }
 
     /**
+     * @param OrderTransactionEntity $orderTransaction
      * @param OrderEntity $order
      * @param SalesChannelContext $salesChannelContext
-     * @param string $returnUrl
-     * @param string $exchangeUrl
-     * @param string $shopwareVersion
-     * @param string $pluginVersion
-     * @param string|null $terminalId
+     * @param AdditionalTransactionInfo $additionalTransactionInfo
      * @return array
      * @throws PaynlPaymentException
      */
     private function getTransactionInitialData(
+        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
-        string $returnUrl,
-        string $exchangeUrl,
-        string $shopwareVersion,
-        string $pluginVersion,
-        ?string $terminalId = null
+        AdditionalTransactionInfo $additionalTransactionInfo
     ): array {
-        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
+        $shopwarePaymentMethodId = $orderTransaction->getPaymentMethod()->getId();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         $amount = $order->getAmountTotal();
@@ -197,12 +194,16 @@ class Api
             ),
 
             // Urls
-            'returnUrl' => $returnUrl,
-            'exchangeUrl' => $exchangeUrl,
+            'returnUrl' => $additionalTransactionInfo->getReturnUrl(),
+            'exchangeUrl' => $additionalTransactionInfo->getExchangeUrl(),
 
             // Products
             'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
-            'object' => sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion),
+            'object' => sprintf(
+                'Shopware v%s %s',
+                $additionalTransactionInfo->getShopwareVersion(),
+                $additionalTransactionInfo->getPluginVersion()
+            ),
         ];
 
         $customer = $salesChannelContext->getCustomer();
@@ -226,7 +227,7 @@ class Api
         }
 
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
-            $transactionInitialData['bank'] = $terminalId;
+            $transactionInitialData['bank'] = $additionalTransactionInfo->getTerminalId();
         }
 
         if ($customer instanceof CustomerEntity) {
@@ -433,6 +434,12 @@ class Api
         try {
             return \Paynl\Transaction::refund($transactionID, $amount, $description);
         } catch (\Throwable $e) {
+            $this->logger->error('Error while refunding process', [
+                'transactionId' => $transactionID,
+                'amount' => $amount,
+                'exception' => $e
+            ]);
+
             throw new \Exception($e->getMessage());
         }
     }
@@ -445,6 +452,12 @@ class Api
         try {
             return Transaction::capture($transactionID, $amount);
         } catch (Throwable $exception) {
+            $this->logger->error('Error while capturing process', [
+                'transactionId' => $transactionID,
+                'amount' => $amount,
+                'exception' => $exception
+            ]);
+
             throw PaynlTransactionException::captureError($exception->getMessage());
         }
     }
@@ -457,6 +470,11 @@ class Api
         try {
             return Transaction::void($transactionID);
         } catch (Throwable $exception) {
+            $this->logger->error('Error while voiding process', [
+                'transactionId' => $transactionID,
+                'exception' => $exception
+            ]);
+
             throw PaynlTransactionException::captureError($exception->getMessage());
         }
     }

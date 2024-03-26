@@ -278,18 +278,20 @@ class InstallHelper
     }
 
     /**
-     * AfterPay rebranding to Riverty
-     *
      * @param Context $context
      */
-    public function removeAfterPayMedia(Context $context): void
+    public function removePaymentMethodOldLogos(Context $context): void
     {
-        $mediaId = $this->mediaHelper->getMediaId('AfterPay', $context);
-        if (empty($mediaId)) {
+        $mediaIds = [];
+        $mediaIds[] = $this->mediaHelper->getMediaId('AfterPay', $context);
+        $mediaIds[] = $this->mediaHelper->getMediaId('Biller', $context);
+        $mediaIds[] = $this->mediaHelper->getMediaId('NOTYD', $context);
+        $mediaIds = array_filter($mediaIds);
+        if (empty($mediaIds)) {
             return;
         }
 
-        $this->mediaHelper->removeOldMedia($context, [$mediaId]);
+        $this->mediaHelper->removeOldMedia($context, $mediaIds);
     }
 
     public function addSurchargePayStockImageMedia(Context $context): void

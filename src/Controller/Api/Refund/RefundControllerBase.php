@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -15,12 +16,13 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 
 class RefundControllerBase extends AbstractController
 {
     private $paynlApi;
     private $paynlConfig;
+    /** @var LoggerInterface */
+    private $logger;
     private $transactionRepository;
     private $productRepository;
     private $paynlTransactionRepository;
@@ -31,6 +33,7 @@ class RefundControllerBase extends AbstractController
     public function __construct(
         Api $paynlApi,
         Config $paynlConfig,
+        LoggerInterface $logger,
         EntityRepository $transactionRepository,
         EntityRepository $productRepository,
         ProcessingHelper $processingHelper,
@@ -38,65 +41,42 @@ class RefundControllerBase extends AbstractController
     ) {
         $this->paynlApi = $paynlApi;
         $this->paynlConfig = $paynlConfig;
+        $this->logger = $logger;
         $this->transactionRepository = $transactionRepository;
         $this->productRepository = $productRepository;
         $this->processingHelper = $processingHelper;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    /**
-     * @Route(
-     *     "/api/paynl/get-refund-data",
-     *     name="api.PaynlPayment.getRefundDataSW64",
-     *     methods={"GET"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function getRefundDataSW64(Request $request): JsonResponse
+    protected function getRefundDataResponse(Request $request): JsonResponse
     {
-        return $this->getRefundDataResponse($request);
+        $paynlTransactionId = $request->query->get('transactionId');
+        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+
+        try {
+            $this->logger->info('Refund data for transaction ' . $paynlTransactionId);
+
+            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
+            $refundedAmount = $apiTransaction->getRefundedAmount();
+            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+
+            return new JsonResponse([
+                'refundedAmount' => $refundedAmount,
+                'availableForRefund' => $availableForRefund
+            ]);
+        } catch (Error\Api $exception) {
+            $this->logger->error('Error on getting refund data for transaction ' . $paynlTransactionId, [
+                'exception' => $exception
+            ]);
+
+            return new JsonResponse([
+                'errorMessage' => $exception->getMessage()
+            ], 400);
+        }
     }
 
-    /**
-     * @Route(
-     *     "/api/v{version}/paynl/get-refund-data",
-     *     name="api.PaynlPayment.getRefundData",
-     *     methods={"GET"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function getRefundData(Request $request): JsonResponse
-    {
-        return $this->getRefundDataResponse($request);
-    }
-
-    /**
-     * @Route(
-     *     "/api/paynl/refund",
-     *     name="frontend.PaynlPayment.refundSW64",
-     *     methods={"POST"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function refundSW64(Request $request): JsonResponse
-    {
-        return $this->getRefundResponse($request);
-    }
-
-    /**
-     * @Route(
-     *     "/api/v{version}/paynl/refund",
-     *     name="frontend.PaynlPayment.refund",
-     *     methods={"POST"},
-     *     defaults={"_routeScope"={"api"}}
-     *     )
-     */
-    public function refund(Request $request): JsonResponse
-    {
-        return $this->getRefundResponse($request);
-    }
-
-    private function getRefundResponse(Request $request): JsonResponse
+    protected function getRefundResponse(Request $request): JsonResponse
     {
         $post = $request->request->all();
         $paynlTransactionId = $post['transactionId'];
@@ -107,8 +87,15 @@ class RefundControllerBase extends AbstractController
 
         $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+        $salesChannel = $paynlTransaction->getOrder()->getSalesChannel();
 
         try {
+            $this->logger->info('Start refunding for transaction ' . $paynlTransactionId, [
+                'transactionId' => $paynlTransactionId,
+                'amount' => $amount,
+                'salesChannel' => $salesChannel ? $salesChannel->getName() : ''
+            ]);
+
             // TODO: need newer version of PAYNL/SDK
             $this->paynlApi->refund($paynlTransactionId, $amount, $salesChannelId, $description);
             $this->restock($products);
@@ -119,32 +106,15 @@ class RefundControllerBase extends AbstractController
                 'content' => sprintf('Refund successful %s', (!empty($description) ? "($description)" : ''))
             ];
         } catch (\Throwable $e) {
+            $this->logger->error('Error on refunding transaction ' . $paynlTransactionId, [
+                'exception' => $e,
+                'amount' => $amount
+            ]);
+
             $messages[] = ['type' => 'danger', 'content' => $e->getMessage()];
         }
 
         return new JsonResponse($messages);
-    }
-
-    private function getRefundDataResponse(Request $request): JsonResponse
-    {
-        $paynlTransactionId = $request->query->get('transactionId');
-        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
-        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
-
-        try {
-            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
-            $refundedAmount = $apiTransaction->getRefundedAmount();
-            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
-
-            return new JsonResponse([
-                'refundedAmount' => $refundedAmount,
-                'availableForRefund' => $availableForRefund
-            ]);
-        } catch (Error\Api $exception) {
-            return new JsonResponse([
-                'errorMessage' => $exception->getMessage()
-            ], 400);
-        }
     }
 
     /**

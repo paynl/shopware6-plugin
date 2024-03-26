@@ -1,9 +1,6 @@
 {% sw_extends '@Storefront/storefront/page/checkout/finish/finish-details.html.twig' %}
 
-{% set status = page.getOrder.getTransactions.last.getStateMachineState.getTechnicalName %}
-{% if (page.PAY_transaction_state_id in constant('PaynlPayment\\Shopware6\\Enums\\PaynlTransactionStatusesEnum::DENIED_STATUSES')) %}
-    {% set status = 'denied' %}
-{% endif %}
+{% set status = page.PAY.status %}
 
 {% block page_checkout_finish_data %}
     {% if (context.paymentMethod.translated.customFields.paynl_payment) %}

@@ -1,3 +1,22 @@
+# 1.6.0
+- Unterstützt Shopware 6.5 Version
+- Protokollierungsfunktion hinzugefügt
+
+# 1.5.16
+- Der falsche Bestellbetrag wurde behoben, wenn der Einzelpostenpreis manuell festgelegt wurde
+
+# 1.5.15
+- Berechnung der festen Versandkosten
+- Aktualisierung des Bestellstatus behoben
+
+# 1.5.14
+- Name der Serviceklasse korrigiert
+- Datumsauswahl für IOS-Geräte korrigiert
+
+# 1.5.13
+- Neue Zahlungsarten hinzugefügt
+- Die ID der Zahlungsmethode wird jetzt aus der Bestellung übernommen
+
 # 1.5.12
 - Notify-Route für POST-Anfragen behoben
 - Failover exchange verbessert
