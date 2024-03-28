@@ -127,7 +127,7 @@ class IdealExpress
         SalutationRepositoryInterface $salutationRepository,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         PaymentMethodRepository $repoPaymentMethods,
-        ProductRepositoryInterface $productRepository,
+        ProductRepositoryInterface $productRepository
     ) {
         $this->cartService = $cartService;
         $this->config = $config;
