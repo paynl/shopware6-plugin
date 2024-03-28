@@ -194,29 +194,29 @@ class IdealExpress
     /** @throws Exception */
     public function updateOrder(OrderEntity $order, array $webhookData, SalesChannelContext $context): ?OrderEntity
     {
-        if (empty($webhookData['checkoutData'])) {
+        $customerData = $this->getCustomerWebhookData($webhookData);
+        if (empty($customerData)) {
             return $order;
         }
 
-        $checkoutData = reset($webhookData['checkoutData']);
-        $countryId = $this->getCountryIdByCode($checkoutData['invoiceAddress']['countryCode'], $context->getContext());
+        $countryId = $this->getCountryIdByCode('NL', $context->getContext());
 
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
                 $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
-                    $checkoutData['customer']['firstName'],
-                    $checkoutData['customer']['lastName'],
+                    $customerData['contactDetails']['firstName'],
+                    $customerData['contactDetails']['lastName'],
                     '',
                     '',
                     '',
                     sprintf(
                         "%s %s",
-                        $checkoutData['invoiceAddress']['streetName'],
-                        $checkoutData['invoiceAddress']['streetNumber'],
+                        $customerData['shippingAddress']['street'],
+                        $customerData['shippingAddress']['houseNumber'],
                     ),
-                    $checkoutData['invoiceAddress']['zipCode'],
-                    $checkoutData['invoiceAddress']['city'],
+                    $customerData['shippingAddress']['postalCode'],
+                    $customerData['shippingAddress']['city'],
                     $countryId,
                     $context->getContext()
                 );
@@ -231,18 +231,17 @@ class IdealExpress
         array $webhookData,
         SalesChannelContext $context
     ): void {
-        if (empty($webhookData['checkoutData'])) {
+        $customerData = $this->getCustomerWebhookData($webhookData);
+        if (empty($customerData)) {
             return;
         }
-
-        $checkoutData = reset($webhookData['checkoutData']);
 
         $this->orderCustomerRepository->update([
             [
                 'id' => $customer->getId(),
-                'email' => $checkoutData['customer']['email'],
-                'firstName' => $checkoutData['customer']['firstName'],
-                'lastName' => $checkoutData['customer']['lastName'],
+                'email' => $customerData['contactDetails']['email'],
+                'firstName' => $customerData['contactDetails']['firstName'],
+                'lastName' => $customerData['contactDetails']['lastName'],
             ]
         ], $context->getContext());
     }
@@ -252,11 +251,11 @@ class IdealExpress
         array $webhookData,
         SalesChannelContext $context
     ): ?CustomerEntity {
-        if (empty($webhookData['checkoutData'])) {
+        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
+        if (empty($customerWebhookData)) {
             return $customer;
         }
 
-        $checkoutData = reset($webhookData['checkoutData']);
         $addressData = $this->getAddressData($webhookData, $context->getContext());
 
         $matchingAddress = null;
@@ -277,11 +276,11 @@ class IdealExpress
 
         $customerData = [
             'id' => $customer->getId(),
-            'email' => $checkoutData['customer']['email'],
+            'email' => $customerWebhookData['contactDetails']['email'],
             'defaultShippingAddressId' => $addressId,
             'defaultBillingAddressId' => $addressId,
-            'firstName' => $checkoutData['customer']['firstName'],
-            'lastName' => $checkoutData['customer']['lastName'],
+            'firstName' => $customerWebhookData['contactDetails']['firstName'],
+            'lastName' => $customerWebhookData['contactDetails']['lastName'],
             'salutationId' => $salutationId,
             'addresses' => [
                 array_merge($addressData, [
@@ -552,22 +551,22 @@ class IdealExpress
      */
     private function getAddressData(array $webhookData, Context $context, ?string $salutationId = null): array
     {
-        $checkoutData = reset($webhookData['checkoutData']);
-        $countryId = $this->getCountryIdByCode($checkoutData['invoiceAddress']['countryCode'], $context);
+        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
+        $countryId = $this->getCountryIdByCode('NL', $context);
 
         return [
-            'firstName' => $checkoutData['customer']['firstName'],
-            'lastName' => $checkoutData['customer']['lastName'],
+            'firstName' => $customerWebhookData['contactDetails']['firstName'],
+            'lastName' => $customerWebhookData['contactDetails']['lastName'],
             'salutationId' => $salutationId,
             'street' => sprintf(
                 "%s %s",
-                $checkoutData['invoiceAddress']['streetName'],
-                $checkoutData['invoiceAddress']['streetNumber'],
+                $customerWebhookData['shippingAddress']['street'],
+                $customerWebhookData['shippingAddress']['houseNumber'],
             ),
-            'zipcode' => $checkoutData['invoiceAddress']['zipCode'],
+            'zipcode' => $customerWebhookData['shippingAddress']['postalCode'],
             'countryId' => $countryId,
-            'phoneNumber' => $checkoutData['customer']['phone'],
-            'city' => $checkoutData['invoiceAddress']['city'],
+            'phoneNumber' => $customerWebhookData['contactDetails']['phoneNumber'],
+            'city' => $customerWebhookData['shippingAddress']['city'],
             'additionalAddressLine1' => null,
         ];
     }
@@ -618,5 +617,16 @@ class IdealExpress
         }
 
         return true;
+    }
+
+    private function getCustomerWebhookData(array $webhookData): ?array
+    {
+        if (empty($webhookData['payments'])) {
+            return null;
+        }
+
+        $paymentData = reset($webhookData['payments']);
+
+        return (array) $paymentData['supplierData'] ?? null;
     }
 }
