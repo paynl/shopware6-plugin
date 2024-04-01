@@ -12,6 +12,13 @@ interface OrderAddressRepositoryInterface
      * @param Context $context
      * @return EntityWrittenContainerEvent
      */
+    public function create(array $data, Context $context): EntityWrittenContainerEvent;
+
+    /**
+     * @param array<mixed> $data
+     * @param Context $context
+     * @return EntityWrittenContainerEvent
+     */
     public function update(array $data, Context $context): EntityWrittenContainerEvent;
 
     /**

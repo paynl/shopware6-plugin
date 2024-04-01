@@ -22,6 +22,10 @@ class OrderAddressRepository implements OrderAddressRepositoryInterface
         $this->repoOrderAdresses = $repoOrderAdresses;
     }
 
+    public function create(array $data, Context $context): EntityWrittenContainerEvent
+    {
+        return $this->repoOrderAdresses->create($data, $context);
+    }
 
     /**
      * @param string $id

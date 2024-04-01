@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
+use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Throwable;
 use Exception;
 use RuntimeException;
@@ -110,6 +112,9 @@ class IdealExpress
     /** @var OrderCustomerRepositoryInterface */
     private $orderCustomerRepository;
 
+    /** @var OrderDeliveryRepositoryInterface */
+    private $orderDeliveryRepository;
+
     /** @var ProductRepositoryInterface */
     private $productRepository;
 
@@ -127,6 +132,7 @@ class IdealExpress
         CountryRepositoryInterface $countryRepository,
         SalutationRepositoryInterface $salutationRepository,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
+        OrderDeliveryRepositoryInterface $orderDeliveryRepository,
         PaymentMethodRepository $repoPaymentMethods,
         ProductRepositoryInterface $productRepository
     ) {
@@ -144,6 +150,7 @@ class IdealExpress
         $this->countryRepository = $countryRepository;
         $this->salutationRepository = $salutationRepository;
         $this->orderCustomerRepository = $orderCustomerRepository;
+        $this->orderDeliveryRepository = $orderDeliveryRepository;
         $this->productRepository = $productRepository;
     }
 
@@ -212,15 +219,43 @@ class IdealExpress
                     '',
                     sprintf(
                         "%s %s",
-                        $customerData['shippingAddress']['street'],
-                        $customerData['shippingAddress']['houseNumber'],
+                        $customerData['invoiceAddress']['street'],
+                        $customerData['invoiceAddress']['houseNumber'],
                     ),
-                    $customerData['shippingAddress']['postalCode'],
-                    $customerData['shippingAddress']['city'],
+                    $customerData['invoiceAddress']['postalCode'],
+                    $customerData['invoiceAddress']['city'],
                     $countryId,
                     $context->getContext()
                 );
             }
+
+            $shippingAddressId = Uuid::randomHex();
+            $addressData = [
+                'id' => $shippingAddressId,
+                'countryId' => $countryId,
+                'orderId' => $order->getId(),
+                'salutationId' => $this->getSalutationId($context->getContext()),
+                'firstName' => $customerData['contactDetails']['firstName'],
+                'lastName' => $customerData['contactDetails']['lastName'],
+                'street' => sprintf(
+                    "%s %s",
+                    $customerData['shippingAddress']['street'],
+                    $customerData['shippingAddress']['houseNumber'],
+                ),
+                'zipcode' => $customerData['shippingAddress']['postalCode'],
+                'city' => $customerData['shippingAddress']['city'],
+                'additionalAddressLine1' => null,
+            ];
+
+            $this->repoOrderAddresses->create([$addressData], $context->getContext());
+
+            /** @var OrderDeliveryEntity|null $delivery */
+            $delivery = $order->getDeliveries() ? $order->getDeliveries()->first() : null;
+
+            $this->orderDeliveryRepository->update([[
+                'id' => $delivery->getId(),
+                'shippingOrderAddressId' => $shippingAddressId
+            ]], $context->getContext());
         }
 
         return $this->orderService->getOrder($order->getId(), $context->getContext());
@@ -256,35 +291,29 @@ class IdealExpress
             return $customer;
         }
 
-        $addressData = $this->getAddressData($webhookData, $context->getContext());
+        $shippingAddressData = $this->getAddressData($webhookData, $context->getContext());
+        $invoiceAddressData = $this->getAddressData($webhookData, $context->getContext(), null, 'invoiceAddress');
 
-        $matchingAddress = null;
+        $shippingAddressId = $this->getCustomerAddressId($customer, $shippingAddressData);
+        $billingAddressId = $this->getCustomerAddressId($customer, $invoiceAddressData);
 
-        $addresses = $customer->getAddresses();
-        if ($addresses !== null) {
-            foreach ($addresses as $address) {
-                if ($this->isIdenticalAddress($address, $addressData)) {
-                    $matchingAddress = $address;
-
-                    break;
-                }
-            }
-        }
-
-        $addressId = $matchingAddress === null ? Uuid::randomHex() : $matchingAddress->getId();
         $salutationId = $this->getSalutationId($context->getContext());
 
         $customerData = [
             'id' => $customer->getId(),
             'email' => $customerWebhookData['contactDetails']['email'],
-            'defaultShippingAddressId' => $addressId,
-            'defaultBillingAddressId' => $addressId,
+            'defaultShippingAddressId' => $shippingAddressId,
+            'defaultBillingAddressId' => $billingAddressId,
             'firstName' => $customerWebhookData['contactDetails']['firstName'],
             'lastName' => $customerWebhookData['contactDetails']['lastName'],
             'salutationId' => $salutationId,
             'addresses' => [
-                array_merge($addressData, [
-                    'id' => $addressId,
+                array_merge($shippingAddressData, [
+                    'id' => $shippingAddressId,
+                    'salutationId' => $salutationId,
+                ]),
+                array_merge($invoiceAddressData, [
+                    'id' => $billingAddressId,
                     'salutationId' => $salutationId,
                 ]),
             ],
@@ -463,6 +492,7 @@ class IdealExpress
                 10,
                 null
             ),
+            null,
             null
         );
 
@@ -549,8 +579,12 @@ class IdealExpress
     /**
      * @return array<string, string|null>
      */
-    private function getAddressData(array $webhookData, Context $context, ?string $salutationId = null): array
-    {
+    private function getAddressData(
+        array $webhookData,
+        Context $context,
+        ?string $salutationId = null,
+        string $addressType = 'shippingAddress'
+    ): array {
         $customerWebhookData = $this->getCustomerWebhookData($webhookData);
         $countryId = $this->getCountryIdByCode('NL', $context);
 
@@ -560,13 +594,13 @@ class IdealExpress
             'salutationId' => $salutationId,
             'street' => sprintf(
                 "%s %s",
-                $customerWebhookData['shippingAddress']['street'],
-                $customerWebhookData['shippingAddress']['houseNumber'],
+                $customerWebhookData[$addressType]['street'],
+                $customerWebhookData[$addressType]['houseNumber'],
             ),
-            'zipcode' => $customerWebhookData['shippingAddress']['postalCode'],
+            'zipcode' => $customerWebhookData[$addressType]['postalCode'],
             'countryId' => $countryId,
             'phoneNumber' => $customerWebhookData['contactDetails']['phoneNumber'],
-            'city' => $customerWebhookData['shippingAddress']['city'],
+            'city' => $customerWebhookData[$addressType]['city'],
             'additionalAddressLine1' => null,
         ];
     }
@@ -628,5 +662,23 @@ class IdealExpress
         $paymentData = reset($webhookData['payments']);
 
         return (array) $paymentData['supplierData'] ?? null;
+    }
+
+    private function getCustomerAddressId(CustomerEntity $customer, array $addressData)
+    {
+        $matchingAddress = null;
+
+        $addresses = $customer->getAddresses();
+        if ($addresses !== null) {
+            foreach ($addresses as $address) {
+                if ($this->isIdenticalAddress($address, $addressData)) {
+                    $matchingAddress = $address;
+
+                    break;
+                }
+            }
+        }
+
+        return $matchingAddress === null ? Uuid::randomHex() : $matchingAddress->getId();
     }
 }
