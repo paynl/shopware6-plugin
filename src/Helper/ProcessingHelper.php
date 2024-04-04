@@ -173,7 +173,7 @@ class ProcessingHelper
             Context::createDefaultContext()
         );
 
-        $stateId = $transitions->first()->get('toStateId') ?? '';
+        $stateId = $transitions->first() ? $transitions->first()->get('toStateId') : '';
         if (empty($stateId)) {
             return;
         }
