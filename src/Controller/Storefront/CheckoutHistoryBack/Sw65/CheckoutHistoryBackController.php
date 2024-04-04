@@ -10,13 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class CheckoutHistoryBackController extends CheckoutHistoryBackControllerBase
 {
 
-    #[Route(
-        path: '/checkout/history/back',
-        name: 'frontend.checkout.Paynl.history.back',
-        options: ['seo' => false],
-        defaults: ['_loginRequired' => true, '_loginRequiredAllowGuest' => true, '_noStore' => true, '_routeScope' => ['storefront']],
-        methods: ['GET']
-    )]
+    #[Route('/checkout/history/back', name: 'frontend.checkout.Paynl.history.back', options: ['seo' => false], defaults: ['_loginRequired' => true, '_loginRequiredAllowGuest' => true, '_noStore' => true, '_routeScope' => ['storefront']], methods: ['GET'])]
     public function historyBackProxy(): Response
     {
         return $this->getHistoryBackProxy();
