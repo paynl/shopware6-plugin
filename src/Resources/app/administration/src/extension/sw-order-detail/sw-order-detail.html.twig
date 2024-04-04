@@ -1,0 +1,10 @@
+{% block sw_order_detail_content_tabs_general %}
+    {% parent %}
+
+    <sw-tabs-item v-if="isPAYPayment"
+                  :disabled="isPAYTransactionRefundAllowed"
+                  :route="{ name: 'paynl.refund.page.view', params: { id: $route.params.id } }"
+                  :title="$tc('order-list-override.refund')">
+        {{ $tc('order-list-override.refund') }}
+    </sw-tabs-item>
+{% endblock %}
