@@ -7,16 +7,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route(defaults: ['_routeScope' => ['storefront'], 'auth_required' => true, 'auth_enabled' => true])]
+#[Route(defaults: ['_routeScope' => ['storefront'], 'csrf_protected' => false, 'auth_required' => true, 'auth_enabled' => true])]
 class AccountOrderController extends AccountOrderControllerBase
 {
 
-    #[Route(
-        path: '/PaynlPayment/order/change/paylater-fields',
-        name: 'frontend.PaynlPayment.edit-order.change-paylater-fields',
-        defaults: ['csrf_protected' => false, '_routeScope' => ['storefront']],
-        methods: ['POST']
-    )]
+    #[Route('/PaynlPayment/order/change/paylater-fields', name: 'frontend.PaynlPayment.edit-order.change-paylater-fields', methods: ['POST'])]
     public function orderChangePayLaterFields(Request $request): JsonResponse
     {
         return $this->getOrderChangePayLaterFieldResponse($request);

@@ -10,23 +10,13 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
 class RefundController extends RefundControllerBase
 {
-    #[Route(
-        path: '/api/paynl/get-refund-data',
-        name: 'api.PaynlPayment.getRefundData',
-        defaults: ['_routeScope' => ['api']],
-        methods: ['GET']
-    )]
+    #[Route('/api/paynl/get-refund-data', name: 'api.PaynlPayment.getRefundData', methods: ['GET'])]
     public function getRefundData(Request $request): JsonResponse
     {
         return $this->getRefundDataResponse($request);
     }
 
-    #[Route(
-        path: '/api/paynl/refund',
-        name: 'frontend.PaynlPayment.refund',
-        defaults: ['_routeScope' => ['api']],
-        methods: ['POST']
-    )]
+    #[Route('/api/paynl/refund', name: 'frontend.PaynlPayment.refund', methods: ['POST'])]
     public function refund(Request $request): JsonResponse
     {
         return $this->getRefundResponse($request);

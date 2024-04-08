@@ -11,7 +11,6 @@ parameters:
         - %currentWorkingDirectory%/tests/
         - %currentWorkingDirectory%/Test/
         - %currentWorkingDirectory%/Resources/smarty
-        - %currentWorkingDirectory%/src/Controller/
 
     ignoreErrors:
         - '#apcu_#'
