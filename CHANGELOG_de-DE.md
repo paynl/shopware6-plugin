@@ -1,4 +1,7 @@
 # 1.6.1
+- Wiederherstellung des Warenkorbs nach dem Zurückklicken auf der Händler-Zahlungsseite hinzugefügt
+- Registerkarte „Rückerstattung“ in der Bestellansicht hinzugefügt
+- Fehler beim Abbrechen des Austauschs behoben
 
 # 1.6.0
 - Unterstützt Shopware 6.6 Version

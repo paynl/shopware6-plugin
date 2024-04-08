@@ -1,4 +1,7 @@
 # 1.6.1
+- Added restoring shopping cart after clicking back on the merchant payment page
+- Added refund tab in the order view
+- Fixed cancel exchange error
 
 # 1.6.0
 - Support Shopware 6.6 version
