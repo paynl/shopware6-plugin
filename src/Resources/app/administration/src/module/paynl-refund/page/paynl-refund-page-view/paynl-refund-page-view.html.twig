@@ -1,5 +1,37 @@
 {% block paynl_refund_page %}
     <sw-page class="paynl-refund-page">
+        <!-- eslint-disable-next-line sw-deprecation-rules/no-twigjs-blocks -->
+        {% block paynl_refund_detail_actions %}
+            <template #smart-bar-actions>
+                <sw-button
+                        v-tooltip="{
+                message: $tc('sw-privileges.tooltip.warning'),
+                disabled: acl.can('order.editor'),
+                showOnDisabledElements: true
+            }"
+                        class="sw-order-detail__smart-bar-cancel-button"
+                        :disabled="isLoading || !acl.can('order.editor')"
+                        @click="onCancelRefunding"
+                >
+                    {{ $tc('global.default.cancel') }}
+                </sw-button>
+
+                <sw-button-process
+                        v-tooltip="{
+                message: $tc('sw-privileges.tooltip.warning'),
+                disabled: acl.can('order.editor'),
+                showOnDisabledElements: true
+            }"
+                        class="sw-order-detail__smart-bar-save-button"
+                        variant="primary"
+                        :disabled="isLoading || !acl.can('order.editor')"
+                        :is-loading="isLoading"
+                        @click.prevent="onRefundClick"
+                >
+                    {{ $tc('refund.products.refund') }}
+                </sw-button-process>
+            </template>
+        {% endblock %}
         <template #content v-if="!isLoading">
             {% block paynl_refund_page__detail %}
                 <sw-card-view v-if="order">
@@ -72,13 +104,6 @@
                                         <span v-if="availableForRefund">{{ currencyFilter(availableForRefund, order.currency.translated.shortName) }}</span>
                                         <span v-else>{{ currencyFilter(0, order.currency.translated.shortName) }}</span>
                                     </dd>
-                                </sw-description-list>
-                            </sw-container>
-                        </sw-card-section>
-                        <sw-card-section>
-                            <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="30px 30px">
-                                <sw-description-list columns="1fr" grid="1fr" class="sw-order-user-card__summary-vertical text-right">
-                                    <sw-button variant="primary" @click="onRefundClick()">{{ $tc('refund.products.refund') }}</sw-button>
                                 </sw-description-list>
                             </sw-container>
                         </sw-card-section>

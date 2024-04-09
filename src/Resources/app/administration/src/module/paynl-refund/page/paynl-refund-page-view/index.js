@@ -12,8 +12,9 @@ Component.register('paynl-refund-page-view', {
     ],
 
     inject: [
+        'acl',
         'repositoryFactory',
-        'PaynlPaymentService'
+        'PaynlPaymentService',
     ],
 
     props: {
@@ -189,6 +190,12 @@ Component.register('paynl-refund-page-view', {
 
                     this.getDataForRefund();
                 });
-        }
+        },
+
+        onCancelRefunding() {
+            this.isLoading = true;
+
+            window.location.reload();
+        },
     }
 });
