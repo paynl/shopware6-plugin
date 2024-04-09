@@ -1,3 +1,5 @@
+# 1.6.2
+
 # 1.6.1
 - Wiederherstellung des Warenkorbs nach dem Zurückklicken auf der Händler-Zahlungsseite hinzugefügt
 - Registerkarte „Rückerstattung“ in der Bestellansicht hinzugefügt

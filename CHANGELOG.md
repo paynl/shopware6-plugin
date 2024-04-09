@@ -1,3 +1,5 @@
+# 1.6.2
+
 # 1.6.1
 - Added restoring shopping cart after clicking back on the merchant payment page
 - Added refund tab in the order view
