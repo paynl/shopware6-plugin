@@ -26,7 +26,7 @@
     "payment": {
         "selectIssuer": "Select Issuer",
         "idealExpressCheckout": {
-            "buttonTitle": "PayPal Express",
+            "buttonTitle": "IDEAL Express",
             "buttonImage": "checkout-logo-medium-de.png",
             "buttonImage2x": "checkout-logo-medium-de-2x.png",
             "paymentError": "The payment with IDEAL Express Checkout failed."

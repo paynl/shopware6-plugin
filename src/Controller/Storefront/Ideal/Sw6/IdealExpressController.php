@@ -20,7 +20,7 @@ class IdealExpressController extends IdealExpressControllerBase
 
     /**
      * @Route(
-     *     "/PaynlPayment/paypal/start-payment",
+     *     "/PaynlPayment/ideal-express/start-payment",
      *     name="frontend.account.PaynlPayment.ideal-express.start-payment",
      *     methods={"GET"},
      *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}},

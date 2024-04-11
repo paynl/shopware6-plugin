@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route(defaults: ['_routeScope' => ['storefront']])]
 class IdealExpressController extends IdealExpressControllerBase
 {
-    #[Route('/PaynlPayment/paypal/start-payment', name: 'frontend.account.PaynlPayment.ideal-express.start-payment', options: ['seo' => false], methods: ['GET'])]
+    #[Route('/PaynlPayment/ideal-express/start-payment', name: 'frontend.account.PaynlPayment.ideal-express.start-payment', options: ['seo' => false], methods: ['GET'])]
     public function startPayment(SalesChannelContext $context, Request $request): Response
     {
         return $this->getStartPaymentResponse($context, $request);
