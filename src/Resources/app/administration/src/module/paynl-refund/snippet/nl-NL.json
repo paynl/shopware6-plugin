@@ -35,7 +35,8 @@
             "price": "Prijs",
             "quantity": "Hoeveelheid",
             "refund": "Restitutie",
-            "restock": "Voorraad aanvullen"
+            "restock": "Voorraad aanvullen",
+            "restockAll": "Alles aanvullen"
         },
         "notifications": {
             "danger": "Mislukt",

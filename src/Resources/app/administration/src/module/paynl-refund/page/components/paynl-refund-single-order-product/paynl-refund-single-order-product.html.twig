@@ -15,7 +15,7 @@
     </td>
     <td class="sw-data-grid__cell sw-data-grid__cell--selection">
         <div class="sw-data-grid__cell-content">
-            <sw-checkbox-field @change="onRestockChange"></sw-checkbox-field>
+            <sw-checkbox-field v-model="product.rstk" @change="onRestockChange"></sw-checkbox-field>
         </div>
     </td>
 </tr>

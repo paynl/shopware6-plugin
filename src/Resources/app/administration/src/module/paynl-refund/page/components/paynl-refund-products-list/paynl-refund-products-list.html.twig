@@ -23,6 +23,17 @@
                 </thead>
                 <tbody class="sw-data-grid__body">
                 <paynl-refund-single-order-product v-for="product in products" :product="product" :key="product.id" @refund-quantity-changed="refundQuantityChanged"></paynl-refund-single-order-product>
+                <tr class="sw-data-grid__row">
+                    <td class="sw-data-grid__cell sw-data-grid__cell--paynlTransactionId sw-data-grid__cell--align-left" colspan="3"></td>
+                    <td class="sw-data-grid__cell sw-data-grid__cell--paynlTransactionId sw-data-grid__cell--align-right">
+                        <div class="sw-data-grid__cell-content">{{ $tc('refund.products.restockAll') }}</div>
+                    </td>
+                    <td class="sw-data-grid__cell sw-data-grid__cell--selection">
+                        <div class="sw-data-grid__cell-content">
+                            <sw-checkbox-field @change="onRestockAllChange"></sw-checkbox-field>
+                        </div>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
