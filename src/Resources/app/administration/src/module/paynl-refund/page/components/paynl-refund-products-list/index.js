@@ -22,6 +22,12 @@ Component.register('paynl-refund-products-list', {
             }
 
             this.$emit('change-refund-amount', amount);
+        },
+
+        onRestockAllChange(value) {
+            for (let product of this.products) {
+                product.rstk = value;
+            }
         }
     }
 });
