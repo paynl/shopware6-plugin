@@ -8,6 +8,7 @@ use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
+use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
@@ -37,6 +38,9 @@ class IdealExpressControllerBase extends StorefrontController
     /** @var RouterInterface */
     private $router;
 
+    /** @var AbstractLogoutRoute */
+    private $logoutRoute;
+
     /** @var ?FlashBag */
     private $flashBag;
 
@@ -46,6 +50,7 @@ class IdealExpressControllerBase extends StorefrontController
         CartBackupService $cartBackupService,
         OrderService $orderService,
         RouterInterface $router,
+        AbstractLogoutRoute $logoutRoute,
         ?FlashBag $flashBag
     ) {
         $this->idealExpress = $idealExpress;
@@ -53,6 +58,7 @@ class IdealExpressControllerBase extends StorefrontController
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
         $this->router = $router;
+        $this->logoutRoute = $logoutRoute;
         $this->flashBag = $flashBag;
     }
 
@@ -99,6 +105,8 @@ class IdealExpressControllerBase extends StorefrontController
                 $countryCode,
                 $newContext
             );
+
+            $this->logoutRoute->logout($newContext, new RequestDataBag($request->request->all()));
 
             return new RedirectResponse($redirectUrl);
         } catch (\Throwable $ex) {
