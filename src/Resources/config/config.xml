@@ -488,6 +488,17 @@
             <helpText lang="nl-NL">Express Direct Checkout</helpText>
             <helpText lang="de-DE">Express Direct Checkout</helpText>
         </input-field>
+
+        <input-field type="bool">
+            <name>paymentIdealExpressCheckoutLoggedInCustomerEnabled</name>
+            <defaultValue>false</defaultValue>
+            <label>Express Direct Checkout Logged In Customer</label>
+            <label lang="nl-NL">Express Direct Checkout Logged In Customer</label>
+            <label lang="de-DE">Express Direct Checkout Logged In Customer</label>
+            <helpText>Express Direct Checkout Logged In Customer</helpText>
+            <helpText lang="nl-NL">Express Direct Checkout Logged In Customer</helpText>
+            <helpText lang="de-DE">Express Direct Checkout Logged In Customer</helpText>
+        </input-field>
     </card>
 
     <card>
