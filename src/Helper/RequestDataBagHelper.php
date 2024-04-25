@@ -26,7 +26,11 @@ class RequestDataBagHelper
     public function getDataBagArray(string $name, RequestDataBag $dataBag)
     {
         if ($dataBag->all($name)) {
-            return $dataBag->all($name);
+            $data = $dataBag->all($name);
+        }
+
+        if (is_array($data = $data[$name] ?? null)) {
+            return $data;
         }
 
         $request = (new Request($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER))->request;
