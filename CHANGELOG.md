@@ -1,4 +1,9 @@
 # 1.6.2
+- Added refund, cancel, and back buttons on the refund page
+- Moved the shipping and product section to the top of the refund page
+- Added restock all option on the refund page
+- Fixed error on checkout confirm page
+- Fixed refund option on Shopware 6.6 and 6.5
 
 # 1.6.1
 - Added restoring shopping cart after clicking back on the merchant payment page

@@ -1,4 +1,9 @@
 # 1.6.2
+- Schaltflächen „Rückerstattung“, „Stornieren“ und „Zurück“ auf der Rückerstattungsseite hinzugefügt
+- Der Versand- und Produktabschnitt wurde an den oberen Rand der Rückerstattungsseite verschoben
+- Auf der Rückerstattungsseite wurde die Option „Alles auffüllen“ hinzugefügt
+- Fehler auf der Checkout-Bestätigungsseite behoben
+- Rückerstattungsoption bei Shopware 6.6 und 6.5 behoben
 
 # 1.6.1
 - Wiederherstellung des Warenkorbs nach dem Zurückklicken auf der Händler-Zahlungsseite hinzugefügt
