@@ -12,6 +12,13 @@ Component.register('paynl-refund-products-list', {
             default: []
         }
     },
+
+    data() {
+       return {
+           restockAll: false
+       }
+    },
+
     methods: {
         refundQuantityChanged() {
             let amount = 0;
@@ -22,6 +29,25 @@ Component.register('paynl-refund-products-list', {
             }
 
             this.$emit('change-refund-amount', amount);
+        },
+
+        productRestockChanged() {
+            let checked = 0;
+            for (let product of this.products) {
+                if (product.rstk) {
+                    checked += 1;
+                }
+            }
+
+            this.restockAll = checked === this.products.length;
+        },
+
+        onRestockAllChange(value) {
+            for (let product of this.products) {
+                product.rstk = value;
+            }
+
+            this.restockAll = value;
         }
     }
 });

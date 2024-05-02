@@ -35,7 +35,8 @@
             "price": "Price",
             "quantity": "Quantity",
             "refund": "Refund",
-            "restock": "Restock"
+            "restock": "Restock",
+            "restockAll": "Restock all"
         },
         "notifications": {
             "danger": "Error",

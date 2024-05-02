@@ -233,12 +233,12 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             )
             ->first();
 
-        $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
-        if (in_array($paynlTransaction->getStateId(), PaynlTransactionStatusesEnum::DENIED_STATUSES)) {
-            $orderTransactionStatus = 'denied';
-        }
-
         if ($paynlTransaction instanceof PaynlTransactionEntity) {
+            $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
+            if (in_array($paynlTransaction->getStateId(), PaynlTransactionStatusesEnum::DENIED_STATUSES)) {
+                $orderTransactionStatus = 'denied';
+            }
+
             $event->getPage()->assign([
                 'PAY' => [
                     'status' => $orderTransactionStatus

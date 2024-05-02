@@ -43,6 +43,7 @@ Component.register('paynl-refund-single-order-product', {
 
         onRestockChange(value) {
             this.product.rstk = value;
+            this.$emit('product-restock-changed');
         }
     }
 });
