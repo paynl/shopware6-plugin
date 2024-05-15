@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class BaseService
 {
-    protected const BASE_URL = 'https://connect.payments.nl';
+    protected const BASE_URL = 'https://connect.achterelkebetaling.nl';
 
     protected Client $client;
 

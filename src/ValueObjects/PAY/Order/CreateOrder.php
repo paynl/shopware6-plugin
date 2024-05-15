@@ -12,6 +12,7 @@ class CreateOrder
     private ?string $reference;
     private ?string $returnUrl;
     private ?string $exchangeUrl;
+    private ?Optimize $optimize;
     private ?PaymentMethod $paymentMethod;
     private ?Integration $integration;
     private ?Order $order;
@@ -23,6 +24,7 @@ class CreateOrder
         ?string $reference,
         ?string $returnUrl,
         ?string $exchangeUrl,
+        ?Optimize $optimize,
         ?PaymentMethod $paymentMethod,
         ?Integration $integration,
         ?Order $order
@@ -33,6 +35,7 @@ class CreateOrder
         $this->reference = $reference;
         $this->returnUrl = $returnUrl;
         $this->exchangeUrl = $exchangeUrl;
+        $this->optimize = $optimize;
         $this->paymentMethod = $paymentMethod;
         $this->integration = $integration;
         $this->order = $order;
@@ -68,6 +71,11 @@ class CreateOrder
         return $this->exchangeUrl;
     }
 
+    public function getOptimize(): ?Optimize
+    {
+        return $this->optimize;
+    }
+
     public function getPaymentMethod(): ?PaymentMethod
     {
         return $this->paymentMethod;
@@ -92,6 +100,7 @@ class CreateOrder
             'description' => $this->description,
             'returnUrl' => $this->returnUrl,
             'exchangeUrl' => $this->exchangeUrl,
+            'optimize' => $this->optimize ? $this->optimize->toArray() : null,
             'paymentMethod' => $this->paymentMethod ? $this->paymentMethod->toArray() : null,
             'integration' => $this->integration ? $this->integration->toArray() : null,
             'order' => $this->order ? $this->order->toArray() : null

@@ -206,24 +206,28 @@ class IdealExpress
             return $order;
         }
 
-        $countryId = $this->getCountryIdByCode('NL', $context->getContext());
+        $countryCode = strtoupper($customerData['billingAddress']['countryCode']);
+        $countryId = $this->getCountryIdByCode($countryCode, $context->getContext());
+        if (empty($countryId)) {
+            $countryId = $context->getSalesChannel()->getCountryId();
+        }
 
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
                 $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
-                    $customerData['contactDetails']['firstName'],
-                    $customerData['contactDetails']['lastName'],
+                    $customerData['customer']['firstname'],
+                    $customerData['customer']['lastname'],
                     '',
                     '',
                     '',
                     sprintf(
                         "%s %s",
-                        $customerData['invoiceAddress']['street'],
-                        $customerData['invoiceAddress']['houseNumber'],
+                        $customerData['billingAddress']['streetName'],
+                        $customerData['billingAddress']['streetNumber'],
                     ),
-                    $customerData['invoiceAddress']['postalCode'],
-                    $customerData['invoiceAddress']['city'],
+                    $customerData['billingAddress']['zipCode'],
+                    $customerData['billingAddress']['city'],
                     $countryId,
                     $context->getContext()
                 );
@@ -235,14 +239,14 @@ class IdealExpress
                 'countryId' => $countryId,
                 'orderId' => $order->getId(),
                 'salutationId' => $this->getSalutationId($context->getContext()),
-                'firstName' => $customerData['contactDetails']['firstName'],
-                'lastName' => $customerData['contactDetails']['lastName'],
+                'firstName' => $customerData['customer']['firstname'],
+                'lastName' => $customerData['customer']['lastname'],
                 'street' => sprintf(
                     "%s %s",
-                    $customerData['shippingAddress']['street'],
-                    $customerData['shippingAddress']['houseNumber'],
+                    $customerData['shippingAddress']['streetName'],
+                    $customerData['shippingAddress']['streetNumber'],
                 ),
-                'zipcode' => $customerData['shippingAddress']['postalCode'],
+                'zipcode' => $customerData['shippingAddress']['zipCode'],
                 'city' => $customerData['shippingAddress']['city'],
                 'additionalAddressLine1' => null,
             ];
@@ -274,9 +278,9 @@ class IdealExpress
         $this->orderCustomerRepository->update([
             [
                 'id' => $customer->getId(),
-                'email' => $customerData['contactDetails']['email'],
-                'firstName' => $customerData['contactDetails']['firstName'],
-                'lastName' => $customerData['contactDetails']['lastName'],
+                'email' => $customerData['customer']['email'],
+                'firstName' => $customerData['customer']['firstname'],
+                'lastName' => $customerData['customer']['lastname'],
             ]
         ], $context->getContext());
     }
@@ -291,8 +295,8 @@ class IdealExpress
             return $customer;
         }
 
-        $shippingAddressData = $this->getAddressData($webhookData, $context->getContext());
-        $invoiceAddressData = $this->getAddressData($webhookData, $context->getContext(), null, 'invoiceAddress');
+        $shippingAddressData = $this->getAddressData($webhookData, $context);
+        $invoiceAddressData = $this->getAddressData($webhookData, $context, null, 'billingAddress');
 
         $shippingAddressId = $this->getCustomerAddressId($customer, $shippingAddressData);
         $billingAddressId = $this->getCustomerAddressId($customer, $invoiceAddressData);
@@ -301,11 +305,11 @@ class IdealExpress
 
         $customerData = [
             'id' => $customer->getId(),
-            'email' => $customerWebhookData['contactDetails']['email'],
+            'email' => $customerWebhookData['customer']['email'],
             'defaultShippingAddressId' => $shippingAddressId,
             'defaultBillingAddressId' => $billingAddressId,
-            'firstName' => $customerWebhookData['contactDetails']['firstName'],
-            'lastName' => $customerWebhookData['contactDetails']['lastName'],
+            'firstName' => $customerWebhookData['customer']['firstname'],
+            'lastName' => $customerWebhookData['customer']['lastname'],
             'salutationId' => $salutationId,
             'addresses' => [
                 array_merge($shippingAddressData, [
@@ -451,7 +455,7 @@ class IdealExpress
             true
         );
 
-        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, $optimize);
+        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, null);
         $products = $this->getOrderProducts($order, $salesChannelContext);
         $order = new Order($products);
 
@@ -464,6 +468,7 @@ class IdealExpress
             $orderNumber,
             $asyncPaymentTransition->getReturnUrl(),
             $exchangeUrl,
+            $optimize,
             $paymentMethod,
             $integration,
             $order
@@ -488,6 +493,7 @@ class IdealExpress
             'TESTREFERENCE10',
             null,
             null,
+            'fastCheckout',
             new PaymentMethod(
                 10,
                 null
@@ -581,25 +587,29 @@ class IdealExpress
      */
     private function getAddressData(
         array $webhookData,
-        Context $context,
+        SalesChannelContext $context,
         ?string $salutationId = null,
         string $addressType = 'shippingAddress'
     ): array {
         $customerWebhookData = $this->getCustomerWebhookData($webhookData);
-        $countryId = $this->getCountryIdByCode('NL', $context);
+        $countryCode = strtoupper($customerWebhookData[$addressType]['countryCode']);
+        $countryId = $this->getCountryIdByCode($countryCode, $context->getContext());
+        if (empty($countryId)) {
+            $countryId = $context->getSalesChannel()->getCountryId();
+        }
 
         return [
-            'firstName' => $customerWebhookData['contactDetails']['firstName'],
-            'lastName' => $customerWebhookData['contactDetails']['lastName'],
+            'firstName' => $customerWebhookData['customer']['firstname'],
+            'lastName' => $customerWebhookData['customer']['lastname'],
             'salutationId' => $salutationId,
             'street' => sprintf(
                 "%s %s",
-                $customerWebhookData[$addressType]['street'],
-                $customerWebhookData[$addressType]['houseNumber'],
+                $customerWebhookData[$addressType]['streetName'],
+                $customerWebhookData[$addressType]['streetNumber'],
             ),
-            'zipcode' => $customerWebhookData[$addressType]['postalCode'],
+            'zipcode' => $customerWebhookData[$addressType]['zipCode'],
             'countryId' => $countryId,
-            'phoneNumber' => $customerWebhookData['contactDetails']['phoneNumber'],
+            'phoneNumber' => $customerWebhookData['customer']['phone'],
             'city' => $customerWebhookData[$addressType]['city'],
             'additionalAddressLine1' => null,
         ];
@@ -655,13 +665,11 @@ class IdealExpress
 
     private function getCustomerWebhookData(array $webhookData): ?array
     {
-        if (empty($webhookData['payments'])) {
+        if (empty($webhookData['checkoutData'])) {
             return null;
         }
 
-        $paymentData = reset($webhookData['payments']);
-
-        return (array) $paymentData['supplierData'] ?? null;
+        return (array) $webhookData['checkoutData'] ?? null;
     }
 
     private function getCustomerAddressId(CustomerEntity $customer, array $addressData)
