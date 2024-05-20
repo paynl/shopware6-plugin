@@ -106,6 +106,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderAddressRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepository"/>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\Ideal;
 
+use Exception;
 use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
@@ -71,7 +72,6 @@ class IdealExpressControllerBase extends StorefrontController
             $street = 'temp';
             $city = 'Temp';
             $zipcode = '23456';
-            $countryCode = 'de';
 
             $newContext = $this->idealExpress->prepareCustomer(
                 $firstname,
@@ -80,11 +80,13 @@ class IdealExpressControllerBase extends StorefrontController
                 $street,
                 $zipcode,
                 $city,
-                $countryCode,
                 $context
             );
 
             $order = $this->idealExpress->createOrder($newContext);
+            $countryCode = $order->getBillingAddress()->getCountry()
+                ? $order->getBillingAddress()->getCountry()->getIso()
+                : null;
 
             $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
 

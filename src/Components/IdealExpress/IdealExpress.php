@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
@@ -106,6 +107,9 @@ class IdealExpress
     /** @var CountryRepositoryInterface */
     private $countryRepository;
 
+    /** @var SalesChannelRepositoryInterface */
+    private $salesChannelRepository;
+
     /** @var SalutationRepositoryInterface */
     private $salutationRepository;
 
@@ -130,6 +134,7 @@ class IdealExpress
         ProcessingHelper $processingHelper,
         OrderAddressRepositoryInterface $repoOrderAddresses,
         CountryRepositoryInterface $countryRepository,
+        SalesChannelRepositoryInterface $salesChannelRepository,
         SalutationRepositoryInterface $salutationRepository,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         OrderDeliveryRepositoryInterface $orderDeliveryRepository,
@@ -148,6 +153,7 @@ class IdealExpress
         $this->processingHelper = $processingHelper;
         $this->repoOrderAddresses = $repoOrderAddresses;
         $this->countryRepository = $countryRepository;
+        $this->salesChannelRepository = $salesChannelRepository;
         $this->salutationRepository = $salutationRepository;
         $this->orderCustomerRepository = $orderCustomerRepository;
         $this->orderDeliveryRepository = $orderDeliveryRepository;
@@ -166,7 +172,6 @@ class IdealExpress
         string $street,
         string $zipcode,
         string $city,
-        string $countryCode,
         SalesChannelContext $context
     ): SalesChannelContext {
         $this->cartBackupService->clearBackup($context);
@@ -174,6 +179,8 @@ class IdealExpress
         $idealExpressID = $this->getActiveIdealID($context);
 
         if (!$this->customerService->isCustomerLoggedIn($context)) {
+            $countryCode = $this->getSalesChannelCountryIso($context);
+
             $customer = $this->customerService->createIdealExpressCustomer(
                 $firstname,
                 $lastname,
@@ -688,5 +695,24 @@ class IdealExpress
         }
 
         return $matchingAddress === null ? Uuid::randomHex() : $matchingAddress->getId();
+    }
+
+    private function getSalesChannelCountryIso(SalesChannelContext $salesChannelContext): ?string
+    {
+        $salesChannelId = $salesChannelContext->getSalesChannelId();
+
+        $criteria = new Criteria([$salesChannelId]);
+        $criteria->addAssociation('country');
+
+        $salesChannel = $this->salesChannelRepository->search(
+            $criteria,
+            $salesChannelContext->getContext()
+        )->first();
+
+        if (!$salesChannel->getCountry()) {
+            return null;
+        }
+
+        return (string) $salesChannel->getCountry()->getIso();
     }
 }
