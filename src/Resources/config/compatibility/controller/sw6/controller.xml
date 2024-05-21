@@ -24,6 +24,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService" />
             <argument type="service" id="Shopware\Storefront\Framework\Routing\Router"/>
+            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\LogoutRoute"/>
             <argument type="service" id="session.flash_bag" on-invalid="null"/>
 
             <call method="setContainer">

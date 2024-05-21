@@ -43,4 +43,17 @@ class IdealExpressController extends IdealExpressControllerBase
     {
         return $this->getFinishPaymentResponse($data, $context);
     }
+
+    /**
+     * @Route(
+     *     "/PaynlPayment/ideal-express/finish-page",
+     *     name="frontend.account.PaynlPayment.ideal-express.finish-page",
+     *     methods={"GET", "POST"},
+     *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}},
+     *     )
+     */
+    public function finishPage(Request $request, SalesChannelContext $context): Response
+    {
+        return $this->getFinishPageResponse($request, $context);
+    }
 }

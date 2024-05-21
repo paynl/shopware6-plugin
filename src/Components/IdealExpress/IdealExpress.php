@@ -430,6 +430,25 @@ class IdealExpress
         $this->processingHelper->instorePaymentUpdateState($order->getOrderId(), $stateActionName, $statusCode);
     }
 
+    public function isNotCompletedOrder(string $orderId, Context $context)
+    {
+        try {
+            $order = $this->orderService->getOrder($orderId, $context);
+            $billingAddress = $order->getBillingAddress();
+
+            if (!$billingAddress) {
+                return true;
+            }
+
+            return in_array('Temp', [
+                $billingAddress->getFirstName(),
+                $billingAddress->getLastName(),
+            ]);
+        } catch (Throwable $exception) {
+            return true;
+        }
+    }
+
     private function createPayIdealExpressOrder(
         AsyncPaymentTransactionStruct $asyncPaymentTransition,
         SalesChannelContext $salesChannelContext
