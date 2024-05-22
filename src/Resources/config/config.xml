@@ -490,6 +490,17 @@
         </input-field>
 
         <input-field type="bool">
+            <name>paymentIdealExpressShoppingCartEnabled</name>
+            <defaultValue>false</defaultValue>
+            <label>Express Direct Shopping Cart</label>
+            <label lang="nl-NL">Express Direct Shopping Cart</label>
+            <label lang="de-DE">Express Direct Shopping Cart</label>
+            <helpText>Express Direct Shopping Cart</helpText>
+            <helpText lang="nl-NL">Express Direct Shopping Cart</helpText>
+            <helpText lang="de-DE">Express Direct Shopping Cart</helpText>
+        </input-field>
+
+        <input-field type="bool">
             <name>paymentIdealExpressCheckoutLoggedInCustomerEnabled</name>
             <defaultValue>false</defaultValue>
             <label>Express Direct Checkout Logged In Customer</label>

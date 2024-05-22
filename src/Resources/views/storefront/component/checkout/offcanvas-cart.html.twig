@@ -3,7 +3,7 @@
 {% block component_offcanvas_cart_actions %}
     {{ parent() }}
 
-    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled') and page.cart.price.totalPrice > 0
+    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled') and page.cart.price.totalPrice > 0
         and ((config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled') and context.customer.guest)
         or not context.customer)
     %}
