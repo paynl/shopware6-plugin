@@ -1,0 +1,18 @@
+{% sw_extends '@Storefront/storefront/component/checkout/offcanvas-cart.html.twig' %}
+
+{% block component_offcanvas_cart_actions_cart %}
+    {{ parent() }}
+
+    {% block paynl_paypal_ecs_button %}
+        {% set expressOptions = {
+            'clientId':'Ad37_s9hRiNiPtgdHxz0eGzN_1UWjkmU-GtDOJZgmuIUP6N-lzVkUVeEEthgYarcM6TPpQ4IL0i-fEUJ',
+            'currency':'EUR'
+        } %}
+
+        <div class="btn-block"
+             data-paynl-paypal-express-button="true"
+             data-paynl-paypal-express-button-options="{{ expressOptions|json_encode }}">
+        </div>
+    {% endblock %}
+
+{% endblock %}
