@@ -1,9 +1,9 @@
+import Plugin from 'src/plugin-system/plugin.class';
 import HttpClient from 'src/service/http-client.service';
 import DomAccess from 'src/helper/dom-access.helper';
 import ElementLoadingIndicatorUtil from 'src/utility/loading-indicator/element-loading-indicator.util';
-import Plugin from 'src/plugin-system/plugin.class';
 import PaynlPayPalScriptLoading from './paynl-paypal.script-loading';
-import {loadScript} from '@paypal/paypal-js';
+import { loadScript } from '../../node_modules/@paypal/paypal-js';
 
 export default class PaynlPayPalExpressCheckoutButton extends Plugin {
     static scriptLoading = new PaynlPayPalScriptLoading();
@@ -57,7 +57,7 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
          *
          * @type string
          */
-        clientId: '',
+        clientId: 'Ad37_s9hRiNiPtgdHxz0eGzN_1UWjkmU-GtDOJZgmuIUP6N-lzVkUVeEEthgYarcM6TPpQ4IL0i-fEUJ',
 
         /**
          * This option holds the merchant id specified in the settings
@@ -202,9 +202,10 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
      * @return {Object}
      */
     getScriptOptions() {
+        console.log(this.options);
         const config = {
             // components: 'buttons,messages,card-fields,funding-eligibility,applepay,googlepay',
-            clientId: this.options.clientId,
+            'client-id': this.options.clientId,
             debug: true,
             // commit: !!this.options.commit,
             // locale: this.options.languageIso,
@@ -287,9 +288,9 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
     }
 
     init() {
-        console.log('Init success');
         this._client = new HttpClient();
         this.createButton();
+        console.log('Init success');
     }
 
     createButton() {

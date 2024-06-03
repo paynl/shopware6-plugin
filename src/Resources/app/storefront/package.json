@@ -7,6 +7,6 @@
     "license": "MIT",
     "dependencies": {
         "imask": "^6.1.0",
-        "@paypal/paypal-js": "~8"
+        "@paypal/paypal-js": "~5"
     }
 }

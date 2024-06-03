@@ -11,7 +11,7 @@
 
         <div class="btn-block"
              data-paynl-paypal-express-button="true"
-             data-paynl-paypal-express-button-options="{{ expressOptions|json_encode }}">
+             data-paynl-paypal-express-button-options="{{ expressOptions|json_encode|escape('html_attr') }}">
         </div>
     {% endblock %}
 
