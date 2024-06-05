@@ -212,6 +212,7 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
             currency: this.options.currency,
             // intent: this.options.intent,
             // 'enable-funding': 'paylater,venmo',
+            'disable-funding': 'card,credit'
         };
 
         if (this.options.disablePayLater || this.options.showPayLater === false) {
