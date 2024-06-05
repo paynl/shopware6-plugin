@@ -43,10 +43,27 @@ Component.register('paynl-config-section-api', {
             const serviceId = serviceIdInput ? serviceIdInput.value : null;
 
             if (!tokenCode || !apiToken || !serviceId) {
-                this.createNotificationError({
-                    title: this.$tc('paynlValidation.error.wrongCredentials'),
-                    message: 'Please fill Token-Code',
-                });
+                if (!tokenCode) {
+                    this.createNotificationError({
+                        title: this.$tc('paynlValidation.error.wrongCredentials'),
+                        message: tokenCodeInput.getAttribute('label'),
+                    });
+                }
+
+                if (!apiToken) {
+                    this.createNotificationError({
+                        title: this.$tc('paynlValidation.error.wrongCredentials'),
+                        message: apiTokenInput.getAttribute('label'),
+                    });
+                }
+
+                if (!serviceId) {
+                    this.createNotificationError({
+                        title: this.$tc('paynlValidation.error.wrongCredentials'),
+                        message: serviceIdInput.getAttribute('label'),
+                    });
+                }
+
                 return;
             }
 
