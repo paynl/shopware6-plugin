@@ -57,7 +57,7 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
          *
          * @type string
          */
-        clientId: 'Ad37_s9hRiNiPtgdHxz0eGzN_1UWjkmU-GtDOJZgmuIUP6N-lzVkUVeEEthgYarcM6TPpQ4IL0i-fEUJ',
+        clientId: 'AQGA-UwfmmgYrwNAZQSUG6rcGJi3-xMv2VG-Rj-5A-eRe_Uasi16czapjawsTV76IXyi7difEPw_vRp4',
 
         /**
          * This option holds the merchant id specified in the settings
