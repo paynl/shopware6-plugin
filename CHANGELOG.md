@@ -1,3 +1,6 @@
+# 1.6.3
+- Fixed install payment methods issue
+
 # 1.6.2
 - Added refund, cancel, and back buttons on the refund page
 - Moved the shipping and product section to the top of the refund page
