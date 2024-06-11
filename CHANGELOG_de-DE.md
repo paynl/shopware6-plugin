@@ -1,3 +1,6 @@
+# 1.6.3
+- Problem bei der Installation von Zahlungsmethoden behoben
+
 # 1.6.2
 - Schaltflächen „Rückerstattung“, „Stornieren“ und „Zurück“ auf der Rückerstattungsseite hinzugefügt
 - Der Versand- und Produktabschnitt wurde an den oberen Rand der Rückerstattungsseite verschoben
