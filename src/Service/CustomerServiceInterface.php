@@ -24,7 +24,7 @@ interface CustomerServiceInterface
      */
     public function getAddressArray($address, CustomerEntity $customer): array;
     public function updateCustomer(array $customerData, SalesChannelContext $salesChannelContext): ?CustomerEntity;
-    public function createIdealExpressCustomer(string $firstname, string $lastname, string $email, string $phone, string $street, string $zipCode, string $city, string $countryISO2, string $paymentMethodId, SalesChannelContext $context): ?CustomerEntity;
+    public function createPaymentExpressCustomer(string $firstname, string $lastname, string $email, string $phone, string $street, string $zipCode, string $city, string $countryISO2, string $paymentMethodId, SalesChannelContext $context): ?CustomerEntity;
     public function getCountryId(string $countryCode, Context $context): ?string;
     public function getSalutationId(Context $context): ?string;
 }

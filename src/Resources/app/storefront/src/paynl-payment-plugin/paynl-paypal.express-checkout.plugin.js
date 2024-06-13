@@ -106,19 +106,19 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
          *
          * @type string
          */
-        contextSwitchUrl: '',
+        contextSwitchUrl: 'https://0fc0-91-235-224-11.ngrok-free.app/PaynlPayment/paypal-express/prepare-cart',
 
         /**
          * @type string
          */
-        payPalPaymentMethodId: '',
+        payPalPaymentMethodId: '013d407166ec4fa56eb1e1f8cbe183b9',
 
         /**
          * URL to create a new PayPal order
          *
          * @type string
          */
-        createOrderUrl: '',
+        createOrderUrl: 'https://0fc0-91-235-224-11.ngrok-free.app/PaynlPayment/paypal-express/start-payment',
 
         /**
          * URL to delete an existing cart in Shopware

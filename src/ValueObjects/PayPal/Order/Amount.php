@@ -29,7 +29,7 @@ class Amount
     {
         return [
             'currency_code' => $this->currencyCode,
-            'value' => $this->currencyCode
+            'value' => $this->value
         ];
     }
 }

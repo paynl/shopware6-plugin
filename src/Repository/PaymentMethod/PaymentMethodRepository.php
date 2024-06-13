@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Repository\PaymentMethod;
 
+use Exception;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
@@ -70,7 +71,7 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
 
     /**
      * @param Context $context
-     * @throws \Exception
+     * @throws Exception
      * @return string
      */
     public function getActiveIdealID(Context $context): string
@@ -92,6 +93,33 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
             }
         }
 
-        throw new \Exception('Payment Method IDEAL Express not found in system');
+        throw new Exception('Payment Method IDEAL Express not found in system');
+    }
+
+    /**
+     * @param Context $context
+     * @throws Exception
+     * @return string
+     */
+    public function getActivePayPalID(Context $context): string
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new EqualsFilter('active', true));
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $customFields = $paymentMethod->getTranslation('customFields');
+            if (!isset($customFields['paynlId']) || empty($customFields['paynlId'])) {
+                continue;
+            }
+
+            if ($customFields['paynlId'] === PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT) {
+                return (string) $paymentMethod->get('id');
+            }
+        }
+
+        throw new Exception('Payment Method PayPal Express not found in system');
     }
 }

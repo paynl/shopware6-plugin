@@ -32,12 +32,13 @@ abstract class BaseService
             $options['json'] = $data;
         }
 
-        try {
+//        try {
             $response = $this->client->request($method, $this->getFullRequestUrl($url), $options);
 
             return $this->getResponseArray($response);
-        } catch (GuzzleException $exception) {
-        }
+//        } catch (GuzzleException $exception) {
+//
+//        }
     }
 
     protected function getBaseUrl(): string

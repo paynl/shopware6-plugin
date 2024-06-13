@@ -214,7 +214,7 @@ class CustomerService implements CustomerServiceInterface
         ];
     }
 
-    public function createIdealExpressCustomer(string $firstname, string $lastname, string $email, string $phone, string $street, string $zipCode, string $city, string $countryISO2, string $paymentMethodId, SalesChannelContext $context): ?CustomerEntity
+    public function createPaymentExpressCustomer(string $firstname, string $lastname, string $email, string $phone, string $street, string $zipCode, string $city, string $countryISO2, string $paymentMethodId, SalesChannelContext $context): ?CustomerEntity
     {
         $customerId = Uuid::randomHex();
         $addressId = Uuid::randomHex();

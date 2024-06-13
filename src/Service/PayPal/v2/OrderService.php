@@ -40,8 +40,8 @@ class OrderService extends BaseService
         return base64_encode(
             sprintf(
                 "%s:%s",
-                $this->config->getTokenCode($salesChannelId),
-                $this->config->getApiToken($salesChannelId),
+               'AQGA-UwfmmgYrwNAZQSUG6rcGJi3-xMv2VG-Rj-5A-eRe_Uasi16czapjawsTV76IXyi7difEPw_vRp4',
+                'EIqnst50TtFXZS1sUuNY_XhnOLPZio4FT3IlgrQzDy6qe8Z_RIWy8inOK1xatny1X8a1GSC1O5lYK5Xk',
             )
         );
     }
