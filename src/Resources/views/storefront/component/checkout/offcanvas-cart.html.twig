@@ -3,17 +3,11 @@
 {% block component_offcanvas_cart_actions_cart %}
     {{ parent() }}
 
-    {% block paynl_paypal_ecs_button %}
-        {% set expressOptions = {
-            'clientId':'Ad37_s9hRiNiPtgdHxz0eGzN_1UWjkmU-GtDOJZgmuIUP6N-lzVkUVeEEthgYarcM6TPpQ4IL0i-fEUJ',
-            'currency':'EUR'
-        } %}
+    {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
 
-        <div class="btn-block"
-             data-paynl-paypal-express-button="true"
-             data-paynl-paypal-express-button-options="{{ expressOptions|json_encode|escape('html_attr') }}">
-        </div>
-    {% endblock %}
+    {% if expressSettings.expressShoppingCartEnabled %}
+        {% sw_include '@PaynlPaymentShopware6/storefront/component/ecs-checkout/ecs-button.html.twig' with {button_class: 'btn-block'} %}
+    {% endif %}
 
     {% if config('PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled') and page.cart.price.totalPrice > 0
         and ((config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled') and context.customer.guest)

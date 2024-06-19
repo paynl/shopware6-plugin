@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
 
-<card>
+    <card>
         <title>API</title>
         <title lang="de-DE">API</title>
         <title lang="nl-NL">API</title>
@@ -13,9 +13,15 @@
             <label>Token-Code (AT-xxxx-xxxx)</label>
             <label lang="nl-NL">Token-Code (AT-xxxx-xxxx)</label>
             <label lang="de-DE">Token-Code (AT-xxxx-xxxx)</label>
-            <helpText>The AT-code belonging to your API-token, you can find your tokencode at: https://admin.pay.nl/company/tokens</helpText>
-            <helpText lang="nl-NL">De AT-code die bij je API-token hoort, je kunt deze vinden op: https://admin.pay.nl/company/tokens</helpText>
-            <helpText lang="de-DE">Der AT-Code, der zu Ihrem API-token gehört, finden Sie unter: https://admin.pay.nl/company/tokens</helpText>
+            <helpText>The AT-code belonging to your API-token, you can find your tokencode at:
+                https://admin.pay.nl/company/tokens
+            </helpText>
+            <helpText lang="nl-NL">De AT-code die bij je API-token hoort, je kunt deze vinden op:
+                https://admin.pay.nl/company/tokens
+            </helpText>
+            <helpText lang="de-DE">Der AT-Code, der zu Ihrem API-token gehört, finden Sie unter:
+                https://admin.pay.nl/company/tokens
+            </helpText>
         </input-field>
         <input-field>
             <name>apiToken</name>
@@ -24,7 +30,8 @@
             <label lang="nl-NL">API-token</label>
             <label lang="de-DE">API-token</label>
             <helpText>Your API token, you can find your API tokens at: https://admin.pay.nl/company/tokens</helpText>
-            <helpText lang="nl-NL">Uw API-token, u kunt uw API-tokens vinden op: https://admin.pay.nl/company/tokens</helpText>
+            <helpText lang="nl-NL">Uw API-token, u kunt uw API-tokens vinden op: https://admin.pay.nl/company/tokens
+            </helpText>
             <helpText lang="de-DE">Ihr API-Token finden Sie unter https://admin.pay.nl/company/tokens</helpText>
         </input-field>
         <input-field>
@@ -33,9 +40,15 @@
             <label>Service-ID (SL-xxxx-xxxx)</label>
             <label lang="nl-NL">Service-ID (SL-xxxx-xxxx)</label>
             <label lang="de-DE">Service-ID (SL-xxxx-xxxx)</label>
-            <helpText>Your Service-ID (SL-xxxx-xxxx), You can find your Service-ID at: https://admin.pay.nl/programs/programs</helpText>
-            <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op: https://admin.pay.nl/programs/programs</helpText>
-            <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter: https://admin.pay.nl/programs/programs</helpText>
+            <helpText>Your Service-ID (SL-xxxx-xxxx), You can find your Service-ID at:
+                https://admin.pay.nl/programs/programs
+            </helpText>
+            <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op:
+                https://admin.pay.nl/programs/programs
+            </helpText>
+            <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter:
+                https://admin.pay.nl/programs/programs
+            </helpText>
         </input-field>
         <input-field type="single-select">
             <name>failOverGateway</name>
@@ -73,16 +86,23 @@
             <label lang="de-DE">Test mode</label>
             <helpText>Enable this if you want to start all transactions in test mode</helpText>
             <helpText lang="nl-NL">Schakel dit in als u alle transacties in de testmodus wilt starten</helpText>
-            <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie alle Transaktionen im Testmodus starten möchten</helpText>
+            <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie alle Transaktionen im Testmodus starten möchten
+            </helpText>
         </input-field>
         <input-field type="bool">
             <name>useSinglePaymentMethod</name>
             <label>Use a uniform payment method by PAY.</label>
             <label lang="nl-NL">Gebruik een uniforme betaalmethode aangeboden door PAY.</label>
             <label lang="de-DE">Verwenden Sie eine einheitliche, von PAY angebotene Zahlungsmethode.</label>
-            <helpText>This option turns off all other payment methods and redirects the user to PAY's hosted payment pages.</helpText>
-            <helpText lang="nl-NL">Deze optie deactiveert alternatieve betaalmethoden en stuurt de gebruiker door naar de hosted payment pages van PAY.</helpText>
-            <helpText lang="de-DE">Diese Option deaktiviert alternative Zahlungsmethoden und leitet den Benutzer auf die gehosteten Zahlungsseiten von PAY um.</helpText>
+            <helpText>This option turns off all other payment methods and redirects the user to PAY's hosted payment
+                pages.
+            </helpText>
+            <helpText lang="nl-NL">Deze optie deactiveert alternatieve betaalmethoden en stuurt de gebruiker door naar
+                de hosted payment pages van PAY.
+            </helpText>
+            <helpText lang="de-DE">Diese Option deaktiviert alternative Zahlungsmethoden und leitet den Benutzer auf die
+                gehosteten Zahlungsseiten von PAY um.
+            </helpText>
         </input-field>
         <component name="paynl-config-section-api">
             <name>paynlConfigSectionApi</name>
@@ -98,9 +118,14 @@
             <label>CoC number required</label>
             <label lang="nl-NL">KvK nummer verplicht</label>
             <label lang="de-DE">IHK-Nummer erforderlich</label>
-            <helpText>This will make the CoC number, at registration, a required field for commercial customers only</helpText>
-            <helpText lang="nl-NL">Dit maakt het KvK nummer, bij registratie, een verplicht veld voor zakelijke klanten</helpText>
-            <helpText lang="de-DE">Damit wird die IHK-Nummer bei der Registrierung ein Pflichtfeld nur für Geschäftskunden</helpText>
+            <helpText>This will make the CoC number, at registration, a required field for commercial customers only
+            </helpText>
+            <helpText lang="nl-NL">Dit maakt het KvK nummer, bij registratie, een verplicht veld voor zakelijke
+                klanten
+            </helpText>
+            <helpText lang="de-DE">Damit wird die IHK-Nummer bei der Registrierung ein Pflichtfeld nur für
+                Geschäftskunden
+            </helpText>
         </input-field>
         <input-field type="bool">
             <name>allowRefunds</name>
@@ -108,16 +133,21 @@
             <label lang="nl-NL">Restituties toestaan</label>
             <label lang="de-DE">Erstattungen zulassen</label>
             <helpText>Enable this to allow refunds to be processed from the order list</helpText>
-            <helpText lang="nl-NL">Schakel dit in om toe te staan dat restituties worden verwerkt vanuit de bestellijst</helpText>
-            <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet werden können</helpText>
+            <helpText lang="nl-NL">Schakel dit in om toe te staan dat restituties worden verwerkt vanuit de
+                bestellijst
+            </helpText>
+            <helpText lang="de-DE">AAktivieren Sie diese Option, damit Rückerstattungen von der Bestellliste verarbeitet
+                werden können
+            </helpText>
         </input-field>
         <input-field type="bool">
             <name>surchargePaymentMethods</name>
             <label>Surcharge payment methods</label>
             <label lang="nl-NL">Surcharging</label>
             <label lang="de-DE">Zuschläge für Zahlungsarten</label>
-            <helpText>Enabled this option to add surcharges to payment methods </helpText>
-            <helpText lang="nl-NL">Activeer deze optie, om een toeslag (surcharge) toe te voegen aan betaalmethoden</helpText>
+            <helpText>Enabled this option to add surcharges to payment methods</helpText>
+            <helpText lang="nl-NL">Activeer deze optie, om een toeslag (surcharge) toe te voegen aan betaalmethoden
+            </helpText>
             <helpText lang="de-DE">Aktivieren Sie diese Option, um Zuschläge zu Zahlungsmethoden hinzuzufügen</helpText>
         </input-field>
         <input-field type="bool">
@@ -127,7 +157,9 @@
             <label lang="de-DE">Stile nach PAY. verwenden</label>
             <helpText>Enable this to use styles by PAY. in payment method selection screen at the checkout</helpText>
             <helpText lang="nl-NL">Enable this to use styles by PAY. on payment methods form</helpText>
-            <helpText lang="de-DE">Aktivieren Sie dies, um die Stile von PAY. im Auswahlbildschirm für Zahlungsmethoden zu verwenden, im Checkout</helpText>
+            <helpText lang="de-DE">Aktivieren Sie dies, um die Stile von PAY. im Auswahlbildschirm für Zahlungsmethoden
+                zu verwenden, im Checkout
+            </helpText>
         </input-field>
         <input-field type="single-select">
             <name>showDescription</name>
@@ -163,9 +195,15 @@
             <label>Use additional address fields</label>
             <label lang="nl-NL">Extra adres velden gebruiken</label>
             <label lang="de-DE">Zusätzliche adressfelder verwenden</label>
-            <helpText>Enable this when you are using additional address field 1 and 2 for house number and house number addition</helpText>
-            <helpText lang="nl-NL">Schakel dit in wanneer u extra adresveld 1 en 2 gebruikt voor huisnummer en huisnummertoevoeging </helpText>
-            <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie das zusätzliche Adressfeld 1 und 2 für das Hinzufügen von Hausnummer und Hausnummer verwenden</helpText>
+            <helpText>Enable this when you are using additional address field 1 and 2 for house number and house number
+                addition
+            </helpText>
+            <helpText lang="nl-NL">Schakel dit in wanneer u extra adresveld 1 en 2 gebruikt voor huisnummer en
+                huisnummertoevoeging
+            </helpText>
+            <helpText lang="de-DE">Aktivieren Sie dies, wenn Sie das zusätzliche Adressfeld 1 und 2 für das Hinzufügen
+                von Hausnummer und Hausnummer verwenden
+            </helpText>
         </input-field>
         <input-field>
             <name>femaleSalutations</name>
@@ -239,8 +277,10 @@
             <label lang="nl-NL">Stuur Analytics data naar Pay.</label>
             <label lang="de-DE">Analytik an Pay. übertragen</label>
             <helpText>When you enable this option, the plugin will send Google Analytics data to Pay.</helpText>
-            <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.</helpText>
-            <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.</helpText>
+            <helpText lang="nl-NL">Wanneer je deze optie activeert, stuurt de plugin Google Analytics data naar Pay.
+            </helpText>
+            <helpText lang="de-DE">Wenn Sie diese Option aktivieren, sendet das Plugin Google Analytics-Daten an Pay.
+            </helpText>
         </input-field>
         <input-field type="bool">
             <name>logging</name>
@@ -248,9 +288,16 @@
             <label lang="de-DE">Logging</label>
             <label lang="nl-NL">Logging</label>
             <defaultValue>true</defaultValue>
-            <helpText>PAY. has a custom log file in the Shopware log directory. This feature enables the extended logs with more information that could help to solve problems.</helpText>
-            <helpText lang="de-DE">PAY. hat eine eigene LOG Datei im Shopware Log Verzeichnis. Dieser Modus kümmert sich um erweiterte Informationen in diesen Log Dateien, die zusätzlich bei der Analyse von Fehlern beitragen können.</helpText>
-            <helpText lang="nl-NL">PAY. heeft een op maat logbestand in de Shopware logboek-map. Deze functie maakt uitgebreide logs mogelijk met meer informatie die helpen bij het oplossen van problemen.</helpText>
+            <helpText>PAY. has a custom log file in the Shopware log directory. This feature enables the extended logs
+                with more information that could help to solve problems.
+            </helpText>
+            <helpText lang="de-DE">PAY. hat eine eigene LOG Datei im Shopware Log Verzeichnis. Dieser Modus kümmert sich
+                um erweiterte Informationen in diesen Log Dateien, die zusätzlich bei der Analyse von Fehlern beitragen
+                können.
+            </helpText>
+            <helpText lang="nl-NL">PAY. heeft een op maat logbestand in de Shopware logboek-map. Deze functie maakt
+                uitgebreide logs mogelijk met meer informatie die helpen bij het oplossen van problemen.
+            </helpText>
         </input-field>
         <input-field type="single-select">
             <name>ipSettings</name>
@@ -283,27 +330,50 @@
             <label>Automatic Capture based on Shipment status</label>
             <label lang="de-DE">Automatische Erfassung basierend auf dem Sendungsstatus</label>
             <label lang="nl-NL">Automatische Capture op basis van verzendstatus</label>
-            <helpText>When enabled, the plugin will automatically send a capture (payment) notification to Pay. when the delivery status changes to 'shipped'. This applies to transactions in state AUTHORIZE.</helpText>
-            <helpText lang="de-DE">Wenn diese Option aktiviert ist, sendet das Plugin automatisch eine Erfassungsbenachrichtigung (Zahlungsbenachrichtigung) an Pay, wenn sich der Lieferstatus in "versandt" ändert. Dies gilt für Transaktionen im Status AUTHORIZED.</helpText>
-            <helpText lang="nl-NL">Wanneer ingeschakeld, zal de plugin automatisch een capture naar Pay. sturen wanneer de verzendstatus verandert in 'verzonden'. Dit geldt alleen voor transacties met de status AUTHORIZE.</helpText>
+            <helpText>When enabled, the plugin will automatically send a capture (payment) notification to Pay. when the
+                delivery status changes to 'shipped'. This applies to transactions in state AUTHORIZE.
+            </helpText>
+            <helpText lang="de-DE">Wenn diese Option aktiviert ist, sendet das Plugin automatisch eine
+                Erfassungsbenachrichtigung (Zahlungsbenachrichtigung) an Pay, wenn sich der Lieferstatus in "versandt"
+                ändert. Dies gilt für Transaktionen im Status AUTHORIZED.
+            </helpText>
+            <helpText lang="nl-NL">Wanneer ingeschakeld, zal de plugin automatisch een capture naar Pay. sturen wanneer
+                de verzendstatus verandert in 'verzonden'. Dit geldt alleen voor transacties met de status AUTHORIZE.
+            </helpText>
         </input-field>
         <input-field type="bool">
             <name>automaticCancellation</name>
             <label>Automatic Cancellation based on Order status</label>
             <label lang="de-DE">Automatische Void aufgrund des Auftragsstatus</label>
             <label lang="nl-NL">Automatische annulering op basis van orderstatus</label>
-            <helpText>When activated, the plugin will automatically void a transaction in Pay. when the order status is changed to 'cancelled'. This applies to transactions in the state AUTHORIZE.</helpText>
-            <helpText lang="de-DE">Wenn diese Option aktiviert ist, wird eine Transaktion in Pay. automatisch void, wenn der Status der Bestellung auf "storniert" geändert wird. Dies gilt für Transaktionen im Status AUTHORIZE.</helpText>
-            <helpText lang="nl-NL">Wanner ingeschakeld, zal de plugin automatisch een transactie voiden in Pay. wanneer de orderstatus wordt gewijzigd in 'geannuleerd'. Dit geldt alleen voor transacties met de status AUTHORIZE. </helpText>
+            <helpText>When activated, the plugin will automatically void a transaction in Pay. when the order status is
+                changed to 'cancelled'. This applies to transactions in the state AUTHORIZE.
+            </helpText>
+            <helpText lang="de-DE">Wenn diese Option aktiviert ist, wird eine Transaktion in Pay. automatisch void, wenn
+                der Status der Bestellung auf "storniert" geändert wird. Dies gilt für Transaktionen im Status
+                AUTHORIZE.
+            </helpText>
+            <helpText lang="nl-NL">Wanner ingeschakeld, zal de plugin automatisch een transactie voiden in Pay. wanneer
+                de orderstatus wordt gewijzigd in 'geannuleerd'. Dit geldt alleen voor transacties met de status
+                AUTHORIZE.
+            </helpText>
         </input-field>
         <input-field type="bool">
             <name>restoreShoppingCart</name>
             <label>Restore shopping cart</label>
             <label lang="de-DE">Shopping cart wiederherstellen</label>
             <label lang="nl-NL">Winkelwagen terugzetten</label>
-            <helpText>This option restores the shopping cart after the user clicks the Back button in the browser. This prevents your user losing their products when trying to navigate back.</helpText>
-            <helpText lang="de-DE">Diese Option stellt den Warenkorb wieder her, nachdem der Benutzer im Browser auf die Schaltfläche „Zurück“ geklickt hat. Dies verhindert, dass Ihr Benutzer seine Produkte verliert, wenn er versucht, zurück zu navigieren.</helpText>
-            <helpText lang="nl-NL">Deze optie herstelt het winkelwagentje nadat de gebruiker op de knop Terug in de browser heeft geklikt. Dit voorkomt dat uw gebruiker zijn producten kwijtraakt wanneer hij probeert terug te navigeren.</helpText>
+            <helpText>This option restores the shopping cart after the user clicks the Back button in the browser. This
+                prevents your user losing their products when trying to navigate back.
+            </helpText>
+            <helpText lang="de-DE">Diese Option stellt den Warenkorb wieder her, nachdem der Benutzer im Browser auf die
+                Schaltfläche „Zurück“ geklickt hat. Dies verhindert, dass Ihr Benutzer seine Produkte verliert, wenn er
+                versucht, zurück zu navigieren.
+            </helpText>
+            <helpText lang="nl-NL">Deze optie herstelt het winkelwagentje nadat de gebruiker op de knop Terug in de
+                browser heeft geklikt. Dit voorkomt dat uw gebruiker zijn producten kwijtraakt wanneer hij probeert
+                terug te navigeren.
+            </helpText>
         </input-field>
     </card>
 
@@ -482,9 +552,16 @@
             <label>Bank selection dropdown</label>
             <label lang="nl-NL">Bankselectie dropdown</label>
             <label lang="de-DE">Dropdown-Liste für die Bankauswahl</label>
-            <helpText>Enable this option to show a dropdown with all available banks in the checkout. When this option is disabled, customers will be redirected to a bank selection page.</helpText>
-            <helpText lang="nl-NL">Schakel deze optie in om een dropdown te tonen in de checkout met alle beschikbare banken. Indien deze optie is uitgeschakeld, worden klanten doorgestuurd naar een bankselectie pagina.</helpText>
-            <helpText lang="de-DE">Aktivieren Sie diese Option, um eine Auswahlliste mit allen verfügbaren Banken in der Checkout anzuzeigen. Wenn diese Option deaktiviert ist, werden die Kunden zu einer Bankauswahlseite weitergeleitet.</helpText>
+            <helpText>Enable this option to show a dropdown with all available banks in the checkout. When this option
+                is disabled, customers will be redirected to a bank selection page.
+            </helpText>
+            <helpText lang="nl-NL">Schakel deze optie in om een dropdown te tonen in de checkout met alle beschikbare
+                banken. Indien deze optie is uitgeschakeld, worden klanten doorgestuurd naar een bankselectie pagina.
+            </helpText>
+            <helpText lang="de-DE">Aktivieren Sie diese Option, um eine Auswahlliste mit allen verfügbaren Banken in der
+                Checkout anzuzeigen. Wenn diese Option deaktiviert ist, werden die Kunden zu einer Bankauswahlseite
+                weitergeleitet.
+            </helpText>
         </input-field>
 
         <input-field type="bool">
@@ -518,6 +595,51 @@
             <helpText>Express Direct Checkout Logged In Customer</helpText>
             <helpText lang="nl-NL">Express Direct Checkout Logged In Customer</helpText>
             <helpText lang="de-DE">Express Direct Checkout Logged In Customer</helpText>
+        </input-field>
+    </card>
+
+    <card>
+        <title>PayPal</title>
+        <title lang="de-DE">PayPal</title>
+        <title lang="nl-NL">PayPal</title>
+
+        <name>payment_paypal</name>
+
+        <input-field type="bool">
+            <name>paymentPaypalExpressCheckoutEnabled</name>
+            <defaultValue>false</defaultValue>
+            <label>Express Direct Checkout</label>
+            <label lang="nl-NL">Express Direct Checkout</label>
+            <label lang="de-DE">Express Direct Checkout</label>
+            <helpText>Express Direct Checkout</helpText>
+            <helpText lang="nl-NL">Express Direct Checkout</helpText>
+            <helpText lang="de-DE">Express Direct Checkout</helpText>
+        </input-field>
+
+        <input-field type="bool">
+            <name>paymentPaypalExpressShoppingCartEnabled</name>
+            <defaultValue>false</defaultValue>
+            <label>Express Direct Shopping Cart</label>
+            <label lang="nl-NL">Express Direct Shopping Cart</label>
+            <label lang="de-DE">Express Direct Shopping Cart</label>
+            <helpText>Express Direct Shopping Cart</helpText>
+            <helpText lang="nl-NL">Express Direct Shopping Cart</helpText>
+            <helpText lang="de-DE">Express Direct Shopping Cart</helpText>
+        </input-field>
+
+        <input-field type="text">
+            <name>paymentPaypalClientIdSandbox</name>
+            <copyable>true</copyable>
+            <label>Sandbox Client ID</label>
+            <label lang="nl-NL">Sandbox Client ID</label>
+            <label lang="de-DE">Sandbox Client ID</label>
+        </input-field>
+        <input-field>
+            <name>paymentPaypalSecretKeySandbox</name>
+            <copyable>true</copyable>
+            <label>Sandbox Secret Key</label>
+            <label lang="nl-NL">Sandbox Secret Key</label>
+            <label lang="de-DE">Sandbox Secret Key</label>
         </input-field>
     </card>
 

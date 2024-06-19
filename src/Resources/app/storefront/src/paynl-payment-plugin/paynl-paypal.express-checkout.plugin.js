@@ -5,7 +5,7 @@ import ElementLoadingIndicatorUtil from 'src/utility/loading-indicator/element-l
 import PaynlPayPalScriptLoading from './paynl-paypal.script-loading';
 import { loadScript } from '../../node_modules/@paypal/paypal-js';
 
-export default class PaynlPayPalExpressCheckoutButton extends Plugin {
+export default class PaynlPayPalExpressButton extends Plugin {
     static scriptLoading = new PaynlPayPalScriptLoading();
 
     static options = {
@@ -57,7 +57,7 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
          *
          * @type string
          */
-        clientId: 'AQGA-UwfmmgYrwNAZQSUG6rcGJi3-xMv2VG-Rj-5A-eRe_Uasi16czapjawsTV76IXyi7difEPw_vRp4',
+        clientId: '',
 
         /**
          * This option holds the merchant id specified in the settings
@@ -106,19 +106,19 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
          *
          * @type string
          */
-        contextSwitchUrl: 'https://0fc0-91-235-224-11.ngrok-free.app/PaynlPayment/paypal-express/prepare-cart',
+        contextSwitchUrl: '',
 
         /**
          * @type string
          */
-        payPalPaymentMethodId: '013d407166ec4fa56eb1e1f8cbe183b9',
+        payPalPaymentMethodId: '',
 
         /**
          * URL to create a new PayPal order
          *
          * @type string
          */
-        createOrderUrl: 'https://0fc0-91-235-224-11.ngrok-free.app/PaynlPayment/paypal-express/start-payment',
+        createOrderUrl: '',
 
         /**
          * URL to delete an existing cart in Shopware
@@ -207,10 +207,10 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
             // components: 'buttons,messages,card-fields,funding-eligibility,applepay,googlepay',
             'client-id': this.options.clientId,
             debug: true,
-            // commit: !!this.options.commit,
-            // locale: this.options.languageIso,
+            commit: !!this.options.commit,
+            locale: this.options.languageIso,
             currency: this.options.currency,
-            // intent: this.options.intent,
+            intent: this.options.intent,
             // 'enable-funding': 'paylater,venmo',
             'disable-funding': 'card,credit'
         };
@@ -291,7 +291,6 @@ export default class PaynlPayPalExpressCheckoutButton extends Plugin {
     init() {
         this._client = new HttpClient();
         this.createButton();
-        console.log('Init success');
     }
 
     createButton() {

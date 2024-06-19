@@ -153,6 +153,26 @@ class Config
         return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutEnabled');
     }
 
+    public function getPaymentPayPalExpressCheckoutEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressCheckoutEnabled');
+    }
+
+    public function getPaymentPayPalExpressShoppingCartEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressShoppingCartEnabled');
+    }
+
+    public function getPaymentPayPalClientIdSandbox(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalClientIdSandbox');
+    }
+
+    public function getPaymentPayPalSecretKeySandbox(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeySandbox');
+    }
+
     public function getPaymentPinTerminal(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'paymentPinTerminal');
