@@ -9,6 +9,7 @@ use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInter
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Input;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Optimize;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Order;
@@ -498,6 +499,10 @@ class PayPalExpress
 
         $paypalOrder = $this->paypalOrderService->create($createOrder, $salesChannelId);
 
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'PayPal Order Response:', FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($paypalOrder->getData()), FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
+
         $payAmount = new Amount((int) $amount, $currency);
 
         $description = sprintf(
@@ -513,7 +518,8 @@ class PayPalExpress
             true
         );
 
-        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT, null);
+        $input = new Input($paypalOrder->getId());
+        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT, null, $input);
         $products = $this->getOrderProducts($order, $salesChannelContext);
         $order = new Order($products);
 
@@ -532,9 +538,9 @@ class PayPalExpress
             $order
         );
 
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Payment:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment:', FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
         return $this->payOrderService->create($createOrder, $salesChannelId);
     }
