@@ -8,6 +8,7 @@ use PaynlPayment\Shopware6\Components\PayPalExpress\PayPalExpress;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\SalesChannel\AbstractCartDeleteRoute;
 use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
@@ -52,6 +53,9 @@ class PayPalExpressControllerBase extends StorefrontController
     /** @var AbstractCartDeleteRoute */
     private $cartDeleteRoute;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     /** @var ?FlashBag */
     private $flashBag;
 
@@ -64,6 +68,7 @@ class PayPalExpressControllerBase extends StorefrontController
         AbstractLogoutRoute $logoutRoute,
         AbstractContextSwitchRoute $contextSwitchRoute,
         AbstractCartDeleteRoute $cartDeleteRoute,
+        LoggerInterface $logger,
         ?FlashBag $flashBag
     ) {
         $this->paypalExpress = $paypalExpress;
@@ -74,6 +79,7 @@ class PayPalExpressControllerBase extends StorefrontController
         $this->logoutRoute = $logoutRoute;
         $this->contextSwitchRoute = $contextSwitchRoute;
         $this->cartDeleteRoute = $cartDeleteRoute;
+        $this->logger = $logger;
         $this->flashBag = $flashBag;
     }
 
@@ -123,7 +129,7 @@ class PayPalExpressControllerBase extends StorefrontController
 
             $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
 
-            $redirectUrl = $this->paypalExpress->createPayment(
+            $paymentId = $this->paypalExpress->createPayment(
                 $order,
                 $returnUrl,
                 $firstname,
@@ -135,8 +141,11 @@ class PayPalExpressControllerBase extends StorefrontController
                 $newContext
             );
 
-            return new RedirectResponse($redirectUrl);
+            return new Response(json_encode(['token' => $paymentId]));
         } catch (\Throwable $ex) {
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'ERROR:', FILE_APPEND);
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', $ex->getMessage(), FILE_APPEND);
+
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 
             if ($this->flashBag !== null) {
@@ -151,6 +160,7 @@ class PayPalExpressControllerBase extends StorefrontController
     {
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Request exchange:', FILE_APPEND);
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', file_get_contents('php://input'), FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
         $orderNumber = (string) $data->get('object')->get('reference');
         $dataObject = (array) $data->all()['object'] ?? [];
@@ -180,6 +190,19 @@ class PayPalExpressControllerBase extends StorefrontController
 
     }
 
+    public function getCreatePaymentResponse(Request $request, SalesChannelContext $salesChannelContext): Response
+    {
+        $orderId = $request->request->get('token');
+
+        $payOrder = $this->paypalExpress->createPayPaymentTransaction($orderId, $salesChannelContext);
+
+        $responseArray = [
+            'redirectUrl' => $payOrder->getLinks()->getRedirect()
+        ];
+
+        return new Response(json_encode($responseArray));
+    }
+
     public function getFinishPageResponse(Request $request, SalesChannelContext $context): Response
     {
         $orderId = $request->get('orderId');
@@ -201,6 +224,19 @@ class PayPalExpressControllerBase extends StorefrontController
         }
 
         return $this->redirectToRoute('frontend.home.page', $parameters);
+    }
+
+    public function getAddErrorMessageResponse(Request $request): Response
+    {
+        if ($request->request->getBoolean('cancel')) {
+            $this->addFlash(self::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
+            $this->logger->notice('Storefront checkout cancellation');
+        } else {
+            $this->addFlash(self::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
+            $this->logger->notice('Storefront checkout error', ['error' => $request->request->get('error')]);
+        }
+
+        return new NoContentResponse();
     }
 
     /**

@@ -132,6 +132,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
         </service>
 

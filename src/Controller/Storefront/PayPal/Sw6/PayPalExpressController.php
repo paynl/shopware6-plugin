@@ -59,6 +59,32 @@ class PayPalExpressController extends PayPalExpressControllerBase
 
     /**
      * @Route(
+     *     "/PaynlPayment/paypal-express/create-payment",
+     *     name="frontend.account.PaynlPayment.paypal-express.create-payment",
+     *     methods={"POST"},
+     *     defaults={"XmlHttpRequest"=true, "csrf_protected"=false}
+     *     )
+     */
+    public function createPayment(Request $request, SalesChannelContext $salesChannelContext): Response
+    {
+        return $this->getCreatePaymentResponse($request, $salesChannelContext);
+    }
+
+    /**
+     * @Route(
+     *     "/PaynlPayment/paypal-express/add-error",
+     *     name="frontend.account.PaynlPayment.paypal-express.add-error",
+     *     methods={"POST"},
+     *     defaults={"XmlHttpRequest"=true, "csrf_protected"=false}
+     * )
+     */
+    public function addErrorMessage(Request $request): Response
+    {
+        return $this->getAddErrorMessageResponse($request);
+    }
+
+    /**
+     * @Route(
      *     "/PaynlPayment/paypal-express/finish-page",
      *     name="frontend.account.PaynlPayment.paypal-express.finish-page",
      *     methods={"GET", "POST"},

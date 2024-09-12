@@ -48,12 +48,14 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
             'contextSwitchUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.prepare-cart'),
             'payPalPaymentMethodId' => $this->paymentMethodRepository->getActivePayPalID($context),
             'createOrderUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.start-payment'),
+            'createPaymentUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.create-payment'),
             'checkoutConfirmUrl' => $this->router->generate(
                 'frontend.checkout.confirm.page',
                 [],
                 RouterInterface::ABSOLUTE_URL
             ),
             'cancelRedirectUrl' => $this->router->generate($addProductToCart ? 'frontend.checkout.cart.page' : 'frontend.checkout.register.page'),
+            'addErrorUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.add-error'),
         ]);
     }
 }

@@ -173,6 +173,16 @@ class Config
         return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeySandbox');
     }
 
+    public function getPaymentPayPalClientIdProduction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalClientIdProduction');
+    }
+
+    public function getPaymentPayPalSecretKeyProduction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeyProduction');
+    }
+
     public function getPaymentPinTerminal(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'paymentPinTerminal');

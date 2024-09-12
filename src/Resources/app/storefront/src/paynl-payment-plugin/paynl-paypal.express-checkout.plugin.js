@@ -135,6 +135,13 @@ export default class PaynlPayPalExpressButton extends Plugin {
         prepareCheckoutUrl: '',
 
         /**
+         * URL for creating PAY order
+         *
+         * @type string
+         */
+        createPaymentUrl: '',
+
+        /**
          * URL to the checkout confirm page
          *
          * @type string
@@ -202,7 +209,6 @@ export default class PaynlPayPalExpressButton extends Plugin {
      * @return {Object}
      */
     getScriptOptions() {
-        console.log(this.options);
         const config = {
             // components: 'buttons,messages,card-fields,funding-eligibility,applepay,googlepay',
             'client-id': this.options.clientId,
@@ -220,7 +226,7 @@ export default class PaynlPayPalExpressButton extends Plugin {
         }
 
         if (this.options.useAlternativePaymentMethods === false) {
-            // config['disable-funding'] = availableAPMs.join(',');
+            config['disable-funding'] = availableAPMs.join(',');
         } else if (Array.isArray(this.options.disabledAlternativePaymentMethods)) {
             config['disable-funding'] = this.options.disabledAlternativePaymentMethods.join(',');
         }
@@ -437,10 +443,9 @@ export default class PaynlPayPalExpressButton extends Plugin {
                         return this._createOrder();
                     }).then(token => {
                         resolve(token);
-                    })
-                        .catch((error) => {
-                            reject(error);
-                        });
+                    }).catch((error) => {
+                        reject(error);
+                    });
                 },
             );
         });
@@ -489,14 +494,15 @@ export default class PaynlPayPalExpressButton extends Plugin {
         ElementLoadingIndicatorUtil.create(document.body);
 
         this._client.post(
-            this.options.prepareCheckoutUrl,
+            this.options.createPaymentUrl,
             JSON.stringify(requestPayload),
-            (response, request) => {
+            (responseText, request) => {
                 if (request.status < 400) {
-                    return actions.redirect(this.options.checkoutConfirmUrl);
+                    const response = JSON.parse(responseText);
+                    return actions.redirect(response.redirectUrl);
                 }
 
-                return this.createError('error', response, this.options.cancelRedirectUrl);
+                return this.createError('error', responseText, this.options.cancelRedirectUrl);
             },
         );
     }

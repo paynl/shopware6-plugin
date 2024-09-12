@@ -641,6 +641,21 @@
             <label lang="nl-NL">Sandbox Secret Key</label>
             <label lang="de-DE">Sandbox Secret Key</label>
         </input-field>
+
+        <input-field type="text">
+            <name>paymentPaypalClientIdProduction</name>
+            <copyable>true</copyable>
+            <label>Production Client ID</label>
+            <label lang="nl-NL">Production Client ID</label>
+            <label lang="de-DE">Production Client ID</label>
+        </input-field>
+        <input-field>
+            <name>paymentPaypalSecretKeyProduction</name>
+            <copyable>true</copyable>
+            <label>Production Secret Key</label>
+            <label lang="nl-NL">Production Secret Key</label>
+            <label lang="de-DE">Production Secret Key</label>
+        </input-field>
     </card>
 
     <card>

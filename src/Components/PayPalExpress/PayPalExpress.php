@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\Components\PayPalExpress;
 
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
@@ -17,6 +18,7 @@ use PaynlPayment\Shopware6\ValueObjects\PAY\Order\PaymentMethod;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Product;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
+use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\CreateOrderResponse as PayPalCreateOrderResponse;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\Amount as PayPalAmount;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\CreateOrder as PayPalCreateOrder;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\PurchaseUnit;
@@ -127,6 +129,9 @@ class PayPalExpress
     /** @var OrderDeliveryRepositoryInterface */
     private $orderDeliveryRepository;
 
+    /** @var OrderTransactionRepositoryInterface */
+    private $orderTransactionRepository;
+
     /** @var ProductRepositoryInterface */
     private $productRepository;
 
@@ -148,6 +153,7 @@ class PayPalExpress
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         OrderDeliveryRepositoryInterface $orderDeliveryRepository,
         PaymentMethodRepository $repoPaymentMethods,
+        OrderTransactionRepositoryInterface $orderTransactionRepository,
         ProductRepositoryInterface $productRepository
     ) {
         $this->cartService = $cartService;
@@ -167,6 +173,7 @@ class PayPalExpress
         $this->salutationRepository = $salutationRepository;
         $this->orderCustomerRepository = $orderCustomerRepository;
         $this->orderDeliveryRepository = $orderDeliveryRepository;
+        $this->orderTransactionRepository = $orderTransactionRepository;
         $this->productRepository = $productRepository;
     }
 
@@ -404,32 +411,15 @@ class PayPalExpress
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Response:', FILE_APPEND);
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($orderResponse->getData()), FILE_APPEND);
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
-            $this->processingHelper->storePaynlTransactionData(
-                $order,
-                $transaction,
-                $context,
-                $orderResponse->getId(),
-            );
-
-            $this->updatePaymentTransaction($orderResponse->getData());
         } catch (Throwable $exception) {
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Error:', FILE_APPEND);
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', $exception->getMessage(), FILE_APPEND);
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
-            $this->processingHelper->storePaynlTransactionData(
-                $order,
-                $transaction,
-                $context,
-                '',
-                $exception
-            );
-
             throw $exception;
         }
 
-        return $orderResponse->getLinks()->getRedirect();
+        return $orderResponse->getId();
     }
 
     /** @throws Exception */
@@ -448,7 +438,7 @@ class PayPalExpress
         $this->processingHelper->instorePaymentUpdateState($order->getOrderId(), $stateActionName, $statusCode);
     }
 
-    public function isNotCompletedOrder(string $orderId, Context $context)
+    public function isNotCompletedOrder(string $orderId, Context $context): bool
     {
         try {
             $order = $this->orderService->getOrder($orderId, $context);
@@ -470,23 +460,15 @@ class PayPalExpress
     private function createPayPalExpressOrder(
         AsyncPaymentTransactionStruct $asyncPaymentTransition,
         SalesChannelContext $salesChannelContext
-    ): CreateOrderResponse {
+    ): PayPalCreateOrderResponse {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $order = $asyncPaymentTransition->getOrder();
-        $orderNumber = $order->getOrderNumber();
 
-        $exchangeUrl = $this->router->generate(
-            'frontend.account.PaynlPayment.paypal-express.finish-payment',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        );
-
-        $amount = (string) round($order->getAmountTotal() * 100);
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
 
-        $paypalAmount = new PayPalAmount($currency, $amount);
+        $paypalAmount = new PayPalAmount($currency, (string) $order->getAmountTotal());
 
-        $purchaseUnit = new PurchaseUnit($paypalAmount);
+        $purchaseUnit = new PurchaseUnit($paypalAmount, $asyncPaymentTransition->getOrderTransaction()->getId());
 
         $createOrder = new PayPalCreateOrder(
             'CAPTURE',
@@ -503,6 +485,46 @@ class PayPalExpress
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($paypalOrder->getData()), FILE_APPEND);
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
+        return $paypalOrder;
+    }
+
+    public function createPayPaymentTransaction(
+        string $payPalOrderId,
+        SalesChannelContext $salesChannelContext
+    ): CreateOrderResponse {
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $currency = $salesChannelContext->getCurrency()->getIsoCode();
+
+        $payPalOrder = $this->paypalOrderService->getOrder($payPalOrderId, $salesChannelId);
+        $payPalOrderData = $payPalOrder->getData();
+
+        $purchaseUnits = $payPalOrderData['purchase_units'] ?? [];
+        $purchaseUnit = reset($purchaseUnits);
+        $purchaseUnitAmount = $purchaseUnit['amount'] ?? [];
+        $amount = (string) round($purchaseUnitAmount['value'] * 100);
+        $referenceId = $purchaseUnit['reference_id'] ?? '';
+
+        if (!$referenceId || !$amount) {
+            throw new Exception('PayPal: Amount or reference ID is empty');
+        }
+
+        $transactionCriteria = (new Criteria([$referenceId]))
+            ->addAssociation('stateMachineState');
+
+        $orderTransactions = $this->orderTransactionRepository->search($transactionCriteria, $salesChannelContext->getContext());
+        /** @var OrderTransactionEntity $orderTransaction */
+        $orderTransaction = $orderTransactions->first();
+        $orderId = $orderTransaction->getOrderId();
+
+        $order = $this->orderService->getOrder($orderId, $salesChannelContext->getContext());
+        $orderNumber = $order->getOrderNumber();
+
+        $exchangeUrl = $this->router->generate(
+            'frontend.account.PaynlPayment.paypal-express.finish-payment',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
         $payAmount = new Amount((int) $amount, $currency);
 
         $description = sprintf(
@@ -518,31 +540,52 @@ class PayPalExpress
             true
         );
 
-        $input = new Input($paypalOrder->getId());
+        $input = new Input($payPalOrderId);
         $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT, null, $input);
         $products = $this->getOrderProducts($order, $salesChannelContext);
-        $order = new Order($products);
+        $payOrder = new Order($products);
 
         $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
+
+        $returnUrl = $this->router->generate(
+            'frontend.account.PaynlPayment.paypal-express.finish-page',
+            [
+                'orderId' => $orderId,
+            ],
+            $this->router::ABSOLUTE_URL
+        );
 
         $createOrder = new CreateOrder(
             $this->config->getServiceId($salesChannelId),
             $payAmount,
             $description,
             $orderNumber,
-            $asyncPaymentTransition->getReturnUrl(),
+            $returnUrl,
             $exchangeUrl,
             $optimize,
             $paymentMethod,
             $integration,
-            $order
+            $payOrder
         );
 
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment:', FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment PAY Request:', FILE_APPEND);
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
-        return $this->payOrderService->create($createOrder, $salesChannelId);
+        $createOrderResponse = $this->payOrderService->create($createOrder, $salesChannelId);
+
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment PAY Response:', FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($createOrderResponse->getData()), FILE_APPEND);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
+
+        $this->processingHelper->storePaynlTransactionData(
+            $order,
+            $orderTransaction,
+            $salesChannelContext,
+            $createOrderResponse->getOrderId(),
+        );
+
+        return $createOrderResponse;
     }
 
     private function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): array
