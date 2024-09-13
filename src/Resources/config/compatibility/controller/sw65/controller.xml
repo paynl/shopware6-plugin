@@ -51,6 +51,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\LogoutRoute"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\ContextSwitchRoute"/>
             <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartDeleteRoute"/>
+            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="session.flash_bag" on-invalid="null"/>
 
             <call method="setContainer">

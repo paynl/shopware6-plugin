@@ -225,12 +225,6 @@ export default class PaynlPayPalExpressButton extends Plugin {
             config['enable-funding'] = 'venmo';
         }
 
-        if (this.options.useAlternativePaymentMethods === false) {
-            config['disable-funding'] = availableAPMs.join(',');
-        } else if (Array.isArray(this.options.disabledAlternativePaymentMethods)) {
-            config['disable-funding'] = this.options.disabledAlternativePaymentMethods.join(',');
-        }
-
         if (this.options.merchantPayerId) {
             config['merchant-id'] = this.options.merchantPayerId;
         }
