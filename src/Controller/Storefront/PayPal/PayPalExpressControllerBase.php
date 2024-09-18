@@ -156,51 +156,21 @@ class PayPalExpressControllerBase extends StorefrontController
         }
     }
 
-    public function getFinishPaymentResponse(RequestDataBag $data, SalesChannelContext $context): Response
-    {
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Request exchange:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', file_get_contents('php://input'), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
-        $orderNumber = (string) $data->get('object')->get('reference');
-        $dataObject = (array) $data->all()['object'] ?? [];
-
-        try {
-            $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
-
-            $this->paypalExpress->updateOrder($order,$dataObject, $context);
-
-            $this->paypalExpress->updateOrderCustomer($order->getOrderCustomer(), $dataObject, $context);
-
-            $this->paypalExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $dataObject, $context);
-
-            $this->paypalExpress->updatePaymentTransaction($dataObject);
-
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Success', FILE_APPEND);
-
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
-            return new Response(json_encode(['success' => true]));
-        } catch (Throwable $ex) {
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', $ex->getMessage(), FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
-            return new Response($ex->getMessage());
-        }
-
-    }
-
     public function getCreatePaymentResponse(Request $request, SalesChannelContext $salesChannelContext): Response
     {
-        $orderId = $request->request->get('token');
+        try {
+            $orderId = $request->request->get('token');
 
-        $payOrder = $this->paypalExpress->createPayPaymentTransaction($orderId, $salesChannelContext);
+            $payOrder = $this->paypalExpress->createPayPaymentTransaction($orderId, $salesChannelContext);
 
-        $responseArray = [
-            'redirectUrl' => $payOrder->getLinks()->getRedirect()
-        ];
+            $responseArray = [
+                'redirectUrl' => $payOrder->getLinks()->getRedirect()
+            ];
 
-        return new Response(json_encode($responseArray));
+            return new Response(json_encode($responseArray));
+        } catch (Throwable $exception) {
+            return new Response(json_encode(['error' => $exception->getMessage()]));
+        }
     }
 
     public function getFinishPageResponse(Request $request, SalesChannelContext $context): Response

@@ -26,17 +26,6 @@ class PayPalExpressController extends PayPalExpressControllerBase
         return $this->getStartPaymentResponse($context, $request);
     }
 
-    #[Route(
-        path: '/PaynlPayment/paypal-express/finish-payment',
-        name: 'frontend.account.PaynlPayment.paypal-express.finish-payment',
-        options: ['seo' => false],
-        methods: ['POST', 'GET'])
-    ]
-    public function finishPayment(RequestDataBag $data, SalesChannelContext $context): Response
-    {
-        return $this->getFinishPaymentResponse($data, $context);
-    }
-
     #[Route(path: '/PaynlPayment/paypal-express/create-payment', name: 'frontend.account.PaynlPayment.paypal-express.create-payment', options: ['seo' => false], defaults: ['XmlHttpRequest' => true, 'csrf_protected' => false], methods: ['POST'])]
     public function createPayment(Request $request, SalesChannelContext $salesChannelContext): Response
     {

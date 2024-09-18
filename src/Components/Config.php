@@ -163,6 +163,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'paymentPaypalExpressShoppingCartEnabled');
     }
 
+    public function getPaymentPayPalExpressLoggedInCustomerEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressCheckoutLoggedInCustomerEnabled');
+    }
+
     public function getPaymentPayPalClientIdSandbox(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'paymentPaypalClientIdSandbox');

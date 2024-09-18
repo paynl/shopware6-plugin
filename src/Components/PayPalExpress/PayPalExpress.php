@@ -22,6 +22,7 @@ use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\CreateOrderResponse as P
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\Amount as PayPalAmount;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\CreateOrder as PayPalCreateOrder;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\PurchaseUnit;
+use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\OrderDetailResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Throwable;
 use Exception;
@@ -223,36 +224,24 @@ class PayPalExpress
     }
 
     /** @throws Exception */
-    public function updateOrder(OrderEntity $order, array $webhookData, SalesChannelContext $context): ?OrderEntity
+    private function updateOrder(OrderEntity $order, OrderDetailResponse $orderDetailResponse, SalesChannelContext $context): ?OrderEntity
     {
-        $customerData = $this->getCustomerWebhookData($webhookData);
-        if (empty($customerData)) {
-            return $order;
-        }
-
-        $countryCode = strtoupper($customerData['billingAddress']['countryCode']);
-        $countryId = $this->getCountryIdByCode($countryCode, $context->getContext());
-        if (empty($countryId)) {
-            $countryId = $context->getSalesChannel()->getCountryId();
-        }
+        $salutationId = $this->getSalutationId($context->getContext());
+        $addressData = $this->getAddressData($orderDetailResponse, $context, $salutationId);
 
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
                 $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
-                    $customerData['customer']['firstname'],
-                    $customerData['customer']['lastname'],
+                    $addressData['firstName'],
+                    $addressData['lastName'],
                     '',
                     '',
                     '',
-                    sprintf(
-                        "%s %s",
-                        $customerData['billingAddress']['streetName'],
-                        $customerData['billingAddress']['streetNumber'],
-                    ),
-                    $customerData['billingAddress']['zipCode'],
-                    $customerData['billingAddress']['city'],
-                    $countryId,
+                    $addressData['street'],
+                    $addressData['zipcode'],
+                    $addressData['city'],
+                    $addressData['countryId'],
                     $context->getContext()
                 );
             }
@@ -260,18 +249,14 @@ class PayPalExpress
             $shippingAddressId = Uuid::randomHex();
             $addressData = [
                 'id' => $shippingAddressId,
-                'countryId' => $countryId,
+                'countryId' => $addressData['countryId'],
                 'orderId' => $order->getId(),
-                'salutationId' => $this->getSalutationId($context->getContext()),
-                'firstName' => $customerData['customer']['firstname'],
-                'lastName' => $customerData['customer']['lastname'],
-                'street' => sprintf(
-                    "%s %s",
-                    $customerData['shippingAddress']['streetName'],
-                    $customerData['shippingAddress']['streetNumber'],
-                ),
-                'zipcode' => $customerData['shippingAddress']['zipCode'],
-                'city' => $customerData['shippingAddress']['city'],
+                'salutationId' => $salutationId,
+                'firstName' => $addressData['firstName'],
+                'lastName' => $addressData['lastName'],
+                'street' => $addressData['street'],
+                'zipcode' => $addressData['zipcode'],
+                'city' => $addressData['city'],
                 'additionalAddressLine1' => null,
             ];
 
@@ -289,58 +274,50 @@ class PayPalExpress
         return $this->orderService->getOrder($order->getId(), $context->getContext());
     }
 
-    public function updateOrderCustomer(
+    private function updateOrderCustomer(
         OrderCustomerEntity $customer,
-        array $webhookData,
+        OrderDetailResponse $orderDetailResponse,
         SalesChannelContext $context
     ): void {
-        $customerData = $this->getCustomerWebhookData($webhookData);
-        if (empty($customerData)) {
+        $payer = $orderDetailResponse->getPayer();
+        if (empty($payer)) {
             return;
         }
 
         $this->orderCustomerRepository->update([
             [
                 'id' => $customer->getId(),
-                'email' => $customerData['customer']['email'],
-                'firstName' => $customerData['customer']['firstname'],
-                'lastName' => $customerData['customer']['lastname'],
+                'email' => $payer->getEmail(),
+                'firstName' => $payer->getFirstName(),
+                'lastName' => $payer->getLastName(),
             ]
         ], $context->getContext());
     }
 
-    public function updateCustomer(
+    private function updateCustomer(
         CustomerEntity $customer,
-        array $webhookData,
+        OrderDetailResponse $orderDetailResponse,
         SalesChannelContext $context
     ): ?CustomerEntity {
-        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
-        if (empty($customerWebhookData)) {
+        $salutationId = $this->getSalutationId($context->getContext());
+        $addressData = $this->getAddressData($orderDetailResponse, $context, $salutationId);
+        $payer = $orderDetailResponse->getPayer();
+        if (empty($addressData) || empty($payer)) {
             return $customer;
         }
 
-        $shippingAddressData = $this->getAddressData($webhookData, $context);
-        $invoiceAddressData = $this->getAddressData($webhookData, $context, null, 'billingAddress');
-
-        $shippingAddressId = $this->getCustomerAddressId($customer, $shippingAddressData);
-        $billingAddressId = $this->getCustomerAddressId($customer, $invoiceAddressData);
-
-        $salutationId = $this->getSalutationId($context->getContext());
+        $billingAddressId = $this->getCustomerAddressId($customer, $addressData);
 
         $customerData = [
             'id' => $customer->getId(),
-            'email' => $customerWebhookData['customer']['email'],
-            'defaultShippingAddressId' => $shippingAddressId,
+            'email' => $payer->getEmail(),
+            'defaultShippingAddressId' => $billingAddressId,
             'defaultBillingAddressId' => $billingAddressId,
-            'firstName' => $customerWebhookData['customer']['firstname'],
-            'lastName' => $customerWebhookData['customer']['lastname'],
+            'firstName' => $addressData['firstName'],
+            'lastName' => $addressData['lastName'],
             'salutationId' => $salutationId,
             'addresses' => [
-                array_merge($shippingAddressData, [
-                    'id' => $shippingAddressId,
-                    'salutationId' => $salutationId,
-                ]),
-                array_merge($invoiceAddressData, [
+                array_merge($addressData, [
                     'id' => $billingAddressId,
                     'salutationId' => $salutationId,
                 ]),
@@ -423,19 +400,17 @@ class PayPalExpress
     }
 
     /** @throws Exception */
-    public function updatePaymentTransaction(array $orderData): void
+    public function updatePaymentTransaction(CreateOrderResponse $orderResponse): void
     {
-        $orderDataMapper = new OrderDataMapper();
-        $order = $orderDataMapper->mapArray($orderData);
-        $statusCode = $order->getStatus()->getCode();
+        $statusCode = $orderResponse->getStatus()->getCode();
 
-        $stateActionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$order->getStatus()->getCode()] ?? null;
+        $stateActionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$statusCode] ?? null;
 
         if (empty($stateActionName)) {
             throw new Exception('State action name was not defined');
         }
 
-        $this->processingHelper->instorePaymentUpdateState($order->getOrderId(), $stateActionName, $statusCode);
+        $this->processingHelper->instorePaymentUpdateState($orderResponse->getOrderId(), $stateActionName, $statusCode);
     }
 
     public function isNotCompletedOrder(string $orderId, Context $context): bool
@@ -496,13 +471,13 @@ class PayPalExpress
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
 
         $payPalOrder = $this->paypalOrderService->getOrder($payPalOrderId, $salesChannelId);
-        $payPalOrderData = $payPalOrder->getData();
 
-        $purchaseUnits = $payPalOrderData['purchase_units'] ?? [];
+        $purchaseUnits = $payPalOrder->getPurchaseUnits();
+        /** @var PurchaseUnit $purchaseUnit */
         $purchaseUnit = reset($purchaseUnits);
-        $purchaseUnitAmount = $purchaseUnit['amount'] ?? [];
-        $amount = (string) round($purchaseUnitAmount['value'] * 100);
-        $referenceId = $purchaseUnit['reference_id'] ?? '';
+        $purchaseUnitAmount = $purchaseUnit->getAmount();
+        $amount = (string) round($purchaseUnitAmount->getValue() * 100);
+        $referenceId = $purchaseUnit->getReferenceId() ?? '';
 
         if (!$referenceId || !$amount) {
             throw new Exception('PayPal: Amount or reference ID is empty');
@@ -520,7 +495,7 @@ class PayPalExpress
         $orderNumber = $order->getOrderNumber();
 
         $exchangeUrl = $this->router->generate(
-            'frontend.account.PaynlPayment.paypal-express.finish-payment',
+            'frontend.PaynlPayment.notify',
             [],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
@@ -584,6 +559,14 @@ class PayPalExpress
             $salesChannelContext,
             $createOrderResponse->getOrderId(),
         );
+
+        $this->updateOrder($order, $payPalOrder, $salesChannelContext);
+
+        $this->updateOrderCustomer($order->getOrderCustomer(), $payPalOrder, $salesChannelContext);
+
+        $this->updateCustomer($order->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
+
+        $this->updatePaymentTransaction($createOrderResponse);
 
         return $createOrderResponse;
     }
@@ -667,31 +650,40 @@ class PayPalExpress
      * @return array<string, string|null>
      */
     private function getAddressData(
-        array $webhookData,
+        OrderDetailResponse $orderDetailResponse,
         SalesChannelContext $context,
-        ?string $salutationId = null,
-        string $addressType = 'shippingAddress'
+        ?string $salutationId = null
     ): array {
-        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
-        $countryCode = strtoupper($customerWebhookData[$addressType]['countryCode']);
+        $payer = $orderDetailResponse->getPayer();
+        if (!empty($orderDetailResponse->getPurchaseUnits())) {
+            $shipping = $orderDetailResponse->getPurchaseUnits()[0]->getShipping();
+            $payerAddress = $shipping->getAddress();
+            $names = explode(' ', $shipping->getFullName());
+            $lastName = array_pop($names);
+            $firstName = implode(' ', $names);
+        } else {
+            $payerAddress = $payer->getAddress();
+            $firstName = $payer->getFirstName();
+            $lastName = $payer->getLastName();
+        }
+
+        $countryCode = $payerAddress->getCountryCode();
+        $phone = $payer->getPhone();
+
         $countryId = $this->getCountryIdByCode($countryCode, $context->getContext());
         if (empty($countryId)) {
             $countryId = $context->getSalesChannel()->getCountryId();
         }
 
         return [
-            'firstName' => $customerWebhookData['customer']['firstname'],
-            'lastName' => $customerWebhookData['customer']['lastname'],
+            'firstName' => $firstName,
+            'lastName' => $lastName,
             'salutationId' => $salutationId,
-            'street' => sprintf(
-                "%s %s",
-                $customerWebhookData[$addressType]['streetName'],
-                $customerWebhookData[$addressType]['streetNumber'],
-            ),
-            'zipcode' => $customerWebhookData[$addressType]['zipCode'],
+            'street' => $payerAddress->getAddressLine1(),
+            'zipcode' => $payerAddress->getPostalCode(),
             'countryId' => $countryId,
-            'phoneNumber' => $customerWebhookData['customer']['phone'],
-            'city' => $customerWebhookData[$addressType]['city'],
+            'phoneNumber' => $phone,
+            'city' => $payerAddress->getAdminArea1(),
             'additionalAddressLine1' => null,
         ];
     }
@@ -751,6 +743,15 @@ class PayPalExpress
         }
 
         return (array) $webhookData['checkoutData'] ?? null;
+    }
+
+    private function getPaymentWebhookData(array $webhookData): ?array
+    {
+        if (empty($webhookData['payments'])) {
+            return null;
+        }
+
+        return (array) reset($webhookData['payments']);
     }
 
     private function getCustomerAddressId(CustomerEntity $customer, array $addressData)

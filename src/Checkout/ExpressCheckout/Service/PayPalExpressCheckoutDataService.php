@@ -32,13 +32,14 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
         SalesChannelContext $salesChannelContext,
         bool $addProductToCart = false
     ): ?ExpressCheckoutButtonData {
-        $customer = $salesChannelContext->getCustomer();
-        if ($customer instanceof CustomerEntity && $customer->getActive()) {
-            return null;
-        }
-
         $context = $salesChannelContext->getContext();
         $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $customer = $salesChannelContext->getCustomer();
+        $loggedInCustomerEnabled = $this->config->getPaymentPayPalExpressLoggedInCustomerEnabled($salesChannelId);
+
+        if (!$loggedInCustomerEnabled && $customer instanceof CustomerEntity && $customer->getActive()) {
+            return null;
+        }
 
         return (new ExpressCheckoutButtonData())->assign([
             'expressCheckoutEnabled' => $this->config->getPaymentPayPalExpressCheckoutEnabled($salesChannelId),
