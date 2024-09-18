@@ -481,7 +481,7 @@ class IdealExpress
             true
         );
 
-        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, null);
+        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, null, null);
         $products = $this->getOrderProducts($order, $salesChannelContext);
         $order = new Order($products);
 
@@ -519,9 +519,15 @@ class IdealExpress
             'TESTREFERENCE10',
             null,
             null,
-            'fastCheckout',
+            new Optimize(
+                'fastCheckout',
+                true,
+                true,
+                true,
+            ),
             new PaymentMethod(
                 10,
+                null,
                 null
             ),
             null,

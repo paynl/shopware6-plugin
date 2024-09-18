@@ -29,7 +29,7 @@ class OrderService extends BaseService
     public function create(CreateOrder $order, string $salesChannelId): CreateOrderResponse
     {
         $arrayResponse = $this->request(
-            self::METHOD_POST,
+            static::METHOD_POST,
             'v2/checkout/orders',
             $this->getBasicToken($salesChannelId),
             $order->toArray()
@@ -42,7 +42,7 @@ class OrderService extends BaseService
     public function getOrder(string $orderId, string $salesChannelId): OrderDetailResponse
     {
         $arrayResponse = $this->request(
-            self::METHOD_GET,
+            static::METHOD_GET,
             "v2/checkout/orders/{$orderId}",
             $this->getBasicToken($salesChannelId)
         );

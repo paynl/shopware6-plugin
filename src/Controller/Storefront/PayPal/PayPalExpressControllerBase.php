@@ -199,10 +199,10 @@ class PayPalExpressControllerBase extends StorefrontController
     public function getAddErrorMessageResponse(Request $request): Response
     {
         if ($request->request->getBoolean('cancel')) {
-            $this->addFlash(self::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
+            $this->addFlash(static::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
             $this->logger->notice('Storefront checkout cancellation');
         } else {
-            $this->addFlash(self::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
+            $this->addFlash(static::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
             $this->logger->notice('Storefront checkout error', ['error' => $request->request->get('error')]);
         }
 

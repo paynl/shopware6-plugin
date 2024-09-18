@@ -26,7 +26,7 @@ class OrderService extends BaseService
     public function create(CreateOrder $order, string $salesChannelId): CreateOrderResponse
     {
         $arrayResponse = $this->request(
-            self::METHOD_POST,
+            static::METHOD_POST,
             'v1/orders',
             $this->getBasicToken($salesChannelId),
             $order->toArray()

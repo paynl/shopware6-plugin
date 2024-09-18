@@ -32,23 +32,13 @@ class PayPalExpressController extends PayPalExpressControllerBase
         return $this->getCreatePaymentResponse($request, $salesChannelContext);
     }
 
-    #[Route(
-        path: '/PaynlPayment/paypal-express/add-error',
-        name: 'frontend.account.PaynlPayment.paypal-express.add-error',
-        options: ['seo' => false, 'csrf_protected' => false],
-        methods: ['POST'])
-    ]
+    #[Route(path: '/PaynlPayment/paypal-express/add-error', name: 'frontend.account.PaynlPayment.paypal-express.add-error', options: ['seo' => false, 'csrf_protected' => false], methods: ['POST'])]
     public function addErrorMessage(Request $request): Response
     {
         return $this->getAddErrorMessageResponse($request);
     }
 
-    #[Route(
-        path: '/PaynlPayment/paypal-express/finish-page',
-        name: 'frontend.account.PaynlPayment.paypal-express.finish-page',
-        options: ['seo' => false],
-        methods: ['POST', 'GET'])
-    ]
+    #[Route(path: '/PaynlPayment/paypal-express/finish-page', name: 'frontend.account.PaynlPayment.paypal-express.finish-page', options: ['seo' => false], methods: ['POST', 'GET'])]
     public function finishPage(Request $request, SalesChannelContext $context): Response
     {
         return $this->getFinishPageResponse($request, $context);
