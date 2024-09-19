@@ -169,7 +169,7 @@ class PayPalExpressControllerBase extends StorefrontController
 
             return new Response(json_encode($responseArray));
         } catch (Throwable $exception) {
-            return new Response(json_encode(['error' => $exception->getMessage()]));
+            return new Response(json_encode(['error' => $exception->getMessage()]), 400);
         }
     }
 
