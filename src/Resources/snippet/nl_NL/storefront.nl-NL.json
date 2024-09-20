@@ -24,7 +24,11 @@
         "order": "Bestelling: "
     },
     "payment": {
-        "selectIssuer": "Kies uw bank"
+        "selectIssuer": "Kies uw bank",
+        "idealExpressCheckout": {
+            "buttonTitle": "Snel bestellen",
+            "paymentError": "The payment with IDEAL Express Checkout failed."
+        }
     },
     "coc": {
         "label": "KVK-nummer",
