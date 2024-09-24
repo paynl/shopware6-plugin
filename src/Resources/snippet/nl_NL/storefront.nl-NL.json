@@ -27,7 +27,7 @@
         "selectIssuer": "Kies uw bank",
         "idealExpressCheckout": {
             "buttonTitle": "Snel bestellen",
-            "paymentError": "The payment with IDEAL Express Checkout failed."
+            "paymentError": "De betaling via iDEAL Snel bestellen is mislukt."
         }
     },
     "coc": {
