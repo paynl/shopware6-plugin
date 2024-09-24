@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\PAY\v1;
 
-use GuzzleHttp\Client;
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
 use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use Psr\Http\Message\ResponseInterface;
@@ -14,9 +14,9 @@ abstract class BaseService
     protected const METHOD_POST = 'POST';
     protected const BASE_URL = 'https://connect.payments.nl';
 
-    protected Client $client;
+    protected GuzzleClient $client;
 
-    public function __construct(Client $client)
+    public function __construct(GuzzleClient $client)
     {
         $this->client = $client;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\Ideal;
 
+use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
@@ -23,6 +24,9 @@ use Throwable;
 class IdealExpressControllerBase extends StorefrontController
 {
     private const SNIPPET_ERROR = 'payment.idealExpressCheckout.paymentError';
+
+    /** @var ExpressCheckoutUtil */
+    private $expressCheckoutUtil;
 
     /** @var IdealExpress */
     private $idealExpress;
@@ -46,6 +50,7 @@ class IdealExpressControllerBase extends StorefrontController
     private $flashBag;
 
     public function __construct(
+        ExpressCheckoutUtil $expressCheckoutUtil,
         IdealExpress $idealExpress,
         CartService $cartService,
         CartBackupService $cartBackupService,
@@ -54,6 +59,7 @@ class IdealExpressControllerBase extends StorefrontController
         AbstractLogoutRoute $logoutRoute,
         ?FlashBag $flashBag
     ) {
+        $this->expressCheckoutUtil = $expressCheckoutUtil;
         $this->idealExpress = $idealExpress;
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
@@ -68,7 +74,7 @@ class IdealExpressControllerBase extends StorefrontController
         try {
             $this->cartBackupService->clearBackup($context);
 
-            $idealID = $this->idealExpress->getActiveIdealID($context);
+            $idealID = $this->expressCheckoutUtil->getActiveIdealID($context);
 
             $context = $this->cartService->updatePaymentMethod($context, $idealID);
 
@@ -79,17 +85,18 @@ class IdealExpressControllerBase extends StorefrontController
             $city = 'Temp';
             $zipcode = '23456';
 
-            $newContext = $this->idealExpress->prepareCustomer(
+            $newContext = $this->expressCheckoutUtil->prepareCustomer(
                 $firstname,
                 $lastname,
                 $email,
                 $street,
                 $zipcode,
                 $city,
+                $idealID,
                 $context
             );
 
-            $order = $this->idealExpress->createOrder($newContext);
+            $order = $this->expressCheckoutUtil->createOrder($newContext);
             $countryCode = $order->getBillingAddress()->getCountry()
                 ? $order->getBillingAddress()->getCountry()->getIso()
                 : null;
@@ -157,7 +164,7 @@ class IdealExpressControllerBase extends StorefrontController
     {
         $orderId = $request->get('orderId');
 
-        if (!$this->idealExpress->isNotCompletedOrder($orderId, $context->getContext())) {
+        if (!$this->expressCheckoutUtil->isNotCompletedOrder($orderId, $context->getContext())) {
             return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
         }
 

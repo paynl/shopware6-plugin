@@ -14,6 +14,7 @@ abstract class BaseService
     protected const METHOD_GET = 'GET';
     protected const METHOD_POST = 'POST';
     protected const SANDBOX_URL = 'https://api-m.sandbox.paypal.com';
+    protected const LIVE_URL = 'https://api-m.paypal.com';
 
     protected Client $client;
 
@@ -23,7 +24,7 @@ abstract class BaseService
     }
 
     /** @throws PayPalPaymentApi */
-    protected function request(string $method, string $url, string $basicToken, array $data = []): array
+    protected function request(string $method, string $url, string $baseUrl, string $basicToken, array $data = []): array
     {
         $options = [
             'headers' => [
@@ -37,22 +38,12 @@ abstract class BaseService
         }
 
         try {
-            $response = $this->client->request($method, $this->getFullRequestUrl($url), $options);
+            $response = $this->client->request($method, sprintf('%s/%s', $baseUrl, $url), $options);
 
             return $this->getResponseArray($response);
         } catch (GuzzleException $exception) {
             throw PayPalPaymentApi::paymentResponseError($exception->getMessage(), $exception->getCode());
         }
-    }
-
-    protected function getBaseUrl(): string
-    {
-        return static::SANDBOX_URL;
-    }
-
-    protected function getFullRequestUrl(string $url): string
-    {
-        return sprintf('%s/%s', $this->getBaseUrl(), $url);
     }
 
     protected function getResponseArray(ResponseInterface $response): array

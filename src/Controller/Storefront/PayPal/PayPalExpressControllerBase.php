@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\PayPal;
 
+use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Components\PayPalExpress\PayPalExpress;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
@@ -28,6 +29,9 @@ use Throwable;
 class PayPalExpressControllerBase extends StorefrontController
 {
     private const SNIPPET_ERROR = 'payment.paypalExpressCheckout.paymentError';
+
+    /** @var ExpressCheckoutUtil */
+    private $expressCheckoutUtil;
 
     /** @var PayPalExpress */
     private $paypalExpress;
@@ -60,6 +64,7 @@ class PayPalExpressControllerBase extends StorefrontController
     private $flashBag;
 
     public function __construct(
+        ExpressCheckoutUtil $expressCheckoutUtil,
         PayPalExpress $paypalExpress,
         CartService $cartService,
         CartBackupService $cartBackupService,
@@ -71,6 +76,7 @@ class PayPalExpressControllerBase extends StorefrontController
         LoggerInterface $logger,
         ?FlashBag $flashBag
     ) {
+        $this->expressCheckoutUtil = $expressCheckoutUtil;
         $this->paypalExpress = $paypalExpress;
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
@@ -101,7 +107,7 @@ class PayPalExpressControllerBase extends StorefrontController
         try {
             $this->cartBackupService->clearBackup($context);
 
-            $paypalID = $this->paypalExpress->getActivePayPalID($context);
+            $paypalID = $this->expressCheckoutUtil->getActivePayPalID($context);
 
             $context = $this->cartService->updatePaymentMethod($context, $paypalID);
 
@@ -112,17 +118,18 @@ class PayPalExpressControllerBase extends StorefrontController
             $city = 'Temp';
             $zipcode = '23456';
 
-            $newContext = $this->paypalExpress->prepareCustomer(
+            $newContext = $this->expressCheckoutUtil->prepareCustomer(
                 $firstname,
                 $lastname,
                 $email,
                 $street,
                 $zipcode,
                 $city,
+                $paypalID,
                 $context
             );
 
-            $order = $this->paypalExpress->createOrder($newContext);
+            $order = $this->expressCheckoutUtil->createOrder($newContext);
             $countryCode = $order->getBillingAddress()->getCountry()
                 ? $order->getBillingAddress()->getCountry()->getIso()
                 : null;
@@ -177,7 +184,7 @@ class PayPalExpressControllerBase extends StorefrontController
     {
         $orderId = $request->get('orderId');
 
-        if (!$this->paypalExpress->isNotCompletedOrder($orderId, $context->getContext())) {
+        if (!$this->expressCheckoutUtil->isNotCompletedOrder($orderId, $context->getContext())) {
             return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
         }
 

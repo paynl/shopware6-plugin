@@ -31,6 +31,7 @@ class OrderService extends BaseService
         $arrayResponse = $this->request(
             static::METHOD_POST,
             'v2/checkout/orders',
+            $this->getBaseUrl($salesChannelId),
             $this->getBasicToken($salesChannelId),
             $order->toArray()
         );
@@ -44,10 +45,16 @@ class OrderService extends BaseService
         $arrayResponse = $this->request(
             static::METHOD_GET,
             "v2/checkout/orders/{$orderId}",
+            $this->getBaseUrl($salesChannelId),
             $this->getBasicToken($salesChannelId)
         );
 
         return $this->orderDataMapper->mapOrderDetailArray($arrayResponse);
+    }
+
+    private function getBaseUrl(string $salesChannelId): string
+    {
+        return $this->config->getTestMode($salesChannelId) ? static::SANDBOX_URL : static::LIVE_URL;
     }
 
     private function getBasicToken(string $salesChannelId): string

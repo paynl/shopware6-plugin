@@ -26,6 +26,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\Storefront\Ideal\Sw65\IdealExpressController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil" />
             <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
@@ -43,6 +44,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\Storefront\PayPal\Sw65\PayPalExpressController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil" />
             <argument type="service" id="PaynlPayment\Shopware6\Components\PayPalExpress\PayPalExpress" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
