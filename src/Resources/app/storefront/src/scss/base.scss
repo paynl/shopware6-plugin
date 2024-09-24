@@ -75,6 +75,25 @@
     text-align: center;
 }
 
+#btn-fast-checkout {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    line-height: 2.2rem;
+    padding: 7px 17px;
+    font-size: 1.2rem;
+    background-size: 51px;
+    background: #c90066 no-repeat 8px center;
+    border: 1px solid #c90066;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    box-sizing: border-box;
+    vertical-align: middle;
+    border-radius: 3px;
+    text-decoration: none;
+}
+
 @media screen and (max-width: 767px) {
     .paynl-payment-methods-custom-styles .payment-method,
     .paynl-payment-methods-custom-styles .payment-method .paynl-payment-method-extra-wrapper {

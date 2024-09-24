@@ -26,7 +26,11 @@
     },
 
     "payment": {
-        "selectIssuer": "Wählen Sie eine Bank aus"
+        "selectIssuer": "Wählen Sie eine Bank aus",
+        "idealExpressCheckout": {
+            "buttonTitle": "Fast Checkout",
+            "paymentError": "The payment with IDEAL Express Checkout failed."
+        }
     },
     "coc": {
         "label": "IHK-Nummer",
