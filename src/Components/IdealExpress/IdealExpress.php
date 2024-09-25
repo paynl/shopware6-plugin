@@ -118,8 +118,8 @@ class IdealExpress
             foreach ($order->getAddresses() as $address) {
                 $this->repoOrderAddresses->updateAddress(
                     $address->getId(),
-                    $customerData['customer']['firstname'],
-                    $customerData['customer']['lastname'],
+                    $customerData['customer']['firstName'],
+                    $customerData['customer']['lastName'],
                     '',
                     '',
                     '',
@@ -141,8 +141,8 @@ class IdealExpress
                 'countryId' => $countryId,
                 'orderId' => $order->getId(),
                 'salutationId' => $this->expressCheckoutUtil->getSalutationId($context->getContext()),
-                'firstName' => $customerData['customer']['firstname'],
-                'lastName' => $customerData['customer']['lastname'],
+                'firstName' => $customerData['customer']['firstName'],
+                'lastName' => $customerData['customer']['lastName'],
                 'street' => sprintf(
                     "%s %s",
                     $customerData['shippingAddress']['streetName'],
@@ -181,8 +181,8 @@ class IdealExpress
             [
                 'id' => $customer->getId(),
                 'email' => $customerData['customer']['email'],
-                'firstName' => $customerData['customer']['firstname'],
-                'lastName' => $customerData['customer']['lastname'],
+                'firstName' => $customerData['customer']['firstName'],
+                'lastName' => $customerData['customer']['lastName'],
             ]
         ], $context->getContext());
     }
@@ -210,8 +210,8 @@ class IdealExpress
             'email' => $customerWebhookData['customer']['email'],
             'defaultShippingAddressId' => $shippingAddressId,
             'defaultBillingAddressId' => $billingAddressId,
-            'firstName' => $customerWebhookData['customer']['firstname'],
-            'lastName' => $customerWebhookData['customer']['lastname'],
+            'firstName' => $customerWebhookData['customer']['firstName'],
+            'lastName' => $customerWebhookData['customer']['lastName'],
             'salutationId' => $salutationId,
             'addresses' => [
                 array_merge($shippingAddressData, [
@@ -386,8 +386,8 @@ class IdealExpress
         }
 
         return [
-            'firstName' => $customerWebhookData['customer']['firstname'],
-            'lastName' => $customerWebhookData['customer']['lastname'],
+            'firstName' => $customerWebhookData['customer']['firstName'],
+            'lastName' => $customerWebhookData['customer']['lastName'],
             'salutationId' => $salutationId,
             'street' => sprintf(
                 "%s %s",

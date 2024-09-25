@@ -109,25 +109,19 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\PayPalExpress\PayPalExpress" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Service\CartService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="router.default"/>
             <argument type="service" id="translator"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\CustomerService"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayPal\v2\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PAY\v1\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderAddressRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil" public="true">
