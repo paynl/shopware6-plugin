@@ -278,8 +278,6 @@ class IdealExpress
                 $context,
                 $orderResponse->getOrderId(),
             );
-
-            $this->updatePaymentTransaction($orderResponse->getData());
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
                 $order,
@@ -296,19 +294,12 @@ class IdealExpress
     }
 
     /** @throws Exception */
-    public function updatePaymentTransaction(array $orderData): void
+    public function processNotify(array $orderData): string
     {
         $orderDataMapper = new OrderDataMapper();
         $order = $orderDataMapper->mapArray($orderData);
-        $statusCode = $order->getStatus()->getCode();
 
-        $stateActionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$order->getStatus()->getCode()] ?? null;
-
-        if (empty($stateActionName)) {
-            throw new Exception('State action name was not defined');
-        }
-
-        $this->processingHelper->instorePaymentUpdateState($order->getOrderId(), $stateActionName, $statusCode);
+        return $this->processingHelper->processNotify($order->getOrderId());
     }
 
     private function createPayIdealExpressOrder(

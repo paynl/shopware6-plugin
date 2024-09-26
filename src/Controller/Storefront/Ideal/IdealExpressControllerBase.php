@@ -144,18 +144,24 @@ class IdealExpressControllerBase extends StorefrontController
 
             $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $dataObject, $context);
 
-            $this->idealExpress->updatePaymentTransaction($dataObject);
+            $responseText = $this->idealExpress->processNotify($dataObject);
 
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Success', FILE_APPEND);
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', $responseText, FILE_APPEND);
 
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
 
-            return new Response(json_encode(['success' => true]));
+            return new Response($responseText);
         } catch (Throwable $ex) {
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', $ex->getMessage(), FILE_APPEND);
+            $responseText = sprintf(
+                'FALSE| Error "%s" in file %s',
+                $ex->getMessage(),
+                $ex->getFile()
+            );
+
+            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', $responseText, FILE_APPEND);
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
 
-            return new Response($ex->getMessage());
+            return new Response($responseText);
         }
 
     }
