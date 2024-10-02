@@ -72,6 +72,10 @@
         <service id="PaynlPayment\Shopware6\Helper\StringHelper">
         </service>
 
+        <service id="PaynlPayment\Shopware6\Helper\LocaleCodeHelper">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Language\LanguageRepository"/>
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -244,6 +248,7 @@
         <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\PayPalExpressCheckoutDataService">
             <argument type="service" id="router"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\LocaleCodeHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
         </service>
 

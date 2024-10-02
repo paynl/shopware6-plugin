@@ -4,8 +4,10 @@ namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service;
 
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\ExpressCheckoutButtonData;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Framework\Context;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -13,6 +15,7 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
 {
     private RouterInterface $router;
     private Config $config;
+    private LocaleCodeHelper $localeCodeHelper;
     private PaymentMethodRepository $paymentMethodRepository;
 
     /**
@@ -21,10 +24,12 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
     public function __construct(
         RouterInterface $router,
         Config $config,
+        LocaleCodeHelper $localeCodeHelper,
         PaymentMethodRepository $paymentMethodRepository
     ) {
         $this->router = $router;
         $this->config = $config;
+        $this->localeCodeHelper = $localeCodeHelper;
         $this->paymentMethodRepository = $paymentMethodRepository;
     }
 
@@ -46,6 +51,7 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
             'expressShoppingCartEnabled' => $this->config->getPaymentPayPalExpressShoppingCartEnabled($salesChannelId),
             'clientId' => $this->config->getPaymentPayPalClientIdSandbox($salesChannelId),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            'languageIso' => $this->getInContextButtonLanguage($salesChannelContext->getContext()),
             'contextSwitchUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.prepare-cart'),
             'payPalPaymentMethodId' => $this->paymentMethodRepository->getActivePayPalID($context),
             'createOrderUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.start-payment'),
@@ -58,5 +64,14 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
             'cancelRedirectUrl' => $this->router->generate($addProductToCart ? 'frontend.checkout.cart.page' : 'frontend.checkout.register.page'),
             'addErrorUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.add-error'),
         ]);
+    }
+
+    private function getInContextButtonLanguage(Context $context): string
+    {
+        return str_replace(
+            '-',
+            '_',
+            $this->localeCodeHelper->getLocaleCodeFromContext($context)
+        );
     }
 }
