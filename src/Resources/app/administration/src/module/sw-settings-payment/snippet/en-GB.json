@@ -9,5 +9,16 @@
             "absoluteOptionLabel": "Absolute",
             "percentageOptionLabel": "Percentage"
         }
+    },
+    "paymentExpressCheckout": {
+        "titleExpressCheckoutCard": "Express checkout",
+        "labelBankDropdown": "Bank selection dropdown",
+        "bankDropdownHelpText": "Enable this option to show a dropdown with all available banks in the checkout. When this option is disabled, customers will be redirected to a bank selection page.",
+        "labelExpressCheckout": "Cart page",
+        "expressCheckoutHelpText": "Show the fast checkout button on the cart page. This button allows users to checkout directly from the cart without the need to fill in their details.",
+        "labelExpressShoppingCart": "Minicart",
+        "expressShoppingCartHelpText": "Show the fast checkout button on the minicart. This button allows users to checkout directly from the cart without the need to fill in their details.",
+        "labelExpressCheckoutLoggedInCustomer": "Available for logged in customers",
+        "expressCheckoutLoggedInCustomerHelpText": "When disabled (by default), the fast checkout button will only be shown to guest users."
     }
 }
