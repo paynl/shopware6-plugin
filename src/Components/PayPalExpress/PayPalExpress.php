@@ -264,19 +264,7 @@ class PayPalExpress
 
         $asyncPaymentTransition = new AsyncPaymentTransactionStruct($transaction, $order, $shopwareReturnUrl);
 
-        try {
-            $orderResponse = $this->createPayPalExpressOrder($asyncPaymentTransition, $context);
-
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Response:', FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($orderResponse->getData()), FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-        } catch (Throwable $exception) {
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Error:', FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', $exception->getMessage(), FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
-            throw $exception;
-        }
+        $orderResponse = $this->createPayPalExpressOrder($asyncPaymentTransition, $context);
 
         return $orderResponse->getId();
     }
@@ -313,15 +301,7 @@ class PayPalExpress
             [$purchaseUnit]
         );
 
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
         $paypalOrder = $this->paypalOrderService->create($createOrder, $salesChannelId);
-
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'PayPal Order Response:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($paypalOrder->getData()), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
         return $paypalOrder;
     }
@@ -406,15 +386,7 @@ class PayPalExpress
             $payOrder
         );
 
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment PAY Request:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
-
         $createOrderResponse = $this->payOrderService->create($createOrder, $salesChannelId);
-
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'Payment PAY Response:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', json_encode($createOrderResponse->getData()), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', "\n\n", FILE_APPEND);
 
         $this->processingHelper->storePaynlTransactionData(
             $order,

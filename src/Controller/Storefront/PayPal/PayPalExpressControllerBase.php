@@ -150,9 +150,6 @@ class PayPalExpressControllerBase extends StorefrontController
 
             return new Response(json_encode(['token' => $paymentId]));
         } catch (\Throwable $ex) {
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', 'ERROR:', FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/paypal-express.txt', $ex->getMessage(), FILE_APPEND);
-
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 
             if ($this->flashBag !== null) {

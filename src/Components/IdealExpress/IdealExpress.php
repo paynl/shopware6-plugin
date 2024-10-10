@@ -353,10 +353,6 @@ class IdealExpress
             $order
         );
 
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Payment:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', json_encode($createOrder->toArray()), FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
-
         return $this->payOrderService->create($createOrder, $salesChannelId);
     }
 

@@ -129,9 +129,6 @@ class IdealExpressControllerBase extends StorefrontController
 
     public function getFinishPaymentResponse(RequestDataBag $data, SalesChannelContext $context): Response
     {
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', 'Request exchange:', FILE_APPEND);
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', file_get_contents('php://input'), FILE_APPEND);
-
         $orderNumber = (string) $data->get('object')->get('reference');
         $dataObject = (array) $data->all()['object'] ?? [];
 
@@ -146,10 +143,6 @@ class IdealExpressControllerBase extends StorefrontController
 
             $responseText = $this->idealExpress->processNotify($dataObject);
 
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', $responseText, FILE_APPEND);
-
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
-
             return new Response($responseText);
         } catch (Throwable $ex) {
             $responseText = sprintf(
@@ -157,9 +150,6 @@ class IdealExpressControllerBase extends StorefrontController
                 $ex->getMessage(),
                 $ex->getFile()
             );
-
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', $responseText, FILE_APPEND);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/ideal-express.txt', "\n\n", FILE_APPEND);
 
             return new Response($responseText);
         }
