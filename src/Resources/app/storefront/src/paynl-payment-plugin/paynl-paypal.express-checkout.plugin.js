@@ -384,7 +384,7 @@ export default class PaynlPayPalExpressButton extends Plugin {
                 tagline: this.options.tagline,
                 layout: 'vertical',
                 label: 'checkout',
-                height: 50,
+                height: 52,
             },
 
             /**
