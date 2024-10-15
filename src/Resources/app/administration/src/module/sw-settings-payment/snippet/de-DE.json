@@ -17,6 +17,8 @@
         "labelExpressShoppingCart": "Minicart",
         "expressShoppingCartHelpText": "Zeigen Sie die Schaltfläche Express checkout im Minicart an. Mit dieser Schaltfläche können Nutzer direkt vom Minicart aus zur Kasse gehen, ohne ihre Details eingeben zu müssen.",
         "labelExpressCheckoutLoggedInCustomer": "Verfügbar für eingeloggte Kunden",
-        "expressCheckoutLoggedInCustomerHelpText": "Wenn diese Option deaktiviert ist (Standardeinstellung), wird die Schaltfläche nur für Gastbenutzer angezeigt."
+        "expressCheckoutLoggedInCustomerHelpText": "Wenn diese Option deaktiviert ist (Standardeinstellung), wird die Schaltfläche nur für Gastbenutzer angezeigt.",
+        "labelBankSelectionDropdown": "Dropdown-Liste für die Bankauswahl",
+        "bankSelectionDropdownHelpText": "Aktivieren Sie diese Option, um eine Auswahlliste mit allen verfügbaren Banken in der Checkout anzuzeigen. Wenn diese Option deaktiviert ist, werden die Kunden zu einer Bankauswahlseite weitergeleitet."
     }
 }
