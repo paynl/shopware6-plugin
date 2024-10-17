@@ -1,0 +1,6 @@
+{% block paynl_paypal_ecs_button %}
+    <div class="{{ button_class }}"
+         data-paynl-paypal-express-button="true"
+         data-paynl-pay-pal-express-button-options="{{ expressSettings|json_encode }}">
+    </div>
+{% endblock %}
