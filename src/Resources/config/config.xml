@@ -541,44 +541,6 @@
     </card>
 
     <card>
-        <title>PayPal</title>
-        <title lang="de-DE">PayPal</title>
-        <title lang="nl-NL">PayPal</title>
-
-        <name>payment_paypal</name>
-
-        <input-field type="text">
-            <name>paymentPaypalClientIdSandbox</name>
-            <copyable>true</copyable>
-            <label>Sandbox Client ID</label>
-            <label lang="nl-NL">Sandbox Client ID</label>
-            <label lang="de-DE">Sandbox Client ID</label>
-        </input-field>
-        <input-field>
-            <name>paymentPaypalSecretKeySandbox</name>
-            <copyable>true</copyable>
-            <label>Sandbox Secret Key</label>
-            <label lang="nl-NL">Sandbox Geheime Sleute</label>
-            <label lang="de-DE">Sandbox Secret Key</label>
-        </input-field>
-
-        <input-field type="text">
-            <name>paymentPaypalClientIdProduction</name>
-            <copyable>true</copyable>
-            <label>Production Client ID</label>
-            <label lang="nl-NL">Productie Client ID</label>
-            <label lang="de-DE">Produktion Client ID</label>
-        </input-field>
-        <input-field>
-            <name>paymentPaypalSecretKeyProduction</name>
-            <copyable>true</copyable>
-            <label>Production Secret Key</label>
-            <label lang="nl-NL">Productie Geheime Sleutel</label>
-            <label lang="de-DE">Produktion Secret Key</label>
-        </input-field>
-    </card>
-
-    <card>
         <title>PIN payment</title>
         <title lang="de-DE">PIN payment</title>
 

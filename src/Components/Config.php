@@ -143,11 +143,6 @@ class Config
         return (string)$this->get($salesChannelId, 'orderStateWithAuthorizedTransaction');
     }
 
-    public function getPaymentIdealBankDropdownEnabled(string $salesChannelId): bool
-    {
-        return (bool)$this->get($salesChannelId, 'paymentIdealBankDropdownEnabled');
-    }
-
     public function getPaymentIdealExpressCheckoutEnabled(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutEnabled');
