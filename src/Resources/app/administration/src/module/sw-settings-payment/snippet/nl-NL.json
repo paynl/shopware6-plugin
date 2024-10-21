@@ -17,6 +17,8 @@
         "labelExpressShoppingCart": "Minicart",
         "expressShoppingCartHelpText": "Toon de 'Snel bestellen' knop in de minicart. Met deze knop kunnen gebruikers direct afrekenen vanuit de minicart zonder dat ze hun gegevens hoeven in te vullen.",
         "labelExpressCheckoutLoggedInCustomer": "Beschikbaar voor ingelogde gebruikers ",
-        "expressCheckoutLoggedInCustomerHelpText": "Als deze optie is uitgeschakeld (standaard), wordt de knop alleen getoond aan gastgebruikers."
+        "expressCheckoutLoggedInCustomerHelpText": "Als deze optie is uitgeschakeld (standaard), wordt de knop alleen getoond aan gastgebruikers.",
+        "labelBankSelectionDropdown": "Bank selection dropdown",
+        "bankSelectionDropdownHelpText": "Schakel deze optie in om een dropdown te tonen in de checkout met alle beschikbare banken. Indien deze optie is uitgeschakeld, worden klanten doorgestuurd naar een bankselectie pagina."
     }
 }
