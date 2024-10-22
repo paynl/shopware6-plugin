@@ -3,7 +3,6 @@
 namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout;
 
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataServiceInterface;
-use PaynlPayment\Shopware6\Components\Config;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Page\Checkout\Cart\CheckoutCartPageLoadedEvent;
@@ -15,23 +14,17 @@ use Shopware\Storefront\Page\Product\ProductPageLoadedEvent;
 use Shopware\Storefront\Page\Search\SearchPageLoadedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-/**
- * @internal
- */
 class ExpressCheckoutSubscriber implements EventSubscriberInterface
 {
     public const PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID = 'payPalEcsButtonData';
 
-    private Config $config;
     private LoggerInterface $logger;
     private ExpressCheckoutDataServiceInterface $expressCheckoutDataService;
 
     public function __construct(
-        Config $config,
         LoggerInterface $logger,
         ExpressCheckoutDataServiceInterface $service
     ) {
-        $this->config = $config;
         $this->logger = $logger;
         $this->expressCheckoutDataService = $service;
     }

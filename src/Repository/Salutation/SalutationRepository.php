@@ -12,14 +12,10 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
 class SalutationRepository implements SalutationRepositoryInterface
 {
-    /**
-     * @var EntityRepository
-     */
+    /** @var EntityRepository */
     private $salutationRepository;
 
-    /**
-     * @param EntityRepository $salutationRepository
-     */
+    /** @param EntityRepository $salutationRepository */
     public function __construct($salutationRepository)
     {
         $this->salutationRepository = $salutationRepository;

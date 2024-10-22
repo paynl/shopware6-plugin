@@ -140,12 +140,8 @@ class ExpressCheckoutUtil
     {
         $data = new DataBag();
 
-        # we have to agree to the terms of services
-        # to avoid constraint violation checks
         $data->add(['tos' => true]);
 
-        # create our new Order using the
-        # Shopware function for it.
         return $this->orderService->createOrder($data, $context);
     }
 

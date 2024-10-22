@@ -12,9 +12,6 @@ class LocaleCodeHelper
     /** @var LanguageRepositoryInterface */
     private $languageRepository;
 
-    /**
-     * @internal
-     */
     public function __construct(LanguageRepositoryInterface $languageRepository)
     {
         $this->languageRepository = $languageRepository;

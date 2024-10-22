@@ -8,15 +8,10 @@ use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEve
 
 class OrderAddressRepository implements OrderAddressRepositoryInterface
 {
-    /**
-     * @var EntityRepository
-     */
+    /** @var EntityRepository */
     private $repoOrderAdresses;
 
-
-    /**
-     * @param EntityRepository $repoOrderAdresses
-     */
+    /** @param EntityRepository $repoOrderAdresses */
     public function __construct($repoOrderAdresses)
     {
         $this->repoOrderAdresses = $repoOrderAdresses;

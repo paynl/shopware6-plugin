@@ -10,14 +10,10 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
 class CountryRepository implements CountryRepositoryInterface
 {
-    /**
-     * @var EntityRepository
-     */
+    /** @var EntityRepository */
     private $countryRepository;
 
-    /**
-     * @param EntityRepository $countryRepository
-     */
+    /** @param EntityRepository $countryRepository */
     public function __construct($countryRepository)
     {
         $this->countryRepository = $countryRepository;
