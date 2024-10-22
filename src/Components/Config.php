@@ -143,9 +143,44 @@ class Config
         return (string)$this->get($salesChannelId, 'orderStateWithAuthorizedTransaction');
     }
 
-    public function getPaymentIdealBankDropdownEnabled(string $salesChannelId): bool
+    public function getPaymentIdealExpressCheckoutEnabled(string $salesChannelId): bool
     {
-        return (bool)$this->get($salesChannelId, 'paymentIdealBankDropdownEnabled');
+        return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutEnabled');
+    }
+
+    public function getPaymentPayPalExpressCheckoutEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressCheckoutEnabled');
+    }
+
+    public function getPaymentPayPalExpressShoppingCartEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressShoppingCartEnabled');
+    }
+
+    public function getPaymentPayPalExpressLoggedInCustomerEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressCheckoutLoggedInCustomerEnabled');
+    }
+
+    public function getPaymentPayPalClientIdSandbox(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalClientIdSandbox');
+    }
+
+    public function getPaymentPayPalSecretKeySandbox(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeySandbox');
+    }
+
+    public function getPaymentPayPalClientIdProduction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalClientIdProduction');
+    }
+
+    public function getPaymentPayPalSecretKeyProduction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeyProduction');
     }
 
     public function getPaymentPinTerminal(string $salesChannelId): string

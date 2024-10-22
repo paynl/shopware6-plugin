@@ -11,6 +11,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEve
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
 class OrderRepository implements OrderRepositoryInterface
 {
@@ -56,6 +57,16 @@ class OrderRepository implements OrderRepositoryInterface
     public function search(Criteria $criteria, Context $context): EntitySearchResult
     {
         return $this->orderRepository->search($criteria, $context);
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param Context $context
+     * @return IdSearchResult
+     */
+    public function searchIds(Criteria $criteria, Context $context): IdSearchResult
+    {
+        return $this->orderRepository->searchIds($criteria, $context);
     }
 
     /**

@@ -9,5 +9,18 @@
             "absoluteOptionLabel": "Absolut",
             "percentageOptionLabel": "Prozentsatz"
         }
+    },
+    "paymentExpressCheckout": {
+        "titleExpressCheckoutCard": "Express checkout",
+        "labelExpressCheckout": "Cart page",
+        "expressCheckoutHelpText": "Zeigen Sie auf der Warenkorbseite die Schaltfläche Express checkout an. Mit dieser Schaltfläche können die Nutzer direkt aus dem Warenkorb heraus zur Kasse gehen, ohne ihre Details eingeben zu müssen.",
+        "labelExpressShoppingCart": "Minicart",
+        "expressShoppingCartHelpText": "Zeigen Sie die Schaltfläche Express checkout im Minicart an. Mit dieser Schaltfläche können Nutzer direkt vom Minicart aus zur Kasse gehen, ohne ihre Details eingeben zu müssen.",
+        "labelExpressCheckoutLoggedInCustomer": "Verfügbar für eingeloggte Kunden",
+        "expressCheckoutLoggedInCustomerHelpText": "Wenn diese Option deaktiviert ist (Standardeinstellung), wird die Schaltfläche nur für Gastbenutzer angezeigt.",
+        "labelPaymentPaypalClientIdSandbox": "Sandbox Client ID",
+        "labelPaymentPaypalClientIdProduction": "Produktion Client ID",
+        "labelPaymentPaypalSecretKeySandbox": "Sandbox Secret Key",
+        "labelPaymentPaypalSecretKeyProduction": "Produktion Secret Key"
     }
 }
