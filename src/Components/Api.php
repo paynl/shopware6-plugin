@@ -207,24 +207,6 @@ class Api
         ];
 
         $customer = $salesChannelContext->getCustomer();
-        $customerCustomFields = $customer->getCustomFields();
-        $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer']
-            ?? $this->requestStack->getSession()->get('paynlIssuer'));
-
-        if ($bank && $this->getIsIdealBankEnabled($paynlPaymentMethodId, $salesChannelId)) {
-            $orderCustomFields = (array)$order->getCustomFields();
-            $orderCustomFields['paynlIssuer'] = $bank;
-
-            $data[] = [
-                'id' => $order->getId(),
-                'customFields' => $orderCustomFields
-            ];
-
-            $this->orderRepository->upsert($data, $salesChannelContext->getContext());
-
-            $transactionInitialData['bank'] = $bank;
-        }
 
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
             $transactionInitialData['bank'] = $additionalTransactionInfo->getTerminalId();
@@ -518,14 +500,5 @@ class Api
         $this->setCredentials($salesChannelId);
 
         return (array)Instore::getAllTerminals()->getList();
-    }
-
-    private function getIsIdealBankEnabled(int $payPaymentId, string $salesChannelId): bool
-    {
-        if ($payPaymentId !== PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT) {
-            return true;
-        }
-
-        return $this->config->getPaymentIdealBankDropdownEnabled($salesChannelId);
     }
 }

@@ -11,7 +11,8 @@
             "deniedTransaction": "Your payment was rejected by payment provider (select another payment method).",
             "completePaymentPin" : "Please complete payment on pin/chip device",
             "orderAmountPaymentError": "Unfortunately the order amount does not fit the requirements for this payment method.",
-            "orderDefaultError": "Unfortunately something went wrong"
+            "orderDefaultError": "Unfortunately something went wrong",
+            "paymentError": "An error occurred during the payment process. Please try again later or choose another payment method."
         },
         "labels": {
             "changePayment": "Try again",
@@ -24,7 +25,11 @@
         "order": "Order: "
     },
     "payment": {
-        "selectIssuer": "Select Issuer"
+        "selectIssuer": "Select Issuer",
+        "idealExpressCheckout": {
+            "buttonTitle": "Fast Checkout",
+            "paymentError": "The payment with IDEAL Express Checkout failed."
+        }
     },
     "coc": {
         "label": "KVK/COC Number",
