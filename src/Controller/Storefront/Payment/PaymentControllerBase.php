@@ -7,13 +7,14 @@ use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsReposit
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Payment\Controller\PaymentController;
-use Shopware\Core\Checkout\Payment\PaymentException;
+use Shopware\Core\Checkout\Payment\Exception\InvalidTransactionException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PaymentControllerBase extends AbstractController
 {
@@ -55,22 +56,22 @@ class PaymentControllerBase extends AbstractController
         $orderTransaction = $payTransaction->getOrderTransaction();
 
         if ($orderTransaction === null) {
-            throw PaymentException::invalidTransaction($payOrderId);
+            throw new InvalidTransactionException($payOrderId);
         }
         $order = $orderTransaction->getOrder();
 
         if ($order === null) {
-            throw PaymentException::invalidTransaction($orderTransaction->getId());
+            throw new InvalidTransactionException($orderTransaction->getId());
         }
 
         $orderId = $order->getId();
 
         try {
             $this->paymentController->finalizeTransaction($request);
-        } catch (PaymentException $paymentException) {
+        } catch (HttpException $httpException) {
             $this->logger->error(
                 '{message}. Redirecting to confirm page.',
-                ['message' => $paymentException->getMessage(), 'error' => $paymentException]
+                ['message' => $httpException->getMessage(), 'error' => $httpException]
             );
         }
 
