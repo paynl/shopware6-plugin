@@ -1,3 +1,6 @@
+# 1.6.5
+- Fixed error related to missing requested payment method
+
 # 1.6.4
 - Fast checkout button for PayPal added
 - Fast checkout button for iDEAL added
