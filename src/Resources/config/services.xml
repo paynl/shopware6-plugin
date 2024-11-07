@@ -245,7 +245,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\PayPalExpressCheckoutDataService">
+        <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataService">
             <argument type="service" id="router"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\LocaleCodeHelper"/>
@@ -376,7 +376,7 @@
 
         <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\ExpressCheckoutSubscriber">
             <argument type="service" id="paynl_payments.logger"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\PayPalExpressCheckoutDataService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataService"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

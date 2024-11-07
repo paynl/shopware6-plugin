@@ -12,7 +12,9 @@
         {% sw_include '@PaynlPaymentShopware6/storefront/component/ecs-checkout/ecs-button.html.twig' with {button_class: 'btn-block'} %}
     {% endif %}
 
-    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled') and page.cart.price.totalPrice > 0
+    {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
+
+    {% if expressSettings.expressShoppingCartEnabled and page.cart.price.totalPrice > 0
         and ((config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled') and context.customer.guest)
         or not context.customer)
     %}
