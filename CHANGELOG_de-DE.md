@@ -1,3 +1,10 @@
+# 1.6.5
+ - Fehler in Bezug auf die fehlende angeforderte Zahlungsmethode behoben
+
+# 1.6.4
+- Fast checkout Button für PayPal hinzugefügt
+- Fast checkout Button für iDEAL hinzugefügt
+
 # 1.6.3
 - Problem bei der Installation von Zahlungsmethoden behoben
 

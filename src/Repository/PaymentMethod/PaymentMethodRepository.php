@@ -2,8 +2,8 @@
 
 namespace PaynlPayment\Shopware6\Repository\PaymentMethod;
 
-use Shopware\Core\Checkout\Payment\PaymentMethodDefinition;
-use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
+use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -11,6 +11,10 @@ use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEve
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Checkout\Payment\PaymentMethodDefinition;
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Exception;
 
 class PaymentMethodRepository implements PaymentMethodRepositoryInterface
 {
@@ -80,5 +84,59 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
         }
 
         return $paymentMethod;
+    }
+
+    /**
+     * @param Context $context
+     * @throws Exception
+     * @return string
+     */
+    public function getActiveIdealID(Context $context): string
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new EqualsFilter('active', true));
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $customFields = $paymentMethod->getTranslation('customFields');
+            if (!isset($customFields['paynlId']) || empty($customFields['paynlId'])) {
+                continue;
+            }
+
+            if ($customFields['paynlId'] === PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT) {
+                return (string) $paymentMethod->get('id');
+            }
+        }
+
+        throw new Exception('Payment Method IDEAL Express not found in system');
+    }
+
+    /**
+     * @param Context $context
+     * @throws Exception
+     * @return string
+     */
+    public function getActivePayPalID(Context $context): string
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new EqualsFilter('active', true));
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
+
+        foreach ($paymentMethods as $paymentMethod) {
+            $customFields = $paymentMethod->getTranslation('customFields');
+            if (!isset($customFields['paynlId']) || empty($customFields['paynlId'])) {
+                continue;
+            }
+
+            if ($customFields['paynlId'] === PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT) {
+                return (string) $paymentMethod->get('id');
+            }
+        }
+
+        throw new Exception('Payment Method PayPal Express not found in system');
     }
 }

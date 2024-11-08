@@ -1,6 +1,110 @@
 {% block sw_settings_payment_detail_content_card %}
     {% parent %}
 
+    <sw-card :title="$tc('paymentExpressCheckout.titleExpressCheckoutCard')" :isLoading="isLoading" v-if="isExpressCheckoutPaymentMethod">
+        <template v-if="!isLoading">
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isIDEALPaymentMethod">
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckout')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutHelpText')"
+                />
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressShoppingCart')"
+                        :help-text="$tc('paymentExpressCheckout.expressShoppingCartHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isIDEALPaymentMethod">
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckoutLoggedInCustomer')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
+                />
+            </sw-container>
+
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckout')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutHelpText')"
+                />
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressShoppingCartEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressShoppingCartEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressShoppingCart')"
+                        :help-text="$tc('paymentExpressCheckout.expressShoppingCartHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutLoggedInCustomerEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutLoggedInCustomerEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckoutLoggedInCustomer')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-text-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalClientIdSandbox']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalClientIdSandbox']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalClientIdSandbox')"
+                />
+                <sw-text-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalClientIdProduction']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalClientIdProduction']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalClientIdProduction')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-text-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeySandbox']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeySandbox']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalSecretKeySandbox')"
+                />
+                <sw-text-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeyProduction']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeyProduction']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalSecretKeyProduction')"
+                />
+            </sw-container>
+        </template>
+    </sw-card>
+
     <sw-card :title="$tc('paymentSurchargeSettings.titleSurchargeSettingsCard')" :isLoading="isLoading">
         <template v-if="!isLoading">
             <sw-container columns="3fr 1fr" gap="0px 30px">
