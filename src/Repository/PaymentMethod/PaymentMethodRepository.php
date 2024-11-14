@@ -2,16 +2,19 @@
 
 namespace PaynlPayment\Shopware6\Repository\PaymentMethod;
 
-use Exception;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEvent;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Checkout\Payment\PaymentMethodDefinition;
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Exception;
 
 class PaymentMethodRepository implements PaymentMethodRepositoryInterface
 {
@@ -67,6 +70,20 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
     public function update(array $data, Context $context): EntityWrittenContainerEvent
     {
         return $this->paymentMethodRepository->update($data, $context);
+    }
+
+    public function getPaymentMethodById(string $paymentMethodId, Context $context): PaymentMethodEntity
+    {
+        $criteria = new Criteria([$paymentMethodId]);
+
+        /** @var PaymentMethodEntity|null $paymentMethod */
+        $paymentMethod = $this->paymentMethodRepository->search($criteria, $context)->first();
+
+        if ($paymentMethod === null) {
+            throw new EntityNotFoundException(PaymentMethodDefinition::ENTITY_NAME, $paymentMethodId);
+        }
+
+        return $paymentMethod;
     }
 
     /**

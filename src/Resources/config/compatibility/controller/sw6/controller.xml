@@ -64,6 +64,15 @@
             </call>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Controller\Storefront\Payment\Sw6\PaymentController" public="true">
+            <argument type="service" id="Shopware\Core\Checkout\Payment\Controller\PaymentController"/>
+            <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
         <!-- Admin API Controller -->
         <service id="PaynlPayment\Shopware6\Controller\Api\Config\Sw6\ConfigController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\InstallHelper"/>

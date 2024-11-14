@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Repository\PaymentMethod;
 
+use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenContainerEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -34,4 +35,6 @@ interface PaymentMethodRepositoryInterface
      * @return EntityWrittenContainerEvent
      */
     public function update(array $data, Context $context): EntityWrittenContainerEvent;
+
+    public function getPaymentMethodById(string $paymentMethodId, Context $context): PaymentMethodEntity;
 }

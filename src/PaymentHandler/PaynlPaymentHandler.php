@@ -158,8 +158,12 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         $order = $transaction->getOrder();
         $orderTransaction = $transaction->getOrderTransaction();
 
+        $parameterUrl = parse_url($transaction->getReturnUrl())['query'];
+        $paymentToken = explode('=', $parameterUrl)[1];
+        $returnUrl = $this->router->generate('frontend.PaynlPayment.finalize-transaction', ['_sw_payment_token' => $paymentToken], UrlGeneratorInterface::ABSOLUTE_URL);
+
         $additionalTransactionInfo = new AdditionalTransactionInfo(
-            $transaction->getReturnUrl(),
+            $returnUrl,
             $exchangeUrl,
             $this->shopwareVersion,
             $this->pluginHelper->getPluginVersionFromComposer(),

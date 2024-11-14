@@ -1,3 +1,8 @@
+# 1.6.5
+- Fehler in Bezug auf die fehlende angeforderte Zahlungsmethode behoben
+- Fehler im Zusammenhang mit einem ungültigen Zahlungs-Token behoben
+- Name, Logo und Beschreibung bestehender Zahlungsmethoden werden nicht mehr überschrieben
+
 # 1.6.4
 - Fast checkout Button für PayPal hinzugefügt
 - Fast checkout Button für iDEAL hinzugefügt

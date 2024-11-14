@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service;
 
+use Exception;
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\ExpressCheckoutButtonData;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
@@ -41,6 +42,11 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
         $salesChannelId = $salesChannelContext->getSalesChannelId();
         $customer = $salesChannelContext->getCustomer();
         $loggedInCustomerEnabled = $this->config->getPaymentPayPalExpressLoggedInCustomerEnabled($salesChannelId);
+        $payPalPaymentMethodId = $this->getPayPalPaymentMethodID($context);
+
+        if ($payPalPaymentMethodId === null) {
+            return null;
+        }
 
         if (!$loggedInCustomerEnabled && $customer instanceof CustomerEntity && $customer->getActive()) {
             return null;
@@ -53,7 +59,7 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
             'languageIso' => $this->getInContextButtonLanguage($salesChannelContext->getContext()),
             'contextSwitchUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.prepare-cart'),
-            'payPalPaymentMethodId' => $this->paymentMethodRepository->getActivePayPalID($context),
+            'payPalPaymentMethodId' => $payPalPaymentMethodId,
             'createOrderUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.start-payment'),
             'createPaymentUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.create-payment'),
             'checkoutConfirmUrl' => $this->router->generate(
@@ -64,6 +70,15 @@ class PayPalExpressCheckoutDataService implements ExpressCheckoutDataServiceInte
             'cancelRedirectUrl' => $this->router->generate($addProductToCart ? 'frontend.checkout.cart.page' : 'frontend.checkout.register.page'),
             'addErrorUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.add-error'),
         ]);
+    }
+
+    private function getPayPalPaymentMethodID(Context $context): ?string
+    {
+        try {
+            return $this->paymentMethodRepository->getActivePayPalID($context);
+        } catch (Exception $exception) {
+            return null;
+        }
     }
 
     private function getInContextButtonLanguage(Context $context): string
