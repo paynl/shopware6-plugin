@@ -5,25 +5,32 @@ namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service;
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\PayPalExpressCheckoutButtonData;
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\IdealExpressCheckoutButtonData;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Enums\ExpressCheckoutEnum;
+use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepository;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Routing\RouterInterface;
+use Exception;
 
 class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
 {
     private RouterInterface $router;
     private Config $config;
     private LocaleCodeHelper $localeCodeHelper;
+    private LoggerInterface $logger;
     private PaymentMethodRepository $paymentMethodRepository;
     private OrderCustomerRepository $orderCustomerRepository;
+    private PaynlTransactionsRepository $payTransactionRepository;
 
     /**
      * @internal
@@ -32,14 +39,18 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
         RouterInterface $router,
         Config $config,
         LocaleCodeHelper $localeCodeHelper,
+        LoggerInterface $logger,
         PaymentMethodRepository $paymentMethodRepository,
         OrderCustomerRepository $orderCustomerRepository,
+        PaynlTransactionsRepository $payTransactionRepository
     ) {
         $this->router = $router;
         $this->config = $config;
         $this->localeCodeHelper = $localeCodeHelper;
+        $this->logger = $logger;
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->orderCustomerRepository = $orderCustomerRepository;
+        $this->payTransactionRepository = $payTransactionRepository;
     }
 
     public function buildPayPalExpressCheckoutButtonData(
@@ -48,11 +59,8 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
     ): ?PayPalExpressCheckoutButtonData {
         $context = $salesChannelContext->getContext();
         $salesChannelId = $salesChannelContext->getSalesChannelId();
-        $customer = $salesChannelContext->getCustomer();
-        $loggedInCustomerEnabled = $this->config->getPaymentPayPalExpressLoggedInCustomerEnabled($salesChannelId);
-        $this->isCompletedCustomerOrder($salesChannelContext);
 
-        if (!$loggedInCustomerEnabled && $customer instanceof CustomerEntity && $customer->getActive()) {
+        if (!$this->isPaymentValid($salesChannelContext)) {
             return null;
         }
 
@@ -78,12 +86,9 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
 
     public function buildIdealExpressCheckoutButtonData(SalesChannelContext $salesChannelContext, bool $addProductToCart = false): ?IdealExpressCheckoutButtonData
     {
-        $context = $salesChannelContext->getContext();
         $salesChannelId = $salesChannelContext->getSalesChannelId();
-        $customer = $salesChannelContext->getCustomer();
-        $loggedInCustomerEnabled = $this->config->getPaymentIdealExpressLoggedInCustomerEnabled($salesChannelId);
 
-        if (!$loggedInCustomerEnabled && $customer instanceof CustomerEntity && $customer->getActive()) {
+        if (!$this->isPaymentValid($salesChannelContext)) {
             return null;
         }
 
@@ -105,15 +110,68 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
     private function isCompletedCustomerOrder(SalesChannelContext $salesChannelContext): bool
     {
         $customer = $salesChannelContext->getCustomer();
-        if (! $customer) {
+        if (!$customer) {
             return true;
         }
 
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('customer_id', $salesChannelContext->getCustomerId()));
+        $isTempCustomer = $customer->getEmail() === ExpressCheckoutEnum::CUSTOMER_EMAIL;
 
-        $orderCustomer = $this->orderCustomerRepository->search($criteria, $salesChannelContext->getContext())->last();
+        try {
+            $orderCustomerCriteria = new Criteria();
+            $orderCustomerCriteria->addFilter(new EqualsFilter('customerId', $salesChannelContext->getCustomerId()));
 
-        dd($orderCustomer);
+            $orderCustomer = $this->orderCustomerRepository->search($orderCustomerCriteria, $salesChannelContext->getContext())->last();
+
+            if (!$orderCustomer) {
+                return !$isTempCustomer;
+            }
+
+            $payTransactionCriteria = (new Criteria());
+            $payTransactionCriteria->addFilter(new EqualsFilter('orderTransaction.orderId', $orderCustomer->getOrderId()));
+            $payTransactionCriteria->addFilter(new NotFilter('AND', [
+                new EqualsAnyFilter('stateId', [
+                    PaynlTransactionStatusesEnum::STATUS_CANCEL,
+                    PaynlTransactionStatusesEnum::STATUS_EXPIRED,
+                    PaynlTransactionStatusesEnum::STATUS_DENIED_63,
+                    PaynlTransactionStatusesEnum::STATUS_DENIED_64,
+                    PaynlTransactionStatusesEnum::STATUS_FAILURE,
+                ])
+            ]));
+            $payTransactionCriteria->addAssociation('order');
+            $payTransactionCriteria->addAssociation('orderTransaction.stateMachineState');
+            $payTransactionCriteria->addAssociation('orderTransaction.order');
+
+            $payTransaction = $this->payTransactionRepository->search($payTransactionCriteria, $salesChannelContext->getContext())->last();
+
+            return !$isTempCustomer || !!$payTransaction;
+        } catch (Exception $exception) {
+            $this->logger->error('Guest customer express checkout: ' . $exception->getMessage(), [
+                'exception' => $exception,
+                'customerId' => $customer->getId()
+            ]);
+
+            return true;
+        }
+    }
+
+    private function isPaymentValid(SalesChannelContext $salesChannelContext): bool
+    {
+        $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $loggedInCustomerEnabled = $this->config->getPaymentPayPalExpressLoggedInCustomerEnabled($salesChannelId);
+        $customer = $salesChannelContext->getCustomer();
+        $isCompletedCustomerOrder = $this->isCompletedCustomerOrder($salesChannelContext);
+
+        if (
+            !(
+                !$isCompletedCustomerOrder ||
+                $loggedInCustomerEnabled ||
+                !($customer instanceof CustomerEntity) ||
+                !$customer->getActive()
+            )
+        ) {
+            return false;
+        }
+
+        return true;
     }
 }
