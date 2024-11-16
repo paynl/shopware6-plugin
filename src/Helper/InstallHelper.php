@@ -21,6 +21,7 @@ use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
@@ -245,9 +246,20 @@ class InstallHelper
             if (!empty($paymentMethodValueObject->getBrandId())) {
                 $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
             }
-            $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-
             $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
+            $paymentMethodData = $this->getPaymentMethodData($context, $paymentMethodValueObject);
+
+            try {
+                $this->paymentMethodRepository->getPaymentMethodById($paymentMethodHashId, $context);
+
+                // don't update the name, description and media if payment method already exists in Shopware
+                unset($paymentMethodData['name'], $paymentMethodData['description'], $paymentMethodData['mediaId']);
+            } catch (EntityNotFoundException $exception) {
+
+            }
+
+            $paymentMethods[] = $paymentMethodData;
+
             $salesChannelData = $this->getSalesChannelsData($paymentMethodHashId, $salesChannelId, $context);
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
