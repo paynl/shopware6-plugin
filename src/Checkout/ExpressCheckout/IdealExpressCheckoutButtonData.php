@@ -8,7 +8,6 @@ class IdealExpressCheckoutButtonData extends Struct
 {
     protected bool $expressCheckoutEnabled;
     protected bool $expressShoppingCartEnabled;
-    protected ?string $paymentMethodId = null;
 
     /**
      * @return bool

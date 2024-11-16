@@ -59,8 +59,9 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
     ): ?PayPalExpressCheckoutButtonData {
         $context = $salesChannelContext->getContext();
         $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $payPalPaymentMethodId = $this->getPayPalPaymentMethodID($context);
 
-        if (!$this->isPaymentValid($salesChannelContext)) {
+        if ($payPalPaymentMethodId === null || !$this->isPaymentValid($salesChannelContext)) {
             return null;
         }
 
@@ -71,7 +72,7 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
             'languageIso' => $this->getInContextButtonLanguage($salesChannelContext->getContext()),
             'contextSwitchUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.prepare-cart'),
-            'payPalPaymentMethodId' => $this->paymentMethodRepository->getActivePayPalID($context),
+            'payPalPaymentMethodId' => $payPalPaymentMethodId,
             'createOrderUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.start-payment'),
             'createPaymentUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.create-payment'),
             'checkoutConfirmUrl' => $this->router->generate(
@@ -96,6 +97,15 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
             'expressCheckoutEnabled' => $this->config->getPaymentIdealExpressCheckoutEnabled($salesChannelId),
             'expressShoppingCartEnabled' => $this->config->getPaymentIdealExpressShoppingCartEnabled($salesChannelId),
         ]);
+    }
+
+    private function getPayPalPaymentMethodID(Context $context): ?string
+    {
+        try {
+            return $this->paymentMethodRepository->getActivePayPalID($context);
+        } catch (Exception $exception) {
+            return null;
+        }
     }
 
     private function getInContextButtonLanguage(Context $context): string
