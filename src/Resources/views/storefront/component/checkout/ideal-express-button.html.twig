@@ -1,6 +1,42 @@
 {% block component_paynl_ideal_express_button %}
-    <a href="{{ path('frontend.account.PaynlPayment.ideal-express.start-payment') }}" id="btn-fast-checkout"
+    <a href="#" id="btn-fast-checkout"
        style="background-image: url('{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}')"
        title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">{{ "payment.idealExpressCheckout.buttonTitle" | trans }}
     </a>
+{% endblock %}
+
+{% block component_paynl_ideal_express_modal %}
+    <div class="paynl-ideal-modal-backdrop"></div>
+    <div class="paynl-ideal-modal">
+        <div class="modal-body-wrapper">
+            <div class="eye-catcher">
+                <img src="{{ asset('bundles/paynlpaymentshopware6/ideal-visual.webp') }}" alt="Placeholder Image">
+            </div>
+            <div class="modal-content">
+                <div class="paynl-ideal-modal-header roboto-slab">
+                    <span>Bestel sneller</span> met iDEAL snel bestellen
+                </div>
+                <div class="modal-text">
+                    <p class="modal-description">
+                        Met iDEAL snel bestellen kun je jouw adresgegevens opslaan bij je bank om zo snel een bestelling uit te voeren.
+                    </p>
+                    <p class="modal-description">
+                        Klik op Snel bestellen:
+                    </p>
+                    <ul>
+                        <li class="modal-description">als je al een iDEAL profiel hebt;</li>
+                        <li class="modal-description">een iDEAL profiel aan te maken en jouw adres op te slaan voor je volgende bestelling.</li>
+                    </ul>
+                </div>
+                <div class="modal-actions">
+                    <a href="{{ path('frontend.account.PaynlPayment.ideal-express.start-payment') }}" class="btn-fast-checkout"
+                       title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">
+                        <img src="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}" alt="Icon">
+                        {{ "payment.idealExpressCheckout.buttonTitle" | trans }}
+                    </a>
+                    <button class="button button-secondary roboto-medium">Zelf mijn adres invullen bij de webshop</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
