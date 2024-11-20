@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\Controller\Storefront\Ideal;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
+use PaynlPayment\Shopware6\Enums\ExpressCheckoutEnum;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
@@ -78,12 +79,12 @@ class IdealExpressControllerBase extends StorefrontController
 
             $context = $this->cartService->updatePaymentMethod($context, $idealID);
 
-            $email = 'temp@temp.com';
-            $firstname = 'Temp';
-            $lastname = 'Temp';
-            $street = 'temp';
-            $city = 'Temp';
-            $zipcode = '23456';
+            $email = ExpressCheckoutEnum::CUSTOMER_EMAIL;
+            $firstname = ExpressCheckoutEnum::CUSTOMER_FIRST_NAME;
+            $lastname = ExpressCheckoutEnum::CUSTOMER_LAST_NAME;
+            $street = ExpressCheckoutEnum::CUSTOMER_ADDRESS_STREET;
+            $city = ExpressCheckoutEnum::CUSTOMER_ADDRESS_CITY;
+            $zipcode = ExpressCheckoutEnum::CUSTOMER_ADDRESS_ZIP;
 
             $newContext = $this->expressCheckoutUtil->prepareCustomer(
                 $firstname,

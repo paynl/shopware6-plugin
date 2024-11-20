@@ -145,7 +145,7 @@ class ExpressCheckoutUtil
         return $this->orderService->createOrder($data, $context);
     }
 
-    public function isNotCompletedOrder(string $orderId, Context $context)
+    public function isNotCompletedOrder(string $orderId, Context $context): bool
     {
         try {
             $order = $this->orderService->getOrder($orderId, $context);
