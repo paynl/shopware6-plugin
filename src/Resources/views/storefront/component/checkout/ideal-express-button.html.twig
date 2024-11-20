@@ -1,5 +1,6 @@
 {% block component_paynl_ideal_express_button %}
-    <a href="#" id="btn-fast-checkout"
+    {% set expressCheckoutModalWindowEnabled = config('PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled') %}
+    <a href="{{ expressCheckoutModalWindowEnabled ? '#' : path('frontend.account.PaynlPayment.ideal-express.start-payment') }}" id="btn-fast-checkout" {{ expressCheckoutModalWindowEnabled ? 'data-paynl-fast-checkout-button="true"' : '' }}
        style="background-image: url('{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}')"
        title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">{{ "payment.idealExpressCheckout.buttonTitle" | trans }}
     </a>

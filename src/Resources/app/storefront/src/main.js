@@ -9,4 +9,4 @@ PluginManager.register('PaynlDatePicker', PaynlDatePickerPlugin, '[data-paynl-da
 PluginManager.register('PaynlPaymentPlugin', PaynlPaymentPlugin, '[data-paynl-payment-plugin]');
 PluginManager.register('PaynlKvkCocFieldTogglePlugin', PaynlKvkCocFieldTogglePlugin, '.country-select, .contact-select');
 PluginManager.register('PaynlPayPalExpressButton', PaynlPayPalExpressButton, '[data-paynl-paypal-express-button]');
-PluginManager.register('PaynlFastCheckoutButton', PaynlFastCheckoutButton, '#btn-fast-checkout');
+PluginManager.register('PaynlFastCheckoutButton', PaynlFastCheckoutButton, '[data-paynl-fast-checkout-button]');

@@ -33,6 +33,15 @@
                         :label="$tc('paymentExpressCheckout.labelExpressCheckoutLoggedInCustomer')"
                         :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
                 />
+                <sw-switch-field
+                        {% if VUE3 %}
+                            v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled']"
+                        {% else %}
+                            v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled']"
+                        {% endif %}
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckoutIdealModal')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutIdealModalHelpText')"
+                />
             </sw-container>
 
             <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
