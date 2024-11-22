@@ -1,6 +1,43 @@
 {% block component_paynl_ideal_express_button %}
-    <a href="{{ path('frontend.account.PaynlPayment.ideal-express.start-payment') }}" id="btn-fast-checkout"
+    {% set expressCheckoutModalWindowEnabled = config('PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled') %}
+    <a href="{{ expressCheckoutModalWindowEnabled ? '#' : path('frontend.account.PaynlPayment.ideal-express.start-payment') }}" id="btn-fast-checkout" {{ expressCheckoutModalWindowEnabled ? 'data-paynl-fast-checkout-button="true"' : '' }}
        style="background-image: url('{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}')"
        title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">{{ "payment.idealExpressCheckout.buttonTitle" | trans }}
     </a>
+{% endblock %}
+
+{% block component_paynl_ideal_express_modal %}
+    <div class="paynl-ideal-modal-backdrop"></div>
+    <div class="paynl-ideal-modal">
+        <div class="modal-body-wrapper">
+            <div class="eye-catcher">
+                <img src="{{ asset('bundles/paynlpaymentshopware6/ideal-visual.webp') }}" alt="Placeholder Image">
+            </div>
+            <div class="modal-content">
+                <div class="paynl-ideal-modal-header roboto-slab">
+                    <span>{{ "payment.idealExpressCheckout.modalTitleMainText" | trans }}</span> {{ "payment.idealExpressCheckout.modalTitleSecondaryText" | trans }}
+                </div>
+                <div class="modal-text">
+                    <p class="modal-description">
+                        {{ "payment.idealExpressCheckout.modalDescriptionText" | trans }}
+                    </p>
+                    <p class="modal-description">
+                        {{ "payment.idealExpressCheckout.modalHelpTitle" | trans }}
+                    </p>
+                    <ul>
+                        <li class="modal-description">{{ "payment.idealExpressCheckout.modalHelpFirstItem" | trans }}</li>
+                        <li class="modal-description">{{ "payment.idealExpressCheckout.modalHelpSecondItem" | trans }}</li>
+                    </ul>
+                </div>
+                <div class="modal-actions">
+                    <a href="{{ path('frontend.account.PaynlPayment.ideal-express.start-payment') }}" class="btn-fast-checkout"
+                       title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">
+                        <img src="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}" alt="Icon">
+                        {{ "payment.idealExpressCheckout.idealCheckoutButtonTitle" | trans }}
+                    </a>
+                    <button class="button button-secondary roboto-medium">{{ "payment.idealExpressCheckout.manuallyEnterAddress" | trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
