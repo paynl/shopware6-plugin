@@ -12,9 +12,7 @@ use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\SalesChannel\AbstractCartDeleteRoute;
-use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
-use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\NoContentResponse;
 use Shopware\Core\System\SalesChannel\SalesChannel\AbstractContextSwitchRoute;
@@ -49,9 +47,6 @@ class PayPalExpressControllerBase extends StorefrontController
     /** @var RouterInterface */
     private $router;
 
-    /** @var AbstractLogoutRoute */
-    private $logoutRoute;
-
     /** @var AbstractContextSwitchRoute */
     private $contextSwitchRoute;
 
@@ -71,7 +66,6 @@ class PayPalExpressControllerBase extends StorefrontController
         CartBackupService $cartBackupService,
         OrderService $orderService,
         RouterInterface $router,
-        AbstractLogoutRoute $logoutRoute,
         AbstractContextSwitchRoute $contextSwitchRoute,
         AbstractCartDeleteRoute $cartDeleteRoute,
         LoggerInterface $logger,
@@ -83,7 +77,6 @@ class PayPalExpressControllerBase extends StorefrontController
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
         $this->router = $router;
-        $this->logoutRoute = $logoutRoute;
         $this->contextSwitchRoute = $contextSwitchRoute;
         $this->cartDeleteRoute = $cartDeleteRoute;
         $this->logger = $logger;
@@ -186,19 +179,7 @@ class PayPalExpressControllerBase extends StorefrontController
             return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
         }
 
-        if ($context->getCustomer() === null) {
-            return $this->redirectToRoute('frontend.home.page');
-        }
-
-        try {
-            $this->logoutRoute->logout($context, new RequestDataBag());
-
-            $parameters = [];
-        } catch (ConstraintViolationException $formViolations) {
-            $parameters = ['formViolations' => $formViolations];
-        }
-
-        return $this->redirectToRoute('frontend.home.page', $parameters);
+        return $this->redirectToRoute('frontend.home.page');
     }
 
     public function getAddErrorMessageResponse(Request $request): Response

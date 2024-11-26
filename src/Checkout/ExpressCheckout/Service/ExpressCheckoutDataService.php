@@ -140,6 +140,10 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
             $payTransactionCriteria->addFilter(new EqualsFilter('orderTransaction.orderId', $orderCustomer->getOrderId()));
             $payTransactionCriteria->addFilter(new NotFilter('AND', [
                 new EqualsAnyFilter('stateId', [
+                    PaynlTransactionStatusesEnum::STATUS_PENDING_20,
+                    PaynlTransactionStatusesEnum::STATUS_PENDING_25,
+                    PaynlTransactionStatusesEnum::STATUS_PENDING_50,
+                    PaynlTransactionStatusesEnum::STATUS_PENDING_90,
                     PaynlTransactionStatusesEnum::STATUS_CANCEL,
                     PaynlTransactionStatusesEnum::STATUS_EXPIRED,
                     PaynlTransactionStatusesEnum::STATUS_DENIED_63,

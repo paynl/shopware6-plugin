@@ -252,8 +252,8 @@ class InstallHelper
             try {
                 $this->paymentMethodRepository->getPaymentMethodById($paymentMethodHashId, $context);
 
-                // don't update the name, description and media if payment method already exists in Shopware
-                unset($paymentMethodData['name'], $paymentMethodData['description'], $paymentMethodData['mediaId']);
+                // don't update the name and description if payment method already exists in Shopware
+                unset($paymentMethodData['name'], $paymentMethodData['description']);
             } catch (EntityNotFoundException $exception) {
 
             }
