@@ -11,6 +11,7 @@ use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
+use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -158,7 +159,19 @@ class IdealExpressControllerBase extends StorefrontController
             return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
         }
 
-        return $this->redirectToRoute('frontend.home.page');
+        if ($context->getCustomer() === null) {
+            return $this->redirectToRoute('frontend.home.page');
+        }
+
+        try {
+            $this->expressCheckoutUtil->logoutAndDeleteCustomer($context->getCustomer()->getId(), $context);
+
+            $parameters = [];
+        } catch (ConstraintViolationException $formViolations) {
+            $parameters = ['formViolations' => $formViolations];
+        }
+
+        return $this->redirectToRoute('frontend.home.page', $parameters);
     }
 
     /**

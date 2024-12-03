@@ -34,4 +34,11 @@ interface CustomerRepositoryInterface
      * @return EntityWrittenContainerEvent
      */
     public function update(array $data, Context $context): EntityWrittenContainerEvent;
+
+    /**
+     * @param array<mixed> $data
+     * @param Context $context
+     * @return EntityWrittenContainerEvent
+     */
+    public function delete(array $ids, Context $context): EntityWrittenContainerEvent;
 }
