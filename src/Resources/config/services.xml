@@ -133,6 +133,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
+            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\LogoutRoute"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Country\CountryRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Product\ProductRepository"/>
