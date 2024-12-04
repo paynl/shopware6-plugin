@@ -35,7 +35,9 @@
                         <img src="{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}" alt="Icon">
                         {{ "payment.idealExpressCheckout.idealCheckoutButtonTitle" | trans }}
                     </a>
-                    <button class="button button-secondary roboto-medium">{{ "payment.idealExpressCheckout.manuallyEnterAddress" | trans }}</button>
+                    <a href="{{ path('frontend.checkout.register.page') }}" class="button button-secondary roboto-medium">
+                        {{ "payment.idealExpressCheckout.manuallyEnterAddress" | trans }}
+                    </a>
                 </div>
             </div>
         </div>
