@@ -3,7 +3,6 @@ import Plugin from 'src/plugin-system/plugin.class';
 export default class PaynlFastCheckoutButton extends Plugin {
     init() {
         document.getElementById('btn-fast-checkout').addEventListener('click', this.onFastCheckoutClick.bind(this));
-        document.querySelector('.paynl-ideal-modal .button-secondary').addEventListener('click', this.onCloseModalClick.bind(this));
         document.querySelector('.paynl-ideal-modal-backdrop').addEventListener('click', this.onCloseModalClick.bind(this));
     }
 
