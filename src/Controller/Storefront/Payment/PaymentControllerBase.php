@@ -67,7 +67,11 @@ class PaymentControllerBase extends AbstractController
         $orderId = $order->getId();
 
         try {
-            $this->paymentController->finalizeTransaction($request);
+            $finalizeTransactionResponse = $this->paymentController->finalizeTransaction($request);
+
+            if ($finalizeTransactionResponse instanceof RedirectResponse) {
+                return $finalizeTransactionResponse;
+            }
         } catch (HttpException $httpException) {
             $this->logger->error(
                 '{message}. Redirecting to confirm page.',
