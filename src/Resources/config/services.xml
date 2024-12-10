@@ -205,6 +205,7 @@
 
         <service id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" class="PaynlPayment\Shopware6\Service\Cart\CartBackupService">
             <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\ShippingMethodService" class="PaynlPayment\Shopware6\Service\ShippingMethodService">
@@ -377,6 +378,7 @@
         <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\ExpressCheckoutSubscriber">
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\PayPalExpressCheckoutDataService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

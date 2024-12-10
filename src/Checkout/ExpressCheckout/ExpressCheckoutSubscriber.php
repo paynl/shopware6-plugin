@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout;
 
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataServiceInterface;
+use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Page\Checkout\Cart\CheckoutCartPageLoadedEvent;
@@ -20,13 +21,16 @@ class ExpressCheckoutSubscriber implements EventSubscriberInterface
 
     private LoggerInterface $logger;
     private ExpressCheckoutDataServiceInterface $expressCheckoutDataService;
+    private CartBackupService $cartBackupService;
 
     public function __construct(
         LoggerInterface $logger,
-        ExpressCheckoutDataServiceInterface $service
+        ExpressCheckoutDataServiceInterface $service,
+        CartBackupService $cartBackupService
     ) {
         $this->logger = $logger;
         $this->expressCheckoutDataService = $service;
+        $this->cartBackupService = $cartBackupService;
     }
 
     public static function getSubscribedEvents(): array
@@ -44,6 +48,8 @@ class ExpressCheckoutSubscriber implements EventSubscriberInterface
     public function addExpressCheckoutDataToPage(PageLoadedEvent $event): void
     {
         $expressCheckoutButtonData = $this->getExpressCheckoutButtonData($event->getSalesChannelContext());
+
+        $this->cartBackupService->restoreCartFromOrder('0193b0c5c89a72afa918d9f7d2262302', $event->getSalesChannelContext());
 
         if ($expressCheckoutButtonData === null) {
             return;
