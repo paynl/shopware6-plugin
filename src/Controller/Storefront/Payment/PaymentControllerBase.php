@@ -14,15 +14,21 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PaymentControllerBase extends AbstractController
 {
+    private const TRANSACTION_FINISH_URL = 'paynl_transaction_finish_url';
+
     /** @var PaymentController */
     private $paymentController;
 
     /** @var LoggerInterface */
     private $logger;
+
+    /** @var RequestStack */
+    private $requestStack;
 
     /** @var PaynlTransactionsRepositoryInterface */
     private $paynlTransactionRepository;
@@ -30,10 +36,12 @@ class PaymentControllerBase extends AbstractController
     public function __construct(
         PaymentController $paymentController,
         LoggerInterface $logger,
+        RequestStack $requestStack,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository
     ) {
         $this->paymentController = $paymentController;
         $this->logger = $logger;
+        $this->requestStack = $requestStack;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
@@ -70,6 +78,8 @@ class PaymentControllerBase extends AbstractController
             $finalizeTransactionResponse = $this->paymentController->finalizeTransaction($request);
 
             if ($finalizeTransactionResponse instanceof RedirectResponse) {
+                $this->saveTransactionFinishUrlSession($finalizeTransactionResponse->getTargetUrl());
+
                 return $finalizeTransactionResponse;
             }
         } catch (HttpException $httpException) {
@@ -79,6 +89,20 @@ class PaymentControllerBase extends AbstractController
             );
         }
 
+        if ($this->getTransactionFinishUrl()) {
+            return $this->redirect($this->getTransactionFinishUrl());
+        }
+
         return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
+    }
+
+    private function saveTransactionFinishUrlSession(string $finishUrl): void
+    {
+        $this->requestStack->getSession()->set(self::TRANSACTION_FINISH_URL, $finishUrl);
+    }
+
+    private function getTransactionFinishUrl(): string
+    {
+        return $this->requestStack->getSession()->get(self::TRANSACTION_FINISH_URL);
     }
 }
