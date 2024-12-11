@@ -20,6 +20,7 @@ use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Product;
 use RuntimeException;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -29,6 +30,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
+use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\Salutation\SalutationEntity;
@@ -59,6 +61,9 @@ class ExpressCheckoutUtil
     /** @var OrderService */
     private $orderService;
 
+    /** @var AbstractLogoutRoute */
+    private $logoutRoute;
+
     /** @var CountryRepositoryInterface */
     private $countryRepository;
 
@@ -74,12 +79,23 @@ class ExpressCheckoutUtil
     /** @var SalesChannelRepositoryInterface */
     private $salesChannelRepository;
 
-    public function __construct(CustomerService $customerService, CartServiceInterface $cartService, CartBackupService $cartBackupService, OrderService $orderService, CountryRepositoryInterface $countryRepository, PaymentMethodRepository $repoPaymentMethods, ProductRepositoryInterface $productRepository, SalutationRepositoryInterface $salutationRepository, SalesChannelRepositoryInterface $salesChannelRepository)
-    {
+    public function __construct(
+        CustomerService $customerService,
+        CartServiceInterface $cartService,
+        CartBackupService $cartBackupService,
+        OrderService $orderService,
+        AbstractLogoutRoute $logoutRoute,
+        CountryRepositoryInterface $countryRepository,
+        PaymentMethodRepository $repoPaymentMethods,
+        ProductRepositoryInterface $productRepository,
+        SalutationRepositoryInterface $salutationRepository,
+        SalesChannelRepositoryInterface $salesChannelRepository
+    ) {
         $this->customerService = $customerService;
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
+        $this->logoutRoute = $logoutRoute;
         $this->countryRepository = $countryRepository;
         $this->repoPaymentMethods = $repoPaymentMethods;
         $this->productRepository = $productRepository;
@@ -145,7 +161,7 @@ class ExpressCheckoutUtil
         return $this->orderService->createOrder($data, $context);
     }
 
-    public function isNotCompletedOrder(string $orderId, Context $context)
+    public function isNotCompletedOrder(string $orderId, Context $context): bool
     {
         try {
             $order = $this->orderService->getOrder($orderId, $context);
@@ -162,6 +178,13 @@ class ExpressCheckoutUtil
         } catch (Throwable $exception) {
             return true;
         }
+    }
+
+    public function logoutAndDeleteCustomer(string $customerId, SalesChannelContext $salesChannelContext): void
+    {
+        $this->logoutRoute->logout($salesChannelContext, new RequestDataBag());
+
+        $this->customerService->deleteCustomer($customerId, $salesChannelContext);
     }
 
     public function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): array

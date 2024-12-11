@@ -64,4 +64,14 @@ class CustomerRepository implements CustomerRepositoryInterface
     {
         return $this->customerRepository->update($data, $context);
     }
+
+    /**
+     * @param array<mixed> $data
+     * @param Context $context
+     * @return EntityWrittenContainerEvent
+     */
+    public function delete(array $ids, Context $context): EntityWrittenContainerEvent
+    {
+        return $this->customerRepository->delete($ids, $context);
+    }
 }

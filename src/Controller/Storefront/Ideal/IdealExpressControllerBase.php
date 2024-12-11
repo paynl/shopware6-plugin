@@ -6,10 +6,10 @@ namespace PaynlPayment\Shopware6\Controller\Storefront\Ideal;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
+use PaynlPayment\Shopware6\Enums\ExpressCheckoutEnum;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
-use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -43,9 +43,6 @@ class IdealExpressControllerBase extends StorefrontController
     /** @var RouterInterface */
     private $router;
 
-    /** @var AbstractLogoutRoute */
-    private $logoutRoute;
-
     /** @var ?FlashBag */
     private $flashBag;
 
@@ -56,7 +53,6 @@ class IdealExpressControllerBase extends StorefrontController
         CartBackupService $cartBackupService,
         OrderService $orderService,
         RouterInterface $router,
-        AbstractLogoutRoute $logoutRoute,
         ?FlashBag $flashBag
     ) {
         $this->expressCheckoutUtil = $expressCheckoutUtil;
@@ -65,7 +61,6 @@ class IdealExpressControllerBase extends StorefrontController
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
         $this->router = $router;
-        $this->logoutRoute = $logoutRoute;
         $this->flashBag = $flashBag;
     }
 
@@ -78,12 +73,12 @@ class IdealExpressControllerBase extends StorefrontController
 
             $context = $this->cartService->updatePaymentMethod($context, $idealID);
 
-            $email = 'temp@temp.com';
-            $firstname = 'Temp';
-            $lastname = 'Temp';
-            $street = 'temp';
-            $city = 'Temp';
-            $zipcode = '23456';
+            $email = ExpressCheckoutEnum::CUSTOMER_EMAIL;
+            $firstname = ExpressCheckoutEnum::CUSTOMER_FIRST_NAME;
+            $lastname = ExpressCheckoutEnum::CUSTOMER_LAST_NAME;
+            $street = ExpressCheckoutEnum::CUSTOMER_ADDRESS_STREET;
+            $city = ExpressCheckoutEnum::CUSTOMER_ADDRESS_CITY;
+            $zipcode = ExpressCheckoutEnum::CUSTOMER_ADDRESS_ZIP;
 
             $newContext = $this->expressCheckoutUtil->prepareCustomer(
                 $firstname,
@@ -169,7 +164,7 @@ class IdealExpressControllerBase extends StorefrontController
         }
 
         try {
-            $this->logoutRoute->logout($context, new RequestDataBag());
+            $this->expressCheckoutUtil->logoutAndDeleteCustomer($context->getCustomer()->getId(), $context);
 
             $parameters = [];
         } catch (ConstraintViolationException $formViolations) {

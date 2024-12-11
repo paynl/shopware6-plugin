@@ -3,7 +3,6 @@
 namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout;
 
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataServiceInterface;
-use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Page\Checkout\Cart\CheckoutCartPageLoadedEvent;
@@ -18,10 +17,10 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ExpressCheckoutSubscriber implements EventSubscriberInterface
 {
     public const PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID = 'payPalEcsButtonData';
+    public const IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID = 'idealEcsButtonData';
 
     private LoggerInterface $logger;
     private ExpressCheckoutDataServiceInterface $expressCheckoutDataService;
-    private CartBackupService $cartBackupService;
 
     public function __construct(
         LoggerInterface $logger,
@@ -47,27 +46,42 @@ class ExpressCheckoutSubscriber implements EventSubscriberInterface
 
     public function addExpressCheckoutDataToPage(PageLoadedEvent $event): void
     {
-        $expressCheckoutButtonData = $this->getExpressCheckoutButtonData($event->getSalesChannelContext());
+        $paypalExpressCheckoutButtonData = $this->getPayPalExpressCheckoutButtonData($event->getSalesChannelContext());
 
-        $this->cartBackupService->restoreCartFromOrder('0193b0c5c89a72afa918d9f7d2262302', $event->getSalesChannelContext());
-
-        if ($expressCheckoutButtonData === null) {
-            return;
+        if ($paypalExpressCheckoutButtonData) {
+            $event->getPage()->addExtension(
+                self::PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID,
+                $paypalExpressCheckoutButtonData
+            );
         }
 
-        $event->getPage()->addExtension(
-            self::PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID,
-            $expressCheckoutButtonData
-        );
+        $idealExpressCheckoutButtonData = $this->getIdealExpressCheckoutButtonData($event->getSalesChannelContext());
+
+        if ($idealExpressCheckoutButtonData) {
+            $event->getPage()->addExtension(
+                self::IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID,
+                $idealExpressCheckoutButtonData
+            );
+        }
 
         $this->logger->debug('Added data to page {page}', ['page' => \get_class($event)]);
     }
 
-    private function getExpressCheckoutButtonData(
+    private function getPayPalExpressCheckoutButtonData(
         SalesChannelContext $salesChannelContext,
         bool $addProductToCart = false
-    ): ?ExpressCheckoutButtonData {
-        return $this->expressCheckoutDataService->buildExpressCheckoutButtonData(
+    ): ?PayPalExpressCheckoutButtonData {
+        return $this->expressCheckoutDataService->buildPayPalExpressCheckoutButtonData(
+            $salesChannelContext,
+            $addProductToCart
+        );
+    }
+
+    private function getIdealExpressCheckoutButtonData(
+        SalesChannelContext $salesChannelContext,
+        bool $addProductToCart = false
+    ): ?IdealExpressCheckoutButtonData {
+        return $this->expressCheckoutDataService->buildIdealExpressCheckoutButtonData(
             $salesChannelContext,
             $addProductToCart
         );

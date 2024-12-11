@@ -6,12 +6,12 @@ namespace PaynlPayment\Shopware6\Controller\Storefront\PayPal;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Components\PayPalExpress\PayPalExpress;
+use PaynlPayment\Shopware6\Enums\ExpressCheckoutEnum;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\SalesChannel\AbstractCartDeleteRoute;
-use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
@@ -48,9 +48,6 @@ class PayPalExpressControllerBase extends StorefrontController
     /** @var RouterInterface */
     private $router;
 
-    /** @var AbstractLogoutRoute */
-    private $logoutRoute;
-
     /** @var AbstractContextSwitchRoute */
     private $contextSwitchRoute;
 
@@ -70,7 +67,6 @@ class PayPalExpressControllerBase extends StorefrontController
         CartBackupService $cartBackupService,
         OrderService $orderService,
         RouterInterface $router,
-        AbstractLogoutRoute $logoutRoute,
         AbstractContextSwitchRoute $contextSwitchRoute,
         AbstractCartDeleteRoute $cartDeleteRoute,
         LoggerInterface $logger,
@@ -82,7 +78,6 @@ class PayPalExpressControllerBase extends StorefrontController
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
         $this->router = $router;
-        $this->logoutRoute = $logoutRoute;
         $this->contextSwitchRoute = $contextSwitchRoute;
         $this->cartDeleteRoute = $cartDeleteRoute;
         $this->logger = $logger;
@@ -111,12 +106,12 @@ class PayPalExpressControllerBase extends StorefrontController
 
             $context = $this->cartService->updatePaymentMethod($context, $paypalID);
 
-            $email = 'temp@temp.com';
-            $firstname = 'Temp';
-            $lastname = 'Temp';
-            $street = 'temp';
-            $city = 'Temp';
-            $zipcode = '23456';
+            $email = ExpressCheckoutEnum::CUSTOMER_EMAIL;
+            $firstname = ExpressCheckoutEnum::CUSTOMER_FIRST_NAME;
+            $lastname = ExpressCheckoutEnum::CUSTOMER_LAST_NAME;
+            $street = ExpressCheckoutEnum::CUSTOMER_ADDRESS_STREET;
+            $city = ExpressCheckoutEnum::CUSTOMER_ADDRESS_CITY;
+            $zipcode = ExpressCheckoutEnum::CUSTOMER_ADDRESS_ZIP;
 
             $newContext = $this->expressCheckoutUtil->prepareCustomer(
                 $firstname,
@@ -190,7 +185,7 @@ class PayPalExpressControllerBase extends StorefrontController
         }
 
         try {
-            $this->logoutRoute->logout($context, new RequestDataBag());
+            $this->expressCheckoutUtil->logoutAndDeleteCustomer($context->getCustomer()->getId(), $context);
 
             $parameters = [];
         } catch (ConstraintViolationException $formViolations) {
