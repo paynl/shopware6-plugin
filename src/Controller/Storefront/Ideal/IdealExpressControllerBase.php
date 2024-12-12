@@ -160,11 +160,20 @@ class IdealExpressControllerBase extends StorefrontController
         }
 
         if ($context->getCustomer() === null) {
+            $this->cartBackupService->restoreCartFromOrder($orderId, $context);
+
             return $this->redirectToRoute('frontend.home.page');
         }
 
         try {
-            $this->expressCheckoutUtil->logoutAndDeleteCustomer($context->getCustomer()->getId(), $context);
+            $contextTokenResponse = $this->expressCheckoutUtil->logoutAndDeleteCustomer($context->getCustomer()->getId(), $context);
+
+            $context->assign([
+                'token' => $contextTokenResponse->getToken(),
+                'customer' => null,
+            ]);
+
+            $this->cartBackupService->restoreCartFromOrder($orderId, $context);
 
             $parameters = [];
         } catch (ConstraintViolationException $formViolations) {
