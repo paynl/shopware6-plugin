@@ -10,16 +10,20 @@ use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Cart\SalesChannel\CartService;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\Framework\Uuid\Uuid;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class CartBackupService
 {
     private const BACKUP_TOKEN = 'paynl_backup';
 
+    private RequestStack $requestStack;
     private CartService $cartService;
     private OrderRepositoryInterface $orderRepository;
 
-    public function __construct(CartService $cartService, OrderRepositoryInterface $orderRepository)
+    public function __construct(RequestStack $requestStack, CartService $cartService, OrderRepositoryInterface $orderRepository)
     {
+        $this->requestStack = $requestStack;
         $this->cartService = $cartService;
         $this->orderRepository = $orderRepository;
     }
