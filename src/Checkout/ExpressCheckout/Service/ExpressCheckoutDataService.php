@@ -60,8 +60,9 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
         $context = $salesChannelContext->getContext();
         $salesChannelId = $salesChannelContext->getSalesChannelId();
         $payPalPaymentMethodId = $this->getPayPalPaymentMethodID($context);
+        $loggedInCustomerEnabled = $this->config->getPaymentIdealExpressLoggedInCustomerEnabled($salesChannelId);
 
-        if ($payPalPaymentMethodId === null || !$this->isPaymentValid($salesChannelContext)) {
+        if ($payPalPaymentMethodId === null || !$this->isPaymentValid($loggedInCustomerEnabled, $salesChannelContext)) {
             return null;
         }
 
@@ -88,8 +89,9 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
     public function buildIdealExpressCheckoutButtonData(SalesChannelContext $salesChannelContext, bool $addProductToCart = false): ?IdealExpressCheckoutButtonData
     {
         $salesChannelId = $salesChannelContext->getSalesChannelId();
+        $loggedInCustomerEnabled = $this->config->getPaymentPayPalExpressLoggedInCustomerEnabled($salesChannelId);
 
-        if (!$this->isPaymentValid($salesChannelContext)) {
+        if (!$this->isPaymentValid($loggedInCustomerEnabled, $salesChannelContext)) {
             return null;
         }
 
@@ -168,10 +170,8 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
         }
     }
 
-    private function isPaymentValid(SalesChannelContext $salesChannelContext): bool
+    private function isPaymentValid(bool $loggedInCustomerEnabled, SalesChannelContext $salesChannelContext): bool
     {
-        $salesChannelId = $salesChannelContext->getSalesChannelId();
-        $loggedInCustomerEnabled = $this->config->getPaymentPayPalExpressLoggedInCustomerEnabled($salesChannelId);
         $customer = $salesChannelContext->getCustomer();
         $isCompletedCustomerOrder = $this->isCompletedCustomerOrder($salesChannelContext);
 
