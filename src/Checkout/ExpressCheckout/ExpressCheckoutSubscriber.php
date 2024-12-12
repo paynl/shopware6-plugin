@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout;
 
 use PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataServiceInterface;
+use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Page\Checkout\Cart\CheckoutCartPageLoadedEvent;
@@ -24,7 +25,8 @@ class ExpressCheckoutSubscriber implements EventSubscriberInterface
 
     public function __construct(
         LoggerInterface $logger,
-        ExpressCheckoutDataServiceInterface $service
+        ExpressCheckoutDataServiceInterface $service,
+        CartBackupService $cartBackupService
     ) {
         $this->logger = $logger;
         $this->expressCheckoutDataService = $service;

@@ -32,6 +32,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\Country\CountryEntity;
+use Shopware\Core\System\SalesChannel\ContextTokenResponse;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\Salutation\SalutationEntity;
 use Throwable;
@@ -180,11 +181,15 @@ class ExpressCheckoutUtil
         }
     }
 
-    public function logoutAndDeleteCustomer(string $customerId, SalesChannelContext $salesChannelContext): void
+    public function logoutAndDeleteCustomer(string $customerId, SalesChannelContext $salesChannelContext): ContextTokenResponse
     {
-        $this->logoutRoute->logout($salesChannelContext, new RequestDataBag());
+        $contextTokenResponse = $this->logoutRoute->logout($salesChannelContext, new RequestDataBag());
 
-        $this->customerService->deleteCustomer($customerId, $salesChannelContext);
+        try {
+            $this->customerService->deleteCustomer($customerId, $salesChannelContext);
+        } catch (Exception $exception) {}
+
+        return $contextTokenResponse;
     }
 
     public function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): array

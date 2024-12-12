@@ -205,7 +205,9 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" class="PaynlPayment\Shopware6\Service\Cart\CartBackupService">
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\ShippingMethodService" class="PaynlPayment\Shopware6\Service\ShippingMethodService">
