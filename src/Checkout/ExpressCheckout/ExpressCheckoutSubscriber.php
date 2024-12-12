@@ -25,8 +25,7 @@ class ExpressCheckoutSubscriber implements EventSubscriberInterface
 
     public function __construct(
         LoggerInterface $logger,
-        ExpressCheckoutDataServiceInterface $service,
-        CartBackupService $cartBackupService
+        ExpressCheckoutDataServiceInterface $service
     ) {
         $this->logger = $logger;
         $this->expressCheckoutDataService = $service;
