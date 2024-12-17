@@ -185,7 +185,7 @@ class PayPalExpressControllerBase extends StorefrontController
         }
 
         try {
-            $this->expressCheckoutUtil->logoutAndDeleteCustomer($context->getCustomer()->getId(), $context);
+            $this->expressCheckoutUtil->logoutCustomer($context);
 
             $parameters = [];
         } catch (ConstraintViolationException $formViolations) {
