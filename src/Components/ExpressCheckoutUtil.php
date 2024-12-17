@@ -184,7 +184,9 @@ class ExpressCheckoutUtil
     {
         $this->logoutRoute->logout($salesChannelContext, new RequestDataBag());
 
-        $this->customerService->deleteCustomer($customerId, $salesChannelContext);
+        try {
+            $this->customerService->deleteCustomer($customerId, $salesChannelContext);
+        } catch (Exception $exception) {}
     }
 
     public function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): array
