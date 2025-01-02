@@ -5,17 +5,13 @@
 
     {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
 
-    {% if expressSettings.expressShoppingCartEnabled and page.cart.price.totalPrice > 0
-        and ((config('PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutLoggedInCustomerEnabled') and context.customer.guest)
-        or not context.customer)
-    %}
+    {% if expressSettings.expressShoppingCartEnabled and page.cart.price.totalPrice > 0 %}
         {% sw_include '@PaynlPaymentShopware6/storefront/component/ecs-checkout/ecs-button.html.twig' with {button_class: 'btn-block'} %}
     {% endif %}
 
-    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled') and page.cart.price.totalPrice > 0
-        and ((config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled') and context.customer.guest)
-        or not context.customer)
-    %}
+    {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
+
+    {% if expressSettings.expressShoppingCartEnabled and page.cart.price.totalPrice > 0 %}
         {% block utilities_offcanvas_paynl_ideal_express_button %}
             <div class="text-center mt-3">
                 {% sw_include '@PaynlPaymentShopware6/storefront/component/checkout/ideal-express-button.html.twig' %}

@@ -32,7 +32,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService" />
             <argument type="service" id="Shopware\Storefront\Framework\Routing\Router"/>
-            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\LogoutRoute"/>
             <argument type="service" id="session.flash_bag" on-invalid="null"/>
 
             <call method="setContainer">
@@ -50,7 +49,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService" />
             <argument type="service" id="Shopware\Storefront\Framework\Routing\Router"/>
-            <argument type="service" id="Shopware\Core\Checkout\Customer\SalesChannel\LogoutRoute"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\ContextSwitchRoute"/>
             <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartDeleteRoute"/>
             <argument type="service" id="paynl_payments.logger"/>
@@ -67,6 +65,7 @@
         <service id="PaynlPayment\Shopware6\Controller\Storefront\Payment\Sw65\PaymentController" public="true">
             <argument type="service" id="Shopware\Core\Checkout\Payment\Controller\PaymentController"/>
             <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="request_stack"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>

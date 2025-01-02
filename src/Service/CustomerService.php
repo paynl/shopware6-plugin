@@ -271,6 +271,11 @@ class CustomerService implements CustomerServiceInterface
         return $this->getCustomer($customerData['id'], $salesChannelContext->getContext());
     }
 
+    public function deleteCustomer(string $id, SalesChannelContext $salesChannelContext): void
+    {
+        $this->customerRepository->delete([['id' => $id]], $salesChannelContext->getContext());
+    }
+
     /**
      * Returns a country id by its iso code.
      *

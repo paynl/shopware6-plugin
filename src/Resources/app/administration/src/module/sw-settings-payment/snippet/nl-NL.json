@@ -21,6 +21,8 @@
         "labelPaymentPaypalClientIdSandbox": "Sandbox Client ID",
         "labelPaymentPaypalClientIdProduction": "Productie Client ID",
         "labelPaymentPaypalSecretKeySandbox": "Sandbox Geheime Sleute",
-        "labelPaymentPaypalSecretKeyProduction": "Productie Geheime Sleutel"
+        "labelPaymentPaypalSecretKeyProduction": "Productie Geheime Sleutel",
+        "labelExpressCheckoutIdealModal": "Popup venster weergeven",
+        "expressCheckoutIdealModalHelpText": "Er wordt een venster aan klanten getoond waarin ze worden gevraagd een iDEAL-profiel aan te maken of direct door te gaan. We raden aan deze instelling in te schakelen om de conversie te verhogen."
     }
 }

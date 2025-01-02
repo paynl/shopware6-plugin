@@ -4,7 +4,7 @@ namespace PaynlPayment\Shopware6\Checkout\ExpressCheckout;
 
 use Shopware\Core\Framework\Struct\Struct;
 
-class ExpressCheckoutButtonData extends Struct
+class PayPalExpressCheckoutButtonData extends Struct
 {
     protected bool $expressCheckoutEnabled;
     protected bool $expressShoppingCartEnabled;
