@@ -1,4 +1,9 @@
 # 1.6.6
+- Implemented automated customer logout after redirecting to the shop for express payments
+- Adjusted the checkout page layout to display express payment buttons side-by-side for better visual alignment and user convenience
+- Fixed the issue with the customer redirecting to the finished URL
+- Fixed the calculation of shipping costs on the refund page
+- Added a modal window for iDEAL fast checkout
 
 # 1.6.5
 - Fixed error related to missing requested payment method
