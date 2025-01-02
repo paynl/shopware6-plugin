@@ -1,3 +1,5 @@
+# 1.6.6
+
 # 1.6.5
 - Fixed error related to missing requested payment method
 - Fixed error related to invalid payment token

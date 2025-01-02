@@ -21,6 +21,8 @@
         "labelPaymentPaypalClientIdSandbox": "Sandbox Client ID",
         "labelPaymentPaypalClientIdProduction": "Production Client ID",
         "labelPaymentPaypalSecretKeySandbox": "Sandbox Secret Key",
-        "labelPaymentPaypalSecretKeyProduction": "Production Secret Key"
+        "labelPaymentPaypalSecretKeyProduction": "Production Secret Key",
+        "labelExpressCheckoutIdealModal": "Show modal window",
+        "expressCheckoutIdealModalHelpText": "A window will be shown to customers, asking them to create an iDEAL profile or continue right away. We recommend enabling this setting to increase conversion."
     }
 }

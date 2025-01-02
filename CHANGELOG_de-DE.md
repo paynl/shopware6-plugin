@@ -1,3 +1,5 @@
+# 1.6.6
+
 # 1.6.5
 - Fehler in Bezug auf die fehlende angeforderte Zahlungsmethode behoben
 - Fehler im Zusammenhang mit einem ungültigen Zahlungs-Token behoben

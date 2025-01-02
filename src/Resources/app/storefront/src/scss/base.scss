@@ -75,6 +75,154 @@
     text-align: center;
 }
 
+.paynl-ideal-modal {
+    width: 100%;
+    max-width: 700px;
+    padding: 30px;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.paynl-ideal-modal.visible {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    transition: all 0.2s ease, transform 0.2s ease;
+    visibility: visible;
+}
+
+.paynl-ideal-modal-header {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+    color: #000;
+    line-height: 1.2;
+}
+
+.paynl-ideal-modal-header span {
+    color: #CC0066;
+}
+
+.paynl-ideal-modal .modal-body-wrapper {
+    display: flex;
+    gap: 50px;
+    align-items: flex-start;
+}
+
+.paynl-ideal-modal .eye-catcher {
+    width: 250px;
+    height: 250px;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.paynl-ideal-modal .eye-catcher img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+
+.paynl-ideal-modal .modal-content {
+    flex: 1;
+}
+
+.paynl-ideal-modal .modal-text {
+    padding: 0px 0px 10px 0px;
+}
+
+.paynl-ideal-modal .modal-description {
+    font-size: 16px;
+    margin-top: 10px;
+    color: black;
+    opacity: 0.5;
+}
+
+.paynl-ideal-modal .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 0;
+}
+
+.paynl-ideal-modal .button {
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 60px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 50px;
+    transition: all 0.2s;
+}
+
+.paynl-ideal-modal .button:hover {
+    transform: scale(1.02);
+}
+
+.paynl-ideal-modal .button-secondary {
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #666;
+    cursor: pointer;
+}
+
+.paynl-ideal-modal .btn-fast-checkout {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    line-height: 2.2rem;
+    padding: 3px 17px;
+    font-size: 1.1rem;
+    background: #c90066 none no-repeat 8px center / 51px;
+    border: 1px solid #c90066;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    box-sizing: border-box;
+    vertical-align: middle;
+    border-radius: 60px;
+    text-decoration: none;
+}
+
+.paynl-ideal-modal .btn-fast-checkout:hover
+{
+    transform: scale(1.02);
+}
+
+.paynl-ideal-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.paynl-ideal-modal-backdrop.visible {
+    visibility: visible;
+    opacity: 1;
+    z-index: 100;
+}
+
 #btn-fast-checkout {
     display: flex;
     justify-content: center;
@@ -113,5 +261,76 @@
 
     .paynl-paynl-payment-tooltip.show_only_desktop {
         display: none;
+    }
+
+    .paynl-ideal-modal {
+        padding: 24px;
+        max-height: 90vh;
+        overflow-y: auto;
+        width: calc(100% - 32px);
+    }
+
+    .paynl-ideal-modal .modal-body-wrapper {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .paynl-ideal-modal .eye-catcher {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    .paynl-ideal-modal .modal-content {
+        width: 100%;
+    }
+
+    .paynl-ideal-modal-header {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    .paynl-ideal-modal .modal-description {
+        text-align: center;
+    }
+
+    .paynl-ideal-modal li {
+        list-style-position: inside;
+    }
+
+    .paynl-ideal-modal .button {
+        height: auto;
+        min-height: 50px;
+        padding: 12px;
+        white-space: normal;
+        text-align: center;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .paynl-ideal-modal {
+        padding: 20px;
+        width: calc(100% - 24px);
+    }
+
+    .paynl-ideal-modal .eye-catcher {
+        width: 150px;
+        height: 150px;
+    }
+
+    .paynl-ideal-modal-header {
+        font-size: 20px;
+    }
+
+    .paynl-ideal-modal .modal-description {
+        font-size: 14px;
+    }
+
+    .ideal-order-image {
+        width: 140px;
+    }
+
+    .paynl-ideal-modal .button, .paynl-ideal-modal .btn-fast-checkout {
+        font-size: 13px;
     }
 }

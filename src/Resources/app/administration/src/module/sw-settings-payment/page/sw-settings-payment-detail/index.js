@@ -2,6 +2,7 @@ import template from './sw-settings-payment-detail.html.twig'
 
 const IDEAL_PAYMENT_ID = 10;
 const PAYPAL_PAYMENT_ID = 138;
+const PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED = 'PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled';
 
 const { Component } = Shopware
 const { Criteria } = Shopware.Data
@@ -124,6 +125,11 @@ Component.override('sw-settings-payment-detail', {
             this.isLoading = true;
             return this.systemConfigApiService.getValues('PaynlPaymentShopware6.config', null)
                 .then(values => {
+                    // make IDEAL modal view enabled by default
+                    if (!values.hasOwnProperty(PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED)) {
+                        values[PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED] = true;
+                    }
+
                     this.config = values;
                 })
                 .finally(() => {
