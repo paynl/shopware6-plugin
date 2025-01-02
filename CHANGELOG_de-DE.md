@@ -1,4 +1,9 @@
 # 1.6.6
+- Automatisches Kunden-Logout nach der Weiterleitung zum Shop für Expresszahlungen implementiert.
+- Das Layout der Checkout-Seite angepasst, um Expresszahlungsschaltflächen nebeneinander anzuzeigen, für bessere visuelle Ausrichtung und Benutzerfreundlichkeit.
+- Das Problem mit der Weiterleitung des Kunden zur Abschluss-URL behoben.
+- Die Berechnung der Versandkosten auf der Erstattungsseite korrigiert.
+- Ein Modal-Fenster für den iDEAL-Schnellkauf hinzugefügt.
 
 # 1.6.5
 - Fehler in Bezug auf die fehlende angeforderte Zahlungsmethode behoben
