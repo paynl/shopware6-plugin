@@ -22,7 +22,7 @@
         "labelPaymentPaypalClientIdProduction": "Produktion Client ID",
         "labelPaymentPaypalSecretKeySandbox": "Sandbox Secret Key",
         "labelPaymentPaypalSecretKeyProduction": "Produktion Secret Key",
-        "labelExpressCheckoutIdealModal": "Show modal window",
-        "expressCheckoutIdealModalHelpText": "A window will be shown to customers, asking them to create an iDEAL profile or continue right away. We recommend enabling this setting to increase conversion."
+        "labelExpressCheckoutIdealModal": "Modales Fenster anzeigen",
+        "expressCheckoutIdealModalHelpText": "Ein Fenster wird den Kunden angezeigt, in dem sie aufgefordert werden, ein iDEAL-Profil zu erstellen oder direkt fortzufahren. Wir empfehlen, diese Einstellung zu aktivieren, um die Conversion zu erhöhen."
     }
 }
