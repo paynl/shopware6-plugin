@@ -13,9 +13,9 @@
         </div>
     {% endif %}
 
-        {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
+    {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
 
-        {% if config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled') and page.cart.price.totalPrice > 0 %}
+    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled') and page.cart.price.totalPrice > 0 %}
         {% block page_checkout_address_paynl_ideal_express_button %}
             <div class="col-sm-12 col-md-5 pb-2">
                 {% sw_include '@PaynlPaymentShopware6/storefront/component/checkout/ideal-express-button.html.twig' %}
