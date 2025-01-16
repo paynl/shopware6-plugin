@@ -103,6 +103,6 @@ class PaymentControllerBase extends AbstractController
 
     private function getTransactionFinishUrl(): string
     {
-        return $this->requestStack->getSession()->get(self::TRANSACTION_FINISH_URL);
+        return (string) $this->requestStack->getSession()->get(self::TRANSACTION_FINISH_URL);
     }
 }
