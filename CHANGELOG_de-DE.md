@@ -1,3 +1,6 @@
+# 1.6.7
+- Problem im Zusammenhang mit dem URL-Fehler behoben
+
 # 1.6.6
 - Automatisches Kunden-Logout nach der Weiterleitung zum Shop für Expresszahlungen implementiert.
 - Das Layout der Checkout-Seite angepasst, um Expresszahlungsschaltflächen nebeneinander anzuzeigen, für bessere visuelle Ausrichtung und Benutzerfreundlichkeit.

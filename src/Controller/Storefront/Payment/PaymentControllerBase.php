@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Controller\Storefront\Payment;
 
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -14,12 +15,12 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PaymentControllerBase extends AbstractController
 {
-    private const TRANSACTION_FINISH_URL = 'paynl_transaction_finish_url';
+    private const PAY_CUSTOM_FIELD = 'paynl';
+    private const TRANSACTION_FINISH_URL = 'transactionFinishUrl';
 
     /** @var PaymentController */
     private $paymentController;
@@ -27,8 +28,7 @@ class PaymentControllerBase extends AbstractController
     /** @var LoggerInterface */
     private $logger;
 
-    /** @var RequestStack */
-    private $requestStack;
+    private OrderTransactionRepositoryInterface $orderTransactionRepository;
 
     /** @var PaynlTransactionsRepositoryInterface */
     private $paynlTransactionRepository;
@@ -36,12 +36,12 @@ class PaymentControllerBase extends AbstractController
     public function __construct(
         PaymentController $paymentController,
         LoggerInterface $logger,
-        RequestStack $requestStack,
+        OrderTransactionRepositoryInterface $orderTransactionRepository,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository
     ) {
         $this->paymentController = $paymentController;
         $this->logger = $logger;
-        $this->requestStack = $requestStack;
+        $this->orderTransactionRepository = $orderTransactionRepository;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
@@ -78,7 +78,11 @@ class PaymentControllerBase extends AbstractController
             $finalizeTransactionResponse = $this->paymentController->finalizeTransaction($request);
 
             if ($finalizeTransactionResponse instanceof RedirectResponse) {
-                $this->saveTransactionFinishUrlSession($finalizeTransactionResponse->getTargetUrl());
+                $this->saveOrderTransactionFinishUrl(
+                    $orderTransaction,
+                    $finalizeTransactionResponse->getTargetUrl(),
+                    $salesChannelContext
+                );
 
                 return $finalizeTransactionResponse;
             }
@@ -89,20 +93,26 @@ class PaymentControllerBase extends AbstractController
             );
         }
 
-        if ($this->getTransactionFinishUrl()) {
-            return $this->redirect($this->getTransactionFinishUrl());
+        if ($this->getOrderTransactionFinishUrl($orderTransaction)) {
+            return $this->redirect($this->getOrderTransactionFinishUrl($orderTransaction));
         }
 
         return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
     }
 
-    private function saveTransactionFinishUrlSession(string $finishUrl): void
+    private function saveOrderTransactionFinishUrl(OrderTransactionEntity $orderTransaction, string $finishUrl, SalesChannelContext $salesChannelContext): void
     {
-        $this->requestStack->getSession()->set(self::TRANSACTION_FINISH_URL, $finishUrl);
+        $currentCustomFields = $orderTransaction->getCustomFields();
+        $currentCustomFields[self::PAY_CUSTOM_FIELD][self::TRANSACTION_FINISH_URL] = $finishUrl;
+
+        $this->orderTransactionRepository->update([[
+            'id' => $orderTransaction->getId(),
+            'customFields' => $currentCustomFields
+        ]], $salesChannelContext->getContext());
     }
 
-    private function getTransactionFinishUrl(): string
+    private function getOrderTransactionFinishUrl(OrderTransactionEntity $orderTransaction): string
     {
-        return $this->requestStack->getSession()->get(self::TRANSACTION_FINISH_URL);
+        return (string)($orderTransaction->getCustomFieldsValue(self::PAY_CUSTOM_FIELD)[self::TRANSACTION_FINISH_URL] ?? '');
     }
 }
