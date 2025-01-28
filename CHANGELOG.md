@@ -1,4 +1,5 @@
 # 1.6.7
+- Fixed issue relating to finish URL error
 
 # 1.6.6
 - Implemented automated customer logout after redirecting to the shop for express payments
