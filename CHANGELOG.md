@@ -1,4 +1,5 @@
 # 1.6.8
+- Fixed storefront scripts for Shopware 6.6 related to express checkout
 
 # 1.6.7
 - Fixed issue relating to finish URL error
