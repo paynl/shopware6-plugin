@@ -11,7 +11,8 @@
             "deniedTransaction": "Afgewezen door de betaaloptie (kies andere betaalmethode).",
             "completePaymentPin" : "Rond uw betaling af op de pin terminal",
             "orderAmountPaymentError": "Het orderbedrag voldoet niet aan de voorwaarden van deze betaalmethode.",
-            "orderDefaultError": "Er ging iets mis"
+            "orderDefaultError": "Er ging iets mis",
+            "paymentError": "An error occurred during the payment process. Please try again later or choose another payment method."
         },
         "labels": {
             "changePayment": "Probeer opnieuw",
@@ -24,7 +25,19 @@
         "order": "Bestelling: "
     },
     "payment": {
-        "selectIssuer": "Kies uw bank"
+        "selectIssuer": "Kies uw bank",
+        "idealExpressCheckout": {
+            "buttonTitle": "Snel bestellen",
+            "paymentError": "De betaling via iDEAL Snel bestellen is mislukt.",
+            "manuallyEnterAddress": "Zelf mijn adres invullen en betalen",
+            "idealCheckoutButtonTitle": "Snel bestellen",
+            "modalTitleMainText": "Bestel sneller",
+            "modalTitleSecondaryText": "met iDEAL snel bestellen",
+            "modalDescriptionText": "Met iDEAL snel bestellen kun je jouw adresgegevens opslaan bij je bank om zo snel een bestelling uit te voeren.",
+            "modalHelpTitle": "Klik op Snel bestellen:",
+            "modalHelpFirstItem": "als je al een iDEAL profiel hebt;",
+            "modalHelpSecondItem": "om een iDEAL profiel aan te maken en jouw adres op te slaan voor je volgende bestelling."
+        }
     },
     "coc": {
         "label": "KVK-nummer",

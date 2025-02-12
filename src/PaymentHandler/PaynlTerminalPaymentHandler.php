@@ -19,12 +19,14 @@ use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
@@ -54,6 +56,9 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     /** @var Api */
     private $paynlApi;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     /** @var CustomerHelper */
     private $customerHelper;
 
@@ -77,6 +82,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         RequestStack $requestStack,
         Config $config,
         Api $api,
+        LoggerInterface $logger,
         CustomerHelper $customerHelper,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
@@ -88,6 +94,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->requestStack = $requestStack;
         $this->config = $config;
         $this->paynlApi = $api;
+        $this->logger = $logger;
         $this->customerHelper = $customerHelper;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
@@ -108,6 +115,18 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         RequestDataBag $dataBag,
         SalesChannelContext $salesChannelContext
     ): void {
+        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+
+        $this->logger->info(
+            'Starting order ' . $transaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'cart' => [
+                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                ],
+            ]
+        );
 
         try {
             $requestData = $this->fetchRequestData();
@@ -124,11 +143,28 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             $paynlTransactionId = $paynlTransaction->getTransactionId();
             $paynlTransactionData = $paynlTransaction->getData();
 
+            $this->logger->info('PAY. terminal transaction was successfully created: ' . $paynlTransactionId);
+
             $hash = (string)($paynlTransactionData[self::TERMINAL][self::HASH] ?? '');
             $this->processTerminalState($transaction, $paynlTransactionId, $hash);
 
         } catch (Exception $e) {
-            throw new SyncPaymentProcessException(
+            $this->logger->error(
+                'Error on starting PAY. payment: ' . $e->getMessage(),
+                [
+                    'exception' => $e
+                ]
+            );
+
+            if (class_exists('Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException')) {
+                throw new SyncPaymentProcessException(
+                    $transaction->getOrderTransaction()->getId(),
+                    'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
+                );
+            }
+
+            /** @phpstan-ignore-next-line */
+            throw PaymentException::syncProcessInterrupted(
                 $transaction->getOrderTransaction()->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
             );
@@ -157,19 +193,38 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
+        $additionalTransactionInfo = new AdditionalTransactionInfo(
+            $returnUrl,
+            '',
+            $this->shopwareVersion,
+            $this->pluginHelper->getPluginVersionFromComposer(),
+            $terminalId
+        );
+
+        $this->logger->info(
+            'Starting terminal transaction with terminalId ' . $terminalId,
+            [
+                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'cart' => [
+                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                ],
+            ]
+        );
+
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
+                $orderTransaction,
                 $order,
                 $salesChannelContext,
-                $returnUrl,
-                '',
-                $this->shopwareVersion,
-                $this->pluginHelper->getPluginVersionFromComposer(),
-                $terminalId
+                $additionalTransactionInfo
             );
 
             $paynlTransactionId = $paynlTransaction->getTransactionId();
         } catch (Throwable $exception) {
+            $this->logger->error('Error on starting terminal transaction with terminal ' . $terminalId, [
+                'exception' => $exception
+            ]);
+
             $this->processingHelper->storePaynlTransactionData(
                 $order,
                 $orderTransaction,

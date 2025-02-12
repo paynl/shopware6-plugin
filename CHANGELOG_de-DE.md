@@ -1,3 +1,69 @@
+# 1.6.8
+- Storefront scripts für Shopware 6.6 im Zusammenhang mit der Express-Kasse behoben
+
+# 1.6.7
+- Problem im Zusammenhang mit dem URL-Fehler behoben
+
+# 1.6.6
+- Automatisches Kunden-Logout nach der Weiterleitung zum Shop für Expresszahlungen implementiert.
+- Das Layout der Checkout-Seite angepasst, um Expresszahlungsschaltflächen nebeneinander anzuzeigen, für bessere visuelle Ausrichtung und Benutzerfreundlichkeit.
+- Das Problem mit der Weiterleitung des Kunden zur Abschluss-URL behoben.
+- Die Berechnung der Versandkosten auf der Erstattungsseite korrigiert.
+- Ein Modal-Fenster für den iDEAL-Schnellkauf hinzugefügt.
+
+# 1.6.5
+- Fehler in Bezug auf die fehlende angeforderte Zahlungsmethode behoben
+- Fehler im Zusammenhang mit einem ungültigen Zahlungs-Token behoben
+- Name, Logo und Beschreibung bestehender Zahlungsmethoden werden nicht mehr überschrieben
+
+# 1.6.4
+- Fast checkout Button für PayPal hinzugefügt
+- Fast checkout Button für iDEAL hinzugefügt
+
+# 1.6.3
+- Problem bei der Installation von Zahlungsmethoden behoben
+
+# 1.6.2
+- Schaltflächen „Rückerstattung“, „Stornieren“ und „Zurück“ auf der Rückerstattungsseite hinzugefügt
+- Der Versand- und Produktabschnitt wurde an den oberen Rand der Rückerstattungsseite verschoben
+- Auf der Rückerstattungsseite wurde die Option „Alles auffüllen“ hinzugefügt
+- Fehler auf der Checkout-Bestätigungsseite behoben
+- Rückerstattungsoption bei Shopware 6.6 und 6.5 behoben
+
+# 1.6.1
+- Wiederherstellung des Warenkorbs nach dem Zurückklicken auf der Händler-Zahlungsseite hinzugefügt
+- Registerkarte „Rückerstattung“ in der Bestellansicht hinzugefügt
+- Fehler beim Abbrechen des Austauschs behoben
+
+# 1.6.0
+- Unterstützt Shopware 6.6 Version
+- Protokollierungsfunktion hinzugefügt
+
+# 1.5.16
+- Der falsche Bestellbetrag wurde behoben, wenn der Einzelpostenpreis manuell festgelegt wurde
+
+# 1.5.15
+- Berechnung der festen Versandkosten
+- Aktualisierung des Bestellstatus behoben
+
+# 1.5.14
+- Name der Serviceklasse korrigiert
+- Datumsauswahl für IOS-Geräte korrigiert
+
+# 1.5.13
+- Neue Zahlungsarten hinzugefügt
+- Die ID der Zahlungsmethode wird jetzt aus der Bestellung übernommen
+
+# 1.5.12
+- Notify-Route für POST-Anfragen behoben
+- Failover exchange verbessert
+- Problem mit nicht gesendeter paymentOptionId behoben
+- Made iDEAL bank selection optional with a toggle
+
+# 1.5.11
+- Fehler bei der Aufpreisberechnung nach Stornierung behoben
+- Verbesserte Unterstützung für Multistore
+
 # 1.5.10
 - Multicore-Funktionalität hinzugefügt
 

@@ -98,6 +98,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'transferGoogleAnalytics');
     }
 
+    public function isLoggingEnabled(string $salesChannelId = ''): bool
+    {
+        return (bool)$this->get($salesChannelId, 'logging');
+    }
+
     public function getIpSettings(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'ipSettings');
@@ -111,6 +116,11 @@ class Config
     public function isAutomaticCancellation(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'automaticCancellation');
+    }
+
+    public function isRestoreShippingCart(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'restoreShoppingCart');
     }
 
     public function getOrderStateWithPaidTransaction(string $salesChannelId): string
@@ -131,6 +141,56 @@ class Config
     public function getOrderStateWithAuthorizedTransaction(string $salesChannelId): string
     {
         return (string)$this->get($salesChannelId, 'orderStateWithAuthorizedTransaction');
+    }
+
+    public function getPaymentIdealExpressCheckoutEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutEnabled');
+    }
+
+    public function getPaymentIdealExpressShoppingCartEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentIdealExpressShoppingCartEnabled');
+    }
+
+    public function getPaymentIdealExpressLoggedInCustomerEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutLoggedInCustomerEnabled');
+    }
+
+    public function getPaymentPayPalExpressCheckoutEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressCheckoutEnabled');
+    }
+
+    public function getPaymentPayPalExpressShoppingCartEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressShoppingCartEnabled');
+    }
+
+    public function getPaymentPayPalExpressLoggedInCustomerEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressCheckoutLoggedInCustomerEnabled');
+    }
+
+    public function getPaymentPayPalClientIdSandbox(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalClientIdSandbox');
+    }
+
+    public function getPaymentPayPalSecretKeySandbox(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeySandbox');
+    }
+
+    public function getPaymentPayPalClientIdProduction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalClientIdProduction');
+    }
+
+    public function getPaymentPayPalSecretKeyProduction(string $salesChannelId): string
+    {
+        return (string)$this->get($salesChannelId, 'paymentPaypalSecretKeyProduction');
     }
 
     public function getPaymentPinTerminal(string $salesChannelId): string

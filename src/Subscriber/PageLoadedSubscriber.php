@@ -5,6 +5,7 @@ namespace PaynlPayment\Shopware6\Subscriber;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaymentSurchargeEntity;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService;
 use Shopware\Core\Checkout\Cart\AbstractCartPersister;
@@ -13,7 +14,6 @@ use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -221,16 +221,29 @@ class PageLoadedSubscriber implements EventSubscriberInterface
     {
         $order = $event->getPage()->getOrder();
 
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('orderId', $order->getId()));
+        $criteria->addAssociation('orderTransaction.stateMachineState');
+
         /** @var PaynlTransactionEntity $paynlTransaction */
         $paynlTransaction = $this->paynlTransactionRepository
             ->search(
-                (new Criteria())->addFilter(new EqualsFilter('orderId', $order->getId())),
+                $criteria,
                 $event->getSalesChannelContext()->getContext()
             )
             ->first();
 
         if ($paynlTransaction instanceof PaynlTransactionEntity) {
-            $event->getPage()->assign(['PAY_transaction_state_id' => $paynlTransaction->getStateId()]);
+            $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
+            if (in_array($paynlTransaction->getStateId(), PaynlTransactionStatusesEnum::DENIED_STATUSES)) {
+                $orderTransactionStatus = 'denied';
+            }
+
+            $event->getPage()->assign([
+                'PAY' => [
+                    'status' => $orderTransactionStatus
+                ]
+            ]);
         }
     }
 

@@ -19,8 +19,12 @@ use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
+use Psr\Log\LoggerInterface;
+use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -42,6 +46,7 @@ class Api
     const PAYMENT_METHOD_BRAND = 'brand';
     const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
     const PAYMENT_METHOD_BRAND_ID = 'id';
+    const PAYMENT_METHOD_PAY_NL_ID = 'paynlId';
 
     const ACTION_PENDING = 'pending';
 
@@ -49,8 +54,12 @@ class Api
     private $config;
     /** @var CustomerHelper */
     private $customerHelper;
+    /** @var TransactionLanguageHelper */
+    private $transactionLanguageHelper;
     /** @var StringHelper */
     private $stringHelper;
+    /** @var IpSettingsHelper */
+    private $ipSettingsHelper;
     /** @var ProductRepositoryInterface */
     private $productRepository;
     /** @var OrderRepositoryInterface */
@@ -59,23 +68,31 @@ class Api
     private $translator;
     /** @var RequestStack */
     private $requestStack;
+    /** @var LoggerInterface */
+    private $logger;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
+        TransactionLanguageHelper $transactionLanguageHelper,
         StringHelper $stringHelper,
+        IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
+        $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->stringHelper = $stringHelper;
+        $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
+        $this->logger = $logger;
     }
 
     /**
@@ -87,6 +104,9 @@ class Api
         if (empty($this->config->getTokenCode($salesChannelId))
             || empty($this->config->getApiToken($salesChannelId))
             || empty($this->config->getServiceId($salesChannelId))) {
+
+            $this->logger->warning('PAY. credentials are missing.');
+
             return [];
         }
 
@@ -95,20 +115,27 @@ class Api
         return Paymentmethods::getList();
     }
 
-    /**
-     * @param OrderEntity $order
-     * @param SalesChannelContext $salesChannelContext
-     * @param string $returnUrl
-     * @param string $exchangeUrl
-     * @param string $shopwareVersion
-     * @param string $pluginVersion
-     * @param string|null $terminalId
-     * @return CreateTransactionResponse
-     * @throws \PayNL\Sdk\Exception\PayException
-     */
+    private function setCredentials(string $salesChannelId, bool $useGateway = false): void
+    {
+        SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
+        SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
+        SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
+
+        $gateway = $this->config->getFailoverGateway($salesChannelId);
+        $gateway = $gateway ? 'https://' . $gateway : '';
+        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
+            SDKConfig::setApiBase(trim($gateway));
+        }
+    }
+
     public function startTransaction(
+        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+        AdditionalTransactionInfo $additionalTransactionInfo
+    ): Start {
+        $transactionInitialData = $this->getTransactionInitialData(
+            $orderTransaction,
         string $returnUrl,
         string $exchangeUrl,
         string $shopwareVersion,
@@ -118,11 +145,7 @@ class Api
         $transactionRequest = $this->getTransactionRequest(
             $order,
             $salesChannelContext,
-            $returnUrl,
-            $exchangeUrl,
-            $shopwareVersion,
-            $pluginVersion,
-            $terminalId
+            $additionalTransactionInfo
         );
 
         $config = $this->getConfig($salesChannelContext->getSalesChannel()->getId(), true);
@@ -147,33 +170,51 @@ class Api
     }
 
     /**
+     * @param OrderTransactionEntity $orderTransaction
      * @param OrderEntity $order
      * @param SalesChannelContext $salesChannelContext
-     * @param string $returnUrl
-     * @param string $exchangeUrl
-     * @param string $shopwareVersion
-     * @param string $pluginVersion
-     * @param string|null $terminalId
-     * @return TransactionCreateRequest
-     * @throws Exception
+     * @param AdditionalTransactionInfo $additionalTransactionInfo
+     * @return array
+     * @throws PaynlPaymentException
      */
-    private function getTransactionRequest(
+    private function getTransactionInitialData(
+        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
-        string $returnUrl,
-        string $exchangeUrl,
-        string $shopwareVersion,
-        string $pluginVersion,
-        ?string $terminalId = null
-    ): TransactionCreateRequest {
-        $shopwarePaymentMethodId = $salesChannelContext->getPaymentMethod()->getId();
-        $shopwarePaymentMethodCustomFields = $salesChannelContext->getPaymentMethod()->getCustomFields();
+        AdditionalTransactionInfo $additionalTransactionInfo
+    ): array {
+        $shopwarePaymentMethodId = $orderTransaction->getPaymentMethod()->getId();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $paynlPaymentMethodId = $shopwarePaymentMethodCustomFields['paynlId'] ?? '';
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
         $orderNumber = $order->getOrderNumber();
+        $transactionInitialData = [
+            // Basic data
+            'paymentMethod' => $paynlPaymentMethodId,
+            'amount' => $amount,
+            'currency' => $currency,
+            'testmode' => $testMode,
+            'orderNumber' => $orderNumber,
+            'description' => sprintf(
+                '%s %s',
+                $this->translator->trans('transactionLabels.order'),
+                $orderNumber
+            ),
+
+            // Urls
+            'returnUrl' => $additionalTransactionInfo->getReturnUrl(),
+            'exchangeUrl' => $additionalTransactionInfo->getExchangeUrl(),
+
+            // Products
+            'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
+            'object' => sprintf(
+                'Shopware v%s %s',
+                $additionalTransactionInfo->getShopwareVersion(),
+                $additionalTransactionInfo->getPluginVersion()
+            ),
+        ];
 
         $customer = $salesChannelContext->getCustomer();
         $customerCustomFields = $customer->getCustomFields();
@@ -210,7 +251,10 @@ class Api
 
             $this->orderRepository->upsert($data, $salesChannelContext->getContext());
         }
+
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
+            $transactionInitialData['bank'] = $additionalTransactionInfo->getTerminalId();
+        }
             $request->setTerminal($terminalId);
 
         }
@@ -256,6 +300,24 @@ class Api
         }
 
         return (int)$paynlPaymentMethod[self::PAYMENT_METHOD_ID];
+    }
+
+    /** @throws PaynlPaymentException */
+    public function getPaynlPaymentMethodIdFromShopware(SalesChannelContext $salesChannelContext): int
+    {
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
+            return 0;
+        }
+
+        $paymentMethodTranslated = $salesChannelContext->getPaymentMethod()->getTranslated();
+        if (!isset($paymentMethodTranslated['customFields'])
+            || !$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID]
+        ) {
+            throw new PaynlPaymentException('Could not detect payment method.');
+        }
+
+        return (int)$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID];
     }
 
     /**
@@ -414,6 +476,12 @@ class Api
         try {
             return \Paynl\Transaction::refund($transactionID, $amount, $description);
         } catch (\Throwable $e) {
+            $this->logger->error('Error while refunding process', [
+                'transactionId' => $transactionID,
+                'amount' => $amount,
+                'exception' => $e
+            ]);
+
             throw new \Exception($e->getMessage());
         }
     }
@@ -426,6 +494,12 @@ class Api
         try {
             return Transaction::capture($transactionID, $amount);
         } catch (Throwable $exception) {
+            $this->logger->error('Error while capturing process', [
+                'transactionId' => $transactionID,
+                'amount' => $amount,
+                'exception' => $exception
+            ]);
+
             throw PaynlTransactionException::captureError($exception->getMessage());
         }
     }
@@ -438,6 +512,11 @@ class Api
         try {
             return Transaction::void($transactionID);
         } catch (Throwable $exception) {
+            $this->logger->error('Error while voiding process', [
+                'transactionId' => $transactionID,
+                'exception' => $exception
+            ]);
+
             throw PaynlTransactionException::captureError($exception->getMessage());
         }
     }

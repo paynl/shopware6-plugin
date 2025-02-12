@@ -60,21 +60,6 @@
             <div class="break"></div>
             <div class="paynl-payment-method-extra-wrapper w-100">
                 <div class="paynl-payment-method-extra w-100{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
-                    {#Banks#}
-                    {% if payment.translated.customFields.displayBanks %}
-                        {% if payment.translated.customFields.banks is not empty %}
-                            {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
-                            <div class="form-group w-100">
-                                <select class="form-control form-select paynl-ideal-banks-select payment-method-input paynl-payment-method-auto-submit" name="paynlIssuer">
-                                    <option value="" {{ paynlIssuerSelected ?  'disabled="disabled"' : ''}}>{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
-                                    {% for bank in payment.translated.customFields.banks %}
-                                        <option value="{{ bank.id }}" {% if paynlIssuerSelected and bank.id is same as(paynlIssuerSelected)%} selected {% endif %}>{{ bank.visibleName }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        {% endif %}
-                    {% endif %}
-
                     {#Terminals#}
                     {% if payment.customFields.terminals is not empty and activeRoute != "frontend.account.payment.page" %}
                         {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.config.paymentPinTerminal %}
@@ -96,7 +81,6 @@
                             dateFormat: "d-m-Y",
                             altInput: true,
                             altFormat: "d-m-Y",
-                            weekNumbers: false,
                             minDate: date()|date_modify("-100 years")|date("d-m-Y"),
                             maxDate: "today",
                             defaultDate: customerBirthday ? customerBirthday|date("d-m-Y") : null,

@@ -35,7 +35,8 @@
             "price": "Preis",
             "quantity": "Menge",
             "refund": "Rückerstattung",
-            "restock": "Auffüllen"
+            "restock": "Auffüllen",
+            "restockAll": "Alles auffüllen"
         },
         "notifications": {
             "danger": "Fehler",

@@ -6,6 +6,7 @@
     "author": "Pay.",
     "license": "MIT",
     "dependencies": {
-        "imask": "^6.1.0"
+        "imask": "^6.1.0",
+        "@paypal/paypal-js": "~5"
     }
 }

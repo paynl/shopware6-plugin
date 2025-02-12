@@ -11,7 +11,8 @@
             "deniedTransaction": "Zahlung vom Zahlungsanbieter verweigert (andere Zahlungsmethode wählen).",
             "completePaymentPin" : "Zahlung bitte mit Pin/Chip-Terminal durchführen",
             "orderAmountPaymentError": "Der Bestellbetrag entspricht nicht den Bedingungen dieser Zahlungsmethode.",
-            "orderDefaultError": "Scheint so, als wäre etwas schiefgelaufen"
+            "orderDefaultError": "Scheint so, als wäre etwas schiefgelaufen",
+            "paymentError": "Während des Zahlungsvorgangs ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal oder wählen Sie eine andere Zahlungsmethode aus."
         },
         "labels": {
             "changePayment": "Erneut versuchen",
@@ -25,7 +26,19 @@
     },
 
     "payment": {
-        "selectIssuer": "Wählen Sie eine Bank aus"
+        "selectIssuer": "Wählen Sie eine Bank aus",
+        "idealExpressCheckout": {
+            "buttonTitle": "Fast Checkout",
+            "paymentError": "The payment with IDEAL Express Checkout failed.",
+            "manuallyEnterAddress": "Manually enter my address in the webshop",
+            "idealCheckoutButtonTitle": "iDEAL Checkout",
+            "modalTitleMainText": "Order quicker",
+            "modalTitleSecondaryText": "with iDEAL Checkout",
+            "modalDescriptionText": "With iDEAL Checkout you can speed up the checkout process by saving your address.",
+            "modalHelpTitle": "Click on iDEAL Checkout:",
+            "modalHelpFirstItem": "If you already have an iDEAL account;",
+            "modalHelpSecondItem": "Create an iDEAL account and save your address for next time"
+        }
     },
     "coc": {
         "label": "IHK-Nummer",

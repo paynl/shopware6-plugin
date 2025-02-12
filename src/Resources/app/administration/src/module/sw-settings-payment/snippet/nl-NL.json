@@ -9,5 +9,20 @@
             "absoluteOptionLabel": "Absoluut",
             "percentageOptionLabel": "Percentage"
         }
+    },
+    "paymentExpressCheckout": {
+        "titleExpressCheckoutCard": "Snel bestellen",
+        "labelExpressCheckout": "Winkelwagenpagina",
+        "expressCheckoutHelpText": "Toon de 'Snel bestellen' knop op de winkelwagenpagina. Met deze knop kunnen gebruikers direct afrekenen vanuit de winkelwagen zonder dat ze gegevens hoeven in te vullen.",
+        "labelExpressShoppingCart": "Minicart",
+        "expressShoppingCartHelpText": "Toon de 'Snel bestellen' knop in de minicart. Met deze knop kunnen gebruikers direct afrekenen vanuit de minicart zonder dat ze hun gegevens hoeven in te vullen.",
+        "labelExpressCheckoutLoggedInCustomer": "Beschikbaar voor ingelogde gebruikers ",
+        "expressCheckoutLoggedInCustomerHelpText": "Als deze optie is uitgeschakeld (standaard), wordt de knop alleen getoond aan gastgebruikers.",
+        "labelPaymentPaypalClientIdSandbox": "Sandbox Client ID",
+        "labelPaymentPaypalClientIdProduction": "Productie Client ID",
+        "labelPaymentPaypalSecretKeySandbox": "Sandbox Geheime Sleute",
+        "labelPaymentPaypalSecretKeyProduction": "Productie Geheime Sleutel",
+        "labelExpressCheckoutIdealModal": "Popup venster weergeven",
+        "expressCheckoutIdealModalHelpText": "Er wordt een venster aan klanten getoond waarin ze worden gevraagd een iDEAL-profiel aan te maken of direct door te gaan. We raden aan deze instelling in te schakelen om de conversie te verhogen."
     }
 }

@@ -1,36 +1,115 @@
 {% block sw_settings_payment_detail_content_card %}
     {% parent %}
 
+    <sw-card :title="$tc('paymentExpressCheckout.titleExpressCheckoutCard')" :isLoading="isLoading" v-if="isExpressCheckoutPaymentMethod">
+        <template v-if="!isLoading">
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isIDEALPaymentMethod">
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckout')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutHelpText')"
+                />
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressShoppingCartEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressShoppingCart')"
+                        :help-text="$tc('paymentExpressCheckout.expressShoppingCartHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isIDEALPaymentMethod">
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressCheckoutLoggedInCustomerEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckoutLoggedInCustomer')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
+                />
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckoutIdealModal')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutIdealModalHelpText')"
+                />
+            </sw-container>
+
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckout')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutHelpText')"
+                />
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressShoppingCartEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressShoppingCartEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressShoppingCart')"
+                        :help-text="$tc('paymentExpressCheckout.expressShoppingCartHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutLoggedInCustomerEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutLoggedInCustomerEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressCheckoutLoggedInCustomer')"
+                        :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-text-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalClientIdSandbox']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalClientIdSandbox']"
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalClientIdSandbox')"
+                />
+                <sw-text-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalClientIdProduction']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalClientIdProduction']"
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalClientIdProduction')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
+                <sw-text-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeySandbox']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeySandbox']"
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalSecretKeySandbox')"
+                />
+                <sw-text-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeyProduction']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalSecretKeyProduction']"
+                        :label="$tc('paymentExpressCheckout.labelPaymentPaypalSecretKeyProduction')"
+                />
+            </sw-container>
+        </template>
+    </sw-card>
+
     <sw-card :title="$tc('paymentSurchargeSettings.titleSurchargeSettingsCard')" :isLoading="isLoading">
         <template v-if="!isLoading">
             <sw-container columns="3fr 1fr" gap="0px 30px">
                 {% block paynl_payment_surcharge_settings_payment_detail_content_field_type %}
-                    <sw-field
-                        type="select"
-                        v-model="paymentSurcharge.type"
+                    <sw-select-field
+                        v-model:value="paymentSurcharge.type"
                         validation="required"
                         required
                         :label="$tc('paymentSurchargeSettings.labelType')"
                         :disabled="isLoading">
-                        <option slot="options" v-for="option in surchargeTypes" :key="option.value" :value="option.value">{{ option.label }}</option>
-                    </sw-field>
+                        <option v-for="option in surchargeTypes" :key="option.value" :value="option.value">{{ option.label }}</option>
+                    </sw-select-field>
                 {% endblock %}
                 {% block paynl_payment_surcharge_settings_payment_detail_content_field_amount %}
-                    <sw-field type="number"
+                    <sw-number-field
                               :min="0"
                               :label="$tc('paymentSurchargeSettings.labelAmount')"
                               :placeholder="$tc('paymentSurchargeSettings.placeholderAmount')"
-                              v-model="paymentSurcharge.amount">
-                    </sw-field>
+                              v-model:value="paymentSurcharge.amount">
+                    </sw-number-field>
                 {% endblock %}
             </sw-container>
             <sw-container columns="1fr 1fr" gap="0px 30px">
                 {% block paynl_payment_surcharge_settings_payment_detail_content_field_order_value_limit %}
-                    <sw-field type="number"
+                    <sw-number-field
                               :min="0"
                               :label="$tc('paymentSurchargeSettings.labelOrderValueLimit')"
-                              v-model="paymentSurcharge.orderValueLimit">
-                    </sw-field>
+                              v-model:value="paymentSurcharge.orderValueLimit">
+                    </sw-number-field>
                 {% endblock %}
             </sw-container>
         </template>

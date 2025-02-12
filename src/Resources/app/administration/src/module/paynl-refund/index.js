@@ -25,7 +25,11 @@ Module.register('paynl-refund-page', {
             path: 'view/:id',
             props: {
                 default: (route) => ({ orderId: route.params.id })
-            }
+            },
+            meta: {
+                parentPath: 'sw.order.detail.general',
+                privilege: 'order.viewer',
+            },
         }
-    }
+    },
 });

@@ -30,6 +30,8 @@ use PaynlPayment\Shopware6\Repository\Product\ProductRepository;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository;
 use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository;
 use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Shopware\Core\Framework\Api\Controller\CacheController;
 use PaynlPayment\Shopware6\Helper\MediaHelper;
 use Shopware\Core\Content\Media\File\FileSaver;
@@ -78,7 +80,7 @@ class PaynlPaymentShopware6 extends Plugin
 
     public function update(UpdateContext $updateContext): void
     {
-        $this->getInstallHelper()->removeAfterPayMedia($updateContext->getContext());
+        $this->getInstallHelper()->removePaymentMethodOldLogos($updateContext->getContext());
         $this->getInstallHelper()->updatePaymentMethods($updateContext->getContext());
         $this->getInstallHelper()->addPaynlMailTemplateText();
         $this->getInstallHelper()->addSurchargePayStockImageMedia($updateContext->getContext());
@@ -204,7 +206,8 @@ class PaynlPaymentShopware6 extends Plugin
             new ProductRepository($productRepository),
             new OrderRepository($orderRepository),
             $translator,
-            $requestStack
+            $requestStack,
+            $this->getLogger()
         );
     }
 
@@ -249,5 +252,10 @@ class PaynlPaymentShopware6 extends Plugin
     private function getPaymentHandlerFactory(): PaymentHandlerFactory
     {
         return new PaymentHandlerFactory();
+    }
+
+    private function getLogger(): LoggerInterface
+    {
+        return new NullLogger();
     }
 }

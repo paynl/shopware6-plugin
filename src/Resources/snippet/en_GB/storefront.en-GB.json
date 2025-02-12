@@ -11,7 +11,8 @@
             "deniedTransaction": "Your payment was rejected by payment provider (select another payment method).",
             "completePaymentPin" : "Please complete payment on pin/chip device",
             "orderAmountPaymentError": "Unfortunately the order amount does not fit the requirements for this payment method.",
-            "orderDefaultError": "Unfortunately something went wrong"
+            "orderDefaultError": "Unfortunately something went wrong",
+            "paymentError": "An error occurred during the payment process. Please try again later or choose another payment method."
         },
         "labels": {
             "changePayment": "Try again",
@@ -24,7 +25,19 @@
         "order": "Order: "
     },
     "payment": {
-        "selectIssuer": "Select Issuer"
+        "selectIssuer": "Select Issuer",
+        "idealExpressCheckout": {
+            "buttonTitle": "Fast Checkout",
+            "paymentError": "The payment with IDEAL Express Checkout failed.",
+            "manuallyEnterAddress": "Manually enter my address in the webshop",
+            "idealCheckoutButtonTitle": "iDEAL Checkout",
+            "modalTitleMainText": "Order quicker",
+            "modalTitleSecondaryText": "with iDEAL Checkout",
+            "modalDescriptionText": "With iDEAL Checkout you can speed up the checkout process by saving your address.",
+            "modalHelpTitle": "Click on iDEAL Checkout:",
+            "modalHelpFirstItem": "If you already have an iDEAL account;",
+            "modalHelpSecondItem": "To create an iDEAL account and save your address for next time"
+        }
     },
     "coc": {
         "label": "KVK/COC Number",

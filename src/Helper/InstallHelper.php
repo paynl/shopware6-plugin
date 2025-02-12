@@ -21,6 +21,7 @@ use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
@@ -245,9 +246,20 @@ class InstallHelper
             if (!empty($paymentMethodValueObject->getBrandId())) {
                 $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
             }
-            $paymentMethods[] = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-
             $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
+            $paymentMethodData = $this->getPaymentMethodData($context, $paymentMethodValueObject);
+
+            try {
+                $this->paymentMethodRepository->getPaymentMethodById($paymentMethodHashId, $context);
+
+                // don't update the name and description if payment method already exists in Shopware
+                unset($paymentMethodData['name'], $paymentMethodData['description']);
+            } catch (EntityNotFoundException $exception) {
+
+            }
+
+            $paymentMethods[] = $paymentMethodData;
+
             $salesChannelData = $this->getSalesChannelsData($paymentMethodHashId, $salesChannelId, $context);
             $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
         }
@@ -278,18 +290,20 @@ class InstallHelper
     }
 
     /**
-     * AfterPay rebranding to Riverty
-     *
      * @param Context $context
      */
-    public function removeAfterPayMedia(Context $context): void
+    public function removePaymentMethodOldLogos(Context $context): void
     {
-        $mediaId = $this->mediaHelper->getMediaId('AfterPay', $context);
-        if (empty($mediaId)) {
+        $mediaIds = [];
+        $mediaIds[] = $this->mediaHelper->getMediaId('AfterPay', $context);
+        $mediaIds[] = $this->mediaHelper->getMediaId('Biller', $context);
+        $mediaIds[] = $this->mediaHelper->getMediaId('NOTYD', $context);
+        $mediaIds = array_filter($mediaIds);
+        if (empty($mediaIds)) {
             return;
         }
 
-        $this->mediaHelper->removeOldMedia($context, [$mediaId]);
+        $this->mediaHelper->removeOldMedia($context, $mediaIds);
     }
 
     public function addSurchargePayStockImageMedia(Context $context): void

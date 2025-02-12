@@ -1,3 +1,69 @@
+# 1.6.8
+- Fixed storefront scripts for Shopware 6.6 related to express checkout
+
+# 1.6.7
+- Fixed issue relating to finish URL error
+
+# 1.6.6
+- Implemented automated customer logout after redirecting to the shop for express payments
+- Adjusted the checkout page layout to display express payment buttons side-by-side for better visual alignment and user convenience
+- Fixed the issue with the customer redirecting to the finished URL
+- Fixed the calculation of shipping costs on the refund page
+- Added a modal window for iDEAL fast checkout
+
+# 1.6.5
+- Fixed error related to missing requested payment method
+- Fixed error related to invalid payment token
+- Existing payment methods name, logo and description are no longer overwritten
+
+# 1.6.4
+- Fast checkout button for PayPal added
+- Fast checkout button for iDEAL added
+
+# 1.6.3
+- Fixed install payment methods issue
+
+# 1.6.2
+- Added refund, cancel, and back buttons on the refund page
+- Moved the shipping and product section to the top of the refund page
+- Added restock all option on the refund page
+- Fixed error on checkout confirm page
+- Fixed refund option on Shopware 6.6 and 6.5
+
+# 1.6.1
+- Added restoring shopping cart after clicking back on the merchant payment page
+- Added refund tab in the order view
+- Fixed cancel exchange error
+
+# 1.6.0
+- Support Shopware 6.6 version
+- Added logging functionality
+
+# 1.5.16
+- Fixed the wrong order amount when the line item price was set manually
+
+# 1.5.15
+- Fixed shipping costs calculation
+- Fixed order state update
+
+# 1.5.14
+- Fixed service class name
+- Fixed date picker for IOS devices
+
+# 1.5.13
+- Added new payment methods
+- Payment method ID now taken from order
+
+# 1.5.12
+- Fixed notify route for POST requests
+- Failover exchange improved
+- Fixed issue with paymentOptionId not being sent
+- Made iDEAL bank selection optional with a toggle
+
+# 1.5.11
+- Fixed error in surcharging after cancellation
+- Improved support for multistore
+
 # 1.5.10
 - Multicore functionality added
 
