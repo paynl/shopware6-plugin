@@ -24,8 +24,10 @@
         }
     },
     "require": {
+        "shopware/core": "^6.4",
+        "shopware/storefront": "^6.4",
         "paynl/sdk3-mvp": "dev-master",
-        "paynl/sdk": "^2.0"
+        "paynl/sdk": "1.5.15"
     },
     "repositories": [
         {
