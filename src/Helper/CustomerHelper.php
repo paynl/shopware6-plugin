@@ -77,18 +77,17 @@ class CustomerHelper
         }
 
         $customer->setGender($gender);
-        $customer->setPhone($customerEntity->getDefaultBillingAddress()->getPhoneNumber());
+        $customer->setPhone((string) $customerEntity->getDefaultBillingAddress()->getPhoneNumber());
         $customer->setEmail($customerEntity->getEmail());
         $customer->setReference($customerEntity->getCustomerNumber());
 
         $company = new \PayNL\Sdk\Model\Company();
-        $company->setName($customerEntity->getDefaultBillingAddress()->getCompany());
+        $company->setName((string) $customerEntity->getDefaultBillingAddress()->getCompany());
         $cocNumber = $customerEntity->getDefaultBillingAddress()->getCustomFields()['cocNumber'] ?? null;
         if ($cocNumber) {
-            $company->setCoc($cocNumber);
+            $company->setCoc((string) $cocNumber);
         }
         $company->setVat($this->getCustomerVatNumber($customerEntity));
-//        $company->setCountryCode('NL');
 
         $customer->setCompany($company);
 
@@ -132,13 +131,11 @@ class CustomerHelper
         }
 
         $devAddress = new \PayNL\Sdk\Model\Address();
-//        $devAddress->setCode('dev');
         $devAddress->setStreetName($street);
         $devAddress->setStreetNumber($houseNumber);
         $devAddress->setStreetNumberExtension($houseNumberExtension);
         $devAddress->setZipCode($customerShippingAddress->getZipcode());
         $devAddress->setCity($customerShippingAddress->getCity());
-//$devAddress->setRegionCode('ZH');
         $devAddress->setCountryCode($country->getIso());
 
         return $devAddress;
@@ -173,13 +170,11 @@ class CustomerHelper
         }
 
         $invoiceAddress = new Address();
-//        $invAddress->setCode('inv');
         $invoiceAddress->setStreetName($street);
         $invoiceAddress->setStreetNumber($houseNumber);
         $invoiceAddress->setStreetNumberExtension($houseNumberExtension);
         $invoiceAddress->setZipCode($customerBillingAddress->getZipcode());
         $invoiceAddress->setCity($customerBillingAddress->getCity());
-//$devAddress->setRegionCode('ZH');
         $invoiceAddress->setCountryCode($country->getIso());
 
         return $invoiceAddress;

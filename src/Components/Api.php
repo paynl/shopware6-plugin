@@ -6,12 +6,12 @@ use Paynl\Config as SDKConfig;
 use Paynl\Instore;
 use Paynl\Paymentmethods;
 use PayNL\Sdk\Config\Config as PayNLConfig;
-use PayNL\Sdk\Model\CreateTransactionResponse;
-use PayNL\Sdk\Model\Request\TransactionCreateRequest;
+use PayNL\Sdk\Exception\PayException;
+use PayNL\Sdk\Model\Pay\PayOrder;
+use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
-use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
@@ -21,8 +21,6 @@ use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
-use Shopware\Core\Checkout\Customer\CustomerEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -48,18 +46,12 @@ class Api
     const PAYMENT_METHOD_BRAND_ID = 'id';
     const PAYMENT_METHOD_PAY_NL_ID = 'paynlId';
 
-    const ACTION_PENDING = 'pending';
-
     /** @var Config */
     private $config;
     /** @var CustomerHelper */
     private $customerHelper;
-    /** @var TransactionLanguageHelper */
-    private $transactionLanguageHelper;
     /** @var StringHelper */
     private $stringHelper;
-    /** @var IpSettingsHelper */
-    private $ipSettingsHelper;
     /** @var ProductRepositoryInterface */
     private $productRepository;
     /** @var OrderRepositoryInterface */
@@ -74,9 +66,7 @@ class Api
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
-        TransactionLanguageHelper $transactionLanguageHelper,
         StringHelper $stringHelper,
-        IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
         OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
@@ -85,9 +75,7 @@ class Api
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
-        $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->stringHelper = $stringHelper;
-        $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
         $this->orderRepository = $orderRepository;
         $this->translator = $translator;
@@ -128,21 +116,17 @@ class Api
         }
     }
 
+    /**
+     * @throws PayException
+     * @throws PaynlPaymentException
+     */
     public function startTransaction(
         OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
         AdditionalTransactionInfo $additionalTransactionInfo
-    ): Start {
-        $transactionInitialData = $this->getTransactionInitialData(
-            $orderTransaction,
-        string $returnUrl,
-        string $exchangeUrl,
-        string $shopwareVersion,
-        string $pluginVersion,
-        ?string $terminalId = null
-    ): CreateTransactionResponse {
-        $transactionRequest = $this->getTransactionRequest(
+    ): PayOrder {
+        $orderCreateRequest = $this->getOrderCreateRequest(
             $order,
             $salesChannelContext,
             $additionalTransactionInfo
@@ -150,9 +134,9 @@ class Api
 
         $config = $this->getConfig($salesChannelContext->getSalesChannel()->getId(), true);
 
-        $transactionRequest->setConfig($config);
+        $orderCreateRequest->setConfig($config);
 
-        return $transactionRequest->start();
+        return $orderCreateRequest->start();
     }
 
     public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
@@ -170,58 +154,23 @@ class Api
     }
 
     /**
-     * @param OrderTransactionEntity $orderTransaction
-     * @param OrderEntity $order
-     * @param SalesChannelContext $salesChannelContext
-     * @param AdditionalTransactionInfo $additionalTransactionInfo
-     * @return array
      * @throws PaynlPaymentException
+     * @throws Exception
      */
-    private function getTransactionInitialData(
-        OrderTransactionEntity $orderTransaction,
+    private function getOrderCreateRequest(
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
         AdditionalTransactionInfo $additionalTransactionInfo
-    ): array {
-        $shopwarePaymentMethodId = $orderTransaction->getPaymentMethod()->getId();
+    ): OrderCreateRequest {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
         $amount = $order->getAmountTotal();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
         $orderNumber = $order->getOrderNumber();
-        $transactionInitialData = [
-            // Basic data
-            'paymentMethod' => $paynlPaymentMethodId,
-            'amount' => $amount,
-            'currency' => $currency,
-            'testmode' => $testMode,
-            'orderNumber' => $orderNumber,
-            'description' => sprintf(
-                '%s %s',
-                $this->translator->trans('transactionLabels.order'),
-                $orderNumber
-            ),
-
-            // Urls
-            'returnUrl' => $additionalTransactionInfo->getReturnUrl(),
-            'exchangeUrl' => $additionalTransactionInfo->getExchangeUrl(),
-
-            // Products
-            'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
-            'object' => sprintf(
-                'Shopware v%s %s',
-                $additionalTransactionInfo->getShopwareVersion(),
-                $additionalTransactionInfo->getPluginVersion()
-            ),
-        ];
-
         $customer = $salesChannelContext->getCustomer();
-        $customerCustomFields = $customer->getCustomFields();
-        $paymentSelectedData = $customerCustomFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? [];
-        $bank = (int)($paymentSelectedData[$shopwarePaymentMethodId]['issuer'] ?? $this->requestStack->getSession()->get('paynlIssuer'));
 
-        $request = new TransactionCreateRequest();
+        $request = new OrderCreateRequest();
         $request->setServiceId($this->config->getServiceId($salesChannelId));
         $request->setDescription(sprintf(
             '%s %s',
@@ -229,43 +178,24 @@ class Api
             $orderNumber
         ));
         $request->setReference($orderNumber);
-//$request->setExpire(date('Y-m-d H:i:s', strtotime('+1 DAY')));
-        $request->setReturnurl($returnUrl);
-        $request->setExchangeUrl($exchangeUrl);
+        $request->setReturnurl($additionalTransactionInfo->getReturnUrl());
+        $request->setExchangeUrl($additionalTransactionInfo->getExchangeUrl());
         $request->setAmount($amount);
         $request->setCurrency($currency);
 
-        if (!$this->config->getSinglePaymentMethodInd($salesChannelId)) {
-            $request->setPaymentMethodId((int) $paynlPaymentMethodId);
-        }
-        if ($bank) {
-            $request->setIssuerId($bank);
-
-            $orderCustomFields = (array)$order->getCustomFields();
-            $orderCustomFields['paynlIssuer'] = $bank;
-
-            $data[] = [
-                'id' => $order->getId(),
-                'customFields' => $orderCustomFields
-            ];
-
-            $this->orderRepository->upsert($data, $salesChannelContext->getContext());
+        if ($paynlPaymentMethodId) {
+            $request->setPaymentMethodId($paynlPaymentMethodId);
         }
 
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
-            $transactionInitialData['bank'] = $additionalTransactionInfo->getTerminalId();
+            $request->setTerminal($additionalTransactionInfo->getTerminalId());
         }
-            $request->setTerminal($terminalId);
 
-        }
         $request->setTestmode((bool) $testMode);
 
         $request->setCustomer($this->customerHelper->getCustomer($customer, $order, $salesChannelId));
 
         $payNLOrder = new Model\Order();
-//        $payNLOrder->setCountryCode('NL');
-//        $payNLOrder->setDeliveryDate('2023-10-28 14:11:01');
-//        $payNLOrder->setInvoiceDate('2023-10-29 14:05:00');
 
         $payNLOrder->setDeliveryAddress($this->customerHelper->getDeliveryAddress($customer, $salesChannelId));
 
@@ -276,7 +206,11 @@ class Api
         $request->setOrder($payNLOrder);
 
         $request->setStats((new Model\Stats())
-            ->setObject(sprintf('Shopware v%s %s', $shopwareVersion, $pluginVersion))
+            ->setObject(sprintf(
+                'Shopware v%s %s',
+                $additionalTransactionInfo->getShopwareVersion(),
+                $additionalTransactionInfo->getPluginVersion()
+            ))
         );
 
         if ($this->getTransferData($salesChannelId)) {
@@ -284,22 +218,6 @@ class Api
         }
 
         return $request;
-    }
-    public function getPaynlPaymentMethodId(string $shopwarePaymentMethodId, string $salesChannelId): int
-    {
-        if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
-            return 0;
-        }
-
-        $paynlPaymentMethod = $this->findPaynlPaymentMethod($shopwarePaymentMethodId, $salesChannelId);
-        if (is_null($paynlPaymentMethod)) {
-            throw new PaynlPaymentException('Could not detect payment method.');
-        }
-        if (empty($paynlPaymentMethod) || !is_array($paynlPaymentMethod)) {
-            throw new PaynlPaymentException('Wrong payment method data.');
-        }
-
-        return (int)$paynlPaymentMethod[self::PAYMENT_METHOD_ID];
     }
 
     /** @throws PaynlPaymentException */
@@ -320,31 +238,9 @@ class Api
         return (int)$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID];
     }
 
-    /**
-     * @param string $shopwarePaymentMethodId
-     * @return mixed[]|null
-     */
-    private function findPaynlPaymentMethod(string $shopwarePaymentMethodId, string $salesChannelId): ?array
-    {
-        $paymentMethods = $this->getPaymentMethods($salesChannelId);
-        foreach ($paymentMethods as $paymentMethod) {
-            if ($shopwarePaymentMethodId === md5($paymentMethod[self::PAYMENT_METHOD_ID])) { //NOSONAR
-                return $paymentMethod;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param OrderEntity $order
-     * @param Context $context
-     * @return \PayNL\Sdk\Model\Products
-     * @throws InconsistentCriteriaIdsException
-     */
+    /** @throws InconsistentCriteriaIdsException */
     private function getOrderProducts(OrderEntity $order, Context $context): \PayNL\Sdk\Model\Products
     {
-        /** @var OrderLineItemCollection*/
         $orderLineItems = $order->getLineItems();
         $productsItems = $orderLineItems->filterByProperty('type', 'product');
         $productsIds = [];
@@ -367,7 +263,7 @@ class Api
             }
 
             $product = new Model\Product();
-            $product->setId($elements[$item->getReferencedId()]->get('autoIncrement'));
+            $product->setId((string) $elements[$item->getReferencedId()]->get('autoIncrement'));
             $product->setDescription($item->getLabel());
             $product->setType(Model\Product::TYPE_ARTICLE);
             $product->setAmount($item->getUnitPrice());
@@ -560,19 +456,6 @@ class Api
         $this->setCredentials($salesChannelId);
 
         return (array)Instore::getAllTerminals()->getList();
-    }
-
-    private function setCredentials(string $salesChannelId, bool $useGateway = false): void
-    {
-        SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
-        SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
-        SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
-
-        $gateway = $this->config->getFailoverGateway($salesChannelId);
-        $gateway = $gateway ? 'https://' . $gateway : '';
-        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
-            SDKConfig::setApiBase(trim($gateway));
-        }
     }
 
     private function getConfig(string $salesChannelId, bool $useGateway = false): PayNLConfig
