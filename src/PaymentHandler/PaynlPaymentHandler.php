@@ -13,8 +13,10 @@ use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
+use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\RefundPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
+use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -25,7 +27,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
-class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
+class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface, RefundPaymentHandlerInterface
 {
     /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
@@ -146,6 +148,11 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         );
 
         $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($order->getId());
+    }
+
+    public function refund(string $refundId, Context $context): void
+    {
+        $this->processingHelper->refund($refundId, $context);
     }
 
     private function sendReturnUrlToExternalGateway(
