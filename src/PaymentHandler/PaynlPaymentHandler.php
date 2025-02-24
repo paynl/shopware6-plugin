@@ -178,7 +178,7 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
                 $additionalTransactionInfo
             );
 
-            $paynlTransactionId = $paynlTransaction->getTransactionId();
+            $paynlTransactionId = $paynlTransaction->getOrderId();
 
             $this->logger->info('PAY. transaction was successfully created: ' . $paynlTransactionId);
         } catch (Throwable $exception) {
@@ -203,8 +203,8 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $paynlTransactionId
         );
 
-        if (!empty($paynlTransaction->getRedirectUrl())) {
-            return $paynlTransaction->getRedirectUrl();
+        if (!empty($paynlTransaction->getPaymentUrl())) {
+            return $paynlTransaction->getPaymentUrl();
         }
 
         return '';

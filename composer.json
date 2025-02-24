@@ -26,8 +26,15 @@
     "require": {
         "shopware/core": "^6.4",
         "shopware/storefront": "^6.4",
-        "paynl/sdk": "1.5.15"
+        "paynl/sdk": "1.5.15",
+        "paynl/php-sdk": "@dev"
     },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git@github.com:paynl/sdk3-mvp.git"
+        }
+    ],
     "minimum-stability": "RC",
     "license": "MIT",
     "authors": [
@@ -39,6 +46,7 @@
     "autoload": {
         "psr-4": {
             "PaynlPayment\\Shopware6\\": "src/",
+            "PayNL\\": "vendor/paynl/php-sdk/src/",
             "Paynl\\": "vendor/paynl/sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
