@@ -200,9 +200,7 @@ class PaynlPaymentShopware6 extends Plugin
         return new Api(
             $this->getConfig(),
             $this->getCustomerHelper(),
-            $this->getTransactionLanguageHelper(),
             new StringHelper(),
-            new IpSettingsHelper($this->getConfig()),
             new ProductRepository($productRepository),
             new OrderRepository($orderRepository),
             $translator,
@@ -221,7 +219,9 @@ class PaynlPaymentShopware6 extends Plugin
         return new CustomerHelper(
             $this->getConfig(),
             new CustomerAddressRepository($customerAddressRepository),
-            new CustomerRepository($customerRepository)
+            new CustomerRepository($customerRepository),
+            $this->getTransactionLanguageHelper(),
+            new IpSettingsHelper($this->getConfig()),
         );
     }
 

@@ -239,7 +239,7 @@ class Api
     }
 
     /** @throws InconsistentCriteriaIdsException */
-    private function getOrderProducts(OrderEntity $order, Context $context): \PayNL\Sdk\Model\Products
+    private function getOrderProducts(OrderEntity $order, Context $context): Model\Products
     {
         $orderLineItems = $order->getLineItems();
         $productsItems = $orderLineItems->filterByProperty('type', 'product');
