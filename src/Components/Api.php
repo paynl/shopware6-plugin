@@ -10,6 +10,7 @@ use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Pay\PayOrder;
 use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model;
+use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
@@ -22,7 +23,6 @@ use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
@@ -40,10 +40,8 @@ class Api
     const PAYMENT_METHOD_ID = 'id';
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
-    const PAYMENT_METHOD_BANKS = 'banks';
     const PAYMENT_METHOD_BRAND = 'brand';
     const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
-    const PAYMENT_METHOD_BRAND_ID = 'id';
     const PAYMENT_METHOD_PAY_NL_ID = 'paynlId';
 
     /** @var Config */
@@ -84,11 +82,11 @@ class Api
     }
 
     /**
-     * @return mixed[]
+     * @return Model\Method[]
+     * @throws PayException
      */
     public function getPaymentMethods(string $salesChannelId): array
     {
-        // plugin doesn't configured, nothing to do
         if (empty($this->config->getTokenCode($salesChannelId))
             || empty($this->config->getApiToken($salesChannelId))
             || empty($this->config->getServiceId($salesChannelId))) {
@@ -98,9 +96,13 @@ class Api
             return [];
         }
 
-        $this->setCredentials($salesChannelId);
+        $config = $this->getConfig($salesChannelId);
 
-        return Paymentmethods::getList();
+        $serviceConfig = (new ServiceGetConfigRequest($this->config->getServiceId($salesChannelId)))
+            ->setConfig($config)
+            ->start();
+
+        return $serviceConfig->getPaymentMethods();
     }
 
     private function setCredentials(string $salesChannelId, bool $useGateway = false): void
@@ -121,7 +123,6 @@ class Api
      * @throws PaynlPaymentException
      */
     public function startTransaction(
-        OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
         AdditionalTransactionInfo $additionalTransactionInfo

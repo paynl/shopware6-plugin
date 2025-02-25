@@ -29,12 +29,6 @@
         "paynl/sdk": "1.5.15",
         "paynl/php-sdk": "@dev"
     },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "git@github.com:paynl/sdk3-mvp.git"
-        }
-    ],
     "minimum-stability": "RC",
     "license": "MIT",
     "authors": [
