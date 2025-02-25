@@ -172,7 +172,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
-                $orderTransaction,
                 $order,
                 $salesChannelContext,
                 $additionalTransactionInfo

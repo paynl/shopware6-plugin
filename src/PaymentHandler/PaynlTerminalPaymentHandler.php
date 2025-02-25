@@ -7,7 +7,7 @@ namespace PaynlPayment\Shopware6\PaymentHandler;
 use Exception;
 use LogicException;
 use Paynl\Instore;
-use Paynl\Result\Transaction\Start;
+use PayNL\Sdk\Model\Pay\PayOrder;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\OrderTransactionCustomFieldsEnum;
@@ -171,18 +171,12 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         }
     }
 
-    /**
-     * @param SyncPaymentTransactionStruct $transaction
-     * @param SalesChannelContext $salesChannelContext
-     * @param string $terminalId
-     * @return Start
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     private function startTransaction(
         SyncPaymentTransactionStruct $transaction,
         SalesChannelContext $salesChannelContext,
         string $terminalId
-    ): Start {
+    ): PayOrder {
         $paynlTransactionId = '';
         $order = $transaction->getOrder();
         $orderTransaction = $transaction->getOrderTransaction();
@@ -213,13 +207,12 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
-                $orderTransaction,
                 $order,
                 $salesChannelContext,
                 $additionalTransactionInfo
             );
 
-            $paynlTransactionId = $paynlTransaction->getTransactionId();
+            $paynlTransactionId = $paynlTransaction->getOrderId();
         } catch (Throwable $exception) {
             $this->logger->error('Error on starting terminal transaction with terminal ' . $terminalId, [
                 'exception' => $exception

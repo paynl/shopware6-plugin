@@ -5,10 +5,10 @@ namespace PaynlPayment\Shopware6\Helper;
 use Doctrine\DBAL\Connection;
 use Paynl\Config as SDKConfig;
 use Paynl\Paymentmethods;
+use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
-use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
@@ -35,7 +35,6 @@ class InstallHelper
     const MYSQL_DROP_TABLE = 'DROP TABLE IF EXISTS %s';
 
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
-    const PAYMENT_METHOD_IDEAL_ID = 10;
 
     const SINGLE_PAYMENT_METHOD_ID = '123456789';
 
@@ -107,6 +106,10 @@ class InstallHelper
         $this->paymentHandlerFactory = $paymentHandlerFactory;
     }
 
+    /**
+     * @throws PaynlPaymentException
+     * @throws PayException
+     */
     public function installPaymentMethods(string $salesChannelId, Context $context): void
     {
         if (empty($salesChannelId)
@@ -116,7 +119,8 @@ class InstallHelper
         }
         $this->removeOldMedia($salesChannelId, $context);
 
-        $paymentMethods = $this->getPaynlPaymentMethods($salesChannelId);
+        $paymentMethods = $this->paynlApi->getPaymentMethods($salesChannelId);
+
         if (empty($paymentMethods)) {
             throw new PaynlPaymentException('Cannot get any payment method.');
         }
@@ -125,6 +129,10 @@ class InstallHelper
         $this->upsertPaymentMethods($paymentMethods, $salesChannelId, $context);
     }
 
+    /**
+     * @throws PayException
+     * @throws PaynlPaymentException
+     */
     public function updatePaymentMethods(Context $context): void
     {
         foreach ($this->getSalesChannels($context)->getIds() as $salesChannelId) {
@@ -235,12 +243,12 @@ class InstallHelper
         )->first();
     }
 
-    private function upsertPaymentMethods(array $paynlPaymentMethods, string $salesChannelId, Context $context): void
+    private function upsertPaymentMethods(array $payPaymentMethods, string $salesChannelId, Context $context): void
     {
         $paymentMethods = [];
         $salesChannelsData = [];
 
-        foreach ($paynlPaymentMethods as $paymentMethod) {
+        foreach ($payPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
 
             if (!empty($paymentMethodValueObject->getBrandId())) {
@@ -387,32 +395,31 @@ class InstallHelper
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
-        $paymentMethodHandler = $this->paymentHandlerFactory->get($paymentMethodValueObject->getId());
+        $paymentMethodHandler = $this->paymentHandlerFactory->get($paymentMethodValueObject->getOriginalMethod()->getId());
 
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => $paymentMethodHandler,
-            'name' => $paymentMethodValueObject->getVisibleName(),
-            'description' => $paymentMethodValueObject->getDescription(),
+            'name' => $paymentMethodValueObject->getOriginalMethod()->getName(),
+            'description' => $paymentMethodValueObject->getOriginalMethod()->getDescription(),
             'pluginId' => $pluginId,
-            'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getName(), $context),
+            'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getOriginalMethod()->getName(), $context),
             'afterOrderEnabled' => true,
             'active' => true,
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
-                'banks' => $paymentMethodValueObject->getBanks(),
-                'paynlId' => $paymentMethodValueObject->getId()
+                'paynlId' => $paymentMethodValueObject->getOriginalMethod()->getId()
             ]
         ];
-        $paymentMethodId = $paymentMethodValueObject->getId();
-        if ($paymentMethodId === self::PAYMENT_METHOD_IDEAL_ID) {
+
+        if ($paymentMethodValueObject->getBanks()) {
             $paymentData['customFields']['displayBanks'] = true;
+            $paymentData['customFields']['banks'] = $paymentMethodValueObject->getBanks();
         }
 
-        if (in_array($paymentMethodId, PayLaterPaymentMethodsEnum::PAY_LATER_PAYMENT_METHODS)) {
+        if ($paymentMethodValueObject->isPayLater()) {
             $paymentData['customFields']['isPayLater'] = true;
         }
-
 
         return $paymentData;
     }
