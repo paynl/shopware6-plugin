@@ -8,9 +8,13 @@ use Paynl\Paymentmethods;
 use PayNL\Sdk\Config\Config as PayNLConfig;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Pay\PayOrder;
+use PayNL\Sdk\Model\Request\OrderCaptureRequest;
 use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model;
+use PayNL\Sdk\Model\Request\OrderVoidRequest;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
+use PayNL\Sdk\Model\Request\TransactionRefundRequest;
+use PayNL\Sdk\Model\Response\TransactionRefundResponse;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
@@ -29,7 +33,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaI
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Paynl\Result\Transaction as Result;
 use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -345,19 +348,13 @@ class Api
         return '';
     }
 
-    /**
-     * @param string $transactionID
-     * @param int|float|null $amount
-     * @param string $description
-     * @return Result\Refund
-     * @throws \Exception
-     */
+    /** @throws Exception */
     public function refund(
         string $transactionID,
-        $amount,
+        float $amount,
         string $salesChannelId,
         string $description = ''
-    ): Result\Refund {
+    ): TransactionRefundResponse {
         if (!$this->config->isRefundAllowed($salesChannelId)) {
             $message = 'PAY-PLUGIN-001: You did not activate refund option in plugin, check %s';
             $url = sprintf(
@@ -366,12 +363,19 @@ class Api
                 'docs.pay.nl/shopware6/instructions'
             );
 
-            throw new \Exception(sprintf($message, $url));
+            throw new Exception(sprintf($message, $url));
         }
         $this->setCredentials($salesChannelId);
 
         try {
-            return \Paynl\Transaction::refund($transactionID, $amount, $description);
+            $config = $this->getConfig($salesChannelId);
+
+            $transactionRefundRequest = new TransactionRefundRequest($transactionID);
+            $transactionRefundRequest->setConfig($config);
+            $transactionRefundRequest->setAmount($amount);
+            $transactionRefundRequest->setDescription($description);
+
+            return $transactionRefundRequest->start();
         } catch (\Throwable $e) {
             $this->logger->error('Error while refunding process', [
                 'transactionId' => $transactionID,
@@ -379,17 +383,24 @@ class Api
                 'exception' => $e
             ]);
 
-            throw new \Exception($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
     /** @throws PaynlTransactionException */
-    public function capture(string $transactionID, $amount, string $salesChannelId): bool
+    public function capture(string $transactionID, ?float $amount, string $salesChannelId): PayOrder
     {
-        $this->setCredentials($salesChannelId);
-
         try {
-            return Transaction::capture($transactionID, $amount);
+            $config = $this->getConfig($salesChannelId);
+
+            $orderCaptureRequest = new OrderCaptureRequest($transactionID);
+            $orderCaptureRequest->setConfig($config);
+
+            if ($amount) {
+                $orderCaptureRequest->setAmount($amount);
+            }
+
+            return $orderCaptureRequest->start();
         } catch (Throwable $exception) {
             $this->logger->error('Error while capturing process', [
                 'transactionId' => $transactionID,
@@ -402,12 +413,15 @@ class Api
     }
 
     /** @throws PaynlTransactionException */
-    public function void(string $transactionID, string $salesChannelId): bool
+    public function void(string $transactionID, string $salesChannelId): PayOrder
     {
-        $this->setCredentials($salesChannelId);
-
         try {
-            return Transaction::void($transactionID);
+            $config = $this->getConfig($salesChannelId);
+
+            $orderVoidRequest = new OrderVoidRequest($transactionID);
+            $orderVoidRequest->setConfig($config);
+
+            return $orderVoidRequest->start();
         } catch (Throwable $exception) {
             $this->logger->error('Error while voiding process', [
                 'transactionId' => $transactionID,
