@@ -3,17 +3,19 @@
 namespace PaynlPayment\Shopware6\Components;
 
 use Paynl\Config as SDKConfig;
-use Paynl\Instore;
-use Paynl\Paymentmethods;
 use PayNL\Sdk\Config\Config as PayNLConfig;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Pay\PayOrder;
+use PayNL\Sdk\Model\Request\OrderApproveRequest;
 use PayNL\Sdk\Model\Request\OrderCaptureRequest;
 use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model;
+use PayNL\Sdk\Model\Request\OrderDeclineRequest;
 use PayNL\Sdk\Model\Request\OrderVoidRequest;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
+use PayNL\Sdk\Model\Request\TerminalsBrowseRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
+use PayNL\Sdk\Model\Request\TransactionStatusRequest;
 use PayNL\Sdk\Model\Response\TransactionRefundResponse;
 use Paynl\Transaction;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
@@ -155,6 +157,14 @@ class Api
         }
 
         return Transaction::get($transactionId);
+    }
+
+    /** @throws PayException */
+    public function getTransactionStatus(string $transactionId, string $salesChannelId): PayOrder
+    {
+        $config = $this->getConfig($salesChannelId);
+
+        return (new TransactionStatusRequest($transactionId))->setConfig($config)->start();
     }
 
     /**
@@ -365,7 +375,6 @@ class Api
 
             throw new Exception(sprintf($message, $url));
         }
-        $this->setCredentials($salesChannelId);
 
         try {
             $config = $this->getConfig($salesChannelId);
@@ -413,6 +422,46 @@ class Api
     }
 
     /** @throws PaynlTransactionException */
+    public function approve(string $transactionID, string $salesChannelId): PayOrder
+    {
+        try {
+            $config = $this->getConfig($salesChannelId);
+
+            $orderApproveRequest = new OrderApproveRequest($transactionID);
+            $orderApproveRequest->setConfig($config);
+
+            return $orderApproveRequest->start();
+        } catch (Throwable $exception) {
+            $this->logger->error('Error while approving process', [
+                'transactionId' => $transactionID,
+                'exception' => $exception
+            ]);
+
+            throw PaynlTransactionException::captureError($exception->getMessage());
+        }
+    }
+
+    /** @throws PaynlTransactionException */
+    public function decline(string $transactionID, string $salesChannelId): PayOrder
+    {
+        try {
+            $config = $this->getConfig($salesChannelId);
+
+            $orderDeclineRequest = new OrderDeclineRequest($transactionID);
+            $orderDeclineRequest->setConfig($config);
+
+            return $orderDeclineRequest->start();
+        } catch (Throwable $exception) {
+            $this->logger->error('Error while declining process', [
+                'transactionId' => $transactionID,
+                'exception' => $exception
+            ]);
+
+            throw PaynlTransactionException::captureError($exception->getMessage());
+        }
+    }
+
+    /** @throws PaynlTransactionException */
     public function void(string $transactionID, string $salesChannelId): PayOrder
     {
         try {
@@ -432,16 +481,18 @@ class Api
         }
     }
 
-    public function isValidCredentials($tokenCode, $apiToken, $serviceId)
+    public function isValidCredentials($tokenCode, $apiToken, $serviceId): bool
     {
         try {
-            SDKConfig::setTokenCode($tokenCode);
-            SDKConfig::setApiToken($apiToken);
-            SDKConfig::setServiceId($serviceId);
+            $sdkConfig = new PayNLConfig();
+            $sdkConfig->setUsername($tokenCode);
+            $sdkConfig->setPassword($apiToken);
 
-            $paymentMethods = Paymentmethods::getList();
+            $serviceConfig = (new ServiceGetConfigRequest($serviceId))
+                ->setConfig($sdkConfig)
+                ->start();
 
-            return !empty($paymentMethods);
+            return !empty($serviceConfig->getPaymentMethods());
         } catch (Exception $exception) {
             return false;
         }
@@ -462,15 +513,22 @@ class Api
         return $this->isValidCredentials($tokenCode, $apiToken, $serviceId);
     }
 
-    /**
-     * @param string $salesChannelId
-     * @return array
-     */
+    /** @throws PayException */
     public function getInstoreTerminals(string $salesChannelId): array
     {
-        $this->setCredentials($salesChannelId);
+        $config = $this->getConfig($salesChannelId);
 
-        return (array)Instore::getAllTerminals()->getList();
+        $request = new TerminalsBrowseRequest();
+        $request->setConfig($config);
+
+        $terminalResponse = $request->start();
+
+        return array_map(function (Model\Terminal $terminal) {
+            return [
+                'id' => $terminal->getCode(),
+                'name' => $terminal->getName(),
+            ];
+        }, $terminalResponse->getTerminals());
     }
 
     private function getConfig(string $salesChannelId, bool $useGateway = false): PayNLConfig
