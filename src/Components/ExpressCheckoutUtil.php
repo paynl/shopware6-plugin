@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Components;
 
 use Exception;
-use Paynl\Transaction;
+use PayNL\Sdk\Model;
 use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
@@ -49,35 +49,16 @@ class ExpressCheckoutUtil
         'additionalAddressLine1',
     ];
 
-    /** @var CustomerService */
-    private $customerService;
-
-    /** @var CartServiceInterface */
-    private $cartService;
-
-    /** @var CartBackupService */
-    private $cartBackupService;
-
-    /** @var OrderService */
-    private $orderService;
-
-    /** @var AbstractLogoutRoute */
-    private $logoutRoute;
-
-    /** @var CountryRepositoryInterface */
-    private $countryRepository;
-
-    /** @var PaymentMethodRepository */
-    private $repoPaymentMethods;
-
-    /** @var ProductRepositoryInterface */
-    private $productRepository;
-
-    /** @var SalutationRepositoryInterface */
-    private $salutationRepository;
-
-    /** @var SalesChannelRepositoryInterface */
-    private $salesChannelRepository;
+    private CustomerService $customerService;
+    private CartServiceInterface $cartService;
+    private CartBackupService $cartBackupService;
+    private OrderService $orderService;
+    private AbstractLogoutRoute $logoutRoute;
+    private CountryRepositoryInterface $countryRepository;
+    private PaymentMethodRepository $repoPaymentMethods;
+    private ProductRepositoryInterface $productRepository;
+    private SalutationRepositoryInterface $salutationRepository;
+    private SalesChannelRepositoryInterface $salesChannelRepository;
 
     public function __construct(
         CustomerService $customerService,
@@ -218,7 +199,7 @@ class ExpressCheckoutUtil
                 ),
                 (string) $elements[$item->getReferencedId()]->get('autoIncrement'),
                 $item->getLabel(),
-                Transaction::PRODUCT_TYPE_ARTICLE,
+                Model\Product::TYPE_ARTICLE,
                 $item->getPrice()->getQuantity(),
                 $vatPercentage
             );
@@ -239,7 +220,7 @@ class ExpressCheckoutUtil
                 ),
                 'payment',
                 $item->getLabel(),
-                Transaction::PRODUCT_TYPE_PAYMENT,
+                Model\Product::TYPE_PAYMENT,
                 $item->getPrice()->getQuantity(),
                 $vatPercentage
             );
@@ -252,7 +233,7 @@ class ExpressCheckoutUtil
             ),
             'shipping',
             'Shipping',
-            Transaction::PRODUCT_TYPE_SHIPPING,
+            Model\Product::TYPE_SHIPPING,
             1,
             $order->getShippingCosts()->getCalculatedTaxes()->getAmount()
         );
