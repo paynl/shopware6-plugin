@@ -80,7 +80,7 @@ class RefundControllerBase extends AbstractController
     {
         $post = $request->request->all();
         $paynlTransactionId = $post['transactionId'];
-        $amount = (string)$post['amount'];
+        $amount = (float) $post['amount'];
         $description = $post['description'];
         $products = $post['products'];
         $messages = [];
@@ -96,7 +96,6 @@ class RefundControllerBase extends AbstractController
                 'salesChannel' => $salesChannel ? $salesChannel->getName() : ''
             ]);
 
-            // TODO: need newer version of PAYNL/SDK
             $this->paynlApi->refund($paynlTransactionId, $amount, $salesChannelId, $description);
             $this->restock($products);
 
