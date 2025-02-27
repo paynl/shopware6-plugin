@@ -3,8 +3,8 @@
 namespace PaynlPayment\Shopware6\Helper;
 
 use Exception;
-use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PayNL\Sdk\Exception\PayException;
+use PayNL\Sdk\Model\Pay\PayOrder;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
@@ -37,25 +37,13 @@ use Throwable;
 
 class ProcessingHelper
 {
-    /** @var Api */
-    private $paynlApi;
-    /** @var LoggerInterface */
-    private $logger;
-
-    /** @var PaynlTransactionsRepositoryInterface */
-    private $paynlTransactionRepository;
-
-    /** @var OrderTransactionRepositoryInterface  */
-    private $orderTransactionRepository;
-
-    /** @var StateMachineTransitionRepositoryInterface  */
-    private $stateMachineTransitionRepository;
-
-    /** @var StateMachineRegistry */
-    private $stateMachineRegistry;
-
-    /** @var OrderStatusUpdater */
-    private $orderStatusUpdater;
+    private Api $paynlApi;
+    private LoggerInterface $logger;
+    private PaynlTransactionsRepositoryInterface $paynlTransactionRepository;
+    private OrderTransactionRepositoryInterface $orderTransactionRepository;
+    private StateMachineTransitionRepositoryInterface $stateMachineTransitionRepository;
+    private StateMachineRegistry $stateMachineRegistry;
+    private OrderStatusUpdater $orderStatusUpdater;
 
     public function __construct(
         Api $api,
@@ -102,62 +90,51 @@ class ProcessingHelper
         $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
     }
 
-    public function getPaynlApiTransaction(string $transactionId, string $salesChannelId): ResultTransaction
-    {
-        return $this->paynlApi->getTransaction($transactionId, $salesChannelId);
-    }
-
     /**
-     * @param string $paynlTransactionId
-     * @return string
+     * @throws PayException
+     * @throws Exception
      */
-    public function notifyActionUpdateTransactionByPaynlTransactionId(string $paynlTransactionId): string
+    public function notifyActionUpdateTransactionByPayTransactionId(string $paynlTransactionId): string
     {
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
-        $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
+
+        $payTransactionStatus = $this->paynlApi->getTransactionStatus(
+            $paynlTransactionId,
+            $paynlTransactionEntity->getOrder()->getSalesChannelId()
+        );
 
         if ($this->checkDoubleOrderTransactions($paynlTransactionEntity, Context::createDefaultContext())) {
-            $this->updateOldPaynlTransactionStatus($paynlTransactionEntity, $paynlApiTransaction);
+            $this->updateOldPayTransactionStatus($paynlTransactionEntity, $payTransactionStatus);
 
             return "TRUE| The current transaction's commands are ignored due to a later completed transaction.";
         }
 
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($payTransactionStatus->getStatusCode());
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
 
-        $apiTransactionData = $paynlApiTransaction->getData();
-
-        if ($this->isUnprocessedTransactionState($paynlApiTransaction)) {
-            return sprintf('TRUE| No change made (%s)', $apiTransactionData['paymentDetails']['stateName']);
+        if ($this->isUnprocessedTransactionState($payTransactionStatus)) {
+            return sprintf('TRUE| No change made (%s)', $payTransactionStatus->getStatusName());
         }
 
         $this->logger->info('PAY. transaction was successfully updated', [
             'transactionId' => $paynlTransactionId,
-            'statusCode' => $paynlTransactionStatusCode
+            'statusCode' => $payTransactionStatus->getStatusCode()
         ]);
 
         return sprintf(
             'TRUE| Status updated to: %s (%s) orderNumber: %s',
-            $apiTransactionData['paymentDetails']['stateName'],
-            $apiTransactionData['paymentDetails']['state'],
-            $apiTransactionData['paymentDetails']['orderNumber']
+            $payTransactionStatus->getStatusName(),
+            $payTransactionStatus->getStatusCode(),
+            $payTransactionStatus->getOrderId()
         );
     }
 
-    /**
-     * @param PaynlTransactionEntity $paynlTransaction
-     * @param ResultTransaction $paynlApiTransaction
-     * @return void
-     */
-    private function updateOldPaynlTransactionStatus(
+    private function updateOldPayTransactionStatus(
         PaynlTransactionEntity $paynlTransaction,
-        ResultTransaction $paynlApiTransaction
+        PayOrder $payTransactionStatus
     ): void {
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($payTransactionStatus->getStatusCode());
 
         $criteria = new Criteria();
         $stateMachineId = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getStateMachineId();
@@ -182,7 +159,7 @@ class ProcessingHelper
 
         $this->updatePaynlTransactionStatus(
             $paynlTransaction->getId(),
-            $paynlTransactionStatusCode,
+            $payTransactionStatus->getStatusCode(),
             $transitionName,
             $stateId
         );
@@ -200,21 +177,19 @@ class ProcessingHelper
         $paynlTransactionId = $paynlTransactionEntity->getPaynlTransactionId();
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+        $payTransactionStatus = $this->paynlApi->getTransactionStatus($paynlTransactionId, $salesChannelId);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($payTransactionStatus->getStatusCode());
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
 
         $this->logger->info('Transaction status was successfully updated', [
             'transactionId' => $paynlTransactionId,
-            'statusCode' => $paynlTransactionStatusCode
+            'statusCode' => $payTransactionStatus->getStatusCode()
         ]);
     }
 
     /**
-     * @param string $paynlTransactionId
-     * @return void
+     * @throws PayException
      * @throws Exception
      */
     public function refundActionUpdateTransactionByTransactionId(string $paynlTransactionId): void
@@ -223,11 +198,10 @@ class ProcessingHelper
         $paynlTransactionEntity = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
-        $paynlApiTransaction = $this->getPaynlApiTransaction($paynlTransactionId, $salesChannelId);
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
+        $payTransactionStatus = $this->paynlApi->getTransactionStatus($paynlTransactionId, $salesChannelId);
+        $transitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($payTransactionStatus->getStatusCode());
 
-        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
     }
 
     /**
@@ -247,14 +221,10 @@ class ProcessingHelper
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
-    /**
-     * @param string $paynlTransactionId
-     * @return string
-     */
     public function processNotify(string $paynlTransactionId): string
     {
         try {
-            return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
+            return $this->notifyActionUpdateTransactionByPayTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
             $this->logger->error('Error on notifying transaction.', [
                 'transactionId' => $paynlTransactionId,
@@ -456,33 +426,9 @@ class ProcessingHelper
         return true;
     }
 
-    /**
-     * @param ResultTransaction $paynlApiTransaction
-     * @return bool
-     */
-    private function isUnprocessedTransactionState(ResultTransaction $paynlApiTransaction): bool
+    private function isUnprocessedTransactionState(PayOrder $payTransactionStatus): bool
     {
-        $paynlTransactionStatusCode = $this->getTransactionStatusFromPaynlApiTransaction($paynlApiTransaction);
-        $transactionTransitionName = $this->getOrderActionNameByPaynlTransactionStatusCode($paynlTransactionStatusCode);
-
-        if (empty($transactionTransitionName)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param ResultTransaction $paynlApiTransaction
-     * @return int
-     */
-    private function getTransactionStatusFromPaynlApiTransaction(ResultTransaction $paynlApiTransaction): int
-    {
-        try {
-            return (int)($paynlApiTransaction->getStatus()->getData()['paymentDetails']['state'] ?? 0);
-        } catch (Throwable $exception) {
-            return 0;
-        }
+        return empty($this->getOrderActionNameByPaynlTransactionStatusCode($payTransactionStatus->getStatusCode()));
     }
 
     /**

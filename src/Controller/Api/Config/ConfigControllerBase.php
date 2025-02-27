@@ -22,7 +22,7 @@ class ConfigControllerBase extends AbstractController
         Config $config,
         Api $payApi,
         InstallHelper $installHelper,
-        SettingsHelper $settingsHelper,
+        SettingsHelper $settingsHelper
     ) {
         $this->installHelper = $installHelper;
         $this->payApi = $payApi;
