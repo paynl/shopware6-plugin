@@ -2,7 +2,6 @@
 
 namespace PaynlPayment\Shopware6\Components;
 
-use Paynl\Config as SDKConfig;
 use PayNL\Sdk\Config\Config as PayNLConfig;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Pay\PayOrder;
@@ -17,14 +16,11 @@ use PayNL\Sdk\Model\Request\TerminalsBrowseRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
 use PayNL\Sdk\Model\Request\TransactionStatusRequest;
 use PayNL\Sdk\Model\Response\TransactionRefundResponse;
-use Paynl\Transaction;
-use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
-use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
@@ -49,29 +45,19 @@ class Api
     const PAYMENT_METHOD_BRAND_DESCRIPTION = 'public_description';
     const PAYMENT_METHOD_PAY_NL_ID = 'paynlId';
 
-    /** @var Config */
-    private $config;
-    /** @var CustomerHelper */
-    private $customerHelper;
-    /** @var StringHelper */
-    private $stringHelper;
-    /** @var ProductRepositoryInterface */
-    private $productRepository;
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-    /** @var TranslatorInterface */
-    private $translator;
-    /** @var RequestStack */
-    private $requestStack;
-    /** @var LoggerInterface */
-    private $logger;
+    private Config $config;
+    private CustomerHelper $customerHelper;
+    private StringHelper $stringHelper;
+    private ProductRepositoryInterface $productRepository;
+    private TranslatorInterface $translator;
+    private RequestStack $requestStack;
+    private LoggerInterface $logger;
 
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
         StringHelper $stringHelper,
         ProductRepositoryInterface $productRepository,
-        OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack,
         LoggerInterface $logger
@@ -80,7 +66,6 @@ class Api
         $this->customerHelper = $customerHelper;
         $this->stringHelper = $stringHelper;
         $this->productRepository = $productRepository;
-        $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
         $this->logger = $logger;
@@ -110,19 +95,6 @@ class Api
         return $serviceConfig->getPaymentMethods();
     }
 
-    private function setCredentials(string $salesChannelId, bool $useGateway = false): void
-    {
-        SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
-        SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
-        SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
-
-        $gateway = $this->config->getFailoverGateway($salesChannelId);
-        $gateway = $gateway ? 'https://' . $gateway : '';
-        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
-            SDKConfig::setApiBase(trim($gateway));
-        }
-    }
-
     /**
      * @throws PayException
      * @throws PaynlPaymentException
@@ -143,20 +115,6 @@ class Api
         $orderCreateRequest->setConfig($config);
 
         return $orderCreateRequest->start();
-    }
-
-    public function getTransaction(string $transactionId, string $salesChannelId): ResultTransaction
-    {
-        $this->setCredentials($salesChannelId, true);
-
-        // Temporary hack which should fixed when we will use SDK v2
-        if (substr($transactionId, 0, 2) == '51') {
-            SDKConfig::setApiBase('https://rest.achterelkebetaling.nl');
-        } elseif (substr($transactionId, 0, 2) == '52') {
-            SDKConfig::setApiBase('https://rest.payments.nl');
-        }
-
-        return Transaction::get($transactionId);
     }
 
     /** @throws PayException */
@@ -514,7 +472,7 @@ class Api
     }
 
     /** @throws PayException */
-    public function getInstoreTerminals(string $salesChannelId): array
+    public function getTerminals(string $salesChannelId): array
     {
         $config = $this->getConfig($salesChannelId);
 

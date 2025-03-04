@@ -176,7 +176,7 @@ class PaynlPaymentShopware6 extends Plugin
             $connection,
             $pluginIdProvider,
             $this->getConfig(),
-            $this->getPaynlApi(),
+            $this->getPayAPI(),
             $this->getPaymentHandlerFactory(),
             $this->getMediaHelper(),
             new PaymentMethodRepository($paymentMethodRepository),
@@ -186,12 +186,10 @@ class PaynlPaymentShopware6 extends Plugin
         );
     }
 
-    private function getPaynlApi(): Api
+    private function getPayAPI(): Api
     {
         /** @var EntityRepository $productRepository */
         $productRepository = $this->container->get('product.repository');
-        /** @var EntityRepository $orderRepository */
-        $orderRepository = $this->container->get('order.repository');
         /** @var TranslatorInterface $translator */
         $translator = $this->container->get('translator');
         /** @var RequestStack $requestStack */
@@ -202,7 +200,6 @@ class PaynlPaymentShopware6 extends Plugin
             $this->getCustomerHelper(),
             new StringHelper(),
             new ProductRepository($productRepository),
-            new OrderRepository($orderRepository),
             $translator,
             $requestStack,
             $this->getLogger()

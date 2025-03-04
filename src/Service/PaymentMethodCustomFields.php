@@ -107,7 +107,7 @@ class PaymentMethodCustomFields
         $terminalsCacheItem = $this->cache->getItem(self::PAYMENT_TERMINALS_CACHE_TAG);
 
         if (!$terminalsCacheItem->isHit() || !$terminalsCacheItem->get()) {
-            $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
+            $terminals = $this->paynlApi->getTerminals($salesChannelId);
             $terminalsCacheItem->set(json_encode($terminals));
 
             $this->cache->save($terminalsCacheItem);
