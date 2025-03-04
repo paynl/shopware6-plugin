@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Controller\Api\Refund;
 
+use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
@@ -47,15 +48,15 @@ class RefundControllerBase extends AbstractController
         try {
             $this->logger->info('Refund data for transaction ' . $paynlTransactionId);
 
-            $apiTransaction = $this->payAPI->getTransaction($paynlTransactionId, $salesChannelId);
-            $refundedAmount = $apiTransaction->getRefundedAmount();
-            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+            $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
+            $refundedAmount = $payTransactionStatus->getAmountRefunded();
+            $availableForRefund = $payTransactionStatus->getAmount() - $refundedAmount;
 
             return new JsonResponse([
                 'refundedAmount' => $refundedAmount,
                 'availableForRefund' => $availableForRefund
             ]);
-        } catch (\Paynl\Error\Api $exception) {
+        } catch (PayException $exception) {
             $this->logger->error('Error on getting refund data for transaction ' . $paynlTransactionId, [
                 'exception' => $exception
             ]);
