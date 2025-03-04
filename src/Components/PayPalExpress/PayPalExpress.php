@@ -401,7 +401,7 @@ class PayPalExpress
 
         $this->updateCustomer($order->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
 
-        $this->processingHelper->notifyActionUpdateTransactionByPaynlTransactionId($createOrderResponse->getOrderId());
+        $this->processingHelper->notifyActionUpdateTransactionByPayTransactionId($createOrderResponse->getOrderId());
 
         return $createOrderResponse;
     }

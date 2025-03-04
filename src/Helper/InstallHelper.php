@@ -3,8 +3,6 @@
 namespace PaynlPayment\Shopware6\Helper;
 
 use Doctrine\DBAL\Connection;
-use Paynl\Config as SDKConfig;
-use Paynl\Paymentmethods;
 use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
@@ -50,35 +48,16 @@ class InstallHelper
     const CONTENT_HTML = 'content_html';
     const CONTENT_PLAIN = 'content_plain';
 
-    /** @var Connection $connection */
-    private $connection;
-
-    /** @var PluginIdProvider $pluginIdProvider */
-    private $pluginIdProvider;
-
-    /** @var Config */
-    private $config;
-
-    /** @var Api $paynlApi */
-    private $paynlApi;
-
-    /** @var MediaHelper $mediaHelper */
-    private $mediaHelper;
-
-    /** @var PaymentMethodRepositoryInterface $paymentMethodRepository */
-    private $paymentMethodRepository;
-
-    /** @var SalesChannelRepositoryInterface $salesChannelRepository */
-    private $salesChannelRepository;
-
-    /** @var SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository */
-    private $paymentMethodSalesChannelRepository;
-
-    /** @var SystemConfigRepositoryInterface $systemConfigRepository */
-    private $systemConfigRepository;
-
-    /** @var PaymentHandlerFactory */
-    private $paymentHandlerFactory;
+    private Connection $connection;
+    private PluginIdProvider $pluginIdProvider;
+    private Config $config;
+    private Api $paynlApi;
+    private MediaHelper $mediaHelper;
+    private PaymentMethodRepositoryInterface $paymentMethodRepository;
+    private SalesChannelRepositoryInterface $salesChannelRepository;
+    private SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository;
+    private SystemConfigRepositoryInterface $systemConfigRepository;
+    private PaymentHandlerFactory $paymentHandlerFactory;
 
     public function __construct(
         Connection $connection,
@@ -571,15 +550,6 @@ class InstallHelper
     private function getSalesChannelById(string $id, Context $context)
     {
         return $this->salesChannelRepository->search(new Criteria([$id]), $context)->first();
-    }
-
-    private function getPaynlPaymentMethods(string $salesChannelId): array
-    {
-        SDKConfig::setTokenCode($this->config->getTokenCode($salesChannelId));
-        SDKConfig::setApiToken($this->config->getApiToken($salesChannelId));
-        SDKConfig::setServiceId($this->config->getServiceId($salesChannelId));
-
-        return Paymentmethods::getList();
     }
 
     public function addPaynlMailTemplateText(): void

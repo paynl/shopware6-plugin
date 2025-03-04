@@ -2,15 +2,15 @@
 
 namespace PaynlPayment\Shopware6\Controller\Api\Refund;
 
-use Paynl\Error;
+use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\Api;
-use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,53 +19,44 @@ use Symfony\Component\HttpFoundation\Request;
 
 class RefundControllerBase extends AbstractController
 {
-    private $paynlApi;
-    private $paynlConfig;
-    /** @var LoggerInterface */
-    private $logger;
-    private $transactionRepository;
-    private $productRepository;
-    private $paynlTransactionRepository;
-
-    /** @var ProcessingHelper */
-    private $processingHelper;
+    private Api $payAPI;
+    private ProcessingHelper $processingHelper;
+    private LoggerInterface $logger;
+    private EntityRepository $productRepository;
+    private EntityRepository $payTransactionRepository;
 
     public function __construct(
-        Api $paynlApi,
-        Config $paynlConfig,
-        LoggerInterface $logger,
-        EntityRepository $transactionRepository,
-        EntityRepository $productRepository,
+        Api $payAPI,
         ProcessingHelper $processingHelper,
-        EntityRepository $paynlTransactionRepository
+        LoggerInterface $logger,
+        EntityRepository $productRepository,
+        EntityRepository $payTransactionRepository
     ) {
-        $this->paynlApi = $paynlApi;
-        $this->paynlConfig = $paynlConfig;
-        $this->logger = $logger;
-        $this->transactionRepository = $transactionRepository;
-        $this->productRepository = $productRepository;
+        $this->payAPI = $payAPI;
         $this->processingHelper = $processingHelper;
-        $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->logger = $logger;
+        $this->productRepository = $productRepository;
+        $this->payTransactionRepository = $payTransactionRepository;
     }
 
     protected function getRefundDataResponse(Request $request): JsonResponse
     {
         $paynlTransactionId = $request->query->get('transactionId');
-        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $paynlTransaction = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 
         try {
             $this->logger->info('Refund data for transaction ' . $paynlTransactionId);
 
-            $apiTransaction = $this->paynlApi->getTransaction($paynlTransactionId, $salesChannelId);
-            $refundedAmount = $apiTransaction->getRefundedAmount();
-            $availableForRefund = $apiTransaction->getAmount() - $refundedAmount;
+            $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
+            $refundedAmount = $payTransactionStatus->getAmountRefunded();
+            $availableForRefund = $payTransactionStatus->getAmount() - $refundedAmount;
 
             return new JsonResponse([
                 'refundedAmount' => $refundedAmount,
                 'availableForRefund' => $availableForRefund
             ]);
-        } catch (Error\Api $exception) {
+        } catch (PayException $exception) {
             $this->logger->error('Error on getting refund data for transaction ' . $paynlTransactionId, [
                 'exception' => $exception
             ]);
@@ -85,7 +76,7 @@ class RefundControllerBase extends AbstractController
         $products = $post['products'];
         $messages = [];
 
-        $paynlTransaction = $this->getPaynlTransactionEntityByPaynlTransactionId($paynlTransactionId);
+        $paynlTransaction = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
         $salesChannel = $paynlTransaction->getOrder()->getSalesChannel();
 
@@ -96,7 +87,7 @@ class RefundControllerBase extends AbstractController
                 'salesChannel' => $salesChannel ? $salesChannel->getName() : ''
             ]);
 
-            $this->paynlApi->refund($paynlTransactionId, $amount, $salesChannelId, $description);
+            $this->payAPI->refund($paynlTransactionId, $amount, $salesChannelId, $description);
             $this->restock($products);
 
             $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
@@ -116,10 +107,7 @@ class RefundControllerBase extends AbstractController
         return new JsonResponse($messages);
     }
 
-    /**
-     * @param mixed[] $products
-     * @throws \Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException
-     */
+    /** @throws InconsistentCriteriaIdsException */
     private function restock(array $products = []): void
     {
         $data = [];
@@ -143,12 +131,12 @@ class RefundControllerBase extends AbstractController
         }
     }
 
-    private function getPaynlTransactionEntityByPaynlTransactionId(string $paynlTransactionId): PaynlTransactionEntity
+    private function getPayTransactionEntityByPayTransactionId(string $payTransactionId): PaynlTransactionEntity
     {
         $criteria = (new Criteria());
-        $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
+        $criteria->addFilter(new EqualsFilter('paynlTransactionId', $payTransactionId));
         $criteria->addAssociation('order');
 
-        return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
+        return $this->payTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
 }

@@ -4,7 +4,6 @@ namespace PaynlPayment\Shopware6\Helper;
 
 use PayNL\Sdk\Model\Address;
 use PayNL\Sdk\Model\Customer;
-use Paynl\Helper;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\CustomerCustomFieldsEnum;
 use PaynlPayment\Shopware6\Repository\Customer\CustomerRepositoryInterface;
@@ -18,30 +17,13 @@ use Shopware\Core\System\Salutation\SalutationEntity;
 
 class CustomerHelper
 {
-    private const BIRTHDATE_FORMAT = 'd-m-Y';
     private const CUSTOMER_NAME_MAX_LENGTH = 32;
 
-    /** @var Config */
-    private $config;
-
-    /**
-     * @var CustomerAddressRepositoryInterface
-     */
-    private $customerAddressRepository;
-
-    /**
-     * @var CustomerRepositoryInterface
-     */
-    private $customerRepository;
-
-    /**
-     * @var TransactionLanguageHelper
-     */
-    private $transactionLanguageHelper;
-    /**
-     * @var IpSettingsHelper
-     */
-    private $ipSettingsHelper;
+    private Config $config;
+    private CustomerAddressRepositoryInterface $customerAddressRepository;
+    private CustomerRepositoryInterface $customerRepository;
+    private TransactionLanguageHelper $transactionLanguageHelper;
+    private IpSettingsHelper $ipSettingsHelper;
 
     public function __construct(
         Config $config,
@@ -116,7 +98,7 @@ class CustomerHelper
         $country = $customerShippingAddress->getCountry();
         $street = $customerShippingAddress->getStreet();
         if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
-            $address = Helper::splitAddress($street);
+            $address = paynl_split_address($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
 
@@ -155,7 +137,7 @@ class CustomerHelper
         $country = $customerBillingAddress->getCountry();
         $street = $customerBillingAddress->getStreet();
         if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
-            $address = Helper::splitAddress($street);
+            $address = paynl_split_address($street);
             $street = $address[0] ?? '';
             $houseNumber = $address[1] ?? '';
 
