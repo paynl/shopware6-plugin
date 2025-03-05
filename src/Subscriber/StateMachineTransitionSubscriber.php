@@ -25,8 +25,16 @@ class StateMachineTransitionSubscriber implements EventSubscriberInterface
     {
         return [
             StateMachineTransitionEvent::class => 'stateChanged',
-            'order_transaction_capture_refund.written' => 'lineItemWritten'
+            'order_transaction_capture_refund.written' => 'lineItemWritten',
+            'Shopware\Commercial\ReturnManagement\Event\OrderReturnCreatedEvent' => 'orderReturn',
         ];
+    }
+
+    public function orderReturn($event): void
+    {
+        $this->logger->info('Return management order return event: ' . $event->getName(), [
+            'event' => $event,
+        ]);
     }
 
     public function lineItemWritten(EntityWrittenEvent $event): void
