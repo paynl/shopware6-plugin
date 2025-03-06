@@ -9,7 +9,7 @@ use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
-use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
+use PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler;
 use PaynlPayment\Shopware6\PaynlPaymentShopware6;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
@@ -57,14 +57,12 @@ class InstallHelper
     private SalesChannelRepositoryInterface $salesChannelRepository;
     private SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository;
     private SystemConfigRepositoryInterface $systemConfigRepository;
-    private PaymentHandlerFactory $paymentHandlerFactory;
 
     public function __construct(
         Connection $connection,
         PluginIdProvider $pluginIdProvider,
         Config $config,
         Api $paynlApi,
-        PaymentHandlerFactory $paymentHandlerFactory,
         MediaHelper $mediaHelper,
         PaymentMethodRepositoryInterface $paymentMethodRepository,
         SalesChannelRepositoryInterface $salesChannelRepository,
@@ -82,7 +80,6 @@ class InstallHelper
         $this->salesChannelRepository = $salesChannelRepository;
         $this->paymentMethodSalesChannelRepository = $paymentMethodSalesChannelRepository;
         $this->systemConfigRepository = $systemConfigRepository;
-        $this->paymentHandlerFactory = $paymentHandlerFactory;
     }
 
     /**
@@ -374,11 +371,10 @@ class InstallHelper
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
-        $paymentMethodHandler = $this->paymentHandlerFactory->get($paymentMethodValueObject->getOriginalMethod()->getId());
 
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
-            'handlerIdentifier' => $paymentMethodHandler,
+            'handlerIdentifier' => PaynlPaymentHandler::class,
             'name' => $paymentMethodValueObject->getOriginalMethod()->getName(),
             'description' => $paymentMethodValueObject->getOriginalMethod()->getDescription(),
             'pluginId' => $pluginId,
