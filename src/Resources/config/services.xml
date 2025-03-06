@@ -38,7 +38,6 @@
             <argument type="service" id="Shopware\Core\Framework\Plugin\Util\PluginIdProvider"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\MediaHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository"/>
@@ -255,39 +254,27 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
+        </service>
+
         <service id="paynl.app_system.guzzle" class="GuzzleHttp\Client">
         </service>
 
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
-            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
             <argument type="service" id="translator"/>
             <argument type="service" id="request_stack"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
-        </service>
-
-        <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">
-            <argument type="service" id="router.default"/>
-            <argument type="service" id="request_stack"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="paynl_payments.logger"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
-            <argument>%kernel.shopware_version%</argument>
-            <tag name="shopware.payment.method.sync" />
-        </service>
-
-        <service id="PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory">
         </service>
 
         <!--Entities-->

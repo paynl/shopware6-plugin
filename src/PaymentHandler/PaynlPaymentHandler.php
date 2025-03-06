@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\PaymentHandler;
 
 use Exception;
+use LogicException;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
+use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\PaymentException;
@@ -27,55 +29,41 @@ use Throwable;
 
 class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
-    /** @var OrderTransactionStateHandler */
-    private $transactionStateHandler;
-    /** @var UrlGeneratorInterface */
-    private $router;
-    /** @var Api */
-    private $paynlApi;
-    /** @var LoggerInterface */
-    private $logger;
-    /** @var ProcessingHelper */
-    private $processingHelper;
-    /** @var PluginHelper */
-    private $pluginHelper;
-    /** @var TranslatorInterface */
-    private $translator;
-    /** @var RequestStack */
-    private $requestStack;
-    /** @var string */
-    private $shopwareVersion;
+    private UrlGeneratorInterface $router;
+    private Api $payAPI;
+    private LoggerInterface $logger;
+    private PaymentMethodTerminalService $paymentMethodTerminalService;
+    private ProcessingHelper $processingHelper;
+    private PluginHelper $pluginHelper;
+    private RequestDataBagHelper $requestDataBagHelper;
+    private TranslatorInterface $translator;
+    private RequestStack $requestStack;
+    private string $shopwareVersion;
 
     public function __construct(
-        OrderTransactionStateHandler $transactionStateHandler,
         RouterInterface $router,
         Api $api,
         LoggerInterface $logger,
+        PaymentMethodTerminalService $paymentMethodTerminalService,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
+        RequestDataBagHelper $requestDataBagHelper,
         TranslatorInterface $translator,
         RequestStack $requestStack,
         string $shopwareVersion
     ) {
-        $this->transactionStateHandler = $transactionStateHandler;
         $this->router = $router;
-        $this->paynlApi = $api;
+        $this->payAPI = $api;
         $this->logger = $logger;
+        $this->paymentMethodTerminalService = $paymentMethodTerminalService;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
+        $this->requestDataBagHelper = $requestDataBagHelper;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
         $this->shopwareVersion = $shopwareVersion;
     }
 
-    /**
-     * @param AsyncPaymentTransactionStruct $transaction
-     * @param RequestDataBag $dataBag
-     * @param SalesChannelContext $salesChannelContext
-     * @return RedirectResponse
-     * @throws PaymentException
-     * @throws Throwable
-     */
     public function pay(
         AsyncPaymentTransactionStruct $transaction,
         RequestDataBag $dataBag,
@@ -123,12 +111,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         return new RedirectResponse($redirectUrl);
     }
 
-    /**
-     * @param AsyncPaymentTransactionStruct $transaction
-     * @param Request $request
-     * @param SalesChannelContext $salesChannelContext
-     * @throws Exception
-     */
     public function finalize(
         AsyncPaymentTransactionStruct $transaction,
         Request $request,
@@ -157,21 +139,28 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
             $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $order = $transaction->getOrder();
         $orderTransaction = $transaction->getOrderTransaction();
+        $terminal = $this->getRequestTerminal();
 
         $parameterUrl = parse_url($transaction->getReturnUrl())['query'];
         $paymentToken = explode('=', $parameterUrl)[1];
         $returnUrl = $this->router->generate('frontend.PaynlPayment.finalize-transaction', ['_sw_payment_token' => $paymentToken], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        $this->paymentMethodTerminalService->storeCustomerTerminal(
+            $orderTransaction->getPaymentMethod(),
+            $salesChannelContext,
+            $terminal
+        );
 
         $additionalTransactionInfo = new AdditionalTransactionInfo(
             $returnUrl,
             $exchangeUrl,
             $this->shopwareVersion,
             $this->pluginHelper->getPluginVersionFromComposer(),
-            null
+            $terminal ?: null
         );
 
         try {
-            $paynlTransaction = $this->paynlApi->startTransaction(
+            $paynlTransaction = $this->payAPI->startTransaction(
                 $order,
                 $salesChannelContext,
                 $additionalTransactionInfo
@@ -218,5 +207,23 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
         }
 
         $this->requestStack->getSession()->getFlashBag()->add('warning', $flashBagMessage);
+    }
+
+    private function getRequestTerminal(): string
+    {
+        $requestData = $this->fetchRequestData();
+
+        return (string) $this->requestDataBagHelper->getDataBagItem('paynlInstoreTerminal', $requestData);
+    }
+
+    private function fetchRequestData(): RequestDataBag
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        if ($request === null) {
+            throw new LogicException('Missing current request');
+        }
+
+        return new RequestDataBag($request->request->all());
     }
 }

@@ -19,12 +19,10 @@ use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
-use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\Repository\Customer\CustomerRepository;
 use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository;
 use PaynlPayment\Shopware6\Repository\Language\LanguageRepository;
 use PaynlPayment\Shopware6\Repository\Media\MediaRepository;
-use PaynlPayment\Shopware6\Repository\Order\OrderRepository;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepository;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository;
@@ -177,7 +175,6 @@ class PaynlPaymentShopware6 extends Plugin
             $pluginIdProvider,
             $this->getConfig(),
             $this->getPayAPI(),
-            $this->getPaymentHandlerFactory(),
             $this->getMediaHelper(),
             new PaymentMethodRepository($paymentMethodRepository),
             new SalesChannelRepository($salesChannelRepository),
@@ -244,11 +241,6 @@ class PaynlPaymentShopware6 extends Plugin
             new LanguageRepository($languageRepository),
             $requestStack
         );
-    }
-
-    private function getPaymentHandlerFactory(): PaymentHandlerFactory
-    {
-        return new PaymentHandlerFactory();
     }
 
     private function getLogger(): LoggerInterface

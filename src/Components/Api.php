@@ -16,7 +16,6 @@ use PayNL\Sdk\Model\Request\TerminalsBrowseRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
 use PayNL\Sdk\Model\Request\TransactionStatusRequest;
 use PayNL\Sdk\Model\Response\TransactionRefundResponse;
-use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
@@ -159,7 +158,7 @@ class Api
             $request->setPaymentMethodId($paynlPaymentMethodId);
         }
 
-        if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
+        if ($paynlPaymentMethodId === Model\Method::PIN) {
             $request->setTerminal($additionalTransactionInfo->getTerminalId());
         }
 
