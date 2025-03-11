@@ -252,6 +252,8 @@ class ProcessingHelper
     public function processNotify(string $paynlTransactionId): string
     {
         try {
+            $this->logger->info('Starting exchange with transactionId: ' . $paynlTransactionId);
+
             return $this->notifyActionUpdateTransactionByPaynlTransactionId($paynlTransactionId);
         } catch (Throwable $e) {
             $this->logger->error('Error on notifying transaction.', [
