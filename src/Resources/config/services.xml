@@ -263,7 +263,6 @@
         <!--Payment handler-->
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlPaymentHandler">
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
-            <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransactionCaptureRefund\OrderTransactionCaptureRefundStateHandler"/>
             <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_payments.logger"/>
@@ -273,7 +272,6 @@
             <argument type="service" id="request_stack"/>
             <argument>%kernel.shopware_version%</argument>
             <tag name="shopware.payment.method.async" />
-            <tag name="shopware.payment.method.refund" />
         </service>
 
         <service id="PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler">

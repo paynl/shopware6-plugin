@@ -11,13 +11,10 @@ use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransactionCaptureRefund\OrderTransactionCaptureRefundStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
-use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\RefundPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,12 +25,10 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
-class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface, RefundPaymentHandlerInterface
+class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface
 {
     /** @var OrderTransactionStateHandler */
     private $transactionStateHandler;
-    /** @var OrderTransactionCaptureRefundStateHandler */
-    private $captureRefundStateHandler;
     /** @var UrlGeneratorInterface */
     private $router;
     /** @var Api */
@@ -53,7 +48,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface, Refund
 
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
-        OrderTransactionCaptureRefundStateHandler $captureRefundStateHandler,
         RouterInterface $router,
         Api $api,
         LoggerInterface $logger,
@@ -64,7 +58,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface, Refund
         string $shopwareVersion
     ) {
         $this->transactionStateHandler = $transactionStateHandler;
-        $this->captureRefundStateHandler = $captureRefundStateHandler;
         $this->router = $router;
         $this->paynlApi = $api;
         $this->logger = $logger;
@@ -153,15 +146,6 @@ class PaynlPaymentHandler implements AsynchronousPaymentHandlerInterface, Refund
         );
 
         $this->processingHelper->returnUrlActionUpdateTransactionByOrderId($order->getId());
-    }
-
-    public function refund(string $refundId, Context $context): void
-    {
-        $this->logger->info('Start native refunding for refundId: ' . $refundId);
-
-        $this->captureRefundStateHandler->complete($refundId, $context);
-
-//        $this->processingHelper->refund($refundId, $context);
     }
 
     private function sendReturnUrlToExternalGateway(

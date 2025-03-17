@@ -19,7 +19,6 @@ use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
@@ -51,8 +50,6 @@ class ProcessingHelper
     /** @var StateMachineTransitionRepositoryInterface  */
     private $stateMachineTransitionRepository;
 
-    private EntityRepository $refundRepository;
-
     /** @var StateMachineRegistry */
     private $stateMachineRegistry;
 
@@ -65,7 +62,6 @@ class ProcessingHelper
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
         OrderTransactionRepositoryInterface $orderTransactionRepository,
         StateMachineTransitionRepositoryInterface $stateMachineTransitionRepository,
-        EntityRepository $refundRepository,
         StateMachineRegistry $stateMachineRegistry,
         OrderStatusUpdater $orderStatusUpdater
     ) {
@@ -74,7 +70,6 @@ class ProcessingHelper
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
-        $this->refundRepository = $refundRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
         $this->orderStatusUpdater = $orderStatusUpdater;
     }
