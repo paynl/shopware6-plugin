@@ -6,8 +6,10 @@ use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
 use PaynlPayment\Shopware6\ValueObjects\Event\OrderReturnWrittenPayload;
@@ -47,6 +49,9 @@ class ProcessingHelper
     /** @var OrderTransactionRepositoryInterface  */
     private $orderTransactionRepository;
 
+    /** @var StateMachineStateRepositoryInterface  */
+    private $stateMachineStateRepository;
+
     /** @var StateMachineTransitionRepositoryInterface  */
     private $stateMachineTransitionRepository;
 
@@ -61,6 +66,7 @@ class ProcessingHelper
         LoggerInterface $logger,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
         OrderTransactionRepositoryInterface $orderTransactionRepository,
+        StateMachineStateRepositoryInterface $stateMachineStateRepository,
         StateMachineTransitionRepositoryInterface $stateMachineTransitionRepository,
         StateMachineRegistry $stateMachineRegistry,
         OrderStatusUpdater $orderStatusUpdater
@@ -69,6 +75,7 @@ class ProcessingHelper
         $this->logger = $logger;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
         $this->orderTransactionRepository = $orderTransactionRepository;
+        $this->stateMachineStateRepository = $stateMachineStateRepository;
         $this->stateMachineTransitionRepository = $stateMachineTransitionRepository;
         $this->stateMachineRegistry = $stateMachineRegistry;
         $this->orderStatusUpdater = $orderStatusUpdater;
@@ -241,6 +248,15 @@ class ProcessingHelper
         }
 
         try {
+            $orderReturnState = $this->stateMachineStateRepository->findByStateId($orderReturnPayload->getStateId(), $context);
+            if (!$orderReturnState || $orderReturnState->getTechnicalName() !== StateMachineStateEnum::STATE_DONE) {
+                $this->logger->error('Order return: order return state does not match DONE', [
+                    'stateTechnicalName' => $orderReturnState ? $orderReturnState->getTechnicalName() : null,
+                ]);
+
+                return;
+            }
+
             $payTransaction = $this->getPayTransactionEntityByOrderId($orderReturnPayload->getOrderId());
             $order = $payTransaction->getOrder();
 

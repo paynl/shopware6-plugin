@@ -26,6 +26,7 @@
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepository"/>
             <argument type="service" id="order_transaction_capture_refund.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
@@ -484,6 +485,10 @@
 
         <service id="PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository">
             <argument type="service" id="system_config.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepository">
+            <argument type="service" id="state_machine_state.repository"/>
         </service>
     </services>
 </container>
