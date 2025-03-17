@@ -390,8 +390,7 @@
         <service id="PaynlPayment\Shopware6\Subscriber\OrderReturnWrittenSubscriber">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="paynl_payments.logger"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 

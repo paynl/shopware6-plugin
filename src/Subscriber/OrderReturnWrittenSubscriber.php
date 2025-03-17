@@ -2,11 +2,9 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
-use Exception;
-use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Repository\OrderReturn\OrderReturnRepositoryInterface;
-use PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\ValueObjects\Event\OrderReturnPayloadMapper;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityWriteResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
@@ -16,19 +14,19 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
 {
     private Config $config;
     private LoggerInterface $logger;
-    private Api $payAPI;
-    private PaynlTransactionService $payTransactionService;
+    private ProcessingHelper $processingHelper;
+    private OrderReturnPayloadMapper $orderReturnPayloadMapper;
 
     public function __construct(
         Config $config,
         LoggerInterface $logger,
-        Api $payAPI,
-        PaynlTransactionService $payTransactionService
+        ProcessingHelper $processingHelper
     ) {
         $this->config = $config;
         $this->logger = $logger;
-        $this->payAPI = $payAPI;
-        $this->payTransactionService = $payTransactionService;
+        $this->processingHelper = $processingHelper;
+
+        $this->orderReturnPayloadMapper = new OrderReturnPayloadMapper();
     }
 
     public static function getSubscribedEvents(): array
@@ -38,11 +36,29 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function onOrderReturnChanged(EntityWrittenEvent $event): void
+    public function onOrderReturnWritten(EntityWrittenEvent $event): void
     {
         $this->logger->info('Order return written event', [
             'event' => $event,
-            'writtenResult' => $event->getWriteResults() ? $event->getWriteResults()[0] : []
+            'entityName' => $event->getEntityName()
         ]);
+
+        $writeResults = $event->getWriteResults();
+
+        if (empty($writeResults)) {
+            return;
+        }
+
+        if ($writeResults[0]->getOperation() !== EntityWriteResult::OPERATION_INSERT) {
+            return;
+        }
+
+        $this->logger->info('Order return: getting payload', [
+            'payload' => $writeResults[0]->getPayload(),
+        ]);
+
+        $orderReturnPayload = $this->orderReturnPayloadMapper->mapArray($writeResults[0]->getPayload());
+
+        $this->processingHelper->refund($orderReturnPayload, $event->getContext());
     }
 }

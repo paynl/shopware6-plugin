@@ -10,14 +10,13 @@ use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositor
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater;
+use PaynlPayment\Shopware6\ValueObjects\Event\OrderReturnWrittenPayload;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransactionCaptureRefund\OrderTransactionCaptureRefundEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
-use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -200,7 +199,7 @@ class ProcessingHelper
      */
     public function returnUrlActionUpdateTransactionByOrderId(string $orderId): void
     {
-        $paynlTransactionEntity = $this->getPaynlTransactionEntityByOrderId($orderId);
+        $paynlTransactionEntity = $this->getPayTransactionEntityByOrderId($orderId);
 
         $paynlTransactionId = $paynlTransactionEntity->getPaynlTransactionId();
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
@@ -235,65 +234,40 @@ class ProcessingHelper
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
     }
 
-    public function refund(string $refundId, Context $context): void
+    public function refund(OrderReturnWrittenPayload $orderReturnPayload, Context $context): void
     {
-        $this->logger->info('Start native refunding for refundId: ' . $refundId);
+        if (!$orderReturnPayload->getOrderId() || !$orderReturnPayload->getAmountTotal()) {
+            $this->logger->error('Order return: orderId or amountTotal is empty', [
+                'orderId' => $orderReturnPayload->getOrderId(),
+                'amountTotal' => $orderReturnPayload->getAmountTotal(),
+            ]);
 
-        $criteria = new Criteria([$refundId]);
-        $criteria->addAssociation('stateMachineState');
-        $criteria->addAssociation('transactionCapture.transaction.order');
-        $criteria->addAssociation('transactionCapture.transaction.paymentMethod.appPaymentMethod.app');
-        $criteria->addAssociation('transactionCapture.positions');
-
-        $refund = $this->refundRepository->search($criteria, $context)->first();
-
-        if (!($refund instanceof OrderTransactionCaptureRefundEntity)) {
-            /** @phpstan-ignore-next-line */
-            throw PaymentException::unknownRefund($refundId);
-        }
-
-        if (!$refund->getTransactionCapture()
-            || !$refund->getTransactionCapture()->getTransaction()
-            || !$refund->getTransactionCapture()->getTransaction()->getOrder()
-        ) {
             return;
         }
-
-        $transaction = $refund->getTransactionCapture()->getTransaction();
-        $salesChannel = $transaction->getOrder()->getSalesChannel();
-
-        $criteria = (new Criteria())->addFilter(new EqualsFilter('orderTransactionId', $transaction->getId()));
-        $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
-
-        $payTransaction = $this->paynlTransactionRepository->search($criteria, $context)->first();
-
-        if (!($payTransaction instanceof PaynlTransactionEntity)) {
-            return;
-        }
-
-        $refundLogData = [
-            'refundId' => $refundId,
-            'transactionId' => $payTransaction->getPaynlTransactionId(),
-            'amount' => $refund->getAmount()->getTotalPrice(),
-            'salesChannel' => $salesChannel ? $salesChannel->getName() : ''
-        ];
-
-        $this->logger->info('Refunding the PAY. transaction ' . $payTransaction->getPaynlTransactionId(), $refundLogData);
 
         try {
+            $payTransaction = $this->getPayTransactionEntityByOrderId($orderReturnPayload->getOrderId());
+            $order = $payTransaction->getOrder();
+
+            $this->logger->info('Order return: starting refunding PAY. transaction ' . $payTransaction->getPaynlTransactionId(), [
+                'orderNumber' => $order->getOrderNumber(),
+                'amount' => $orderReturnPayload->getAmountTotal(),
+            ]);
+
             $this->paynlApi->refund(
                 $payTransaction->getPaynlTransactionId(),
-                $refund->getAmount()->getTotalPrice(),
-                $salesChannel->getId(),
-                (string) $refund->getReason()
+                $orderReturnPayload->getAmountTotal(),
+                $order->getSalesChannelId(),
+                (string) $orderReturnPayload->getInternalComment()
             );
 
             $this->refundActionUpdateTransactionByTransactionId($payTransaction->getPaynlTransactionId());
         } catch (Exception $exception) {
-            $this->logger->error('Refund while processing the refund: ' . $exception->getMessage(), $refundLogData);
-
-            /** @phpstan-ignore-next-line */
-            throw PaymentException::refundInterrupted($refund->getId(), sprintf('PAY. app error: %s', $exception->getMessage()));
+            $this->logger->error('Order return: error on refunding PAY. transaction', [
+                'payTransactionId' => isset($payTransaction) ? $payTransaction->getPaynlTransactionId() : '',
+                'orderNumber' => isset($order) ? $order->getOrderNumber() : null,
+                'exception' => $exception->getMessage()
+            ]);
         }
     }
 
@@ -627,11 +601,7 @@ class ProcessingHelper
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
 
-    /**
-     * @param string $orderId
-     * @return PaynlTransactionEntity
-     */
-    private function getPaynlTransactionEntityByOrderId(string $orderId): PaynlTransactionEntity
+    private function getPayTransactionEntityByOrderId(string $orderId): PaynlTransactionEntity
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
         $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
