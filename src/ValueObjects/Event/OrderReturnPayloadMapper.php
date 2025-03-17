@@ -28,9 +28,9 @@ class OrderReturnPayloadMapper implements ArrayDataMapperInterface
             (float) $this->getArrayItemOrNull($data, self::AMOUNT_TOTAL),
             (float) $this->getArrayItemOrNull($data, self::AMOUNT_NET),
             $this->getArrayItemOrNull($data, self::CREATED_BY_ID) ? (string) $this->getArrayItemOrNull($data, self::CREATED_BY_ID) : null,
-            $this->getArrayItemOrNull($data, self::CREATED_AT) ? (string) $this->getArrayItemOrNull($data, self::CREATED_AT) : null,
+            $this->getArrayItemOrNull($data, self::CREATED_AT),
             $this->getArrayItemOrNull($data, self::RETURN_NUMBER) ? (string) $this->getArrayItemOrNull($data, self::RETURN_NUMBER) : null,
-            $this->getArrayItemOrNull($data, self::REQUESTED_AT) ? (string) $this->getArrayItemOrNull($data, self::REQUESTED_AT) : null,
+            $this->getArrayItemOrNull($data, self::REQUESTED_AT),
             $this->getArrayItemOrNull($data, self::INTERNAL_COMMENT) ? (string) $this->getArrayItemOrNull($data, self::INTERNAL_COMMENT) : null,
         );
     }

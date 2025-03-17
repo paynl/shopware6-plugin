@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\ValueObjects\Event;
 
+use DateTimeImmutable;
+
 class OrderReturnWrittenPayload
 {
     private string $id;
@@ -12,12 +14,12 @@ class OrderReturnWrittenPayload
     private float $amountTotal;
     private float $amountNet;
     private ?string $createdById;
-    private ?string $createdAt;
+    private ?DateTimeImmutable $createdAt;
     private ?string $returnNumber;
-    private ?string $requestedAt;
+    private ?DateTimeImmutable $requestedAt;
     private ?string $internalComment;
 
-    public function __construct(string $id, string $orderId, string $stateId, float $amountTotal, float $amountNet, ?string $createdById, ?string $createdAt, ?string $returnNumber, ?string $requestedAt, ?string $internalComment)
+    public function __construct(string $id, string $orderId, string $stateId, float $amountTotal, float $amountNet, ?string $createdById, ?DateTimeImmutable $createdAt, ?string $returnNumber, ?DateTimeImmutable $requestedAt, ?string $internalComment)
     {
         $this->id = $id;
         $this->orderId = $orderId;
@@ -61,7 +63,7 @@ class OrderReturnWrittenPayload
         return $this->createdById;
     }
 
-    public function getCreatedAt(): ?string
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -71,7 +73,7 @@ class OrderReturnWrittenPayload
         return $this->returnNumber;
     }
 
-    public function getRequestedAt(): ?string
+    public function getRequestedAt(): ?DateTimeImmutable
     {
         return $this->requestedAt;
     }

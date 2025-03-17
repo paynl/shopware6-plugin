@@ -32,7 +32,7 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'order_return.written' => 'onOrderReturnChanged',
+            'order_return.written' => 'onOrderReturnWritten',
         ];
     }
 
