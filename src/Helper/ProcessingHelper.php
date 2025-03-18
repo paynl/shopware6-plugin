@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Helper;
 
+use DateTimeImmutable;
 use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
@@ -259,6 +260,32 @@ class ProcessingHelper
 
             $payTransaction = $this->getPayTransactionEntityByOrderId($orderReturnPayload->getOrderId());
             $order = $payTransaction->getOrder();
+
+            if ($payTransaction->getStateId() === (string) PaynlTransactionStatusesEnum::STATUS_REFUND) {
+                $this->logger->warning('Order return: PAY transaction is refunded already', [
+                    'payTransactionId' => $payTransaction->getPaynlTransactionId(),
+                    'payTransactionStateId' => $payTransaction->getStateId(),
+                    'orderNumber' => $order->getOrderNumber(),
+                ]);
+
+                return;
+            }
+
+            if ($orderReturnPayload->getCreatedAt()) {
+                $currentDateTime = new DateTimeImmutable();
+
+                if (abs($currentDateTime->getTimestamp() - $orderReturnPayload->getCreatedAt()->getTimestamp()) > 5) {
+                    $this->logger->warning('Order return: PAY transaction is refunded already', [
+                        'currentDateTime' => $currentDateTime->format('Y-m-d H:i:s'),
+                        'createdAt' => $orderReturnPayload->getCreatedAt()->format('Y-m-d H:i:s'),
+                        'payTransactionId' => $payTransaction->getPaynlTransactionId(),
+                        'payTransactionStateId' => $payTransaction->getStateId(),
+                        'orderNumber' => $order->getOrderNumber(),
+                    ]);
+
+                    return;
+                }
+            }
 
             $this->logger->info('Order return: starting refunding PAY. transaction ' . $payTransaction->getPaynlTransactionId(), [
                 'orderNumber' => $order->getOrderNumber(),
