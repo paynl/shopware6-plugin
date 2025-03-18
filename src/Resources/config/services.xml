@@ -28,7 +28,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepository"/>
-            <argument type="service" id="order_transaction_capture_refund.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater"/>
         </service>
