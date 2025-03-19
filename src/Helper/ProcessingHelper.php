@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
@@ -39,6 +40,8 @@ use Throwable;
 
 class ProcessingHelper
 {
+    /** @var Config */
+    private $config;
     /** @var Api */
     private $paynlApi;
     /** @var LoggerInterface */
@@ -63,6 +66,7 @@ class ProcessingHelper
     private $orderStatusUpdater;
 
     public function __construct(
+        Config $config,
         Api $api,
         LoggerInterface $logger,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
@@ -72,6 +76,7 @@ class ProcessingHelper
         StateMachineRegistry $stateMachineRegistry,
         OrderStatusUpdater $orderStatusUpdater
     ) {
+        $this->config = $config;
         $this->paynlApi = $api;
         $this->logger = $logger;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
@@ -249,6 +254,13 @@ class ProcessingHelper
         }
 
         try {
+            $payTransaction = $this->getPayTransactionEntityByOrderId($orderReturnPayload->getOrderId());
+            $order = $payTransaction->getOrder();
+
+            if (!$this->config->isNativeShopwareRefundAllowed($order->getSalesChannelId())) {
+                return;
+            }
+
             $orderReturnState = $this->stateMachineStateRepository->findByStateId($orderReturnPayload->getStateId(), $context);
             if (!$orderReturnState || $orderReturnState->getTechnicalName() !== StateMachineStateEnum::STATE_COMPLETED) {
                 $this->logger->error('Order return: order return state does not match DONE', [
@@ -257,9 +269,6 @@ class ProcessingHelper
 
                 return;
             }
-
-            $payTransaction = $this->getPayTransactionEntityByOrderId($orderReturnPayload->getOrderId());
-            $order = $payTransaction->getOrder();
 
             if ($payTransaction->getStateId() === (string) PaynlTransactionStatusesEnum::STATUS_REFUND) {
                 $this->logger->warning('Order return: PAY transaction is refunded already', [
@@ -274,7 +283,8 @@ class ProcessingHelper
             if ($orderReturnPayload->getCreatedAt()) {
                 $currentDateTime = new DateTimeImmutable();
 
-                if (abs($currentDateTime->getTimestamp() - $orderReturnPayload->getCreatedAt()->getTimestamp()) > 5) {
+                // the fix to prevent the event running when customer opens the Order page
+                if (abs($currentDateTime->getTimestamp() - $orderReturnPayload->getCreatedAt()->getTimestamp()) > 2) {
                     $this->logger->warning('Order return: PAY transaction is refunded already', [
                         'currentDateTime' => $currentDateTime->format('Y-m-d H:i:s'),
                         'createdAt' => $orderReturnPayload->getCreatedAt()->format('Y-m-d H:i:s'),

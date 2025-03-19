@@ -141,6 +141,15 @@
             </helpText>
         </input-field>
         <input-field type="bool">
+            <name>allowShopwareNativeRefund</name>
+            <label>Allow Shopware native refunds</label>
+            <label lang="nl-NL">Allow Shopware native refunds</label>
+            <label lang="de-DE">Allow Shopware native refunds</label>
+            <helpText>Allow Shopware native refunds</helpText>
+            <helpText lang="nl-NL">Allow Shopware native refunds</helpText>
+            <helpText lang="de-DE">Allow Shopware native refunds</helpText>
+        </input-field>
+        <input-field type="bool">
             <name>surchargePaymentMethods</name>
             <label>Surcharge payment methods</label>
             <label lang="nl-NL">Surcharging</label>
