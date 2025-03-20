@@ -12,17 +12,14 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class OrderReturnWrittenSubscriber implements EventSubscriberInterface
 {
-    private Config $config;
     private LoggerInterface $logger;
     private ProcessingHelper $processingHelper;
     private OrderReturnPayloadMapper $orderReturnPayloadMapper;
 
     public function __construct(
-        Config $config,
         LoggerInterface $logger,
         ProcessingHelper $processingHelper
     ) {
-        $this->config = $config;
         $this->logger = $logger;
         $this->processingHelper = $processingHelper;
 
