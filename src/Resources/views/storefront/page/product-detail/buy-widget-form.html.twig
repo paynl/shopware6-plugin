@@ -1,0 +1,24 @@
+{% sw_extends '@Storefront/storefront/page/product-detail/buy-widget-form.html.twig' %}
+
+{% block page_product_detail_buy_container %}
+    {{ parent() }}
+
+    {% block page_product_detail_buy_container_apple_direct %}
+        {% if page.product %}
+            {# this is for older shopware versions #}
+            {% set productId = page.product.id %}
+        {% else %}
+            {# this is for Shopware >= 6.4 #}
+            {% set productId = product.id %}
+        {% endif %}
+
+        <div class="row g-2 form-row mt-2 justify-content-end js-ideal-express-container">
+            <a href="{{ path('frontend.account.PaynlPayment.ideal-express.product.start-payment', {productId: productId, quantity: 1}) }}" data-product-id="{{ productId }}" class="btn btn-primary btn-block btn-buy w-100">
+                IDEAL EXPRESS
+            </a>
+        </div>
+    {% endblock %}
+
+{% endblock %}
+
+

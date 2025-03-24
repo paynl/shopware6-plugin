@@ -18,6 +18,8 @@ use PaynlPayment\Shopware6\Service\OrderService;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Product;
 use RuntimeException;
+use Shopware\Core\Checkout\Cart\Cart;
+use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
@@ -159,6 +161,35 @@ class ExpressCheckoutUtil
         $data->add(['tos' => true]);
 
         return $this->orderService->createOrder($data, $context);
+    }
+
+    public function addProduct(string $productId, int $quantity, SalesChannelContext $context): Cart
+    {
+        # if we already have a backup cart, then do NOT backup again.
+        # because this could backup our temp. apple pay cart
+        if (!$this->cartBackupService->isBackupExisting($context)) {
+            $this->cartBackupService->backupCart($context);
+        }
+
+        $cart = $this->cartService->getCalculatedMainCart($context);
+
+        # clear existing cart and also update it to save it
+        $cart->setLineItems(new LineItemCollection());
+        $this->cartService->updateCart($cart);
+
+        # add new product to cart
+        $this->cartService->addProduct($productId, $quantity, $context);
+
+        return $this->cartService->getCalculatedMainCart($context);
+    }
+
+    public function restoreCart(SalesChannelContext $context): void
+    {
+        if ($this->cartBackupService->isBackupExisting($context)) {
+            $this->cartBackupService->restoreCart($context);
+        }
+
+        $this->cartBackupService->clearBackup($context);
     }
 
     public function isNotCompletedOrder(string $orderId, Context $context): bool
