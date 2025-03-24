@@ -64,6 +64,26 @@ class IdealExpressControllerBase extends StorefrontController
         $this->flashBag = $flashBag;
     }
 
+    public function getProductStartPaymentResponse(SalesChannelContext $context, Request $request): Response
+    {
+        $productId = $request->get('productId');
+        $quantity = (int) $request ->get('quantity', '0');
+
+        if (empty($productId) || $quantity <= 0) {
+            $returnUrl = $this->getCheckoutConfirmPage($this->router);
+
+            if ($this->flashBag !== null) {
+                $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
+            }
+
+            return new RedirectResponse($returnUrl);
+        }
+
+        $this->expressCheckoutUtil->addProduct($productId, $quantity, $context);
+
+        return $this->getStartPaymentResponse($context, $request);
+    }
+
     public function getStartPaymentResponse(SalesChannelContext $context, Request $request): Response
     {
         try {
@@ -111,7 +131,7 @@ class IdealExpressControllerBase extends StorefrontController
             );
 
             return new RedirectResponse($redirectUrl);
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 
             if ($this->flashBag !== null) {
