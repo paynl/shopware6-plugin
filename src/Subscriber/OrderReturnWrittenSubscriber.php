@@ -2,10 +2,10 @@
 
 namespace PaynlPayment\Shopware6\Subscriber;
 
-use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\ValueObjects\Event\OrderReturnPayloadMapper;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Checkout\Order\Event\OrderStateMachineStateChangeEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityWriteResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Event\EntityWrittenEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -29,8 +29,16 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'order_return.written' => 'onOrderReturnWritten',
+            'order_return.written' => ['onOrderReturnWritten', 10],
+            'state_enter.order_return.state.done' => ['onOrderReturnFinished', 10],
         ];
+    }
+
+    public function onOrderReturnFinished(OrderStateMachineStateChangeEvent $event): void
+    {
+        $this->logger->info('Order return state done event', [
+            'orderNumber' => $event->getOrder()->getOrderNumber()
+        ]);
     }
 
     public function onOrderReturnWritten(EntityWrittenEvent $event): void

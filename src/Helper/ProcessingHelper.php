@@ -302,12 +302,21 @@ class ProcessingHelper
                 'amount' => $orderReturnPayload->getAmountTotal(),
             ]);
 
-            $this->paynlApi->refund(
-                $payTransaction->getPaynlTransactionId(),
-                $orderReturnPayload->getAmountTotal(),
-                $order->getSalesChannelId(),
-                (string) $orderReturnPayload->getInternalComment()
-            );
+            try {
+                $this->paynlApi->refund(
+                    $payTransaction->getPaynlTransactionId(),
+                    $orderReturnPayload->getAmountTotal(),
+                    $order->getSalesChannelId(),
+                    (string)$orderReturnPayload->getInternalComment()
+                );
+            } catch (Exception $exception) {
+                $this->paynlTransactionRepository->update([[
+                    'id' => $payTransaction->getPaynlTransactionId(),
+                    'exception' => sprintf('Order return: %s', (string) $exception)
+                ]], $context);
+
+                throw $exception;
+            }
 
             $this->refundActionUpdateTransactionByTransactionId($payTransaction->getPaynlTransactionId());
         } catch (Exception $exception) {
