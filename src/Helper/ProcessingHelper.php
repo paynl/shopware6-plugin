@@ -9,6 +9,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Enums\StateMachineStateEnum;
+use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepositoryInterface;
@@ -658,6 +659,7 @@ class ProcessingHelper
         return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
     }
 
+    /** @throws PaynlTransactionException */
     private function getPayTransactionEntityByOrderId(string $orderId): PaynlTransactionEntity
     {
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
@@ -666,7 +668,13 @@ class ProcessingHelper
         $criteria->addAssociation('orderTransaction.stateMachineState');
         $criteria->addAssociation('orderTransaction.order');
 
-        return $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
+        $payTransaction = $this->paynlTransactionRepository->search($criteria, Context::createDefaultContext())->first();
+
+        if (!($payTransaction instanceof PaynlTransactionEntity)) {
+            throw PaynlTransactionException::notFoundByOrderError($orderId);
+        }
+
+        return $payTransaction;
     }
 
     /**
