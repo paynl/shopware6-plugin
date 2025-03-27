@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\ValueObjects\Event;
 
 use PaynlPayment\Shopware6\ValueObjects\PAY\ArrayDataMapperInterface;
+use Shopware\Commercial\ReturnManagement\Entity\OrderReturn\OrderReturnEntity;
 
 class OrderReturnPayloadMapper implements ArrayDataMapperInterface
 {
@@ -34,6 +35,24 @@ class OrderReturnPayloadMapper implements ArrayDataMapperInterface
             $this->getArrayItemOrNull($data, self::INTERNAL_COMMENT) ? (string) $this->getArrayItemOrNull($data, self::INTERNAL_COMMENT) : null,
         );
     }
+
+    /** @param OrderReturnEntity $orderReturn */
+    public function mapOrderReturnEntity($orderReturn): OrderReturnWrittenPayload
+    {
+        return new OrderReturnWrittenPayload(
+            $orderReturn->getId(),
+            $orderReturn->getOrderId(),
+            $orderReturn->getStateId(),
+            $orderReturn->getAmountTotal(),
+            $orderReturn->getAmountNet(),
+            $orderReturn->getCreatedById(),
+            $orderReturn->getCreatedAt(),
+            $orderReturn->getReturnNumber(),
+            $orderReturn->getRequestedAt(),
+            $orderReturn->getInternalComment(),
+        );
+    }
+
 
     private function getArrayItemOrNull(array $data, string $key)
     {
