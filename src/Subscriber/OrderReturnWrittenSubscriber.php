@@ -8,6 +8,7 @@ use PaynlPayment\Shopware6\ValueObjects\Event\OrderReturnPayloadMapper;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Event\OrderStateMachineStateChangeEvent;
 use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityWriteResult;
@@ -86,15 +87,11 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
             'event' => $event,
         ]);
 
+        if (!$this->shouldProcessEvent($event)) {
+            return;
+        }
+
         $writeResults = $event->getWriteResults();
-
-        if (empty($writeResults)) {
-            return;
-        }
-
-        if ($writeResults[0]->getOperation() !== EntityWriteResult::OPERATION_INSERT) {
-            return;
-        }
 
         $this->logger->info('Order return: getting payload', [
             'payload' => $writeResults[0]->getPayload(),
@@ -128,5 +125,26 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
         /** @var OrderReturnEntity $orderReturn */
         $orderReturn = $orderReturnSearchResult->first();
         return $orderReturn;
+    }
+
+    private function shouldProcessEvent(EntityWrittenEvent $event): bool
+    {
+        $contextSource = $event->getContext()->getSource();
+
+        if (!($contextSource instanceof AdminApiSource)) {
+            return false;
+        }
+
+        if (!$contextSource->getIntegrationId()) {
+            return false;
+        }
+
+        $writeResults = $event->getWriteResults();
+
+        if (empty($writeResults)) {
+            return false;
+        }
+
+        return $writeResults[0]->getOperation() === EntityWriteResult::OPERATION_INSERT;
     }
 }

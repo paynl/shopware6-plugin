@@ -2,7 +2,6 @@
 
 namespace PaynlPayment\Shopware6\Helper;
 
-use DateTimeImmutable;
 use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
@@ -263,7 +262,7 @@ class ProcessingHelper
             }
 
             $orderReturnState = $this->stateMachineStateRepository->findByStateId($orderReturnPayload->getStateId(), $context);
-            if (!$orderReturnState || $orderReturnState->getTechnicalName() !== StateMachineStateEnum::STATE_COMPLETED) {
+            if (!$orderReturnState || in_array($orderReturnState->getTechnicalName(), [StateMachineStateEnum::STATE_COMPLETED, StateMachineStateEnum::STATE_DONE])) {
                 $this->logger->error('Order return: order return state does not match DONE', [
                     'stateTechnicalName' => $orderReturnState ? $orderReturnState->getTechnicalName() : null,
                 ]);
@@ -279,23 +278,6 @@ class ProcessingHelper
                 ]);
 
                 return;
-            }
-
-            if ($orderReturnPayload->getCreatedAt()) {
-                $currentDateTime = new DateTimeImmutable();
-
-                // the fix to prevent the event running when customer opens the Order page
-                if (abs($currentDateTime->getTimestamp() - $orderReturnPayload->getCreatedAt()->getTimestamp()) > 2) {
-                    $this->logger->warning('Order return: PAY transaction is refunded already', [
-                        'currentDateTime' => $currentDateTime->format('Y-m-d H:i:s'),
-                        'createdAt' => $orderReturnPayload->getCreatedAt()->format('Y-m-d H:i:s'),
-                        'payTransactionId' => $payTransaction->getPaynlTransactionId(),
-                        'payTransactionStateId' => $payTransaction->getStateId(),
-                        'orderNumber' => $order->getOrderNumber(),
-                    ]);
-
-                    return;
-                }
             }
 
             $this->logger->info('Order return: starting refunding PAY. transaction ' . $payTransaction->getPaynlTransactionId(), [
