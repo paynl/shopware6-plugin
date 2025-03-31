@@ -262,7 +262,7 @@ class ProcessingHelper
             }
 
             $orderReturnState = $this->stateMachineStateRepository->findByStateId($orderReturnPayload->getStateId(), $context);
-            if (!$orderReturnState || in_array($orderReturnState->getTechnicalName(), [StateMachineStateEnum::STATE_COMPLETED, StateMachineStateEnum::STATE_DONE])) {
+            if (!$orderReturnState || !in_array($orderReturnState->getTechnicalName(), [StateMachineStateEnum::STATE_COMPLETED, StateMachineStateEnum::STATE_DONE])) {
                 $this->logger->error('Order return: order return state does not match DONE', [
                     'stateTechnicalName' => $orderReturnState ? $orderReturnState->getTechnicalName() : null,
                 ]);
