@@ -20,6 +20,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class OrderReturnWrittenSubscriber implements EventSubscriberInterface
 {
+    private const EVENT_PRIORITY = 10;
+
     private LoggerInterface $logger;
     private Config $config;
     private ProcessingHelper $processingHelper;
@@ -46,8 +48,8 @@ class OrderReturnWrittenSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'order_return.written' => ['onOrderReturnWritten', 10],
-            'state_enter.order_return.state.done' => ['onOrderReturnFinished', 10],
+            'order_return.written' => ['onOrderReturnWritten', self::EVENT_PRIORITY],
+            'state_enter.order_return.state.done' => ['onOrderReturnFinished', self::EVENT_PRIORITY],
         ];
     }
 
