@@ -4,7 +4,7 @@
     <template #smart-bar-header>
         <h2>
             {{ $tc('sw-settings.index.title') }}
-            <sw-icon name="small-arrow-medium-right" small></sw-icon>
+            <mt-icon name="regular-chevron-right-xs" />
             {{ $tc('paynlSettings.general.title') }}
         </h2>
     </template>
@@ -15,11 +15,11 @@
         {% block paynl_payment_settings_actions_save %}
         <sw-button-process
                 class="sw-settings-login-registration__save-action"
-                :isLoading="isLoading"
-                :processSuccess="isSaveSuccessful"
+                :is-loading="isLoading"
+                :process-success="isSaveSuccessful"
                 :disabled="isDisabled"
                 variant="primary"
-                @process-finish="saveFinish"
+                @update:process-success="saveFinish"
                 @click="onSave">
             {{ $tc('paynlSettings.settingsForm.save') }}
         </sw-button-process>
@@ -41,8 +41,8 @@
                 <template #beforeElements="{card, config}">
                     <div v-if="isCollapsible(card)" class="paynl-config__collapsible-container" v-bind:class="{'collapsed': isCollapsed(card)}" >
                         <a class="paynl-config__collapsible-handle" @click="toggleCollapsible(card)">
-                            <sw-icon small v-if="isCollapsed(card)" name="regular-chevron-down-xxs" class="paynl-config__collapsible-handle-open"></sw-icon>
-                            <sw-icon small v-if="!isCollapsed(card)" name="regular-chevron-up-xxs" class="paynl-config__collapsible-handle-close"></sw-icon>
+                            <mt-icon v-if="isCollapsed(card)" name="regular-chevron-down-xxs" class="paynl-config__collapsible-handle-open"></mt-icon>
+                            <mt-icon v-if="!isCollapsed(card)" name="regular-chevron-up-xxs" class="paynl-config__collapsible-handle-close"></mt-icon>
                         </a>
                     </div>
                 </template>
