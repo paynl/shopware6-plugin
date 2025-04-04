@@ -17,6 +17,7 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEnti
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Defaults;
+use Shopware\Core\Framework\App\AppException;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -24,7 +25,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\RangeFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateCollection;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateEntity;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
@@ -76,13 +76,13 @@ class ProcessingHelper
     public function storePaynlTransactionData(
         OrderEntity $order,
         OrderTransactionEntity $orderTransaction,
-        SalesChannelContext $salesChannelContext,
         string $paynlTransactionId,
+        Context $context,
         ?Throwable $exception = null
     ): void {
-        $paymentId = $this->paynlApi->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
+        $paymentId = $this->paynlApi->getPaynlPaymentMethodIdFromShopware($orderTransaction);
         /** @var CustomerEntity $customer */
-        $customer = $salesChannelContext->getCustomer();
+        $customer = $order->getOrderCustomer()->getCustomer();
         $transactionData = [
             'paynlTransactionId' => $paynlTransactionId,
             'customerId' => $customer->getId(),
@@ -91,13 +91,13 @@ class ProcessingHelper
             'paymentId' => $paymentId,
             'amount' => $order->getAmountTotal(),
             'latestActionName' => StateMachineTransitionActions::ACTION_REOPEN,
-            'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
+            'currency' => $order->getCurrency()->getIsoCode(),
             'orderStateId' => $order->getStateId(),
             // TODO: check sComment from shopware5 plugin
-            'dispatch' => $salesChannelContext->getShippingMethod()->getId(),
+            'dispatch' => $order->getDeliveries()->first()->getShippingMethodId(),
             'exception' => (string)$exception,
         ];
-        $this->paynlTransactionRepository->create([$transactionData], $salesChannelContext->getContext());
+        $this->paynlTransactionRepository->create([$transactionData], $context);
     }
 
     public function getPaynlApiTransaction(string $transactionId, string $salesChannelId): ResultTransaction
@@ -337,6 +337,38 @@ class ProcessingHelper
             $salesChannelId,
             Context::createDefaultContext()
         );
+    }
+
+    public function getOrderTransaction(string $orderTransactionId, Context $context): ?OrderTransactionEntity
+    {
+        $criteria = new Criteria([$orderTransactionId]);
+        $criteria->addAssociation('order.orderCustomer.customer');
+        $criteria->addAssociation('order.orderCustomer.customer.salutation');
+        $criteria->addAssociation('order.orderCustomer.customer.defaultBillingAddress');
+        $criteria->addAssociation('order.orderCustomer.customer.defaultBillingAddress.country');
+        $criteria->addAssociation('order.orderCustomer.customer.defaultShippingAddress');
+        $criteria->addAssociation('order.orderCustomer.customer.defaultShippingAddress.country');
+        $criteria->addAssociation('order.orderCustomer.salutation');
+        $criteria->addAssociation('order.language');
+        $criteria->addAssociation('order.currency');
+        $criteria->addAssociation('order.salesChannel');
+        $criteria->addAssociation('order.deliveries.shippingOrderAddress.country');
+        $criteria->addAssociation('order.billingAddress.country');
+        $criteria->addAssociation('order.lineItems');
+        $criteria->addAssociation('order.transactions.stateMachineState');
+        $criteria->addAssociation('order.transactions.paymentMethod.appPaymentMethod.app');
+        $criteria->addAssociation('stateMachineState');
+        $criteria->addAssociation('paymentMethod.appPaymentMethod.app');
+        $criteria->getAssociation('order.transactions')->addSorting(new FieldSorting('createdAt'));
+        $criteria->addSorting(new FieldSorting('createdAt'));
+
+        $orderTransaction = $this->orderTransactionRepository->search($criteria, $context)->getEntities()->first();
+
+        if (!$orderTransaction) {
+            throw AppException::invalidTransaction($orderTransactionId);
+        }
+
+        return $orderTransaction;
     }
 
     /**

@@ -130,17 +130,17 @@ class Api
     public function startTransaction(
         OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
-        SalesChannelContext $salesChannelContext,
+        Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
             $orderTransaction,
             $order,
-            $salesChannelContext,
+            $context,
             $additionalTransactionInfo
         );
 
-        $this->setCredentials($salesChannelContext->getSalesChannel()->getId(), true);
+        $this->setCredentials($order->getSalesChannel()->getId(), true);
 
         return Transaction::start($transactionInitialData);
     }
@@ -159,25 +159,17 @@ class Api
         return Transaction::get($transactionId);
     }
 
-    /**
-     * @param OrderTransactionEntity $orderTransaction
-     * @param OrderEntity $order
-     * @param SalesChannelContext $salesChannelContext
-     * @param AdditionalTransactionInfo $additionalTransactionInfo
-     * @return array
-     * @throws PaynlPaymentException
-     */
+    /** @throws PaynlPaymentException */
     private function getTransactionInitialData(
         OrderTransactionEntity $orderTransaction,
         OrderEntity $order,
-        SalesChannelContext $salesChannelContext,
+        Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): array {
-        $shopwarePaymentMethodId = $orderTransaction->getPaymentMethod()->getId();
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
+        $salesChannelId = $order->getSalesChannelId();
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($orderTransaction);
         $amount = $order->getAmountTotal();
-        $currency = $salesChannelContext->getCurrency()->getIsoCode();
+        $currency = $order->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
         $orderNumber = $order->getOrderNumber();
         $transactionInitialData = [
@@ -198,7 +190,7 @@ class Api
             'exchangeUrl' => $additionalTransactionInfo->getExchangeUrl(),
 
             // Products
-            'products' => $this->getOrderProducts($order, $salesChannelContext->getContext()),
+            'products' => $this->getOrderProducts($order, $context),
             'object' => sprintf(
                 'Shopware v%s %s',
                 $additionalTransactionInfo->getShopwareVersion(),
@@ -206,7 +198,7 @@ class Api
             ),
         ];
 
-        $customer = $salesChannelContext->getCustomer();
+        $customer = $orderTransaction->getOrder()->getOrderCustomer()->getCustomer();
 
         if ($paynlPaymentMethodId === PaynlPaymentMethodsIdsEnum::PIN_PAYMENT) {
             $transactionInitialData['bank'] = $additionalTransactionInfo->getTerminalId();
@@ -254,14 +246,14 @@ class Api
     }
 
     /** @throws PaynlPaymentException */
-    public function getPaynlPaymentMethodIdFromShopware(SalesChannelContext $salesChannelContext): int
+    public function getPaynlPaymentMethodIdFromShopware(OrderTransactionEntity $orderTransaction): int
     {
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $salesChannelId = $orderTransaction->getOrder()->getSalesChannelId();
         if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             return 0;
         }
 
-        $paymentMethodTranslated = $salesChannelContext->getPaymentMethod()->getTranslated();
+        $paymentMethodTranslated = $orderTransaction->getPaymentMethod()->getTranslated();
         if (!isset($paymentMethodTranslated['customFields'])
             || !$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID]
         ) {
