@@ -342,6 +342,7 @@ class ProcessingHelper
     public function getOrderTransaction(string $orderTransactionId, Context $context): ?OrderTransactionEntity
     {
         $criteria = new Criteria([$orderTransactionId]);
+        $criteria->addAssociation('order');
         $criteria->addAssociation('order.orderCustomer.customer');
         $criteria->addAssociation('order.orderCustomer.customer.salutation');
         $criteria->addAssociation('order.orderCustomer.customer.defaultBillingAddress');
