@@ -129,18 +129,16 @@ class Api
 
     public function startTransaction(
         OrderTransactionEntity $orderTransaction,
-        OrderEntity $order,
         Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): Start {
         $transactionInitialData = $this->getTransactionInitialData(
             $orderTransaction,
-            $order,
             $context,
             $additionalTransactionInfo
         );
 
-        $this->setCredentials($order->getSalesChannel()->getId(), true);
+        $this->setCredentials($orderTransaction->getOrder()->getSalesChannel()->getId(), true);
 
         return Transaction::start($transactionInitialData);
     }
@@ -162,10 +160,10 @@ class Api
     /** @throws PaynlPaymentException */
     private function getTransactionInitialData(
         OrderTransactionEntity $orderTransaction,
-        OrderEntity $order,
         Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): array {
+        $order = $orderTransaction->getOrder();
         $salesChannelId = $order->getSalesChannelId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($orderTransaction);
         $amount = $order->getAmountTotal();

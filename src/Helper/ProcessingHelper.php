@@ -74,12 +74,12 @@ class ProcessingHelper
     }
 
     public function storePaynlTransactionData(
-        OrderEntity $order,
         OrderTransactionEntity $orderTransaction,
         string $paynlTransactionId,
         Context $context,
         ?Throwable $exception = null
     ): void {
+        $order = $orderTransaction->getOrder();
         $paymentId = $this->paynlApi->getPaynlPaymentMethodIdFromShopware($orderTransaction);
         /** @var CustomerEntity $customer */
         $customer = $order->getOrderCustomer()->getCustomer();

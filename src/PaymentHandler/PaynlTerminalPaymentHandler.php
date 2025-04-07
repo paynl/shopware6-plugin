@@ -21,21 +21,23 @@ use PaynlPayment\Shopware6\Helper\SettingsHelper;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
-use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
-use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
-use Shopware\Core\Checkout\Payment\Exception\SyncPaymentProcessException;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
+use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AbstractPaymentHandler;
+use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\PaymentHandlerType;
+use Shopware\Core\Checkout\Payment\Cart\PaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\PaymentException;
-use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\Struct\Struct;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
+class PaynlTerminalPaymentHandler extends AbstractPaymentHandler
 {
     const TERMINAL = 'terminal';
     const HASH = 'hash';
@@ -103,50 +105,50 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->shopwareVersion = $shopwareVersion;
     }
 
-    /**
-     * @param SyncPaymentTransactionStruct $transaction
-     * @param RequestDataBag $dataBag
-     * @param SalesChannelContext $salesChannelContext
-     * @return void
-     * @throws Throwable
-     */
+
+    public function supports(PaymentHandlerType $type, string $paymentMethodId, Context $context): bool
+    {
+        return false;
+    }
+
     public function pay(
-        SyncPaymentTransactionStruct $transaction,
-        RequestDataBag $dataBag,
-        SalesChannelContext $salesChannelContext
-    ): void {
-        $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
-        $paymentMethodName = $paymentMethod ? $paymentMethod->getName() : '';
+        Request $request,
+        PaymentTransactionStruct $transaction,
+        Context $context,
+        ?Struct $validateStruct
+    ): ?RedirectResponse {
+        $orderTransaction = $this->processingHelper->getOrderTransaction($transaction->getOrderTransactionId(), $context);
+        $paymentMethod = $orderTransaction->getPaymentMethod();
+        $paymentMethodName = (string) $paymentMethod?->getName();
 
         $this->logger->info(
-            'Starting order ' . $transaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,
+            'Starting order ' . $orderTransaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,
             [
-                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'salesChannel' => $orderTransaction->getOrder()->getSalesChannel()->getName(),
                 'cart' => [
-                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                    'amount' => $orderTransaction->getOrder()->getAmountTotal(),
                 ],
             ]
         );
 
         try {
             $requestData = $this->fetchRequestData();
-            $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-            $paymentMethod = $transaction->getOrderTransaction()->getPaymentMethod();
+            $salesChannelId = $orderTransaction->getOrder()->getSalesChannel()->getId();
             $terminal = $this->getRequestTerminal($requestData, $salesChannelId);
             if (empty($terminal) || $paymentMethod === null) {
-                return;
+                return null;
             }
 
-            $this->saveUsedTerminal($paymentMethod, $terminal, $salesChannelContext, $salesChannelId);
+            $this->saveUsedTerminal($orderTransaction, $terminal, $context);
 
-            $paynlTransaction = $this->startTransaction($transaction, $salesChannelContext, $terminal);
+            $paynlTransaction = $this->startTransaction($orderTransaction, $terminal, $context);
             $paynlTransactionId = $paynlTransaction->getTransactionId();
             $paynlTransactionData = $paynlTransaction->getData();
 
             $this->logger->info('PAY. terminal transaction was successfully created: ' . $paynlTransactionId);
 
             $hash = (string)($paynlTransactionData[self::TERMINAL][self::HASH] ?? '');
-            $this->processTerminalState($transaction, $paynlTransactionId, $hash);
+            $this->processTerminalState($orderTransaction, $paynlTransactionId, $hash);
 
         } catch (Exception $e) {
             $this->logger->error(
@@ -156,36 +158,23 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
                 ]
             );
 
-            if (class_exists('Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException')) {
-                throw new SyncPaymentProcessException(
-                    $transaction->getOrderTransaction()->getId(),
-                    'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
-                );
-            }
-
             /** @phpstan-ignore-next-line */
             throw PaymentException::syncProcessInterrupted(
-                $transaction->getOrderTransaction()->getId(),
+                $orderTransaction->getId(),
                 'An error occurred during the communication with external payment gateway' . PHP_EOL . $e->getMessage()
             );
         }
+
+        return null;
     }
 
-    /**
-     * @param SyncPaymentTransactionStruct $transaction
-     * @param SalesChannelContext $salesChannelContext
-     * @param string $terminalId
-     * @return Start
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     private function startTransaction(
-        SyncPaymentTransactionStruct $transaction,
-        SalesChannelContext $salesChannelContext,
-        string $terminalId
+        OrderTransactionEntity $orderTransaction,
+        string $terminalId,
+        Context $context
     ): Start {
         $paynlTransactionId = '';
-        $order = $transaction->getOrder();
-        $orderTransaction = $transaction->getOrderTransaction();
 
         $returnUrl = $this->router->generate(
             'frontend.PaynlPayment.notify',
@@ -204,9 +193,9 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         $this->logger->info(
             'Starting terminal transaction with terminalId ' . $terminalId,
             [
-                'salesChannel' => $salesChannelContext->getSalesChannel()->getName(),
+                'salesChannel' => $orderTransaction->getOrder()->getSalesChannel()->getName(),
                 'cart' => [
-                    'amount' => $transaction->getOrder()->getAmountTotal(),
+                    'amount' => $orderTransaction->getOrder()->getAmountTotal(),
                 ],
             ]
         );
@@ -214,8 +203,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         try {
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $orderTransaction,
-                $order,
-                $salesChannelContext,
+                $context,
                 $additionalTransactionInfo
             );
 
@@ -226,32 +214,25 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
             ]);
 
             $this->processingHelper->storePaynlTransactionData(
-                $order,
                 $orderTransaction,
-                $salesChannelContext,
                 $paynlTransactionId,
+                $context,
                 $exception
             );
             throw $exception;
         }
 
         $this->processingHelper->storePaynlTransactionData(
-            $order,
             $orderTransaction,
-            $salesChannelContext,
-            $paynlTransactionId
+            $paynlTransactionId,
+            $context
         );
 
         return $paynlTransaction;
     }
 
-    /**
-     * @param SyncPaymentTransactionStruct $transaction
-     * @param string $paynlTransactionId
-     * @param string $instoreHash
-     */
     private function processTerminalState(
-        SyncPaymentTransactionStruct $transaction,
+        OrderTransactionEntity $orderTransaction,
         string $paynlTransactionId,
         string $instoreHash
     ): void {
@@ -267,7 +248,7 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
 
             switch ($status->getTransactionState()) {
                 case PaynlInstoreTransactionStatusesEnum::APPROVED:
-                    $this->saveTransactionReceiptApprovalId($transaction->getOrderTransaction()->getId(), $instoreHash);
+                    $this->saveTransactionReceiptApprovalId($orderTransaction->getId(), $instoreHash);
 
                     $this->processingHelper->instorePaymentUpdateState(
                         $paynlTransactionId,
@@ -327,29 +308,20 @@ class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
         ]], Context::createDefaultContext());
     }
 
-    /**
-     * @param PaymentMethodEntity $paymentMethod
-     * @param string $terminalId
-     * @param SalesChannelContext $salesChannelContext
-     * @param string $salesChannelId
-     * @return void
-     */
     private function saveUsedTerminal(
-        PaymentMethodEntity $paymentMethod,
+        OrderTransactionEntity $orderTransaction,
         string $terminalId,
-        SalesChannelContext $salesChannelContext,
-        string $salesChannelId
+        Context $context
     ): void {
-        $configTerminal = $this->config->getPaymentPinTerminal($salesChannelId);
-        $customer = $salesChannelContext->getCustomer();
-        $context = $salesChannelContext->getContext();
+        $configTerminal = $this->config->getPaymentPinTerminal($orderTransaction->getOrder()->getSalesChannelId());
+        $customer = $orderTransaction->getOrder()->getOrderCustomer()->getCustomer();
 
         if ($customer === null) {
             return;
         }
 
         if (SettingsHelper::TERMINAL_CHECKOUT_SAVE_OPTION === $configTerminal) {
-            $this->customerHelper->savePaynlInstoreTerminal($customer, $paymentMethod->getId(), $terminalId, $context);
+            $this->customerHelper->savePaynlInstoreTerminal($customer, $orderTransaction->getPaymentMethod()->getId(), $terminalId, $context);
 
             setcookie(self::COOKIE_PAYNL_PIN_TERMINAL_ID, $terminalId, time() + self::ONE_YEAR_IN_SEC); //NOSONAR
         }

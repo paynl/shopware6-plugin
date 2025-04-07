@@ -174,7 +174,6 @@ class PaynlPaymentHandler extends AbstractPaymentHandler
 
             $paynlTransaction = $this->paynlApi->startTransaction(
                 $orderTransaction,
-                $order,
                 $context,
                 $additionalTransactionInfo
             );
@@ -188,7 +187,6 @@ class PaynlPaymentHandler extends AbstractPaymentHandler
             ]);
 
             $this->processingHelper->storePaynlTransactionData(
-                $order,
                 $orderTransaction,
                 $paynlTransactionId,
                 $context,
@@ -198,7 +196,6 @@ class PaynlPaymentHandler extends AbstractPaymentHandler
         }
 
         $this->processingHelper->storePaynlTransactionData(
-            $order,
             $orderTransaction,
             $paynlTransactionId,
             $context
