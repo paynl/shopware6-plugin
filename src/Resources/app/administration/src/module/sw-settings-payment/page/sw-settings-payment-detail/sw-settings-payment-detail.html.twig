@@ -85,14 +85,14 @@
         <template v-if="!isLoading">
             <sw-container columns="3fr 1fr" gap="0px 30px">
                 {% block paynl_payment_surcharge_settings_payment_detail_content_field_type %}
-                    <sw-select-field
-                        v-model:value="paymentSurcharge.type"
+                    <mt-select
+                        v-model="paymentSurcharge.type"
                         validation="required"
                         required
                         :label="$tc('paymentSurchargeSettings.labelType')"
-                        :disabled="isLoading">
-                        <option v-for="option in surchargeTypes" :key="option.value" :value="option.value">{{ option.label }}</option>
-                    </sw-select-field>
+                        :disabled="isLoading"
+                        :options="surchargeTypes"
+                    />
                 {% endblock %}
                 {% block paynl_payment_surcharge_settings_payment_detail_content_field_amount %}
                     <sw-number-field
