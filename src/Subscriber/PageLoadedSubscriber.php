@@ -6,8 +6,10 @@ use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaymentSurchargeEntity;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\Enums\StorefrontSubscriberEnum;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService;
+use PaynlPayment\Shopware6\ValueObjects\CustomPageDataValueObject;
 use Shopware\Core\Checkout\Cart\AbstractCartPersister;
 use Shopware\Core\Checkout\Cart\Exception\CartTokenNotFoundException;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
@@ -20,37 +22,38 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelEntityLoadedEvent;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
+use Shopware\Storefront\Page\Account\Profile\AccountProfilePageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Finish\CheckoutFinishPageLoadedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PageLoadedSubscriber implements EventSubscriberInterface
 {
-    /**
-     * @var Config
-     */
-    private $config;
+    protected Config $config;
+    protected PaymentMethodSurchargeService $surchargeService;
+    protected SystemConfigService $systemConfigService;
+    protected AbstractCartPersister $cartPersister;
+    protected PaynlTransactionsRepositoryInterface $paynlTransactionRepository;
 
-    /** @var PaymentMethodSurchargeService */
-    protected $surchargeService;
-
-    /** @var AbstractCartPersister */
-    protected $cartPersister;
-    /** @var PaynlTransactionEntity */
-    private $paynlTransactionRepository;
+    private string $shopwareVersion;
 
     public function __construct(
         Config $config,
         PaymentMethodSurchargeService $surchargeService,
+        SystemConfigService $systemConfigService,
         AbstractCartPersister $cartPersister,
-        PaynlTransactionsRepositoryInterface $paynlTransactionRepository
+        PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
+        string $shopwareVersion
     ) {
         $this->config = $config;
         $this->surchargeService = $surchargeService;
+        $this->systemConfigService = $systemConfigService;
         $this->cartPersister = $cartPersister;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->shopwareVersion = $shopwareVersion;
     }
 
     public static function getSubscribedEvents(): array
@@ -58,6 +61,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         return [
             CheckoutConfirmPageLoadedEvent::class => 'onCheckoutConfirmPageLoaded',
             AccountEditOrderPageLoadedEvent::class => 'onAccountOrderEditPageLoaded',
+            AccountProfilePageLoadedEvent::class => 'onAccountProfilePageLoaded',
             AccountPaymentMethodPageLoadedEvent::class => 'onAccountPaymentMethodPageLoaded',
             CheckoutFinishPageLoadedEvent::class => 'onCheckoutFinishedPageLoaded',
             'sales_channel.payment_method.loaded' => 'onPaymentMethodsLoaded',
@@ -71,6 +75,11 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         $checkoutConfirmPageLoadedEvent->getPage()->assign([
             'showDescription' => $this->config->getShowDescription($salesChannelId)
         ]);
+
+        $configs = $this->systemConfigService->all($salesChannelId);
+        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
+
+        $checkoutConfirmPageLoadedEvent->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
 
         // Payment surcharging
         if ($this->config->isSurchargePaymentMethods($salesChannelId)) {
@@ -215,6 +224,14 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 )
             );
         }
+    }
+
+    public function onAccountProfilePageLoaded(AccountProfilePageLoadedEvent $event): void
+    {
+        $configs = $this->systemConfigService->all($event->getSalesChannelContext()->getSalesChannelId());
+        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
+
+        $event->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
     }
 
     private function addPaynlTransactionStatus(CheckoutFinishPageLoadedEvent $event): void

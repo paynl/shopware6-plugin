@@ -150,12 +150,6 @@
         </service>
 
         <!--Services-->
-        <service id="PaynlPayment\Shopware6\Service\AddDataToPage" >
-            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-            <argument>%kernel.shopware_version%</argument>
-            <tag name="kernel.event_subscriber" />
-        </service>
-
         <service id="PaynlPayment\Shopware6\Service\PaymentMethodCustomFields" >
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
@@ -324,8 +318,10 @@
         <service id="PaynlPayment\Shopware6\Subscriber\PageLoadedSubscriber" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="Shopware\Core\Checkout\Cart\CartPersister"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <argument>%kernel.shopware_version%</argument>
 
             <tag name="kernel.event_subscriber"/>
         </service>
