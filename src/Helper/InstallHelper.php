@@ -392,7 +392,7 @@ class InstallHelper
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => $paymentMethodHandler,
-            'technicalName' => $paymentMethodValueObject->getName(),
+            'technicalName' => $paymentMethodValueObject->getTechnicalName(),
             'name' => $paymentMethodValueObject->getVisibleName(),
             'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
