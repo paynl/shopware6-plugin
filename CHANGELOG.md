@@ -1,3 +1,5 @@
+# 1.7.0
+
 # 1.6.8
 - Fixed storefront scripts for Shopware 6.6 related to express checkout
 

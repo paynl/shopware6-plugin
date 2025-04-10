@@ -1,3 +1,5 @@
+# 1.7.0
+
 # 1.6.8
 - Storefront scripts für Shopware 6.6 im Zusammenhang mit der Express-Kasse behoben
 
