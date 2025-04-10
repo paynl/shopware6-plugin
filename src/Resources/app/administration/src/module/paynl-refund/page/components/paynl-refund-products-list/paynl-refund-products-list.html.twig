@@ -30,7 +30,7 @@
                     </td>
                     <td class="sw-data-grid__cell sw-data-grid__cell--selection">
                         <div class="sw-data-grid__cell-content">
-                            <sw-checkbox-field @update:value="onRestockAllChange" v-model="restockAll" @change="onRestockAllChange"></sw-checkbox-field>
+                            <mt-checkbox @update:value="onRestockAllChange" v-model:checked="restockAll" @change="onRestockAllChange" />
                         </div>
                     </td>
                 </tr>

@@ -13,9 +13,9 @@ Component.register('paynl-refund-single-order-product', {
         }
     },
 
-    computed: {
-        productQuantity() {
-            return this.product.price.quantity + '';
+    data() {
+        return {
+            productQuantity: this.product.price.quantity + 0,
         }
     },
 
@@ -28,8 +28,8 @@ Component.register('paynl-refund-single-order-product', {
             let options = [];
             for (let i = 0; i <= this.product.price.quantity; i++) {
                 options.push({
-                    "id": i,
-                    "name": "" + i
+                    "value": i,
+                    "label": "" + i
                 });
             }
 
