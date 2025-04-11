@@ -1,10 +1,10 @@
 <sw-container gap="16px" columns="1fr 1fr">
     <sw-button-group split-button>
-        <mt-button @click="onTestCredentials" variant="secondary" size="default" ghost ref="testCredentialsButton" :isLoading="testCredentialsIsLoading">
+        <sw-button @click="onTestCredentials" ref="testCredentialsButton" :isLoading="testCredentialsIsLoading" variant="secondary" size="default" ghost>
             {{ $tc('paynlSettings.settingsForm.testApiKeys') }}
-        </mt-button>
-        <mt-button @click="onInstallPaymentMethods" variant="secondary" size="default" ghost ref="installPaymentsButton" :isLoading="installPaymentMethodsIsLoading">
+        </sw-button>
+        <sw-button @click="onInstallPaymentMethods" ref="installPaymentsButton" :isLoading="installPaymentMethodsIsLoading" variant="secondary" size="default" ghost>
             {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
-        </mt-button>
+        </sw-button>
     </sw-button-group>
 </sw-container>
