@@ -1,10 +1,11 @@
 import template from './sw-settings-payment-detail.html.twig'
+import VersionCompare from './../../../../util/version-compare.util'
 
 const IDEAL_PAYMENT_ID = 10;
 const PAYPAL_PAYMENT_ID = 138;
 const PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED = 'PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled';
 
-const { Component } = Shopware
+const { Component, Context } = Shopware
 const { Criteria } = Shopware.Data
 
 Component.override('sw-settings-payment-detail', {
@@ -48,7 +49,8 @@ Component.override('sw-settings-payment-detail', {
                         'paymentSurchargeSettings.type.percentageOptionLabel'
                     )
                 }
-            ]
+            ],
+            versionCompare: null,
         }
     },
 
@@ -58,7 +60,10 @@ Component.override('sw-settings-payment-detail', {
         },
         paymentMethodRepository() {
             return this.repositoryFactory.create('payment_method');
-        }
+        },
+        shopwareVersion() {
+            return this.versionCompare.getHumanReadableVersion(Context.app.config.version);
+        },
     },
 
     methods: {
