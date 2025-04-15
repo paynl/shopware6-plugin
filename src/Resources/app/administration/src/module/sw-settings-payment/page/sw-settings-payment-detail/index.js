@@ -29,6 +29,10 @@ Component.override('sw-settings-payment-detail', {
         }
     },
 
+    created() {
+        this.versionCompare = new VersionCompare();
+    },
+
     data() {
         return {
             config: {},
@@ -61,8 +65,8 @@ Component.override('sw-settings-payment-detail', {
         paymentMethodRepository() {
             return this.repositoryFactory.create('payment_method');
         },
-        shopwareVersion() {
-            return this.versionCompare.getHumanReadableVersion(Context.app.config.version);
+        isShopware67() {
+            return this.versionCompare.isGreaterOrEqual(Context.app.config.version, '6.7')
         },
     },
 
