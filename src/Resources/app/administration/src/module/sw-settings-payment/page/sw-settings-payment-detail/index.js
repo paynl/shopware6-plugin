@@ -66,7 +66,7 @@ Component.override('sw-settings-payment-detail', {
             return this.repositoryFactory.create('payment_method');
         },
         isShopware67() {
-            return this.versionCompare.isGreaterOrEqual(Context.app.config.version, '6.7')
+            return this.versionCompare.isGreaterOrEqual(Context.app.config.version, '6.7');
         },
     },
 
