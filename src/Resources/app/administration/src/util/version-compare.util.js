@@ -1,4 +1,4 @@
-export default class VersionComparator {
+export default class VersionCompare {
     isEqual(a, b) {
         return this._compareVersions(a, b, '==');
     }

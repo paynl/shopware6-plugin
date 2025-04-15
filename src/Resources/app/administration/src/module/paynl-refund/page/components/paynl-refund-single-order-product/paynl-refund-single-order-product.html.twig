@@ -10,12 +10,15 @@
     </td>
     <td class="sw-data-grid__cell sw-data-grid__cell--paynlTransactionId sw-data-grid__cell--align-left">
         <div class="sw-data-grid__cell-content">
-            <mt-select v-model="productQuantity" :options="getProductQuantitySelect()" @update:model-value="onProductRefundQuantityChange" @change="onProductRefundQuantityChange" style="margin-bottom: 0 !important;" />
+            <mt-select v-if="isShopware67" v-model="productQuantity" :options="getProductQuantitySelect()" @update:model-value="onProductRefundQuantityChange" @change="onProductRefundQuantityChange" style="margin-bottom: 0 !important;" />
+            <sw-select-field v-else v-model:value="productQuantity" @update:value="onProductRefundQuantityChange" @change="onProductRefundQuantityChange">
+                <option v-for="option in getProductQuantitySelect()" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </sw-select-field>
         </div>
     </td>
     <td class="sw-data-grid__cell sw-data-grid__cell--selection">
         <div class="sw-data-grid__cell-content">
-            <mt-checkbox v-model:checked="product.rstk" @update:value="onRestockChange" @change="onRestockChange" />
+            <sw-checkbox-field v-model="product.rstk" @update:value="onRestockChange" @change="onRestockChange"></sw-checkbox-field>
         </div>
     </td>
 </tr>
