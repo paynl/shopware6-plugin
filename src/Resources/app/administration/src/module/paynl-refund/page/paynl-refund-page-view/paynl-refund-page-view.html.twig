@@ -3,7 +3,7 @@
         <!-- eslint-disable-next-line sw-deprecation-rules/no-twigjs-blocks -->
         {% block paynl_refund_detail_actions %}
             <template #smart-bar-actions>
-                <mt-button
+                <sw-button
                         v-tooltip="{
                 message: $tc('sw-privileges.tooltip.warning'),
                 disabled: acl.can('order.editor'),
@@ -14,7 +14,7 @@
                         @click="onCancelRefunding"
                 >
                     {{ $tc('global.default.cancel') }}
-                </mt-button>
+                </sw-button>
 
                 <sw-button-process
                         v-tooltip="{
