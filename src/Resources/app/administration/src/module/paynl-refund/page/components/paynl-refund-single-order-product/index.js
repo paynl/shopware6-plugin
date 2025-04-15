@@ -1,6 +1,7 @@
 import template from './paynl-refund-single-order-product.html.twig';
+import VersionCompare from './../../../../../util/version-compare.util'
 
-const { Component } = Shopware;
+const { Component, Context } = Shopware;
 
 Component.register('paynl-refund-single-order-product', {
     template,
@@ -16,11 +17,22 @@ Component.register('paynl-refund-single-order-product', {
     data() {
         return {
             productQuantity: this.product.price.quantity + 0,
+            versionCompare: null,
         }
+    },
+
+    created() {
+        this.versionCompare = new VersionCompare();
     },
 
     mounted() {
         this.product.qnt = this.product.price.quantity;
+    },
+
+    computed: {
+        isShopware67() {
+            return this.versionCompare.isGreaterOrEqual(Context.app.config.version, '6.7')
+        },
     },
 
     methods: {
