@@ -6,6 +6,7 @@ use Exception;
 use Paynl\Result\Transaction\Transaction as ResultTransaction;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepositoryInterface;
@@ -340,6 +341,7 @@ class ProcessingHelper
         );
     }
 
+    /** @throws PaynlPaymentException */
     public function getOrderTransaction(string $orderTransactionId, Context $context): ?OrderTransactionEntity
     {
         $criteria = new Criteria([$orderTransactionId]);
@@ -367,7 +369,7 @@ class ProcessingHelper
         $orderTransaction = $this->orderTransactionRepository->search($criteria, $context)->getEntities()->first();
 
         if (!$orderTransaction) {
-            throw PaymentException::invalidTransaction($orderTransactionId);
+            throw new PaynlPaymentException('Invalid transaction: ' . $orderTransactionId);
         }
 
         return $orderTransaction;
