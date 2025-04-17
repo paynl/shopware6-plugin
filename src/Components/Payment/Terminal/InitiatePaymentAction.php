@@ -80,16 +80,11 @@ class InitiatePaymentAction
         $this->shopwareVersion = $shopwareVersion;
     }
 
-
-    public function supports(PaymentHandlerType $type, string $paymentMethodId, Context $context): bool
-    {
-        return false;
-    }
-
     /** @param SyncPaymentTransactionStruct|PaymentTransactionStruct $transaction */
     public function pay($transaction, Context $context): ?RedirectResponse
     {
         $orderTransactionId = '';
+        /** @phpstan-ignore-next-line */
         if ($transaction instanceof PaymentTransactionStruct) {
             $orderTransactionId = $transaction->getOrderTransactionId();
         }

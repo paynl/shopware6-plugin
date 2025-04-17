@@ -63,6 +63,7 @@ class InitiatePaymentAction
     public function pay($transaction, SalesChannelContext $salesChannelContext): RedirectResponse
     {
         $orderTransactionId = '';
+        /** @phpstan-ignore-next-line */
         if ($transaction instanceof PaymentTransactionStruct) {
             $orderTransactionId = $transaction->getOrderTransactionId();
         }

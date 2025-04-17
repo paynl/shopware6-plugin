@@ -11,7 +11,6 @@ use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
-use Shopware\Core\Checkout\Payment\Cart\PaymentTransactionStruct;
 use Throwable;
 use Exception;
 use PaynlPayment\Shopware6\Components\Config;
@@ -246,10 +245,8 @@ class IdealExpress
             throw new PaynlPaymentException('Created IDEAL Express Direct order has not OrderTransaction!');
         }
 
-        $paymentTransactionStruct = new PaymentTransactionStruct($transaction->getId(), $shopwareReturnUrl);
-
         try {
-            $orderResponse = $this->createPayIdealExpressOrder($paymentTransactionStruct, $context);
+            $orderResponse = $this->createPayIdealExpressOrder($transaction->getId(), $shopwareReturnUrl, $context);
 
             $orderTransaction = $this->processingHelper->getOrderTransaction($transaction->getId(), $context->getContext());
 
@@ -282,11 +279,12 @@ class IdealExpress
     }
 
     private function createPayIdealExpressOrder(
-        PaymentTransactionStruct $paymentTransactionStruct,
+        string $orderTransactionId,
+        string $shopwareReturnUrl,
         SalesChannelContext $salesChannelContext
     ): CreateOrderResponse {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $orderTransaction = $this->processingHelper->getOrderTransaction($paymentTransactionStruct->getOrderTransactionId(), $salesChannelContext->getContext());
+        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
         $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
 
         $exchangeUrl = $this->router->generate(
@@ -324,7 +322,7 @@ class IdealExpress
             $amount,
             $description,
             $orderNumber,
-            $paymentTransactionStruct->getReturnUrl(),
+            $shopwareReturnUrl,
             $exchangeUrl,
             $optimize,
             $paymentMethod,

@@ -32,6 +32,7 @@ class FinalizePaymentAction
     public function finalize($transaction, Context $context): void
     {
         $orderTransactionId = '';
+        /** @phpstan-ignore-next-line */
         if ($transaction instanceof PaymentTransactionStruct) {
             $orderTransactionId = $transaction->getOrderTransactionId();
         }

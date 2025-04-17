@@ -16,6 +16,7 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefi
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\App\AppException;
 use Shopware\Core\Framework\Context;
@@ -366,7 +367,7 @@ class ProcessingHelper
         $orderTransaction = $this->orderTransactionRepository->search($criteria, $context)->getEntities()->first();
 
         if (!$orderTransaction) {
-            throw AppException::invalidTransaction($orderTransactionId);
+            throw PaymentException::invalidTransaction($orderTransactionId);
         }
 
         return $orderTransaction;

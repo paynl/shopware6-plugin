@@ -8,7 +8,6 @@ use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Input;
@@ -23,7 +22,6 @@ use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\CreateOrder as PayPalCreate
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\PurchaseUnit;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\OrderDetailResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
-use Shopware\Core\Checkout\Payment\Cart\PaymentTransactionStruct;
 use Exception;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
@@ -234,9 +232,7 @@ class PayPalExpress
             throw new PaynlPaymentException('Created PayPal Express Direct order has not OrderTransaction!');
         }
 
-        $paymentTransactionStruct = new PaymentTransactionStruct($transaction->getId(), $shopwareReturnUrl);
-
-        $orderResponse = $this->createPayPalExpressOrder($paymentTransactionStruct, $context);
+        $orderResponse = $this->createPayPalExpressOrder($transaction->getId(), $context);
 
         return $orderResponse->getId();
     }
@@ -256,11 +252,11 @@ class PayPalExpress
     }
 
     private function createPayPalExpressOrder(
-        PaymentTransactionStruct $paymentTransactionStruct,
+        string $orderTransactionId,
         SalesChannelContext $salesChannelContext
     ): PayPalCreateOrderResponse {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $orderTransaction = $this->processingHelper->getOrderTransaction($paymentTransactionStruct->getOrderTransactionId(), $salesChannelContext->getContext());
+        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
 
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
 

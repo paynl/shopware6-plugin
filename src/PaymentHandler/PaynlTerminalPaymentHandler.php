@@ -16,7 +16,10 @@ if (class_exists(AbstractPaymentHandler::class)) {
     }
 
     return;
-} else if (interface_exists(SynchronousPaymentHandlerInterface::class)) {
+}
+
+/** @phpstan-ignore-next-line  */
+if (interface_exists(SynchronousPaymentHandlerInterface::class) && !class_exists(AbstractPaymentHandler::class)) {
     class PaynlTerminalPaymentHandler implements SynchronousPaymentHandlerInterface
     {
         use DeprecatedPaymentHandlerTrait;
