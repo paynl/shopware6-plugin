@@ -94,7 +94,7 @@ class InitiatePaymentAction
 
         $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $context);
         $paymentMethod = $orderTransaction->getPaymentMethod();
-        $paymentMethodName = (string) $paymentMethod?->getName();
+        $paymentMethodName = (string) ($paymentMethod ? $paymentMethod->getName() : '');
 
         $this->logger->info(
             'Starting order ' . $orderTransaction->getOrder()->getOrderNumber() . ' with payment: ' . $paymentMethodName,

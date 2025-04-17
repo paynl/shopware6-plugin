@@ -71,7 +71,7 @@ class PayPalExpress
         ExpressCheckoutUtil $expressCheckoutUtil,
         OrderAddressRepositoryInterface $repoOrderAddresses,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
-        OrderDeliveryRepositoryInterface $orderDeliveryRepository,
+        OrderDeliveryRepositoryInterface $orderDeliveryRepository
     ) {
         $this->config = $config;
         $this->router = $router;
