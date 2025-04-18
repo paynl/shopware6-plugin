@@ -1,5 +1,5 @@
 {% block component_paynl_kvk_coc_number %}
-    {% set configs = page.footer.extensions.PAY_custom_data.configs %}
+    {% set configs = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs %}
 
     {% if (configs.core.loginRegistration.showAccountTypeSelection) %}
         {% set isCoCNumberRequired = configs.PaynlPaymentShopware6.config.cocNumberRequired %}

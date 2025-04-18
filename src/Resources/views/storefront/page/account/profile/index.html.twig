@@ -7,7 +7,8 @@
           action="{{ path('frontend.account.profile.save') }}"
           data-form-validation="true">
 
-        {% if not page.footer.extensions.PAY_custom_data.isSW65 %}
+
+        {% if not page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].isSW65 %}
             {% block page_account_profile_personal_form_csrf %}
                 {{ parent() }}
             {% endblock %}

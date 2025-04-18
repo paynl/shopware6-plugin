@@ -111,7 +111,7 @@ class IdealExpressControllerBase extends StorefrontController
             );
 
             return new RedirectResponse($redirectUrl);
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 
             if ($this->flashBag !== null) {

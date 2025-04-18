@@ -392,6 +392,7 @@ class InstallHelper
         $paymentData = [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => $paymentMethodHandler,
+            'technicalName' => $paymentMethodValueObject->getTechnicalName(),
             'name' => $paymentMethodValueObject->getVisibleName(),
             'description' => $paymentMethodValueObject->getDescription(),
             'pluginId' => $pluginId,
@@ -467,7 +468,7 @@ class InstallHelper
 
     public function dropTables(): void
     {
-        $this->connection->exec(sprintf(self::MYSQL_DROP_TABLE, PaynlTransactionEntityDefinition::ENTITY_NAME));
+        $this->connection->executeStatement(sprintf(self::MYSQL_DROP_TABLE, PaynlTransactionEntityDefinition::ENTITY_NAME));
     }
 
     public function removeStates(): void
@@ -506,19 +507,19 @@ class InstallHelper
         ])->fetchOne();
 
         // Remove state machine transition
-        $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
+        $this->connection->executeStatement($removeStateMachineTransitionSQL, [
             'to_state_id' => $stateMachineStateVerifyId,
             'from_state_id' => $stateMachineStateVerifyId
         ]);
-        $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
+        $this->connection->executeStatement($removeStateMachineTransitionSQL, [
             'to_state_id' => $stateMachineStateAuthorizeId,
             'from_state_id' => $stateMachineStateAuthorizeId
         ]);
-        $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
+        $this->connection->executeStatement($removeStateMachineTransitionSQL, [
             'to_state_id' => $stateMachineStatePartlyCapturedId,
             'from_state_id' => $stateMachineStatePartlyCapturedId
         ]);
-        $this->connection->executeUpdate($removeStateMachineTransitionSQL, [
+        $this->connection->executeStatement($removeStateMachineTransitionSQL, [
             'to_state_id' => $stateMachineStateRefundingId,
             'from_state_id' => $stateMachineStateRefundingId
         ]);
@@ -706,7 +707,7 @@ class InstallHelper
             ';'
         ]);
 
-        $this->connection->executeUpdate($sqlQuery, $mailTemplateTranslationUpdate);
+        $this->connection->executeStatement($sqlQuery, $mailTemplateTranslationUpdate);
     }
 
     private function updateMailTemplateTranslationContentPlain(array $mailTemplateTranslationUpdate): void
@@ -723,7 +724,7 @@ class InstallHelper
             ';'
         ]);
 
-        $this->connection->executeUpdate($sqlQuery, $mailTemplateTranslationUpdate);
+        $this->connection->executeStatement($sqlQuery, $mailTemplateTranslationUpdate);
     }
 
     private function getMailTemplateTypeId(string $technicalName)
@@ -755,7 +756,7 @@ class InstallHelper
 
         return $this->connection->executeQuery($sqlQuery, [
             'mail_template_type_id' => $mailTemplateTypeId,
-        ])->fetchAll();
+        ])->fetchAllAssociative();
     }
 
     private function getMailTemplateTranslations(string $mailTemplateId)
@@ -771,6 +772,6 @@ class InstallHelper
 
         return $this->connection->executeQuery($sqlQuery, [
             'mail_template_id' => $mailTemplateId,
-        ])->fetchAll();
+        ])->fetchAllAssociative();
     }
 }

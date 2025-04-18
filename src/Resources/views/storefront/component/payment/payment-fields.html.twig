@@ -1,7 +1,7 @@
 {# compatible with < sw6.4 #}
 {% sw_extends '@Storefront/storefront/component/payment/payment-fields.html.twig' %}
 
-{% set settingUsePAYStyles = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.config.usePAYStyles %}
+{% set settingUsePAYStyles = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs.PaynlPaymentShopware6.config.usePAYStyles %}
 
 {% block component_payment_method_input %}
     <input type="radio"
@@ -64,7 +64,7 @@
 
                     {#Terminals#}
                     {% if payment.customFields.terminals is not empty and activeRoute != "frontend.account.payment.page" %}
-                        {% set configInstoreTerminalOption = page.footer.extensions.PAY_custom_data.configs.PaynlPaymentShopware6.config.paymentPinTerminal %}
+                        {% set configInstoreTerminalOption = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs.PaynlPaymentShopware6.config.paymentPinTerminal %}
                         {% set paynlInstoreTerminalSelected = configInstoreTerminalOption is same as('checkout_save') ? (context.customer.customFields.paymentMethodsSelectedData[payment.id].terminal ?: app.request.cookies.get('paynl_pin_terminal_id')) : '' %}
                         <div class="form-group">
                             <select class="form-control paynl-ideal-banks-select" name="paynlInstoreTerminal" form="confirmOrderForm">

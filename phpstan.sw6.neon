@@ -11,6 +11,7 @@ parameters:
         - %currentWorkingDirectory%/tests/
         - %currentWorkingDirectory%/Test/
         - %currentWorkingDirectory%/Resources/smarty
+        - %currentWorkingDirectory%/src/PaymentHandler
 
     ignoreErrors:
         - '#apcu_#'

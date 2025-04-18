@@ -17,7 +17,7 @@ class Migration1595341767AddLatestActionNameField extends MigrationStep
         $query = 'ALTER TABLE paynl_transactions
             ADD COLUMN `latest_action_name` VARCHAR(255) NULL';
 
-        $connection->exec($query);
+        $connection->executeStatement($query);
     }
 
     public function updateDestructive(Connection $connection): void

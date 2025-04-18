@@ -1,5 +1,5 @@
 {% block paynl_kvk_edit_block %}
-    {% set configs = page.footer.extensions.PAY_custom_data.configs %}
+    {% set configs = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs %}
     {% set display_kvk_block = (context.customer.company is not empty) %}
     {% if (configs.core.loginRegistration.showAccountTypeSelection) and display_kvk_block %}
         <div class="form-row">

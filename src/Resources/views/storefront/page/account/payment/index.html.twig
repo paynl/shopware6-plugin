@@ -8,13 +8,13 @@
     <form action="{{ path('frontend.account.payment.save') }}"
           method="post"
           data-form-csrf-handler="true"
-          {% if page.footer.extensions.PAY_custom_data.isSW64 %}
+          {% if page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].isSW64 %}
           data-form-auto-submit="true"
           data-form-auto-submit-options='{{ formAjaxSubmitOptions|json_encode }}'
           {% endif %}
           >
 
-        {% if not page.footer.extensions.PAY_custom_data.isSW65 %}
+        {% if not page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].isSW65 %}
             {% block page_account_payment_form_csrf %}
                 {{ parent() }}
             {% endblock %}

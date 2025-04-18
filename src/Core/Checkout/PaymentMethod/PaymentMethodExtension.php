@@ -26,4 +26,9 @@ class PaymentMethodExtension extends EntityExtension
     {
         return PaymentMethodDefinition::class;
     }
+
+    public function getEntityName(): string
+    {
+        return PaymentMethodDefinition::ENTITY_NAME;
+    }
 }

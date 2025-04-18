@@ -40,7 +40,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
         $statuses = $this->getStatuses();
 
         foreach ($statuses as $status => $translations) {
-            $connection->executeUpdate($this->getInsertStateMachineStateSql(), [
+            $connection->executeStatement($this->getInsertStateMachineStateSql(), [
                 'id' => Uuid::randomBytes(),
                 'technical_name' => $status,
                 'state_machine_id' => $orderTransactionStateId,
@@ -53,7 +53,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             ])->fetchOne();
 
             if (!empty($translations['english']['id'])) {
-                $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
+                $connection->executeStatement($this->getStateMachineStateTranslationSql(), [
                     'language_id' => $translations['english']['id'],
                     'state_machine_state_id' => $stateMachineStateId,
                     'name' => $translations['english']['name'],
@@ -62,7 +62,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             }
 
             if (!empty($translations['german']['id'])) {
-                $connection->executeUpdate($this->getStateMachineStateTranslationSql(), [
+                $connection->executeStatement($this->getStateMachineStateTranslationSql(), [
                     'language_id' => $translations['german']['id'],
                     'state_machine_state_id' => $stateMachineStateId,
                     'name' => $translations['german']['name'],
@@ -78,7 +78,7 @@ class Migration1630335397AddRefundingStatus extends MigrationStep
             'created_at' => $date
         ];
         foreach ($transitions as $transition) {
-            $connection->executeUpdate(
+            $connection->executeStatement(
                 $this->getInsertTransitionSql(),
                 array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
             );

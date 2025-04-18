@@ -166,7 +166,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ];
 
         foreach ($statusesArray as $status => $translations) {
-            $connection->executeUpdate($sqlStateMachineState, [
+            $connection->executeStatement($sqlStateMachineState, [
                 'id' => Uuid::randomBytes(),
                 'technical_name' => $status,
                 'state_machine_id' => $orderTransactionStateId,
@@ -183,7 +183,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
                     continue;
                 }
 
-                $connection->executeUpdate($stateMachineStateTranslation, [
+                $connection->executeStatement($stateMachineStateTranslation, [
                     'language_id' => $translation['id'],
                     'state_machine_state_id' => $stateMachineStateId,
                     'name' => $translation['name'],
@@ -266,13 +266,13 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             'created_at' => $date
         ];
         foreach ($transitions as $transition) {
-            $connection->executeUpdate(
+            $connection->executeStatement(
                 $insertTransitionSQL,
                 array_merge($transition, $defaultData, ['id' => Uuid::randomBytes()])
             );
         }
 
-        $connection->executeUpdate($insertMailTemplateTypeSql, [
+        $connection->executeStatement($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.authorize',
             'available_entities' => $availableEntriesJson,
@@ -285,7 +285,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchOne();
 
         if (!empty($languageEnglishId)) {
-            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+            $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
                 'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
                 'language_id' => $languageEnglishId,
                 'name' => 'Enter payment state: Authorize',
@@ -294,7 +294,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         }
 
         if (!empty($languageDeutschId)) {
-            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+            $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
                 'mail_template_type_id' => $mailTempaleAuthorizeTypeId,
                 'language_id' => $languageDeutschId,
                 'name' => 'Zahlungsstatus eingeben: Autorisieren',
@@ -302,7 +302,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             ]);
         }
 
-        $connection->executeUpdate($insertMailTemplateTypeSql, [
+        $connection->executeStatement($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.verify',
             'available_entities' => $availableEntriesJson,
@@ -314,7 +314,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchOne();
 
         if (!empty($languageEnglishId)) {
-            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+            $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
                 'mail_template_type_id' => $mailTempaleVerifyTypeId,
                 'language_id' => $languageEnglishId,
                 'name' => 'Enter payment state: Verify',
@@ -323,7 +323,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         }
 
         if (!empty($languageDeutschId)) {
-            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+            $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
                 'mail_template_type_id' => $mailTempaleVerifyTypeId,
                 'language_id' => $languageDeutschId,
                 'name' => 'Zahlungsstatus eingeben: Verify',
@@ -331,7 +331,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
             ]);
         }
 
-        $connection->executeUpdate($insertMailTemplateTypeSql, [
+        $connection->executeStatement($insertMailTemplateTypeSql, [
             'id' => Uuid::randomBytes(),
             'technical_name' => 'order_transaction.state.partly_captured',
             'available_entities' => $availableEntriesJson,
@@ -343,7 +343,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         ])->fetchOne();
 
         if (!empty($languageEnglishId)) {
-            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+            $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
                 'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
                 'language_id' => $languageEnglishId,
                 'name' => 'Enter payment state: Partly captured',
@@ -352,7 +352,7 @@ class Migration1584438271InsertingStatuses extends MigrationStep
         }
 
         if (!empty($languageDeutschId)) {
-            $connection->executeUpdate($insertMailTemplateTypeTranslationSQL, [
+            $connection->executeStatement($insertMailTemplateTypeTranslationSQL, [
                 'mail_template_type_id' => $mailTempalePartlyCapturedTypeId,
                 'language_id' => $languageDeutschId,
                 'name' => 'Zahlungsstatus eingeben: Partly captured',

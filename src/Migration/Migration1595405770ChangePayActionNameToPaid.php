@@ -83,7 +83,7 @@ class Migration1595405770ChangePayActionNameToPaid extends MigrationStep
         ];
 
         foreach ($transitions as $transition) {
-            $connection->executeUpdate(
+            $connection->executeStatement(
                 $updateTransitionSQL,
                 array_merge($transition, $defaultData)
             );
