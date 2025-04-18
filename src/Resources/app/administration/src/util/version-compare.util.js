@@ -68,10 +68,10 @@ export default class VersionCompare {
         const { major, minor, patch, build, label, labelVer } = match.groups;
 
         return {
-            major: parseInt(major) || 0,
-            minor: parseInt(minor) || 0,
-            patch: parseInt(patch) || 0,
-            build: parseInt(build) || 0,
+            major: parseInt(major, 10) || 0,
+            minor: parseInt(minor, 10) || 0,
+            patch: parseInt(patch, 10) || 0,
+            build: parseInt(build, 10) || 0,
             label,
             labelVer
         };
