@@ -143,11 +143,11 @@
         <input-field type="bool">
             <name>allowShopwareNativeRefund</name>
             <label>Allow Shopware native refunds</label>
-            <label lang="nl-NL">Allow Shopware native refunds</label>
-            <label lang="de-DE">Allow Shopware native refunds</label>
-            <helpText>Allow Shopware native refunds</helpText>
-            <helpText lang="nl-NL">Allow Shopware native refunds</helpText>
-            <helpText lang="de-DE">Allow Shopware native refunds</helpText>
+            <label lang="nl-NL">Shopware native refunds toestaan</label>
+            <label lang="de-DE">Shopware native refunds zulassen</label>
+            <helpText>When using a Shopware Rise plan (or higher), you can enable this option for refund handling by partners like Returnless. They use the Shopware native refund API which can trigger a Pay. refund.</helpText>
+            <helpText lang="nl-NL">Vanaf een Shopware Rise plan (of hoger), kunt u deze optie inschakelen om de afhandeling van refunds via partners zoals Returnless mogelijk te maken. Zij maken gebruik van de native refund API van Shopware, die een Pay. refund kan triggeren.</helpText>
+            <helpText lang="de-DE">Ab einem Shopware Rise-Plan (oder höher) können Sie diese Option aktivieren, um die Abwicklung von Rückerstattungen durch Partners wie Returnless zu ermöglichen. Sie verwenden die native Rückerstattungs-API von Shopware.</helpText>
         </input-field>
         <input-field type="bool">
             <name>surchargePaymentMethods</name>
