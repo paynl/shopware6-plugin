@@ -22,10 +22,12 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\ProcessingHelper">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\StateMachineTransition\StateMachineTransitionRepository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Order\OrderStatusUpdater"/>
@@ -384,6 +386,14 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Subscriber\OrderReturnWrittenSubscriber">
+            <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="order_return.repository" on-invalid="null"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <!-- Collector -->
         <service id="PaynlPayment\Shopware6\Checkout\Payment\PaymentSurchargeCollector">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
@@ -476,6 +486,10 @@
 
         <service id="PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository">
             <argument type="service" id="system_config.repository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepository">
+            <argument type="service" id="state_machine_state.repository"/>
         </service>
     </services>
 </container>

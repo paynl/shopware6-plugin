@@ -8,4 +8,6 @@ class StateMachineStateEnum
     public const ACTION_AUTHORIZE = 'authorize';
     public const ACTION_PARTLY_CAPTURED = 'partly_captured';
     public const ACTION_REFUNDING = 'refunding';
+    public const STATE_COMPLETED = 'completed';
+    public const STATE_DONE = 'done';
 }
