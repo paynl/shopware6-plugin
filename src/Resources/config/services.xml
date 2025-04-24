@@ -202,7 +202,7 @@
         <service id="PaynlPayment\Shopware6\Service\CartService" class="PaynlPayment\Shopware6\Service\CartService" public="true">
             <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher"/>
-            <argument type="service" id="Shopware\Core\Content\Product\Cart\ProductLineItemFactory"/>
+            <argument type="service" id="Shopware\Core\Checkout\Cart\LineItemFactoryHandler\ProductLineItemFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway"/>
         </service>
 
