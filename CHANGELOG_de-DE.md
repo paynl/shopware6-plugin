@@ -1,4 +1,6 @@
 # 1.6.9
+- Unterstützung für native Rückerstattungs-API hinzugefügt
+- PaynlDatePicker-Fehler behoben
 
 # 1.6.8
 - Storefront scripts für Shopware 6.6 im Zusammenhang mit der Express-Kasse behoben
