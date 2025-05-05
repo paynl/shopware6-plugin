@@ -33,15 +33,11 @@ class CartBackupService
 
     public function restoreCart(SalesChannelContext $context): Cart
     {
-        # get our backup cart
         $backupCart = $this->cartService->getCart(self::BACKUP_TOKEN, $context);
 
-        # create a new "old" original cart (to avoid foreign reference problems)
-        # and set the items from our backup
         $newCart = $this->cartService->createNew($context->getToken());
         $newCart->setLineItems($backupCart->getLineItems());
 
-        # set and persist
         $this->cartService->setCart($newCart);
         $newCart = $this->cartService->recalculate($newCart, $context);
 
@@ -59,18 +55,10 @@ class CartBackupService
     {
         $originalCart = $this->cartService->getCart($context->getToken(), $context);
 
-        # additional language shops do not have a name, so make sure it has a string cast
-        $salesChannelName = (string)$context->getSalesChannel()->getName();
-
-        # create new cart with our backup token
         $newCart = $this->cartService->createNew(self::BACKUP_TOKEN);
 
-        # assign our items to the backup
-        # this is the only thing we really need to backup at this stage.
-        # the rest (deliveries, etc.) are usually set in the checkout process anyway.
         $newCart->setLineItems($originalCart->getLineItems());
 
-        # set and persist
         $this->cartService->setCart($newCart);
         $this->cartService->recalculate($newCart, $context);
     }

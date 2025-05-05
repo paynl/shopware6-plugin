@@ -165,19 +165,15 @@ class ExpressCheckoutUtil
 
     public function addProduct(string $productId, int $quantity, SalesChannelContext $context): Cart
     {
-        # if we already have a backup cart, then do NOT backup again.
-        # because this could backup our temp. apple pay cart
         if (!$this->cartBackupService->isBackupExisting($context)) {
             $this->cartBackupService->backupCart($context);
         }
 
         $cart = $this->cartService->getCalculatedMainCart($context);
 
-        # clear existing cart and also update it to save it
         $cart->setLineItems(new LineItemCollection());
         $this->cartService->updateCart($cart);
 
-        # add new product to cart
         $this->cartService->addProduct($productId, $quantity, $context);
 
         return $this->cartService->getCalculatedMainCart($context);

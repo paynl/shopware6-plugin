@@ -25,6 +25,14 @@
                         :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
                 />
                 <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressProductEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressProductEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressProductPage')"
+                        :help-text="$tc('paymentExpressCheckout.expressProductPageHelpText')"
+                />
+            </sw-container>
+            <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isIDEALPaymentMethod">
+                <sw-switch-field
                         v-model:value="config['PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled']"
                         v-model="config['PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled']"
                         :label="$tc('paymentExpressCheckout.labelExpressCheckoutIdealModal')"
@@ -52,6 +60,12 @@
                         v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressCheckoutLoggedInCustomerEnabled']"
                         :label="$tc('paymentExpressCheckout.labelExpressCheckoutLoggedInCustomer')"
                         :help-text="$tc('paymentExpressCheckout.expressCheckoutLoggedInCustomerHelpText')"
+                />
+                <sw-switch-field
+                        v-model:value="config['PaynlPaymentShopware6.config.paymentPaypalExpressProductEnabled']"
+                        v-model="config['PaynlPaymentShopware6.config.paymentPaypalExpressProductEnabled']"
+                        :label="$tc('paymentExpressCheckout.labelExpressProductPage')"
+                        :help-text="$tc('paymentExpressCheckout.expressProductPageHelpText')"
                 />
             </sw-container>
             <sw-container columns="1fr 1fr" gap="0px 30px" v-if="isPayPalPaymentMethod">
