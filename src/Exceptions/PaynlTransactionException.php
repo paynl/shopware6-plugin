@@ -6,8 +6,15 @@ use Exception;
 
 class PaynlTransactionException extends Exception
 {
+    public const TRANSACTION_NOT_FOUND_BY_ORDER = 'Transaction was not found in PAY transaction table. OrderID: %s';
+
     public static function captureError(string $message = ''): PaynlTransactionException
     {
         return new PaynlTransactionException($message ?: 'Unknown PAY. transaction capture error');
+    }
+
+    public static function notFoundByOrderError(string $orderId): PaynlTransactionException
+    {
+        return new PaynlTransactionException(sprintf(self::TRANSACTION_NOT_FOUND_BY_ORDER, $orderId));
     }
 }

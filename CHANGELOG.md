@@ -1,3 +1,7 @@
+# 1.6.9
+- Added support for native refund API
+- Fixed PaynlDatePicker error
+
 # 1.6.8
 - Fixed storefront scripts for Shopware 6.6 related to express checkout
 
