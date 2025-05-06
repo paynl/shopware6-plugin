@@ -16,7 +16,7 @@
                 {% set productId = product.id %}
             {% endif %}
 
-            <div class="btn-block js-ideal-express-container">
+            <div class="btn-block my-2 js-ideal-express-container">
                 <a href="{{ path('frontend.account.PaynlPayment.ideal-express.product.start-payment', {productId: productId, quantity: 1}) }}" id="btn-fast-checkout"
                    style="background-image: url('{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}')"
                    class="btn btn-primary btn-block btn-buy w-100"

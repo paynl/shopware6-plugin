@@ -2,7 +2,15 @@ import Plugin from 'src/plugin-system/plugin.class';
 
 export default class PaynlFastCheckoutQuantity extends Plugin {
     init() {
-        document.querySelector('.js-quantity-selector').addEventListener('change', this.onProductQuantityChange.bind(this));
+        const productQuantityInput = document.querySelector('.js-quantity-selector');
+        if (productQuantityInput) {
+            productQuantityInput.addEventListener('change', this.onProductQuantityChange.bind(this))
+        }
+
+        const productQuantitySelect = document.querySelector('.product-detail-quantity-select');
+        if (productQuantitySelect) {
+            productQuantitySelect.addEventListener('change', this.onProductQuantityChange.bind(this))
+        }
     }
 
     onProductQuantityChange(event) {
