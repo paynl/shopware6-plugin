@@ -8,7 +8,9 @@ class PayPalExpressCheckoutButtonData extends Struct
 {
     protected bool $expressCheckoutEnabled;
     protected bool $expressShoppingCartEnabled;
+    protected bool $expressProductPageEnabled;
     protected string $contextSwitchUrl;
+    protected bool $addProductToCart;
     protected ?string $payPalPaymentMethodId = null;
     protected string $checkoutConfirmUrl;
     protected string $cancelRedirectUrl;
@@ -42,6 +44,16 @@ class PayPalExpressCheckoutButtonData extends Struct
     public function setExpressShoppingCartEnabled(bool $expressShoppingCartEnabled): void
     {
         $this->expressShoppingCartEnabled = $expressShoppingCartEnabled;
+    }
+
+    public function isExpressProductPageEnabled(): bool
+    {
+        return $this->expressProductPageEnabled;
+    }
+
+    public function setExpressProductPageEnabled(bool $expressProductPageEnabled): void
+    {
+        $this->expressProductPageEnabled = $expressProductPageEnabled;
     }
 
     public function getClientId(): string
@@ -102,6 +114,11 @@ class PayPalExpressCheckoutButtonData extends Struct
     public function getPayPalPaymentMethodId(): ?string
     {
         return $this->payPalPaymentMethodId;
+    }
+
+    public function getAddProductToCart(): bool
+    {
+        return $this->addProductToCart;
     }
 
     public function getCheckoutConfirmUrl(): string

@@ -153,6 +153,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'paymentIdealExpressShoppingCartEnabled');
     }
 
+    public function getPaymentIdealExpressProductEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentIdealExpressProductEnabled');
+    }
+
     public function getPaymentIdealExpressLoggedInCustomerEnabled(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutLoggedInCustomerEnabled');
@@ -166,6 +171,11 @@ class Config
     public function getPaymentPayPalExpressShoppingCartEnabled(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'paymentPaypalExpressShoppingCartEnabled');
+    }
+
+    public function getPaymentPayPalExpressProductEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentPaypalExpressProductEnabled');
     }
 
     public function getPaymentPayPalExpressLoggedInCustomerEnabled(string $salesChannelId): bool
