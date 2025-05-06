@@ -17,6 +17,18 @@ use Shopware\Core\Framework\Routing\Annotation\RouteScope;
  */
 class IdealExpressController extends IdealExpressControllerBase
 {
+    /**
+     * @Route(
+     *     "//PaynlPayment/ideal-express/product/start-payment",
+     *     name="frontend.account.PaynlPayment.ideal-express.product.start-payment",
+     *     methods={"GET"},
+     *     defaults={"csrf_protected"=false, "_routeScope"={"storefront"}},
+     *     )
+     */
+    public function startProductPayment(SalesChannelContext $context, Request $request): Response
+    {
+        return $this->getProductStartPaymentResponse($context, $request);
+    }
 
     /**
      * @Route(
