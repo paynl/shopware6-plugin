@@ -128,6 +128,11 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             'showDescription' => $this->config->getShowDescription($salesChannelId)
         ]);
 
+        $configs = $this->systemConfigService->all($salesChannelId);
+        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
+
+        $accountEditOrderPageLoadedEvent->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
+
         // Payment surcharging
         if ($this->config->isSurchargePaymentMethods($salesChannelId)) {
 
