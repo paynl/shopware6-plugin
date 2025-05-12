@@ -58,8 +58,22 @@
                     {{ getData(item.createdAt) }}
                 </template>
 
+                <template #column-exception="{ item }">
+                    <sw-button v-if="item.exception" class="paynl-text-wrapper" size="small" variant="primary" appearance="link" @click="openErrorModal(item)">
+                        {{ truncateText(item.exception, 40) }}...
+                    </sw-button>
+                </template>
+
             </sw-entity-listing>
         </div>
+
+        <!-- Modal to show full error details -->
+        <sw-modal v-if="transaction" @modal-close="transaction = null" title="Error Details">
+            <p>{{ transaction.exception }}</p>
+            <template #footer>
+                <sw-button variant="primary" @click="transaction = null">Close</sw-button>
+            </template>
+        </sw-modal>
     </template>
 </sw-page>
 {% endblock %}

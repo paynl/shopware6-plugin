@@ -18,6 +18,7 @@ Component.register('paynl-transaction-list', {
     data() {
         return {
             transactions: null,
+            transaction: null,
             isLoading: false,
             filterCriteria: [],
             activeFilterNumber: 0,
@@ -89,6 +90,12 @@ Component.register('paynl-transaction-list', {
                     allowResize: true,
                     sortIsAllowed: false,
                     primary: true
+                },
+                {
+                    property: 'exception',
+                    label: this.$t('transactions-list.exception'),
+                    allowResize: false,
+                    align: 'center'
                 },
                 {
                     property: 'links',
@@ -164,6 +171,14 @@ Component.register('paynl-transaction-list', {
 
         isUserOrdersViewer() {
             return this.acl.can('order.viewer');
-        }
+        },
+
+        openErrorModal(transaction) {
+            this.transaction = transaction;
+        },
+
+        truncateText(text, length) {
+            return text.length > length ? text.substring(0, length) : text;
+        },
     },
 });
