@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
-use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
@@ -32,7 +32,6 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -41,38 +40,17 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class IdealExpress
 {
-    /** @var Config */
-    private $config;
-
-    /** @var RouterInterface */
-    private $router;
-
-    /** @var TranslatorInterface */
-    private $translator;
-
-    /** @var CustomerService */
-    private $customerService;
-
-    /** @var OrderService */
-    private $orderService;
-
-    /** @var PayOrderService */
-    private $payOrderService;
-
-    /** @var ProcessingHelper */
-    private $processingHelper;
-
-    /** @var ExpressCheckoutUtil */
-    private $expressCheckoutUtil;
-
-    /** @var OrderAddressRepositoryInterface */
-    private $repoOrderAddresses;
-
-    /** @var OrderCustomerRepositoryInterface */
-    private $orderCustomerRepository;
-
-    /** @var OrderDeliveryRepositoryInterface */
-    private $orderDeliveryRepository;
+    private Config $config;
+    private RouterInterface $router;
+    private TranslatorInterface $translator;
+    private CustomerService $customerService;
+    private OrderService $orderService;
+    private PayOrderService $payOrderService;
+    private ProcessingHelper $processingHelper;
+    private ExpressCheckoutUtil $expressCheckoutUtil;
+    private OrderAddressRepositoryInterface $repoOrderAddresses;
+    private OrderCustomerRepositoryInterface $orderCustomerRepository;
+    private OrderDeliveryRepositoryInterface $orderDeliveryRepository;
 
     public function __construct(
         Config $config,
@@ -239,7 +217,7 @@ class IdealExpress
         string $countryCode,
         SalesChannelContext $context
     ): string {
-        $countryID = (string)$this->customerService->getCountryId($countryCode, $context->getContext());
+        $countryID = (string) $this->customerService->getCountryId($countryCode, $context->getContext());
 
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
@@ -264,26 +242,24 @@ class IdealExpress
         $transaction = $transactions->last();
 
         if (!$transaction instanceof OrderTransactionEntity) {
-            throw new Exception('Created IDEAL Express Direct order has not OrderTransaction!');
+            throw new PaynlPaymentException('Created IDEAL Express Direct order has not OrderTransaction!');
         }
 
-        $asyncPaymentTransition = new AsyncPaymentTransactionStruct($transaction, $order, $shopwareReturnUrl);
-
         try {
-            $orderResponse = $this->createPayIdealExpressOrder($asyncPaymentTransition, $context);
+            $orderResponse = $this->createPayIdealExpressOrder($transaction->getId(), $shopwareReturnUrl, $context);
+
+            $orderTransaction = $this->processingHelper->getOrderTransaction($transaction->getId(), $context->getContext());
 
             $this->processingHelper->storePaynlTransactionData(
-                $order,
-                $transaction,
-                $context,
+                $orderTransaction,
                 $orderResponse->getOrderId(),
+                $context->getContext()
             );
         } catch (Throwable $exception) {
             $this->processingHelper->storePaynlTransactionData(
-                $order,
-                $transaction,
-                $context,
+                $orderTransaction,
                 '',
+                $context->getContext(),
                 $exception
             );
 
@@ -303,12 +279,13 @@ class IdealExpress
     }
 
     private function createPayIdealExpressOrder(
-        AsyncPaymentTransactionStruct $asyncPaymentTransition,
+        string $orderTransactionId,
+        string $shopwareReturnUrl,
         SalesChannelContext $salesChannelContext
     ): CreateOrderResponse {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $order = $asyncPaymentTransition->getOrder();
-        $orderNumber = $order->getOrderNumber();
+        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
+        $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
 
         $exchangeUrl = $this->router->generate(
             'frontend.account.PaynlPayment.ideal-express.finish-payment',
@@ -316,7 +293,7 @@ class IdealExpress
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
-        $amount = (int) round($order->getAmountTotal() * 100);
+        $amount = (int) round($orderTransaction->getOrder()->getAmountTotal() * 100);
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
 
         $amount = new Amount($amount, $currency);
@@ -335,7 +312,7 @@ class IdealExpress
         );
 
         $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, null, null);
-        $products = $this->expressCheckoutUtil->getOrderProducts($order, $salesChannelContext);
+        $products = $this->expressCheckoutUtil->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext);
         $order = new Order($products);
 
         $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
@@ -345,7 +322,7 @@ class IdealExpress
             $amount,
             $description,
             $orderNumber,
-            $asyncPaymentTransition->getReturnUrl(),
+            $shopwareReturnUrl,
             $exchangeUrl,
             $optimize,
             $paymentMethod,

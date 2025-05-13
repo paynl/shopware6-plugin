@@ -17,7 +17,6 @@ use Shopware\Core\Framework\Routing\Annotation\RouteScope;
  */
 class IdealExpressController extends IdealExpressControllerBase
 {
-
     /**
      * @Route(
      *     "/PaynlPayment/ideal-express/start-payment",
