@@ -6,6 +6,8 @@ use PaynlPayment\Shopware6\Components\Api;
 
 class PaymentMethodValueObject
 {
+    public const TECHNICAL_NAME_PREFIX = 'paynl_';
+
     private $id;
     private $hashedId;
     private $name;
@@ -49,6 +51,11 @@ class PaymentMethodValueObject
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getTechnicalName(): string
+    {
+        return self::TECHNICAL_NAME_PREFIX . $this->getName();
     }
 
     /**

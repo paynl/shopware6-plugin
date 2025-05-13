@@ -6,8 +6,8 @@ namespace PaynlPayment\Shopware6\Components\PayPalExpress;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Input;
@@ -22,7 +22,6 @@ use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\CreateOrder as PayPalCreate
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\PurchaseUnit;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\OrderDetailResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
-use Throwable;
 use Exception;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
@@ -39,8 +38,6 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
-use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -49,44 +46,18 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class PayPalExpress
 {
-    /** @var Config */
-    private $config;
-
-    /** @var RouterInterface */
-    private $router;
-
-    /** @var TranslatorInterface */
-    private $translator;
-
-    /** @var CustomerService */
-    private $customerService;
-
-    /** @var OrderService */
-    private $orderService;
-
-    /** @var PayPalOrderService */
-    private $paypalOrderService;
-
-    /** @var PayOrderService */
-    private $payOrderService;
-
-    /** @var ProcessingHelper */
-    private $processingHelper;
-
-    /** @var ExpressCheckoutUtil */
-    private $expressCheckoutUtil;
-
-    /** @var OrderAddressRepositoryInterface */
-    private $repoOrderAddresses;
-
-    /** @var OrderCustomerRepositoryInterface */
-    private $orderCustomerRepository;
-
-    /** @var OrderDeliveryRepositoryInterface */
-    private $orderDeliveryRepository;
-
-    /** @var OrderTransactionRepositoryInterface */
-    private $orderTransactionRepository;
+    private Config $config;
+    private RouterInterface $router;
+    private TranslatorInterface $translator;
+    private CustomerService $customerService;
+    private OrderService $orderService;
+    private PayPalOrderService $paypalOrderService;
+    private PayOrderService $payOrderService;
+    private ProcessingHelper $processingHelper;
+    private ExpressCheckoutUtil $expressCheckoutUtil;
+    private OrderAddressRepositoryInterface $repoOrderAddresses;
+    private OrderCustomerRepositoryInterface $orderCustomerRepository;
+    private OrderDeliveryRepositoryInterface $orderDeliveryRepository;
 
     public function __construct(
         Config $config,
@@ -100,8 +71,7 @@ class PayPalExpress
         ExpressCheckoutUtil $expressCheckoutUtil,
         OrderAddressRepositoryInterface $repoOrderAddresses,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
-        OrderDeliveryRepositoryInterface $orderDeliveryRepository,
-        OrderTransactionRepositoryInterface $orderTransactionRepository
+        OrderDeliveryRepositoryInterface $orderDeliveryRepository
     ) {
         $this->config = $config;
         $this->router = $router;
@@ -115,7 +85,6 @@ class PayPalExpress
         $this->repoOrderAddresses = $repoOrderAddresses;
         $this->orderCustomerRepository = $orderCustomerRepository;
         $this->orderDeliveryRepository = $orderDeliveryRepository;
-        $this->orderTransactionRepository = $orderTransactionRepository;
     }
 
     /** @throws Exception */
@@ -222,6 +191,7 @@ class PayPalExpress
         return $this->customerService->updateCustomer($customerData, $context);
     }
 
+    /** @throws PaynlPaymentException */
     public function createPayment(
         OrderEntity $order,
         string $shopwareReturnUrl,
@@ -233,7 +203,7 @@ class PayPalExpress
         string $countryCode,
         SalesChannelContext $context
     ): string {
-        $countryID = (string)$this->customerService->getCountryId($countryCode, $context->getContext());
+        $countryID = (string) $this->customerService->getCountryId($countryCode, $context->getContext());
 
         if ($order->getAddresses() instanceof OrderAddressCollection) {
             foreach ($order->getAddresses() as $address) {
@@ -259,12 +229,10 @@ class PayPalExpress
         $transaction = $transactions->last();
 
         if (!$transaction instanceof OrderTransactionEntity) {
-            throw new Exception('Created PayPal Express Direct order has not OrderTransaction!');
+            throw new PaynlPaymentException('Created PayPal Express Direct order has not OrderTransaction!');
         }
 
-        $asyncPaymentTransition = new AsyncPaymentTransactionStruct($transaction, $order, $shopwareReturnUrl);
-
-        $orderResponse = $this->createPayPalExpressOrder($asyncPaymentTransition, $context);
+        $orderResponse = $this->createPayPalExpressOrder($transaction->getId(), $context);
 
         return $orderResponse->getId();
     }
@@ -284,17 +252,17 @@ class PayPalExpress
     }
 
     private function createPayPalExpressOrder(
-        AsyncPaymentTransactionStruct $asyncPaymentTransition,
+        string $orderTransactionId,
         SalesChannelContext $salesChannelContext
     ): PayPalCreateOrderResponse {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $order = $asyncPaymentTransition->getOrder();
+        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
 
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
 
-        $paypalAmount = new PayPalAmount($currency, (string) $order->getAmountTotal());
+        $paypalAmount = new PayPalAmount($currency, (string) $orderTransaction->getOrder()->getAmountTotal());
 
-        $purchaseUnit = new PurchaseUnit($paypalAmount, $asyncPaymentTransition->getOrderTransaction()->getId());
+        $purchaseUnit = new PurchaseUnit($paypalAmount, $orderTransaction->getId());
 
         $createOrder = new PayPalCreateOrder(
             'CAPTURE',
@@ -323,19 +291,13 @@ class PayPalExpress
         $referenceId = $purchaseUnit->getReferenceId() ?? '';
 
         if (!$referenceId || !$amount) {
-            throw new Exception('PayPal: Amount or reference ID is empty');
+            throw new PaynlPaymentException('PayPal: Amount or reference ID is empty');
         }
 
-        $transactionCriteria = (new Criteria([$referenceId]))
-            ->addAssociation('stateMachineState');
-
-        $orderTransactions = $this->orderTransactionRepository->search($transactionCriteria, $salesChannelContext->getContext());
-        /** @var OrderTransactionEntity $orderTransaction */
-        $orderTransaction = $orderTransactions->first();
+        $orderTransaction = $this->processingHelper->getOrderTransaction($referenceId, $salesChannelContext->getContext());
         $orderId = $orderTransaction->getOrderId();
 
-        $order = $this->orderService->getOrder($orderId, $salesChannelContext->getContext());
-        $orderNumber = $order->getOrderNumber();
+        $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
 
         $exchangeUrl = $this->router->generate(
             'frontend.PaynlPayment.notify',
@@ -360,7 +322,7 @@ class PayPalExpress
 
         $input = new Input($payPalOrderId);
         $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT, null, $input);
-        $products = $this->expressCheckoutUtil->getOrderProducts($order, $salesChannelContext);
+        $products = $this->expressCheckoutUtil->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext);
         $payOrder = new Order($products);
 
         $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
@@ -389,17 +351,16 @@ class PayPalExpress
         $createOrderResponse = $this->payOrderService->create($createOrder, $salesChannelId);
 
         $this->processingHelper->storePaynlTransactionData(
-            $order,
             $orderTransaction,
-            $salesChannelContext,
             $createOrderResponse->getOrderId(),
+            $salesChannelContext->getContext()
         );
 
-        $this->updateOrder($order, $payPalOrder, $salesChannelContext);
+        $this->updateOrder($orderTransaction->getOrder(), $payPalOrder, $salesChannelContext);
 
-        $this->updateOrderCustomer($order->getOrderCustomer(), $payPalOrder, $salesChannelContext);
+        $this->updateOrderCustomer($orderTransaction->getOrder()->getOrderCustomer(), $payPalOrder, $salesChannelContext);
 
-        $this->updateCustomer($order->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
+        $this->updateCustomer($orderTransaction->getOrder()->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
 
         $this->processingHelper->notifyActionUpdateTransactionByPaynlTransactionId($createOrderResponse->getOrderId());
 

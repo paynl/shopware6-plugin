@@ -37,9 +37,6 @@
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
-            <call method="setTwig">
-                <argument type="service" id="twig"/>
-            </call>
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\Storefront\PayPal\Sw65\PayPalExpressController" public="true">
@@ -56,9 +53,6 @@
 
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
-            </call>
-            <call method="setTwig">
-                <argument type="service" id="twig"/>
             </call>
         </service>
 
