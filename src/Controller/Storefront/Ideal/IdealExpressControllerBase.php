@@ -10,6 +10,7 @@ use PaynlPayment\Shopware6\Enums\ExpressCheckoutEnum;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
+use PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -40,6 +41,9 @@ class IdealExpressControllerBase extends StorefrontController
     /** @var OrderService */
     private $orderService;
 
+    /** @var PaynlTransactionService */
+    private $payTransactionService;
+
     /** @var RouterInterface */
     private $router;
 
@@ -52,6 +56,7 @@ class IdealExpressControllerBase extends StorefrontController
         CartService $cartService,
         CartBackupService $cartBackupService,
         OrderService $orderService,
+        PaynlTransactionService $payTransactionService,
         RouterInterface $router,
         ?FlashBag $flashBag
     ) {
@@ -60,6 +65,7 @@ class IdealExpressControllerBase extends StorefrontController
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
+        $this->payTransactionService = $payTransactionService;
         $this->router = $router;
         $this->flashBag = $flashBag;
     }
@@ -124,10 +130,12 @@ class IdealExpressControllerBase extends StorefrontController
 
     public function getFinishPaymentResponse(RequestDataBag $data, SalesChannelContext $context): Response
     {
-        $orderNumber = (string) $data->get('object')->get('reference');
+        $payTransactionId = (string) $data->get('object')->get('orderId');
         $dataObject = (array) $data->all()['object'] ?? [];
 
         try {
+            $orderNumber = $this->payTransactionService->getOrderNumberByPayTransactionId($payTransactionId, $context->getContext());
+
             $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
 
             $this->idealExpress->updateOrder($order,$dataObject, $context);
@@ -140,13 +148,7 @@ class IdealExpressControllerBase extends StorefrontController
 
             return new Response($responseText);
         } catch (Throwable $ex) {
-            $responseText = sprintf(
-                'FALSE| Error "%s" in file %s',
-                $ex->getMessage(),
-                $ex->getFile()
-            );
-
-            return new Response($responseText);
+            return new Response('FALSE| Error');
         }
 
     }
