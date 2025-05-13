@@ -341,11 +341,7 @@ class ProcessingHelper
                 'exception' => $e
             ]);
 
-            return sprintf(
-                'FALSE| Error "%s" in file %s',
-                $e->getMessage(),
-                $e->getFile()
-            );
+            return 'FALSE| Error';
         }
     }
 
