@@ -1,3 +1,7 @@
+# 1.7.0
+- Kompatibilität mit Shopware 6.7 hinzugefügt
+- Verbesserte Transaktionsvalidierung im Fast Checkout
+
 # 1.6.9
 - Unterstützung für native Rückerstattungs-API hinzugefügt
 - PaynlDatePicker-Fehler behoben

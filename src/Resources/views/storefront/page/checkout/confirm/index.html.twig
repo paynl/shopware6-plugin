@@ -5,7 +5,7 @@
     {{ parent() }}
 {% endblock %}
 
-{% set configs = page.footer.extensions.PAY_custom_data.configs %}
+{% set configs = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs %}
 {% set isRestoreShoppingCart = configs.PaynlPaymentShopware6.config.restoreShoppingCart %}
 
 {% block page_checkout_aside_actions %}

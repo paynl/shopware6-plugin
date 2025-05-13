@@ -1,3 +1,7 @@
+# 1.7.0
+- Added compatibility with Shopware 6.7
+- Improved fast checkout transaction validation
+
 # 1.6.9
 - Added support for native refund API
 - Fixed PaynlDatePicker error
