@@ -131,20 +131,21 @@ class IdealExpressControllerBase extends StorefrontController
     public function getFinishPaymentResponse(RequestDataBag $data, SalesChannelContext $context): Response
     {
         $payTransactionId = (string) $data->get('object')->get('orderId');
-        $dataObject = (array) $data->all()['object'] ?? [];
 
         try {
+            $transactionData = $this->idealExpress->getPayTransactionByID($payTransactionId, $context);
+
             $orderNumber = $this->payTransactionService->getOrderNumberByPayTransactionId($payTransactionId, $context->getContext());
 
             $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
 
-            $this->idealExpress->updateOrder($order,$dataObject, $context);
+            $this->idealExpress->updateOrder($order, $transactionData, $context);
 
-            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $dataObject, $context);
+            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $transactionData, $context);
 
-            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $dataObject, $context);
+            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $transactionData, $context);
 
-            $responseText = $this->idealExpress->processNotify($dataObject);
+            $responseText = $this->idealExpress->processNotify($transactionData);
 
             return new Response($responseText);
         } catch (Throwable $ex) {
