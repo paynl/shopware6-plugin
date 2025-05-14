@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 abstract class BaseService
 {
     protected const METHOD_POST = 'POST';
+    protected const METHOD_GET = 'GET';
     protected const BASE_URL = 'https://connect.payments.nl';
 
     protected GuzzleClient $client;
