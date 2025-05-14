@@ -1,3 +1,5 @@
+# 1.7.1
+
 # 1.7.0
 - Added compatibility with Shopware 6.7
 - Improved fast checkout transaction validation
