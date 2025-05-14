@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
@@ -276,6 +277,12 @@ class IdealExpress
         $order = $orderDataMapper->mapArray($orderData);
 
         return $this->processingHelper->processNotify($order->getOrderId());
+    }
+
+    /** @throws PayPaymentApi */
+    public function getPayTransactionByID(string $transactionId, SalesChannelContext $salesChannelContext): array
+    {
+        return $this->payOrderService->getOrderStatus($transactionId, $salesChannelContext->getSalesChannel()->getId());
     }
 
     private function createPayIdealExpressOrder(
