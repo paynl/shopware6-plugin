@@ -22,6 +22,7 @@
         "order_number": "Bestelnummer",
         "customer": "Klant",
         "status": "Transactie status",
-        "links": "Links"
+        "links": "Links",
+        "exception": "Error"
     }
 }

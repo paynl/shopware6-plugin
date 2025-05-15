@@ -78,7 +78,18 @@ class DependencyLoader
         $pluginRoot = __DIR__ . '/../..';
 
         $distFileFolder = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/js';
-        if ($versionCompare->gte('6.5')) {
+        if ($versionCompare->lt('6.6')) {
+            $payPaymentShopwareJSPath = $distFileFolder . '/paynl-payment-shopware6/paynl-payment-shopware6.js';
+            if (file_exists($payPaymentShopwareJSPath)) {
+                unlink($payPaymentShopwareJSPath);
+            }
+
+            if (file_exists($distFileFolder . '/paynl-payment-shopware6')) {
+                rmdir($distFileFolder . '/paynl-payment-shopware6');
+            }
+        }
+
+        if ($versionCompare->gte('6.6')) {
             $distFileFolder .= '/paynl-payment-shopware6';
         }
 

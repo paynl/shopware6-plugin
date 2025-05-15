@@ -91,7 +91,7 @@ class Migration1597309435AddTransitionTranslationForDutch extends MigrationStep
                     'state_machine_id' => $orderTransactionStateId
                 ]);
 
-                $connection->executeUpdate($stateMachineStateTranslation, [
+                $connection->executeStatement($stateMachineStateTranslation, [
                     'language_id' => $translations['dutch']['id'],
                     'state_machine_state_id' => $stateMachineStateId,
                     'name' => $translations['dutch']['name'],

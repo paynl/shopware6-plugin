@@ -62,6 +62,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'allowRefunds');
     }
 
+    public function isNativeShopwareRefundAllowed(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'allowShopwareNativeRefund');
+    }
+
     public function isSurchargePaymentMethods(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'surchargePaymentMethods');

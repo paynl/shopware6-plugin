@@ -1,0 +1,13 @@
+{% sw_extends '@Storefront/storefront/component/payment/payment-form.html.twig' %}
+
+{% set settingUsePAYStyles = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs.PaynlPaymentShopware6.config.usePAYStyles %}
+
+{% block component_payment_form_list %}
+    <span id="paynl-payment-plugin" data-paynl-payment-plugin></span>
+
+    {% if (settingUsePAYStyles) %}
+        <div class="paynl-payment-methods-custom-styles">{{ parent() }}</div>
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}

@@ -15,11 +15,11 @@
         {% block paynl_payment_settings_actions_save %}
         <sw-button-process
                 class="sw-settings-login-registration__save-action"
-                :isLoading="isLoading"
-                :processSuccess="isSaveSuccessful"
+                :is-loading="isLoading"
+                :process-success="isSaveSuccessful"
                 :disabled="isDisabled"
                 variant="primary"
-                @process-finish="saveFinish"
+                @update:process-success="saveFinish"
                 @click="onSave">
             {{ $tc('paynlSettings.settingsForm.save') }}
         </sw-button-process>
