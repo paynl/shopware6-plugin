@@ -1,3 +1,5 @@
+# 1.7.2
+
 # 1.7.1
 - Improved validation to enhance security and transaction integrityInc
 

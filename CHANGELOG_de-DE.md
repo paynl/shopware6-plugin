@@ -1,3 +1,5 @@
+# 1.7.2
+
 # 1.7.1
 - Verbesserte Validierung zur Erhöhung der Sicherheit und Transaktionsintegrität
 
