@@ -422,6 +422,10 @@ class ProcessingHelper
     {
         $criteria = new Criteria([$orderTransactionId]);
         $criteria->addAssociation('order');
+        $criteria->addAssociation('order.addresses');
+        $criteria->addAssociation('order.addresses.country');
+        $criteria->addAssociation('order.billingAddress');
+        $criteria->addAssociation('order.billingAddress.country');
         $criteria->addAssociation('order.orderCustomer.customer');
         $criteria->addAssociation('order.orderCustomer.customer.salutation');
         $criteria->addAssociation('order.orderCustomer.customer.defaultBillingAddress');
@@ -432,8 +436,8 @@ class ProcessingHelper
         $criteria->addAssociation('order.language');
         $criteria->addAssociation('order.currency');
         $criteria->addAssociation('order.salesChannel');
+        $criteria->addAssociation('order.deliveries.shippingOrderAddress');
         $criteria->addAssociation('order.deliveries.shippingOrderAddress.country');
-        $criteria->addAssociation('order.billingAddress.country');
         $criteria->addAssociation('order.lineItems');
         $criteria->addAssociation('order.transactions.stateMachineState');
         $criteria->addAssociation('order.transactions.paymentMethod.appPaymentMethod.app');

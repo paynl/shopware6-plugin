@@ -69,11 +69,13 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
         return (new PayPalExpressCheckoutButtonData())->assign([
             'expressCheckoutEnabled' => $this->config->getPaymentPayPalExpressCheckoutEnabled($salesChannelId),
             'expressShoppingCartEnabled' => $this->config->getPaymentPayPalExpressShoppingCartEnabled($salesChannelId),
+            'expressProductPageEnabled' => $this->config->getPaymentPayPalExpressProductEnabled($salesChannelId),
             'clientId' => $this->config->getPaymentPayPalClientIdSandbox($salesChannelId),
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
             'languageIso' => $this->getInContextButtonLanguage($salesChannelContext->getContext()),
             'contextSwitchUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.prepare-cart'),
             'payPalPaymentMethodId' => $payPalPaymentMethodId,
+            'addProductToCart' => $addProductToCart,
             'createOrderUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.start-payment'),
             'createPaymentUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.create-payment'),
             'checkoutConfirmUrl' => $this->router->generate(
@@ -98,6 +100,7 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
         return (new IdealExpressCheckoutButtonData())->assign([
             'expressCheckoutEnabled' => $this->config->getPaymentIdealExpressCheckoutEnabled($salesChannelId),
             'expressShoppingCartEnabled' => $this->config->getPaymentIdealExpressShoppingCartEnabled($salesChannelId),
+            'expressProductPageEnabled' => $this->config->getPaymentIdealExpressProductEnabled($salesChannelId),
         ]);
     }
 
