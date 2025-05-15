@@ -29,7 +29,7 @@
 
         {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
         {% if expressSettings.expressProductPageEnabled %}
-            {% sw_include '@PaynlPaymentShopware6/storefront/component/ecs-checkout/ecs-button.html.twig' with {button_class: 'btn-block'} %}
+            {% sw_include '@PaynlPaymentShopware6/storefront/component/ecs-checkout/ecs-button.html.twig' with {button_class: 'btn-block my-2'} %}
         {% endif %}
 
     {% endblock %}
