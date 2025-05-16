@@ -8,7 +8,7 @@ use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsReposit
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Payment\Controller\PaymentController;
-use Shopware\Core\Checkout\Payment\Exception\InvalidTransactionException;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -59,17 +59,20 @@ class PaymentControllerBase extends AbstractController
 
         /** @var PaynlTransactionEntity $payTransaction */
         $payTransaction = $this->paynlTransactionRepository->search($criteria, $context)->first();
+        if ($payTransaction === null) {
+            throw PaymentException::invalidTransaction($payOrderId);
+        }
 
         /** @var OrderTransactionEntity|null $orderTransaction */
         $orderTransaction = $payTransaction->getOrderTransaction();
 
         if ($orderTransaction === null) {
-            throw new InvalidTransactionException($payOrderId);
+            throw PaymentException::invalidTransaction($payOrderId);
         }
         $order = $orderTransaction->getOrder();
 
         if ($order === null) {
-            throw new InvalidTransactionException($orderTransaction->getId());
+            throw PaymentException::invalidTransaction($orderTransaction->getId());
         }
 
         $orderId = $order->getId();
