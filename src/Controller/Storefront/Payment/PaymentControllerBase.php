@@ -3,12 +3,12 @@
 namespace PaynlPayment\Shopware6\Controller\Storefront\Payment;
 
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Payment\Controller\PaymentController;
-use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -45,6 +45,7 @@ class PaymentControllerBase extends AbstractController
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
+    /** @throws PaynlTransactionException */
     protected function finalizeTransactionResponse(Request $request, SalesChannelContext $salesChannelContext): RedirectResponse
     {
         $payOrderId = (string) $request->query->get('orderId');
@@ -60,19 +61,19 @@ class PaymentControllerBase extends AbstractController
         /** @var PaynlTransactionEntity $payTransaction */
         $payTransaction = $this->paynlTransactionRepository->search($criteria, $context)->first();
         if ($payTransaction === null) {
-            throw PaymentException::invalidTransaction($payOrderId);
+            throw PaynlTransactionException::notFoundByPayTransactionError($payOrderId);
         }
 
         /** @var OrderTransactionEntity|null $orderTransaction */
         $orderTransaction = $payTransaction->getOrderTransaction();
 
         if ($orderTransaction === null) {
-            throw PaymentException::invalidTransaction($payOrderId);
+            throw PaynlTransactionException::notFoundByPayTransactionError($payOrderId);
         }
         $order = $orderTransaction->getOrder();
 
         if ($order === null) {
-            throw PaymentException::invalidTransaction($orderTransaction->getId());
+            throw PaynlTransactionException::notFoundByPayTransactionError($payOrderId);
         }
 
         $orderId = $order->getId();
