@@ -168,13 +168,17 @@ class PayPalExpressControllerBase extends StorefrontController
 
             return new Response(json_encode($responseArray));
         } catch (Throwable $exception) {
-            return new Response(json_encode(['error' => $exception->getMessage()]), 400);
+            return new Response('Error on creating payment', 400);
         }
     }
 
     public function getFinishPageResponse(Request $request, SalesChannelContext $context): Response
     {
         $orderId = $request->get('orderId');
+
+        if (!$orderId) {
+            return $this->redirectToRoute('frontend.home.page');
+        }
 
         if (!$this->expressCheckoutUtil->isNotCompletedOrder($orderId, $context->getContext())) {
             return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
