@@ -16,6 +16,8 @@
         "expressCheckoutHelpText": "Show the fast checkout button on the cart page. This button allows users to checkout directly from the cart without the need to fill in their details.",
         "labelExpressShoppingCart": "Minicart",
         "expressShoppingCartHelpText": "Show the fast checkout button on the minicart. This button allows users to checkout directly from the cart without the need to fill in their details.",
+        "labelExpressProductPage": "Product page",
+        "expressProductPageHelpText": "Show the fast checkout button on the product page. This button allows users to checkout directly from the product page without the need to fill in their details.",
         "labelExpressCheckoutLoggedInCustomer": "Available for logged in customers",
         "expressCheckoutLoggedInCustomerHelpText": "When disabled (by default), the fast checkout button will only be shown to guest users.",
         "labelPaymentPaypalClientIdSandbox": "Sandbox Client ID",

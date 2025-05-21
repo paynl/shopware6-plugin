@@ -1,0 +1,39 @@
+{% sw_extends '@Storefront/storefront/page/product-detail/buy-widget-form.html.twig' %}
+
+{% block page_product_detail_buy_container %}
+    {{ parent() }}
+
+    {% block page_product_detail_buy_container_express_checkout %}
+
+        {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::IDEAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
+
+        {% if expressSettings.expressProductPageEnabled %}
+            {% if page.product %}
+                {# this is for older shopware versions #}
+                {% set productId = page.product.id %}
+            {% else %}
+                {# this is for Shopware >= 6.4 #}
+                {% set productId = product.id %}
+            {% endif %}
+
+            <div class="btn-block my-2 js-ideal-express-container">
+                <a href="{{ path('frontend.account.PaynlPayment.ideal-express.product.start-payment', {productId: productId, quantity: 1}) }}" id="btn-fast-checkout"
+                   style="background-image: url('{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}')"
+                   class="btn btn-primary btn-block btn-buy w-100"
+                   data-product-id="{{ productId }}"
+                   data-paynl-express-product-button="true"
+                   title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">{{ "payment.idealExpressCheckout.buttonTitle" | trans }}
+                </a>
+            </div>
+        {% endif %}
+
+        {% set expressSettings = page.extensions[constant('PaynlPayment\\Shopware6\\Checkout\\ExpressCheckout\\ExpressCheckoutSubscriber::PAYPAL_EXPRESS_CHECKOUT_BUTTON_DATA_EXTENSION_ID')] %}
+        {% if expressSettings.expressProductPageEnabled %}
+            {% sw_include '@PaynlPaymentShopware6/storefront/component/ecs-checkout/ecs-button.html.twig' with {button_class: 'btn-block my-2'} %}
+        {% endif %}
+
+    {% endblock %}
+
+{% endblock %}
+
+

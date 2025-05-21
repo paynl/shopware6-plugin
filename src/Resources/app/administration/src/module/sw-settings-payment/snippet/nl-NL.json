@@ -16,6 +16,8 @@
         "expressCheckoutHelpText": "Toon de 'Snel bestellen' knop op de winkelwagenpagina. Met deze knop kunnen gebruikers direct afrekenen vanuit de winkelwagen zonder dat ze gegevens hoeven in te vullen.",
         "labelExpressShoppingCart": "Minicart",
         "expressShoppingCartHelpText": "Toon de 'Snel bestellen' knop in de minicart. Met deze knop kunnen gebruikers direct afrekenen vanuit de minicart zonder dat ze hun gegevens hoeven in te vullen.",
+        "labelExpressProductPage": "Product page",
+        "expressProductPageHelpText": "Show the fast checkout button on the product page. This button allows users to checkout directly from the product page without the need to fill in their details.",
         "labelExpressCheckoutLoggedInCustomer": "Beschikbaar voor ingelogde gebruikers ",
         "expressCheckoutLoggedInCustomerHelpText": "Als deze optie is uitgeschakeld (standaard), wordt de knop alleen getoond aan gastgebruikers.",
         "labelPaymentPaypalClientIdSandbox": "Sandbox Client ID",
