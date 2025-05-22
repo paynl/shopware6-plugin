@@ -37,4 +37,14 @@ class PaymentMethodValueObject
     {
         return self::TECHNICAL_NAME_PREFIX . $this->originalMethod->getName();
     }
+
+    public function getBanks(): array
+    {
+        return $this->originalMethod->getId() === Method::IDEAL ? $this->originalMethod->getOptions() : [];
+    }
+
+    public function isPayLater(): bool
+    {
+        return in_array($this->originalMethod->getId(), PayLaterPaymentMethodsEnum::PAY_LATER_PAYMENT_METHODS);
+    }
 }

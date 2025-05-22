@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Components\PayPalExpress;
 
+use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Exceptions\PayPalPaymentApi;
+use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
@@ -251,6 +254,10 @@ class PayPalExpress
         $this->processingHelper->instorePaymentUpdateState($orderResponse->getOrderId(), $stateActionName, $statusCode);
     }
 
+    /**
+     * @throws PayPalPaymentApi
+     * @throws PaynlPaymentException
+     */
     private function createPayPalExpressOrder(
         string $orderTransactionId,
         SalesChannelContext $salesChannelContext
@@ -269,11 +276,16 @@ class PayPalExpress
             [$purchaseUnit]
         );
 
-        $paypalOrder = $this->paypalOrderService->create($createOrder, $salesChannelId);
-
-        return $paypalOrder;
+        return $this->paypalOrderService->create($createOrder, $salesChannelId);
     }
 
+    /**
+     * @throws PaynlPaymentException
+     * @throws PayException
+     * @throws PayPalPaymentApi
+     * @throws PayPaymentApi
+     * @throws Exception
+     */
     public function createPayPaymentTransaction(
         string $payPalOrderId,
         SalesChannelContext $salesChannelContext
@@ -350,7 +362,7 @@ class PayPalExpress
 
         $createOrderResponse = $this->payOrderService->create($createOrder, $salesChannelId);
 
-        $this->processingHelper->storePaynlTransactionData(
+        $this->processingHelper->storePayTransactionData(
             $orderTransaction,
             $createOrderResponse->getOrderId(),
             $salesChannelContext->getContext()

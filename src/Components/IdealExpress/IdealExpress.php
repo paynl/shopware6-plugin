@@ -207,6 +207,10 @@ class IdealExpress
         return $this->customerService->updateCustomer($customerData, $context);
     }
 
+    /**
+     * @throws PaynlPaymentException
+     * @throws Throwable
+     */
     public function createPayment(
         OrderEntity $order,
         string $shopwareReturnUrl,
@@ -251,13 +255,13 @@ class IdealExpress
 
             $orderTransaction = $this->processingHelper->getOrderTransaction($transaction->getId(), $context->getContext());
 
-            $this->processingHelper->storePaynlTransactionData(
+            $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 $orderResponse->getOrderId(),
                 $context->getContext()
             );
         } catch (Throwable $exception) {
-            $this->processingHelper->storePaynlTransactionData(
+            $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 '',
                 $context->getContext(),
@@ -285,6 +289,10 @@ class IdealExpress
         return $this->payOrderService->getOrderStatus($transactionId, $salesChannelContext->getSalesChannel()->getId());
     }
 
+    /**
+     * @throws PayPaymentApi
+     * @throws PaynlPaymentException
+     */
     private function createPayIdealExpressOrder(
         string $orderTransactionId,
         string $shopwareReturnUrl,

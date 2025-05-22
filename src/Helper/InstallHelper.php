@@ -50,9 +50,7 @@ class InstallHelper
 
     private Connection $connection;
     private PluginIdProvider $pluginIdProvider;
-    private Config $config;
-    private Api $paynlApi;
-    private PaymentHandlerFactory $paymentHandlerFactory;
+    private Api $payAPI;
     private MediaHelper $mediaHelper;
     private PaymentMethodRepositoryInterface $paymentMethodRepository;
     private SalesChannelRepositoryInterface $salesChannelRepository;
@@ -62,9 +60,7 @@ class InstallHelper
     public function __construct(
         Connection $connection,
         PluginIdProvider $pluginIdProvider,
-        Config $config,
-        Api $paynlApi,
-        PaymentHandlerFactory $paymentHandlerFactory,
+        Api $payAPI,
         MediaHelper $mediaHelper,
         PaymentMethodRepositoryInterface $paymentMethodRepository,
         SalesChannelRepositoryInterface $salesChannelRepository,
@@ -74,15 +70,13 @@ class InstallHelper
         $this->pluginIdProvider = $pluginIdProvider;
         $this->connection = $connection;
 
-        $this->config = $config;
-        $this->paynlApi = $paynlApi;
+        $this->payAPI = $payAPI;
         $this->mediaHelper = $mediaHelper;
 
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->salesChannelRepository = $salesChannelRepository;
         $this->paymentMethodSalesChannelRepository = $paymentMethodSalesChannelRepository;
         $this->systemConfigRepository = $systemConfigRepository;
-        $this->paymentHandlerFactory = $paymentHandlerFactory;
     }
 
     /**
@@ -98,7 +92,7 @@ class InstallHelper
         }
         $this->removeOldMedia($salesChannelId, $context);
 
-        $paymentMethods = $this->paynlApi->getPaymentMethods($salesChannelId);
+        $paymentMethods = $this->payAPI->getPaymentMethods($salesChannelId);
 
         if (empty($paymentMethods)) {
             throw new PaynlPaymentException('Cannot get any payment method.');
@@ -115,7 +109,7 @@ class InstallHelper
     public function updatePaymentMethods(Context $context): void
     {
         foreach ($this->getSalesChannels($context)->getIds() as $salesChannelId) {
-            if ($this->paynlApi->isValidStoredCredentials($salesChannelId)) {
+            if ($this->payAPI->isValidStoredCredentials($salesChannelId)) {
                 $this->installPaymentMethods($salesChannelId, $context);
             }
         }
@@ -255,9 +249,6 @@ class InstallHelper
         $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
     }
 
-    /**
-     * @param Context $context
-     */
     private function removeOldMedia(string $salesChannelId, Context $context): void
     {
         $paymentMethodIdsForRemoveMedia = $this->getPaymentMethodsForRemoveMedia($salesChannelId, $context);
@@ -334,21 +325,6 @@ class InstallHelper
         return $this->paymentMethodRepository->search($criteria, $context);
     }
 
-    private function isInstalledPaymentMethod(string $shopwarePaymentMethodId): bool
-    {
-        // Fetch ID for update
-        $paymentCriteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $shopwarePaymentMethodId));
-        $paymentMethods = $this->paymentMethodRepository->search($paymentCriteria, Context::createDefaultContext());
-
-        return $paymentMethods->getTotal() !== 0;
-    }
-
-    /**
-     * @param Context $context
-     * @param string $paymentMethodId
-     * @return mixed[]
-     */
     private function getSalesChannelsData(string $paymentMethodId, string $salesChannelId, Context $context): array
     {
         $criteria = new Criteria();
@@ -366,11 +342,6 @@ class InstallHelper
         return $salesChannelsData;
     }
 
-    /**
-     * @param Context $context
-     * @param PaymentMethodValueObject $paymentMethodValueObject
-     * @return mixed[]
-     */
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);

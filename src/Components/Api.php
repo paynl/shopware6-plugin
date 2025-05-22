@@ -24,12 +24,12 @@ use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -46,11 +46,8 @@ class Api
 
     private Config $config;
     private CustomerHelper $customerHelper;
-    private TransactionLanguageHelper $transactionLanguageHelper;
     private StringHelper $stringHelper;
-    private IpSettingsHelper $ipSettingsHelper;
     private ProductRepositoryInterface $productRepository;
-    private OrderRepositoryInterface $orderRepository,
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private LoggerInterface $logger;
@@ -58,22 +55,16 @@ class Api
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
-        TransactionLanguageHelper $transactionLanguageHelper,
         StringHelper $stringHelper,
-        IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
-        OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
-        $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->stringHelper = $stringHelper;
-        $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
-        $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
         $this->logger = $logger;
@@ -108,19 +99,17 @@ class Api
      * @throws PaynlPaymentException
      */
     public function startTransaction(
-        OrderEntity $order,
-        SalesChannelContext $salesChannelContext,
         OrderTransactionEntity $orderTransaction,
         Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): PayOrder {
         $orderCreateRequest = $this->getOrderCreateRequest(
-            $order,
-            $salesChannelContext,
+            $orderTransaction,
+            $context,
             $additionalTransactionInfo
         );
 
-        $config = $this->getConfig($salesChannelContext->getSalesChannel()->getId(), true);
+        $config = $this->getConfig($orderTransaction->getOrder()->getSalesChannel()->getId(), true);
 
         $orderCreateRequest->setConfig($config);
 
@@ -140,25 +129,18 @@ class Api
      * @throws Exception
      */
     private function getOrderCreateRequest(
-        OrderEntity $order,
-        SalesChannelContext $salesChannelContext,
-    /** @throws PaynlPaymentException */
-    private function getTransactionInitialData(
         OrderTransactionEntity $orderTransaction,
         Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): OrderCreateRequest {
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
-    ): array {
         $order = $orderTransaction->getOrder();
         $salesChannelId = $order->getSalesChannelId();
-        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($orderTransaction);
+        $payPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($orderTransaction);
         $amount = $order->getAmountTotal();
         $currency = $order->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
         $orderNumber = $order->getOrderNumber();
-        $customer = $salesChannelContext->getCustomer();
+        $customer = $orderTransaction->getOrder()->getOrderCustomer()->getCustomer();
 
         $request = new OrderCreateRequest();
         $request->setServiceId($this->config->getServiceId($salesChannelId));
@@ -173,11 +155,11 @@ class Api
         $request->setAmount($amount);
         $request->setCurrency($currency);
 
-        if ($paynlPaymentMethodId) {
-            $request->setPaymentMethodId($paynlPaymentMethodId);
+        if ($payPaymentMethodId) {
+            $request->setPaymentMethodId($payPaymentMethodId);
         }
 
-        if ($paynlPaymentMethodId === Model\Method::PIN) {
+        if ($payPaymentMethodId === Model\Method::PIN) {
             $request->setTerminal($additionalTransactionInfo->getTerminalId());
         }
 
@@ -191,7 +173,7 @@ class Api
 
         $payNLOrder->setInvoiceAddress($this->customerHelper->getInvoiceAddress($customer, $salesChannelId));
 
-        $payNLOrder->setProducts($this->getOrderProducts($order, $salesChannelContext->getContext()));
+        $payNLOrder->setProducts($this->getOrderProducts($order, $context));
 
         $request->setOrder($payNLOrder);
 
@@ -361,14 +343,14 @@ class Api
             $transactionRefundRequest->setDescription($description);
 
             return $transactionRefundRequest->start();
-        } catch (\Throwable $e) {
+        } catch (Throwable $exception) {
             $this->logger->error('Error while refunding process', [
                 'transactionId' => $transactionID,
                 'amount' => $amount,
-                'exception' => $e
+                'exception' => $exception
             ]);
 
-            throw new Exception($e->getMessage());
+            throw new Exception($exception->getMessage());
         }
     }
 
