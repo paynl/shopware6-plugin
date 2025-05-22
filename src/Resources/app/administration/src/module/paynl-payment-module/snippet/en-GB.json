@@ -22,6 +22,7 @@
         "order_number": "Order number",
         "customer": "Customer",
         "status": "Transaction status",
-        "links": "Links"
+        "links": "Links",
+        "exception": "Error"
     }
 }

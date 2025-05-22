@@ -6,6 +6,7 @@ namespace PaynlPayment\Shopware6\Service\PAY\v1;
 
 use GuzzleHttp\Client;
 use PaynlPayment\Shopware6\Components\Config;
+use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
@@ -23,6 +24,7 @@ class OrderService extends BaseService
         $this->createOrderDataMapper = new OrderDataMapper();
     }
 
+    /** @throws PayPaymentApi */
     public function create(CreateOrder $order, string $salesChannelId): CreateOrderResponse
     {
         $arrayResponse = $this->request(
@@ -33,6 +35,16 @@ class OrderService extends BaseService
         );
 
         return $this->createOrderDataMapper->mapArray($arrayResponse);
+    }
+
+    /** @throws PayPaymentApi */
+    public function getOrderStatus(string $transactionId, string $salesChannelId): array
+    {
+        return $this->request(
+            static::METHOD_GET,
+            'v1/orders/' . $transactionId . '/status',
+            $this->getBasicToken($salesChannelId)
+        );
     }
 
     private function getBasicToken(string $salesChannelId): string

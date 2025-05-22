@@ -46,8 +46,11 @@ class Api
 
     private Config $config;
     private CustomerHelper $customerHelper;
+    private TransactionLanguageHelper $transactionLanguageHelper;
     private StringHelper $stringHelper;
+    private IpSettingsHelper $ipSettingsHelper;
     private ProductRepositoryInterface $productRepository;
+    private OrderRepositoryInterface $orderRepository,
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private LoggerInterface $logger;
@@ -55,16 +58,22 @@ class Api
     public function __construct(
         Config $config,
         CustomerHelper $customerHelper,
+        TransactionLanguageHelper $transactionLanguageHelper,
         StringHelper $stringHelper,
+        IpSettingsHelper $ipSettingsHelper,
         ProductRepositoryInterface $productRepository,
+        OrderRepositoryInterface $orderRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
+        $this->transactionLanguageHelper = $transactionLanguageHelper;
         $this->stringHelper = $stringHelper;
+        $this->ipSettingsHelper = $ipSettingsHelper;
         $this->productRepository = $productRepository;
+        $this->orderRepository = $orderRepository;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
         $this->logger = $logger;
@@ -101,6 +110,8 @@ class Api
     public function startTransaction(
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+        OrderTransactionEntity $orderTransaction,
+        Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): PayOrder {
         $orderCreateRequest = $this->getOrderCreateRequest(
@@ -131,12 +142,20 @@ class Api
     private function getOrderCreateRequest(
         OrderEntity $order,
         SalesChannelContext $salesChannelContext,
+    /** @throws PaynlPaymentException */
+    private function getTransactionInitialData(
+        OrderTransactionEntity $orderTransaction,
+        Context $context,
         AdditionalTransactionInfo $additionalTransactionInfo
     ): OrderCreateRequest {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($salesChannelContext);
+    ): array {
+        $order = $orderTransaction->getOrder();
+        $salesChannelId = $order->getSalesChannelId();
+        $paynlPaymentMethodId = $this->getPaynlPaymentMethodIdFromShopware($orderTransaction);
         $amount = $order->getAmountTotal();
-        $currency = $salesChannelContext->getCurrency()->getIsoCode();
+        $currency = $order->getCurrency()->getIsoCode();
         $testMode = $this->config->getTestMode($salesChannelId);
         $orderNumber = $order->getOrderNumber();
         $customer = $salesChannelContext->getCustomer();
@@ -192,14 +211,14 @@ class Api
     }
 
     /** @throws PaynlPaymentException */
-    public function getPaynlPaymentMethodIdFromShopware(SalesChannelContext $salesChannelContext): int
+    public function getPaynlPaymentMethodIdFromShopware(OrderTransactionEntity $orderTransaction): int
     {
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $salesChannelId = $orderTransaction->getOrder()->getSalesChannelId();
         if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
             return 0;
         }
 
-        $paymentMethodTranslated = $salesChannelContext->getPaymentMethod()->getTranslated();
+        $paymentMethodTranslated = $orderTransaction->getPaymentMethod()->getTranslated();
         if (!isset($paymentMethodTranslated['customFields'])
             || !$paymentMethodTranslated['customFields'][self::PAYMENT_METHOD_PAY_NL_ID]
         ) {

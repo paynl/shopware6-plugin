@@ -31,14 +31,12 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\Cart\CartBackupService" />
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService" />
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService" />
             <argument type="service" id="Shopware\Storefront\Framework\Routing\Router"/>
             <argument type="service" id="session.flash_bag" on-invalid="null"/>
 
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
-            </call>
-            <call method="setTwig">
-                <argument type="service" id="twig"/>
             </call>
         </service>
 
@@ -56,9 +54,6 @@
 
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
-            </call>
-            <call method="setTwig">
-                <argument type="service" id="twig"/>
             </call>
         </service>
 

@@ -24,6 +24,10 @@ Component.register('paynl-config-section-api', {
 
     methods: {
         onInstallPaymentMethods() {
+            if (this.installPaymentMethodsIsLoading) {
+                return;
+            }
+
             let configRoot = this.$parent;
             while (configRoot.saveAll === undefined) {
                 configRoot = configRoot.$parent;
@@ -99,7 +103,11 @@ Component.register('paynl-config-section-api', {
             });
         },
 
-        onTestCredentials() {
+        onTestCredentials: function () {
+            if (this.testCredentialsIsLoading) {
+                return;
+            }
+
             const tokenCodeInput = document.querySelector('input[name="PaynlPaymentShopware6.config.tokenCode"]');
             const apiTokenInput = document.querySelector('input[name="PaynlPaymentShopware6.config.apiToken"]');
             const serviceIdInput = document.querySelector('input[name="PaynlPaymentShopware6.config.serviceId"]');
