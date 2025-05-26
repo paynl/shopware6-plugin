@@ -99,8 +99,8 @@ class CustomerHelper
         $street = $customerShippingAddress->getStreet();
         if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
             $address = paynl_split_address($street);
-            $street = $address[0] ?? '';
-            $houseNumber = $address[1] ?? '';
+            $street = $address['street'] ?? '';
+            $houseNumber = $address['number'] ?? '';
 
             $houseNumberArr = explode(' ', (string) $houseNumber);
             if (count($houseNumberArr) > 1) {
@@ -138,8 +138,8 @@ class CustomerHelper
         $street = $customerBillingAddress->getStreet();
         if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
             $address = paynl_split_address($street);
-            $street = $address[0] ?? '';
-            $houseNumber = $address[1] ?? '';
+            $street = $address['street'] ?? '';
+            $houseNumber = $address['number'] ?? '';
 
             $houseNumberArr = explode(' ', (string) $houseNumber);
             if (count($houseNumberArr) > 1) {

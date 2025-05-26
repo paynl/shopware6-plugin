@@ -124,6 +124,21 @@ class Api
         return (new TransactionStatusRequest($transactionId))->setConfig($config)->start();
     }
 
+    public function getConfig(string $salesChannelId, bool $useGateway = false): PayNLConfig
+    {
+        $sdkConfig = new PayNLConfig();
+        $sdkConfig->setUsername($this->config->getTokenCode($salesChannelId));
+        $sdkConfig->setPassword($this->config->getApiToken($salesChannelId));
+
+        $gateway = $this->config->getFailoverGateway($salesChannelId);
+        $gateway = $gateway ? 'https://' . $gateway : '';
+        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
+            $sdkConfig->setCore(trim($gateway));
+        }
+
+        return $sdkConfig;
+    }
+
     /**
      * @throws PaynlPaymentException
      * @throws Exception
@@ -242,6 +257,7 @@ class Api
             $product->setCurrency($order->getCurrency()->getIsoCode());
             $product->setQuantity($item->getPrice()->getQuantity());
             $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
+            $product->setVatPercentage($vatPercentage);
 
             $products->addProduct($product);
         }
@@ -262,6 +278,7 @@ class Api
             $product->setCurrency($order->getCurrency()->getIsoCode());
             $product->setQuantity($item->getPrice()->getQuantity());
             $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
+            $product->setVatPercentage($vatPercentage);
 
             $products->addProduct($product);
         }
@@ -278,6 +295,7 @@ class Api
                 $order->getShippingCosts()->getCalculatedTaxes()->getAmount()
             )
         );
+        $product->setVatPercentage($order->getShippingCosts()->getCalculatedTaxes()->getAmount());
 
         $products->addProduct($product);
 
@@ -487,20 +505,5 @@ class Api
                 'name' => $terminal->getName(),
             ];
         }, $terminalResponse->getTerminals());
-    }
-
-    private function getConfig(string $salesChannelId, bool $useGateway = false): PayNLConfig
-    {
-        $sdkConfig = new PayNLConfig();
-        $sdkConfig->setUsername($this->config->getTokenCode($salesChannelId));
-        $sdkConfig->setPassword($this->config->getApiToken($salesChannelId));
-
-        $gateway = $this->config->getFailoverGateway($salesChannelId);
-        $gateway = $gateway ? 'https://' . $gateway : '';
-        if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
-            $sdkConfig->setCore(trim($gateway));
-        }
-
-        return $sdkConfig;
     }
 }

@@ -4,20 +4,13 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Components\PayPalExpress;
 
+use PayNL\Sdk\Model;
 use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PayPalPaymentApi;
-use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Input;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Optimize;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Order;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\PaymentMethod;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\CreateOrderResponse as PayPalCreateOrderResponse;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\Amount as PayPalAmount;
@@ -27,7 +20,6 @@ use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\OrderDetailResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Exception;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
@@ -43,19 +35,15 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEnti
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class PayPalExpress
 {
-    private Config $config;
     private RouterInterface $router;
-    private TranslatorInterface $translator;
     private CustomerService $customerService;
     private OrderService $orderService;
     private PayPalOrderService $paypalOrderService;
-    private PayOrderService $payOrderService;
     private ProcessingHelper $processingHelper;
     private ExpressCheckoutUtil $expressCheckoutUtil;
     private OrderAddressRepositoryInterface $repoOrderAddresses;
@@ -283,15 +271,13 @@ class PayPalExpress
      * @throws PaynlPaymentException
      * @throws PayException
      * @throws PayPalPaymentApi
-     * @throws PayPaymentApi
      * @throws Exception
      */
     public function createPayPaymentTransaction(
         string $payPalOrderId,
         SalesChannelContext $salesChannelContext
-    ): CreateOrderResponse {
+    ): Model\Pay\PayOrder {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $currency = $salesChannelContext->getCurrency()->getIsoCode();
 
         $payPalOrder = $this->paypalOrderService->getOrder($payPalOrderId, $salesChannelId);
 
@@ -309,36 +295,6 @@ class PayPalExpress
         $orderTransaction = $this->processingHelper->getOrderTransaction($referenceId, $salesChannelContext->getContext());
         $orderId = $orderTransaction->getOrderId();
 
-        $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
-
-        $exchangeUrl = $this->router->generate(
-            'frontend.PaynlPayment.notify',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        );
-
-        $payAmount = new Amount((int) $amount, $currency);
-
-        $description = sprintf(
-            '%s %s',
-            $this->translator->trans('transactionLabels.order'),
-            $orderNumber
-        );
-
-        $optimize = new Optimize(
-            'fastCheckout',
-            true,
-            true,
-            true
-        );
-
-        $input = new Input($payPalOrderId);
-        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::PAYPAL_PAYMENT, null, $input);
-        $products = $this->expressCheckoutUtil->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext);
-        $payOrder = new Order($products);
-
-        $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
-
         $returnUrl = $this->router->generate(
             'frontend.account.PaynlPayment.paypal-express.finish-page',
             [
@@ -347,24 +303,14 @@ class PayPalExpress
             $this->router::ABSOLUTE_URL
         );
 
-        $createOrder = new CreateOrder(
-            $this->config->getServiceId($salesChannelId),
-            $payAmount,
-            $description,
-            $orderNumber,
-            $returnUrl,
-            $exchangeUrl,
-            $optimize,
-            $paymentMethod,
-            $integration,
-            $payOrder
-        );
+        $orderCreateRequest = $this->expressCheckoutUtil->buildOrderCreateRequest($orderTransaction->getId(), $returnUrl, $salesChannelContext);
+        $orderCreateRequest->setPaymentMethodId(Model\Method::PAYPAL);
 
-        $createOrderResponse = $this->payOrderService->create($createOrder, $salesChannelId);
+        $orderCreateResponse = $orderCreateRequest->start();
 
         $this->processingHelper->storePayTransactionData(
             $orderTransaction,
-            $createOrderResponse->getOrderId(),
+            $orderCreateResponse->getOrderId(),
             $salesChannelContext->getContext()
         );
 
@@ -374,9 +320,9 @@ class PayPalExpress
 
         $this->updateCustomer($orderTransaction->getOrder()->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
 
-        $this->processingHelper->notifyActionUpdateTransactionByPayTransactionId($createOrderResponse->getOrderId());
+        $this->processingHelper->notifyActionUpdateTransactionByPayTransactionId($orderCreateResponse->getOrderId());
 
-        return $createOrderResponse;
+        return $orderCreateResponse;
     }
 
     /**

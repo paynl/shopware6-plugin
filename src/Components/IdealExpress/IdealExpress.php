@@ -4,29 +4,21 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
+use PayNL\Sdk\Model;
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
 use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Throwable;
 use Exception;
-use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
 use PaynlPayment\Shopware6\Service\PAY\v1\OrderService as PayOrderService;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Optimize;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Order;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\PaymentMethod;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
@@ -35,15 +27,9 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEnti
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 class IdealExpress
 {
-    private Config $config;
-    private RouterInterface $router;
-    private TranslatorInterface $translator;
     private CustomerService $customerService;
     private OrderService $orderService;
     private PayOrderService $payOrderService;
@@ -54,9 +40,6 @@ class IdealExpress
     private OrderDeliveryRepositoryInterface $orderDeliveryRepository;
 
     public function __construct(
-        Config $config,
-        RouterInterface $router,
-        TranslatorInterface $translator,
         CustomerService $customerService,
         OrderService $orderService,
         PayOrderService $payOrderService,
@@ -66,9 +49,6 @@ class IdealExpress
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         OrderDeliveryRepositoryInterface $orderDeliveryRepository
     ) {
-        $this->config = $config;
-        $this->router = $router;
-        $this->translator = $translator;
         $this->customerService = $customerService;
         $this->orderService = $orderService;
         $this->payOrderService = $payOrderService;
@@ -261,6 +241,7 @@ class IdealExpress
                 $context->getContext()
             );
         } catch (Throwable $exception) {
+            dd($exception->getMessage());
             $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 '',
@@ -271,7 +252,7 @@ class IdealExpress
             throw $exception;
         }
 
-        return $orderResponse->getLinks()->getRedirect();
+        return $orderResponse->getPaymentUrl();
     }
 
     /** @throws Exception */
@@ -290,62 +271,18 @@ class IdealExpress
     }
 
     /**
-     * @throws PayPaymentApi
      * @throws PaynlPaymentException
+     * @throws Exception
      */
     private function createPayIdealExpressOrder(
         string $orderTransactionId,
         string $shopwareReturnUrl,
         SalesChannelContext $salesChannelContext
-    ): CreateOrderResponse {
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
-        $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
+    ): Model\Pay\PayOrder {
+        $orderCreateRequest = $this->expressCheckoutUtil->buildOrderCreateRequest($orderTransactionId, $shopwareReturnUrl, $salesChannelContext);
+        $orderCreateRequest->setPaymentMethodId(Model\Method::IDEAL);
 
-        $exchangeUrl = $this->router->generate(
-            'frontend.account.PaynlPayment.ideal-express.finish-payment',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        );
-
-        $amount = (int) round($orderTransaction->getOrder()->getAmountTotal() * 100);
-        $currency = $salesChannelContext->getCurrency()->getIsoCode();
-
-        $amount = new Amount($amount, $currency);
-
-        $description = sprintf(
-            '%s %s',
-            $this->translator->trans('transactionLabels.order'),
-            $orderNumber
-        );
-
-        $optimize = new Optimize(
-            'fastCheckout',
-            true,
-            true,
-            true
-        );
-
-        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, null, null);
-        $products = $this->expressCheckoutUtil->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext);
-        $order = new Order($products);
-
-        $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
-
-        $createOrder = new CreateOrder(
-            $this->config->getServiceId($salesChannelId),
-            $amount,
-            $description,
-            $orderNumber,
-            $shopwareReturnUrl,
-            $exchangeUrl,
-            $optimize,
-            $paymentMethod,
-            $integration,
-            $order
-        );
-
-        return $this->payOrderService->create($createOrder, $salesChannelId);
+        return $orderCreateRequest->start();
     }
 
     /**
