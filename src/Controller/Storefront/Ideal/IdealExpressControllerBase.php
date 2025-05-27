@@ -133,19 +133,19 @@ class IdealExpressControllerBase extends StorefrontController
         $payTransactionId = (string) $data->get('object')->get('orderId');
 
         try {
-            $transactionData = $this->idealExpress->getPayTransactionByID($payTransactionId, $context);
+            $payTransaction = $this->idealExpress->getPayTransactionByID($payTransactionId, $context);
 
             $orderNumber = $this->payTransactionService->getOrderNumberByPayTransactionId($payTransactionId, $context->getContext());
 
             $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
 
-            $this->idealExpress->updateOrder($order, $transactionData, $context);
+            $this->idealExpress->updateOrder($order, $payTransaction->getFastCheckoutData(), $context);
 
-            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $transactionData, $context);
+            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $payTransaction->getFastCheckoutData(), $context);
 
-            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $transactionData, $context);
+            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $payTransaction->getFastCheckoutData(), $context);
 
-            $responseText = $this->idealExpress->processNotify($transactionData);
+            $responseText = $this->idealExpress->processNotify($payTransaction);
 
             return new Response($responseText);
         } catch (Throwable $ex) {

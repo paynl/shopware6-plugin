@@ -10,6 +10,7 @@ use PayNL\Sdk\Model\Request\OrderCaptureRequest;
 use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model;
 use PayNL\Sdk\Model\Request\OrderDeclineRequest;
+use PayNL\Sdk\Model\Request\OrderStatusRequest;
 use PayNL\Sdk\Model\Request\OrderVoidRequest;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
 use PayNL\Sdk\Model\Request\TerminalsBrowseRequest;
@@ -122,6 +123,14 @@ class Api
         $config = $this->getConfig($salesChannelId);
 
         return (new TransactionStatusRequest($transactionId))->setConfig($config)->start();
+    }
+
+    /** @throws PayException */
+    public function getOrderStatus(string $transactionId, string $salesChannelId): PayOrder
+    {
+        $config = $this->getConfig($salesChannelId);
+
+        return (new OrderStatusRequest($transactionId))->setConfig($config)->start();
     }
 
     public function getConfig(string $salesChannelId, bool $useGateway = false): PayNLConfig

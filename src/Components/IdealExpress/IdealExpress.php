@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
+use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model;
+use PayNL\Sdk\Model\Pay\PayOrder;
+use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
-use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Throwable;
 use Exception;
@@ -18,7 +19,6 @@ use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
-use PaynlPayment\Shopware6\Service\PAY\v1\OrderService as PayOrderService;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
@@ -32,7 +32,7 @@ class IdealExpress
 {
     private CustomerService $customerService;
     private OrderService $orderService;
-    private PayOrderService $payOrderService;
+    private Api $payAPI;
     private ProcessingHelper $processingHelper;
     private ExpressCheckoutUtil $expressCheckoutUtil;
     private OrderAddressRepositoryInterface $repoOrderAddresses;
@@ -42,7 +42,7 @@ class IdealExpress
     public function __construct(
         CustomerService $customerService,
         OrderService $orderService,
-        PayOrderService $payOrderService,
+        Api $payAPI,
         ProcessingHelper $processingHelper,
         ExpressCheckoutUtil $expressCheckoutUtil,
         OrderAddressRepositoryInterface $repoOrderAddresses,
@@ -51,7 +51,7 @@ class IdealExpress
     ) {
         $this->customerService = $customerService;
         $this->orderService = $orderService;
-        $this->payOrderService = $payOrderService;
+        $this->payAPI = $payAPI;
         $this->processingHelper = $processingHelper;
         $this->expressCheckoutUtil = $expressCheckoutUtil;
         $this->repoOrderAddresses = $repoOrderAddresses;
@@ -60,9 +60,8 @@ class IdealExpress
     }
 
     /** @throws Exception */
-    public function updateOrder(OrderEntity $order, array $webhookData, SalesChannelContext $context): ?OrderEntity
+    public function updateOrder(OrderEntity $order, array $customerData, SalesChannelContext $context): ?OrderEntity
     {
-        $customerData = $this->getCustomerWebhookData($webhookData);
         if (empty($customerData)) {
             return $order;
         }
@@ -128,10 +127,9 @@ class IdealExpress
 
     public function updateOrderCustomer(
         OrderCustomerEntity $customer,
-        array $webhookData,
+        array $customerData,
         SalesChannelContext $context
     ): void {
-        $customerData = $this->getCustomerWebhookData($webhookData);
         if (empty($customerData)) {
             return;
         }
@@ -148,16 +146,15 @@ class IdealExpress
 
     public function updateCustomer(
         CustomerEntity $customer,
-        array $webhookData,
+        array $customerWebhookData,
         SalesChannelContext $context
     ): ?CustomerEntity {
-        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
         if (empty($customerWebhookData)) {
             return $customer;
         }
 
-        $shippingAddressData = $this->getAddressData($webhookData, $context);
-        $invoiceAddressData = $this->getAddressData($webhookData, $context, null, 'billingAddress');
+        $shippingAddressData = $this->getAddressData($customerWebhookData, $context);
+        $invoiceAddressData = $this->getAddressData($customerWebhookData, $context, null, 'billingAddress');
 
         $shippingAddressId = $this->expressCheckoutUtil->getCustomerAddressId($customer, $shippingAddressData);
         $billingAddressId = $this->expressCheckoutUtil->getCustomerAddressId($customer, $invoiceAddressData);
@@ -241,7 +238,6 @@ class IdealExpress
                 $context->getContext()
             );
         } catch (Throwable $exception) {
-            dd($exception->getMessage());
             $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 '',
@@ -256,18 +252,15 @@ class IdealExpress
     }
 
     /** @throws Exception */
-    public function processNotify(array $orderData): string
+    public function processNotify(PayOrder $payOrder): string
     {
-        $orderDataMapper = new OrderDataMapper();
-        $order = $orderDataMapper->mapArray($orderData);
-
-        return $this->processingHelper->processNotify($order->getOrderId());
+        return $this->processingHelper->processNotify($payOrder->getOrderId());
     }
 
-    /** @throws PayPaymentApi */
-    public function getPayTransactionByID(string $transactionId, SalesChannelContext $salesChannelContext): array
+    /** @throws PayException */
+    public function getPayTransactionByID(string $transactionId, SalesChannelContext $salesChannelContext): PayOrder
     {
-        return $this->payOrderService->getOrderStatus($transactionId, $salesChannelContext->getSalesChannel()->getId());
+        return $this->payAPI->getOrderStatus($transactionId, $salesChannelContext->getSalesChannel()->getId());
     }
 
     /**
@@ -289,12 +282,11 @@ class IdealExpress
      * @return array<string, string|null>
      */
     private function getAddressData(
-        array $webhookData,
+        array $customerWebhookData,
         SalesChannelContext $context,
         ?string $salutationId = null,
         string $addressType = 'shippingAddress'
     ): array {
-        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
         $countryCode = strtoupper($customerWebhookData[$addressType]['countryCode']);
         $countryId = $this->expressCheckoutUtil->getCountryIdByCode($countryCode, $context->getContext());
         if (empty($countryId)) {
@@ -316,14 +308,5 @@ class IdealExpress
             'city' => $customerWebhookData[$addressType]['city'],
             'additionalAddressLine1' => null,
         ];
-    }
-
-    private function getCustomerWebhookData(array $webhookData): ?array
-    {
-        if (empty($webhookData['checkoutData'])) {
-            return null;
-        }
-
-        return (array) $webhookData['checkoutData'] ?? null;
     }
 }

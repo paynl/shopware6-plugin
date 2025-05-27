@@ -100,7 +100,7 @@
         <service id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Service\CustomerService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Service\PAY\v1\OrderService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderAddressRepository"/>
