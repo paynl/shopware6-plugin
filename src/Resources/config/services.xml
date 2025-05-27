@@ -247,11 +247,6 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\OrderService"/>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Service\PAY\v1\OrderService" class="PaynlPayment\Shopware6\Service\PAY\v1\OrderService">
-            <argument type="service" id="paynl.app_system.guzzle"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
-        </service>
-
         <service id="PaynlPayment\Shopware6\Service\PayPal\v2\OrderService" class="PaynlPayment\Shopware6\Service\PayPal\v2\OrderService">
             <argument type="service" id="paynl.app_system.guzzle"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>

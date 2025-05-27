@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\ValueObjects\PAY;
 
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
+use PaynlPayment\Shopware6\ValueObjects\PAY\Response\Amount;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\Links;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\Status;
 use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;

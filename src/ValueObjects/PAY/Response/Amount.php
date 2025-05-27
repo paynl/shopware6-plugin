@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\ValueObjects\PAY\Order;
+namespace PaynlPayment\Shopware6\ValueObjects\PAY\Response;
 
 class Amount
 {
