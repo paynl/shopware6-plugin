@@ -19,14 +19,12 @@ use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\PurchaseUnit;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\OrderDetailResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Exception;
-use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
 use PaynlPayment\Shopware6\Service\PayPal\v2\OrderService as PayPalOrderService;
-use PaynlPayment\Shopware6\Service\PAY\v1\OrderService as PayOrderService;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
@@ -36,7 +34,6 @@ use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 class PayPalExpress
 {
@@ -51,26 +48,20 @@ class PayPalExpress
     private OrderDeliveryRepositoryInterface $orderDeliveryRepository;
 
     public function __construct(
-        Config $config,
         RouterInterface $router,
-        TranslatorInterface $translator,
         CustomerService $customerService,
         OrderService $orderService,
         PayPalOrderService $paypalOrderService,
-        PayOrderService $payOrderService,
         ProcessingHelper $processingHelper,
         ExpressCheckoutUtil $expressCheckoutUtil,
         OrderAddressRepositoryInterface $repoOrderAddresses,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         OrderDeliveryRepositoryInterface $orderDeliveryRepository
     ) {
-        $this->config = $config;
         $this->router = $router;
-        $this->translator = $translator;
         $this->customerService = $customerService;
         $this->orderService = $orderService;
         $this->paypalOrderService = $paypalOrderService;
-        $this->payOrderService = $payOrderService;
         $this->processingHelper = $processingHelper;
         $this->expressCheckoutUtil = $expressCheckoutUtil;
         $this->repoOrderAddresses = $repoOrderAddresses;
@@ -305,6 +296,7 @@ class PayPalExpress
 
         $orderCreateRequest = $this->expressCheckoutUtil->buildOrderCreateRequest($orderTransaction->getId(), $returnUrl, $salesChannelContext);
         $orderCreateRequest->setPaymentMethodId(Model\Method::PAYPAL);
+        $orderCreateRequest->setPayPalOrderId($payPalOrder->getId());
 
         $orderCreateResponse = $orderCreateRequest->start();
 
@@ -314,11 +306,13 @@ class PayPalExpress
             $salesChannelContext->getContext()
         );
 
-        $this->updateOrder($orderTransaction->getOrder(), $payPalOrder, $salesChannelContext);
+        $order = $this->orderService->getOrderByNumber($orderTransaction->getOrder()->getOrderNumber(), $salesChannelContext->getContext());
 
-        $this->updateOrderCustomer($orderTransaction->getOrder()->getOrderCustomer(), $payPalOrder, $salesChannelContext);
+        $this->updateOrder($order, $payPalOrder, $salesChannelContext);
 
-        $this->updateCustomer($orderTransaction->getOrder()->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
+        $this->updateOrderCustomer($order->getOrderCustomer(), $payPalOrder, $salesChannelContext);
+
+        $this->updateCustomer($order->getOrderCustomer()->getCustomer(), $payPalOrder, $salesChannelContext);
 
         $this->processingHelper->notifyActionUpdateTransactionByPayTransactionId($orderCreateResponse->getOrderId());
 

@@ -25,7 +25,7 @@ class PaymentMethodTerminalService
     public function storeCustomerTerminal(
         PaymentMethodEntity $paymentMethod,
         SalesChannelContext $salesChannelContext,
-        string $terminalId,
+        string $terminalId
     ): void {
         if (empty($terminalId)) {
             return;
