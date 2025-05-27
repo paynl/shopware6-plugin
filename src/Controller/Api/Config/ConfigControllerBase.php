@@ -2,13 +2,10 @@
 
 namespace PaynlPayment\Shopware6\Controller\Api\Config;
 
-use Exception;
-use Paynl\Config as SDKConfig;
-use Paynl\Paymentmethods;
+use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
-use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,22 +13,21 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ConfigControllerBase extends AbstractController
 {
-    public $installHelper;
-    private $config;
-    private $settingsHelper;
-    /** @var LoggerInterface */
-    private $logger;
+    private Config $config;
+    private Api $payApi;
+    public InstallHelper $installHelper;
+    private SettingsHelper $settingsHelper;
 
     public function __construct(
-        InstallHelper $installHelper,
         Config $config,
-        SettingsHelper $settingsHelper,
-        LoggerInterface $logger
+        Api $payApi,
+        InstallHelper $installHelper,
+        SettingsHelper $settingsHelper
     ) {
         $this->installHelper = $installHelper;
+        $this->payApi = $payApi;
         $this->config = $config;
         $this->settingsHelper = $settingsHelper;
-        $this->logger = $logger;
     }
 
     protected function getInstallPaymentMethodsResponse(Request $request, Context $context): JsonResponse
@@ -94,23 +90,17 @@ class ConfigControllerBase extends AbstractController
         $apiToken = $request->get('apiToken');
         $serviceId = $request->get('serviceId');
 
-        SDKConfig::setTokenCode($tokenCode);
-        SDKConfig::setApiToken($apiToken);
-        SDKConfig::setServiceId($serviceId);
-
-        try {
-            Paymentmethods::getList();
-
+        if ($this->payApi->isValidCredentials($tokenCode, $apiToken, $serviceId)) {
             return $this->json([
                 'success' => true,
                 'message' => "paynlValidation.messages.correctCredentials"
             ]);
-        } catch (Exception $exception) {
-            return $this->json([
-                'success' => false,
-                'message' => "paynlValidation.messages.wrongCredentials"
-            ]);
         }
+
+        return $this->json([
+            'success' => false,
+            'message' => "paynlValidation.messages.wrongCredentials"
+        ]);
     }
 
     private function installPaymentMethodsSalesChannels(Context $context, array $salesChannels)

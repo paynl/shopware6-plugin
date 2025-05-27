@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Components\Payment;
 
 use Exception;
+use LogicException;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
+use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\PaymentException;
+use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,8 +32,10 @@ class InitiatePaymentAction
     private UrlGeneratorInterface $router;
     private Api $payAPI;
     private LoggerInterface $logger;
+    private PaymentMethodTerminalService $paymentMethodTerminalService;
     private ProcessingHelper $processingHelper;
     private PluginHelper $pluginHelper;
+    private RequestDataBagHelper $requestDataBagHelper;
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private string $shopwareVersion;
@@ -38,8 +44,10 @@ class InitiatePaymentAction
         RouterInterface $router,
         Api $api,
         LoggerInterface $logger,
+        PaymentMethodTerminalService $paymentMethodTerminalService,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
+        RequestDataBagHelper $requestDataBagHelper,
         TranslatorInterface $translator,
         RequestStack $requestStack,
         string $shopwareVersion
@@ -47,8 +55,10 @@ class InitiatePaymentAction
         $this->router = $router;
         $this->payAPI = $api;
         $this->logger = $logger;
+        $this->paymentMethodTerminalService = $paymentMethodTerminalService;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
+        $this->requestDataBagHelper = $requestDataBagHelper;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
         $this->shopwareVersion = $shopwareVersion;
@@ -126,12 +136,20 @@ class InitiatePaymentAction
         $paymentToken = explode('=', $parameterUrl)[1];
         $returnUrl = $this->router->generate('frontend.PaynlPayment.finalize-transaction', ['_sw_payment_token' => $paymentToken], UrlGeneratorInterface::ABSOLUTE_URL);
 
+        $terminal = $this->getRequestTerminal();
+
+        $this->paymentMethodTerminalService->storeCustomerTerminal(
+            $orderTransaction->getPaymentMethod(),
+            $salesChannelContext,
+            $terminal
+        );
+
         $additionalTransactionInfo = new AdditionalTransactionInfo(
             $returnUrl,
             $exchangeUrl,
             $this->shopwareVersion,
             $this->pluginHelper->getPluginVersionFromComposer(),
-            null
+            $terminal ?: null
         );
 
         try {
@@ -141,7 +159,7 @@ class InitiatePaymentAction
                 $additionalTransactionInfo
             );
 
-            $payTransactionId = $payTransaction->getTransactionId();
+            $payTransactionId = $payTransaction->getOrderId();
 
             $this->logger->info('PAY. transaction was successfully created: ' . $payTransactionId);
         } catch (Throwable $exception) {
@@ -149,7 +167,7 @@ class InitiatePaymentAction
                 'exception' => $exception
             ]);
 
-            $this->processingHelper->storePaynlTransactionData(
+            $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 $payTransactionId,
                 $salesChannelContext->getContext(),
@@ -158,17 +176,17 @@ class InitiatePaymentAction
             throw $exception;
         }
 
-        $this->processingHelper->storePaynlTransactionData(
+        $this->processingHelper->storePayTransactionData(
             $orderTransaction,
             $payTransactionId,
             $salesChannelContext->getContext()
         );
 
-        if (empty($payTransaction->getRedirectUrl())) {
-            return '';
+        if (!empty($payTransaction->getPaymentUrl())) {
+            return $payTransaction->getPaymentUrl();
         }
 
-        return $payTransaction->getRedirectUrl();
+        return '';
     }
 
     private function displaySafeErrorMessages(string $errorMessage)
@@ -180,5 +198,23 @@ class InitiatePaymentAction
         }
 
         $this->requestStack->getSession()->getFlashBag()->add('warning', $flashBagMessage);
+    }
+
+    private function getRequestTerminal(): string
+    {
+        $requestData = $this->fetchRequestData();
+
+        return (string) $this->requestDataBagHelper->getDataBagItem('paynlInstoreTerminal', $requestData);
+    }
+
+    private function fetchRequestData(): RequestDataBag
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        if ($request === null) {
+            throw new LogicException('Missing current request');
+        }
+
+        return new RequestDataBag($request->request->all());
     }
 }

@@ -163,7 +163,7 @@ class PayPalExpressControllerBase extends StorefrontController
             $payOrder = $this->paypalExpress->createPayPaymentTransaction($orderId, $salesChannelContext);
 
             $responseArray = [
-                'redirectUrl' => $payOrder->getLinks()->getRedirect()
+                'redirectUrl' => $payOrder->getPaymentUrl()
             ];
 
             return new Response(json_encode($responseArray));

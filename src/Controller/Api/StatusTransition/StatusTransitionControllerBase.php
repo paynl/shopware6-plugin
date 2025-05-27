@@ -2,7 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Controller\Api\StatusTransition;
 
-use Paynl\Error;
+use Exception;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
@@ -61,7 +61,7 @@ class StatusTransitionControllerBase extends AbstractController
             $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 
             if ($paynlTransaction instanceof PaynlTransactionEntity) {
-                $this->processingHelper->processChangePaynlStatus(
+                $this->processingHelper->processChangePayNLStatus(
                     $paynlTransaction->getId(),
                     $paynlTransaction->getPaynlTransactionId(),
                     $currentActionName,
@@ -70,7 +70,7 @@ class StatusTransitionControllerBase extends AbstractController
             }
 
             return new JsonResponse($request->request->all());
-        } catch (Error\Api $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Error on changing transaction status.', [
                 'exception' => $exception,
                 'transactionId' => $orderTransactionId,

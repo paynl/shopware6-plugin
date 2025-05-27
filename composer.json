@@ -26,7 +26,7 @@
     "require": {
         "shopware/core": "^6.4",
         "shopware/storefront": "^6.4",
-        "paynl/sdk": "1.5.15"
+        "paynl/php-sdk": "@dev"
     },
     "minimum-stability": "RC",
     "license": "MIT",
@@ -39,7 +39,7 @@
     "autoload": {
         "psr-4": {
             "PaynlPayment\\Shopware6\\": "src/",
-            "Paynl\\": "vendor/paynl/sdk/src/",
+            "PayNL\\": "vendor/paynl/php-sdk/src/",
             "Curl\\": "vendor/php-curl-class/php-curl-class/src"
         }
     }

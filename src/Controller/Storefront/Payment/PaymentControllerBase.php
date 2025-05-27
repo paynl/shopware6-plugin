@@ -47,7 +47,7 @@ class PaymentControllerBase extends AbstractController
 
     protected function finalizeTransactionResponse(Request $request, SalesChannelContext $salesChannelContext): RedirectResponse
     {
-        $payOrderId = (string) $request->query->get('orderId');
+        $payOrderId = (string) $request->query->get('id');
 
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $payOrderId));
