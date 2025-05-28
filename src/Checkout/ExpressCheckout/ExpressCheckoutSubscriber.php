@@ -44,7 +44,11 @@ class ExpressCheckoutSubscriber implements EventSubscriberInterface
 
     public function addExpressCheckoutDataToPage(PageLoadedEvent $event): void
     {
-        $paypalExpressCheckoutButtonData = $this->getPayPalExpressCheckoutButtonData($event->getSalesChannelContext());
+        $addProductToCart = $event instanceof ProductPageLoadedEvent
+            || $event instanceof NavigationPageLoadedEvent
+            || $event instanceof SearchPageLoadedEvent;
+
+        $paypalExpressCheckoutButtonData = $this->getPayPalExpressCheckoutButtonData($event->getSalesChannelContext(), $addProductToCart);
 
         if ($paypalExpressCheckoutButtonData) {
             $event->getPage()->addExtension(
