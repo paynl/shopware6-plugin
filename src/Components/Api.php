@@ -190,9 +190,10 @@ class Api
             // Products
             'products' => $this->getOrderProducts($order, $context),
             'object' => sprintf(
-                'Shopware v%s %s',
+                'Shopware v%s | %s | %s',
                 $additionalTransactionInfo->getShopwareVersion(),
-                $additionalTransactionInfo->getPluginVersion()
+                $additionalTransactionInfo->getPluginVersion(),
+                substr(phpversion(), 0, 3)
             ),
         ];
 
