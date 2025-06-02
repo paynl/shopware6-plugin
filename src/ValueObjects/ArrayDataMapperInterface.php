@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\ValueObjects\PAY;
+namespace PaynlPayment\Shopware6\ValueObjects;
 
 interface ArrayDataMapperInterface
 {

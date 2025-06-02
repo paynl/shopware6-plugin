@@ -7,11 +7,9 @@ namespace PaynlPayment\Shopware6\Components\PayPalExpress;
 use PayNL\Sdk\Model;
 use PayNL\Sdk\Exception\PayException;
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
-use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PayPalPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Response\CreateOrderResponse as PayPalCreateOrderResponse;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\Amount as PayPalAmount;
 use PaynlPayment\Shopware6\ValueObjects\PayPal\Order\CreateOrder as PayPalCreateOrder;
@@ -217,20 +215,6 @@ class PayPalExpress
         $orderResponse = $this->createPayPalExpressOrder($transaction->getId(), $context);
 
         return $orderResponse->getId();
-    }
-
-    /** @throws Exception */
-    public function updatePaymentTransaction(CreateOrderResponse $orderResponse): void
-    {
-        $statusCode = $orderResponse->getStatus()->getCode();
-
-        $stateActionName = PaynlTransactionStatusesEnum::STATUSES_ARRAY[$statusCode] ?? null;
-
-        if (empty($stateActionName)) {
-            throw new Exception('State action name was not defined');
-        }
-
-        $this->processingHelper->instorePaymentUpdateState($orderResponse->getOrderId(), $stateActionName, $statusCode);
     }
 
     /**

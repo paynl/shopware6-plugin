@@ -173,7 +173,6 @@ class PaynlPaymentShopware6 extends Plugin
         return new InstallHelper(
             $connection,
             $pluginIdProvider,
-            $this->getConfig(),
             $this->getPayAPI(),
             $this->getMediaHelper(),
             new PaymentMethodRepository($paymentMethodRepository),
