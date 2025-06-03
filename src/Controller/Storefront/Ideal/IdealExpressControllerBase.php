@@ -178,6 +178,10 @@ class IdealExpressControllerBase extends StorefrontController
     {
         $orderId = $request->get('orderId');
 
+        if (!$orderId) {
+            return $this->redirectToRoute('frontend.home.page');
+        }
+
         if (!$this->expressCheckoutUtil->isNotCompletedOrder($orderId, $context->getContext())) {
             return $this->redirectToRoute('frontend.checkout.finish.page', ['orderId' => $orderId]);
         }
