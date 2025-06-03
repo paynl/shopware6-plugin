@@ -97,11 +97,11 @@ class DependencyLoader
             mkdir($distFileFolder, 0777, true);
         }
 
-        if ($versionCompare->gte('6.5')) {
-            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-65.js';
+        if ($versionCompare->gte('6.7')) {
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-67.js';
             $target = $distFileFolder . '/paynl-payment-shopware6.js';
         } else {
-            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-64.js';
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-65.js';
             $target = $distFileFolder . '/paynl-payment-shopware6.js';
         }
 
