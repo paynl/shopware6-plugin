@@ -323,9 +323,10 @@ class ExpressCheckoutUtil
     {
         return (new Model\Stats())
             ->setObject(sprintf(
-                'Shopware v%s %s',
+                'Shopware v%s | %s | %s',
                 $this->shopwareVersion,
                 $this->pluginHelper->getPluginVersionFromComposer(),
+                substr(phpversion(), 0, 3)
             ));
     }
 

@@ -203,9 +203,10 @@ class Api
 
         $request->setStats((new Model\Stats())
             ->setObject(sprintf(
-                'Shopware v%s %s',
+                'Shopware v%s | %s | %s',
                 $additionalTransactionInfo->getShopwareVersion(),
-                $additionalTransactionInfo->getPluginVersion()
+                $additionalTransactionInfo->getPluginVersion(),
+                substr(phpversion(), 0, 3)
             ))
         );
 
