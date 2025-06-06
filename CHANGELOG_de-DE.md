@@ -1,3 +1,5 @@
+# 2.0.0
+
 # 1.7.2
 - iDEAL und PayPal Express-Buttons zur Produktseite hinzugefügt für ein schnelleres Checkout-Erlebnis
 - Verschiedene neue Zahlungsmethoden integriert
