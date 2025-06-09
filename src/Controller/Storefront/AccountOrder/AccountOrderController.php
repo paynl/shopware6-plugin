@@ -12,19 +12,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-class AccountOrderControllerBase extends StorefrontController
+#[Route(defaults: ['_routeScope' => ['storefront'], 'csrf_protected' => false, 'auth_required' => true, 'auth_enabled' => true])]
+class AccountOrderController extends StorefrontController
 {
-    /**
-     * @var CustomerHelper
-     */
-    private $customerHelper;
+    private CustomerHelper $customerHelper;
 
     public function __construct(CustomerHelper $customerHelper)
     {
         $this->customerHelper = $customerHelper;
     }
 
-    protected function getOrderChangePayLaterFieldResponse(Request $request): JsonResponse
+    #[Route('/PaynlPayment/order/change/paylater-fields', name: 'frontend.PaynlPayment.edit-order.change-paylater-fields', methods: ['POST'])]
+    public function orderChangePayLaterFields(Request $request): JsonResponse
     {
         /** @var SalesChannelContext $salesChannelContext */
         $salesChannelContext = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);

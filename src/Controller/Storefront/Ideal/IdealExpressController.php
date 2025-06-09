@@ -2,109 +2,91 @@
 
 declare(strict_types=1);
 
-namespace PaynlPayment\Shopware6\Controller\Storefront\PayPal;
+namespace PaynlPayment\Shopware6\Controller\Storefront\Ideal;
 
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
-use PaynlPayment\Shopware6\Components\PayPalExpress\PayPalExpress;
+use PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress;
 use PaynlPayment\Shopware6\Enums\ExpressCheckoutEnum;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\OrderService;
-use Psr\Log\LoggerInterface;
-use Shopware\Core\Checkout\Cart\SalesChannel\AbstractCartDeleteRoute;
+use PaynlPayment\Shopware6\Service\PaynlTransaction\PaynlTransactionService;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
-use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
-use Shopware\Core\System\SalesChannel\NoContentResponse;
-use Shopware\Core\System\SalesChannel\SalesChannel\AbstractContextSwitchRoute;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-class PayPalExpressControllerBase extends StorefrontController
+#[Route(defaults: ['_routeScope' => ['storefront']])]
+class IdealExpressController extends StorefrontController
 {
-    private const SNIPPET_ERROR = 'payment.paypalExpressCheckout.paymentError';
+    private const SNIPPET_ERROR = 'payment.idealExpressCheckout.paymentError';
 
-    /** @var ExpressCheckoutUtil */
-    private $expressCheckoutUtil;
-
-    /** @var PayPalExpress */
-    private $paypalExpress;
-
-    /** @var CartService */
-    private $cartService;
-
-    /** @var CartBackupService */
-    private $cartBackupService;
-
-    /** @var OrderService */
-    private $orderService;
-
-    /** @var RouterInterface */
-    private $router;
-
-    /** @var AbstractContextSwitchRoute */
-    private $contextSwitchRoute;
-
-    /** @var AbstractCartDeleteRoute */
-    private $cartDeleteRoute;
-
-    /** @var LoggerInterface */
-    private $logger;
-
-    /** @var ?FlashBag */
-    private $flashBag;
+    private ExpressCheckoutUtil $expressCheckoutUtil;
+    private IdealExpress $idealExpress;
+    private CartService $cartService;
+    private CartBackupService $cartBackupService;
+    private OrderService $orderService;
+    private PaynlTransactionService $payTransactionService;
+    private RouterInterface $router;
+    private ?FlashBag $flashBag;
 
     public function __construct(
         ExpressCheckoutUtil $expressCheckoutUtil,
-        PayPalExpress $paypalExpress,
+        IdealExpress $idealExpress,
         CartService $cartService,
         CartBackupService $cartBackupService,
         OrderService $orderService,
+        PaynlTransactionService $payTransactionService,
         RouterInterface $router,
-        AbstractContextSwitchRoute $contextSwitchRoute,
-        AbstractCartDeleteRoute $cartDeleteRoute,
-        LoggerInterface $logger,
         ?FlashBag $flashBag
     ) {
         $this->expressCheckoutUtil = $expressCheckoutUtil;
-        $this->paypalExpress = $paypalExpress;
+        $this->idealExpress = $idealExpress;
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
+        $this->payTransactionService = $payTransactionService;
         $this->router = $router;
-        $this->contextSwitchRoute = $contextSwitchRoute;
-        $this->cartDeleteRoute = $cartDeleteRoute;
-        $this->logger = $logger;
         $this->flashBag = $flashBag;
     }
 
-    public function getExpressPrepareCartResponse(Request $request, SalesChannelContext $context): Response
+    #[Route('/PaynlPayment/ideal-express/product/start-payment', name: 'frontend.account.PaynlPayment.ideal-express.product.start-payment', options: ['seo' => false], methods: ['GET'])]
+    public function startProductPayment(SalesChannelContext $context, Request $request): Response
     {
-        $this->contextSwitchRoute->switchContext(new RequestDataBag([
-            SalesChannelContextService::PAYMENT_METHOD_ID => $request->get('paymentMethodId'),
-        ]), $context);
+        $productId = $request->get('productId');
+        $quantity = (int) $request ->get('quantity', '0');
 
-        if ($request->request->getBoolean('deleteCart')) {
-            $this->cartDeleteRoute->delete($context);
+        if (empty($productId) || $quantity <= 0) {
+            $returnUrl = $this->getCheckoutConfirmPage($this->router);
+
+            if ($this->flashBag !== null) {
+                $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
+            }
+
+            return new RedirectResponse($returnUrl);
         }
 
-        return new NoContentResponse();
+        $this->expressCheckoutUtil->addProduct($productId, $quantity, $context);
+
+        return $this->startPayment($context, $request);
     }
 
-    public function getStartPaymentResponse(SalesChannelContext $context, Request $request): Response
+    #[Route('/PaynlPayment/ideal-express/start-payment', name: 'frontend.account.PaynlPayment.ideal-express.start-payment', options: ['seo' => false], methods: ['GET'])]
+    public function startPayment(SalesChannelContext $context, Request $request): Response
     {
         try {
             $this->cartBackupService->clearBackup($context);
 
-            $paypalID = $this->expressCheckoutUtil->getActivePayPalID($context);
+            $idealID = $this->expressCheckoutUtil->getActiveIdealID($context);
 
-            $context = $this->cartService->updatePaymentMethod($context, $paypalID);
+            $context = $this->cartService->updatePaymentMethod($context, $idealID);
 
             $email = ExpressCheckoutEnum::CUSTOMER_EMAIL;
             $firstname = ExpressCheckoutEnum::CUSTOMER_FIRST_NAME;
@@ -120,7 +102,7 @@ class PayPalExpressControllerBase extends StorefrontController
                 $street,
                 $zipcode,
                 $city,
-                $paypalID,
+                $idealID,
                 $context
             );
 
@@ -131,7 +113,7 @@ class PayPalExpressControllerBase extends StorefrontController
 
             $returnUrl = $this->getCheckoutFinishPage($order->getId(), $this->router);
 
-            $paymentId = $this->paypalExpress->createPayment(
+            $redirectUrl = $this->idealExpress->createPayment(
                 $order,
                 $returnUrl,
                 $firstname,
@@ -143,8 +125,8 @@ class PayPalExpressControllerBase extends StorefrontController
                 $newContext
             );
 
-            return new Response(json_encode(['token' => $paymentId]));
-        } catch (\Throwable $ex) {
+            return new RedirectResponse($redirectUrl);
+        } catch (Throwable $ex) {
             $returnUrl = $this->getCheckoutConfirmPage($this->router);
 
             if ($this->flashBag !== null) {
@@ -155,24 +137,34 @@ class PayPalExpressControllerBase extends StorefrontController
         }
     }
 
-    public function getCreatePaymentResponse(Request $request, SalesChannelContext $salesChannelContext): Response
+    #[Route(path: '/PaynlPayment/ideal-express/finish-payment', name: 'frontend.account.PaynlPayment.ideal-express.finish-payment', options: ['seo' => false], methods: ['POST', 'GET'])]
+    public function finishPayment(RequestDataBag $data, SalesChannelContext $context): Response
     {
+        $payTransactionId = (string) $data->get('object')->get('orderId');
+
         try {
-            $orderId = $request->request->get('token');
+            $payTransaction = $this->idealExpress->getPayTransactionByID($payTransactionId, $context);
 
-            $payOrder = $this->paypalExpress->createPayPaymentTransaction($orderId, $salesChannelContext);
+            $orderNumber = $this->payTransactionService->getOrderNumberByPayTransactionId($payTransactionId, $context->getContext());
 
-            $responseArray = [
-                'redirectUrl' => $payOrder->getPaymentUrl()
-            ];
+            $order = $this->orderService->getOrderByNumber($orderNumber, $context->getContext());
 
-            return new Response(json_encode($responseArray));
-        } catch (Throwable $exception) {
-            return new Response(json_encode(['error' => $exception->getMessage()]), 400);
+            $this->idealExpress->updateOrder($order, $payTransaction->getFastCheckoutData(), $context);
+
+            $this->idealExpress->updateOrderCustomer($order->getOrderCustomer(), $payTransaction->getFastCheckoutData(), $context);
+
+            $this->idealExpress->updateCustomer($order->getOrderCustomer()->getCustomer(), $payTransaction->getFastCheckoutData(), $context);
+
+            $responseText = $this->idealExpress->processNotify($payTransaction);
+
+            return new Response($responseText);
+        } catch (Throwable $ex) {
+            return new Response('FALSE| Error');
         }
     }
 
-    public function getFinishPageResponse(Request $request, SalesChannelContext $context): Response
+    #[Route(path: '/PaynlPayment/ideal-express/finish-page', name: 'frontend.account.PaynlPayment.ideal-express.finish-page', options: ['seo' => false], methods: ['POST', 'GET'])]
+    public function finishPage(Request $request, SalesChannelContext $context): Response
     {
         $orderId = $request->get('orderId');
 
@@ -193,19 +185,6 @@ class PayPalExpressControllerBase extends StorefrontController
         }
 
         return $this->redirectToRoute('frontend.home.page', $parameters);
-    }
-
-    public function getAddErrorMessageResponse(Request $request): Response
-    {
-        if ($request->request->getBoolean('cancel')) {
-            $this->addFlash(static::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
-            $this->logger->notice('Storefront checkout cancellation');
-        } else {
-            $this->addFlash(static::DANGER, $this->trans('checkout.messages.cancelledTransaction'));
-            $this->logger->notice('Storefront checkout error', ['error' => $request->request->get('error')]);
-        }
-
-        return new NoContentResponse();
     }
 
     /**
@@ -229,7 +208,7 @@ class PayPalExpressControllerBase extends StorefrontController
     protected function getCheckoutFinishPage(string $orderId, RouterInterface $router): string
     {
         return $router->generate(
-            'frontend.account.PaynlPayment.paypal-express.finish-page',
+            'frontend.account.PaynlPayment.ideal-express.finish-page',
             [
                 'orderId' => $orderId,
             ],

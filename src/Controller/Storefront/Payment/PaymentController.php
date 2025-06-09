@@ -3,38 +3,37 @@
 namespace PaynlPayment\Shopware6\Controller\Storefront\Payment;
 
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
+use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
-use Shopware\Core\Checkout\Payment\Controller\PaymentController;
-use Shopware\Core\Checkout\Payment\Exception\InvalidTransactionException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\Checkout\Payment\Controller\PaymentController as ShopwarePaymentController;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Annotation\Route;
 
-class PaymentControllerBase extends AbstractController
+#[Route(defaults: ['_routeScope' => ['storefront'], 'csrf_protected' => false, 'auth_required' => false, 'auth_enabled' => false])]
+class PaymentController extends AbstractController
 {
     private const PAY_CUSTOM_FIELD = 'paynl';
     private const TRANSACTION_FINISH_URL = 'transactionFinishUrl';
 
-    /** @var PaymentController */
-    private $paymentController;
+    private ShopwarePaymentController $paymentController;
 
-    /** @var LoggerInterface */
-    private $logger;
+    private LoggerInterface $logger;
 
     private OrderTransactionRepositoryInterface $orderTransactionRepository;
 
-    /** @var PaynlTransactionsRepositoryInterface */
-    private $paynlTransactionRepository;
+    private PaynlTransactionsRepositoryInterface $paynlTransactionRepository;
 
     public function __construct(
-        PaymentController $paymentController,
+        ShopwarePaymentController $paymentController,
         LoggerInterface $logger,
         OrderTransactionRepositoryInterface $orderTransactionRepository,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository
@@ -45,7 +44,8 @@ class PaymentControllerBase extends AbstractController
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    protected function finalizeTransactionResponse(Request $request, SalesChannelContext $salesChannelContext): RedirectResponse
+    #[Route('/PaynlPayment/finalize-transaction', name: 'frontend.PaynlPayment.finalize-transaction', options: ['seo' => false], methods: ['GET'])]
+    public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): RedirectResponse
     {
         $payOrderId = (string) $request->query->get('id');
 
@@ -64,12 +64,12 @@ class PaymentControllerBase extends AbstractController
         $orderTransaction = $payTransaction->getOrderTransaction();
 
         if ($orderTransaction === null) {
-            throw new InvalidTransactionException($payOrderId);
+            throw PaynlTransactionException::notFoundByPayTransactionError($payOrderId);
         }
         $order = $orderTransaction->getOrder();
 
         if ($order === null) {
-            throw new InvalidTransactionException($orderTransaction->getId());
+            throw PaynlTransactionException::notFoundByPayTransactionError($orderTransaction->getId());
         }
 
         $orderId = $order->getId();

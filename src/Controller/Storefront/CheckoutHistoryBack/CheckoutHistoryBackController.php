@@ -6,22 +6,25 @@ use PaynlPayment\Shopware6\Subscriber\OrderSubscriber;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
-class CheckoutHistoryBackControllerBase extends StorefrontController
+#[Route(defaults: ['_routeScope' => ['storefront']])]
+class CheckoutHistoryBackController extends StorefrontController
 {
-    /** @var RequestStack */
-    private $requestStack;
+    private RequestStack $requestStack;
 
     public function __construct(RequestStack $requestStack)
     {
         $this->requestStack = $requestStack;
     }
 
-    public function getHistoryBackProxy(): Response
+    #[Route('/checkout/history/back', name: 'frontend.checkout.Paynl.history.back', options: ['seo' => false], defaults: ['_loginRequired' => true, '_loginRequiredAllowGuest' => true, '_noStore' => true, '_routeScope' => ['storefront']], methods: ['GET'])]
+    public function historyBackProxy(): Response
     {
         if ($lastOrderId = $this->getBackOrderHistoryData()) {
             return $this->redirectToRoute('frontend.account.edit-order.page', ['orderId' => $lastOrderId]);
         }
+
         return $this->redirectToRoute('frontend.account.order.page');
     }
 

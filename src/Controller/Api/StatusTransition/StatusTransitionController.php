@@ -3,8 +3,6 @@
 namespace PaynlPayment\Shopware6\Controller\Api\StatusTransition;
 
 use Exception;
-use PaynlPayment\Shopware6\Components\Api;
-use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Psr\Log\LoggerInterface;
@@ -15,31 +13,27 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
 
-class StatusTransitionControllerBase extends AbstractController
+#[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
+class StatusTransitionController extends AbstractController
 {
-    private $paynlApi;
-    private $paynlConfig;
-    /** @var LoggerInterface */
-    private $logger;
-    private $processingHelper;
-    private $paynlTransactionRepository;
+    private LoggerInterface $logger;
+    private ProcessingHelper $processingHelper;
+    private EntityRepository $paynlTransactionRepository;
 
     public function __construct(
-        Api $paynlApi,
-        Config $paynlConfig,
         LoggerInterface $logger,
         ProcessingHelper $processingHelper,
         EntityRepository $paynlTransactionRepository
     ) {
-        $this->paynlApi = $paynlApi;
-        $this->paynlConfig = $paynlConfig;
         $this->logger = $logger;
         $this->processingHelper = $processingHelper;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
     }
 
-    protected function getChangeTransactionStatusResponse(Request $request): JsonResponse
+    #[Route('/api/paynl/change-transaction-status', name: 'api.PaynlPayment.changeTransactionStatus', methods: ['POST'])]
+    public function changeTransactionStatus(Request $request): JsonResponse
     {
         $orderTransactionId = $request->request->get('transactionId', '');
         $currentActionName = $request->request->get('currentActionName', '');
