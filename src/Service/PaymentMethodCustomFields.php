@@ -2,11 +2,10 @@
 
 namespace PaynlPayment\Shopware6\Service;
 
+use PayNL\Sdk\Model\Method;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
-use PaynlPayment\Shopware6\PaymentHandler\PaynlTerminalPaymentHandler;
 use Psr\Cache\CacheItemPoolInterface;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Storefront\Page\PageLoadedEvent;
@@ -14,7 +13,8 @@ use Throwable;
 
 class PaymentMethodCustomFields
 {
-    const PAYNL_PAYMENT_FIELD = 'paynl_payment';
+    const PAY_NL_PAYMENT_FIELD = 'paynl_payment';
+    const PAY_NL_ID_FIELD = 'paynlId';
     const DISPLAY_BANKS_FIELD = 'displayBanks';
     const IS_PAY_LATER_FIELD = 'isPayLater';
     const HAS_ADDITIONAL_INFO_INPUT_FIELD = 'hasAdditionalInfoInput';
@@ -62,7 +62,7 @@ class PaymentMethodCustomFields
         $salesChannelId = $event->getSalesChannelContext()->getSalesChannel()->getId();
         $this->customFields = $paymentMethod->getTranslation('customFields');
 
-        $isPaynlPaymentMethod = $this->getCustomField(self::PAYNL_PAYMENT_FIELD);
+        $isPaynlPaymentMethod = $this->getCustomField(self::PAY_NL_PAYMENT_FIELD);
         if (!$isPaynlPaymentMethod) {
             return;
         }
@@ -81,7 +81,7 @@ class PaymentMethodCustomFields
 
     private function generatePaymentTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void
     {
-        if ($paymentMethod->getHandlerIdentifier() !== PaynlTerminalPaymentHandler::class) {
+        if ($this->getCustomField(self::PAY_NL_ID_FIELD) !== Method::PIN) {
             return;
         }
 
@@ -107,7 +107,7 @@ class PaymentMethodCustomFields
         $terminalsCacheItem = $this->cache->getItem(self::PAYMENT_TERMINALS_CACHE_TAG);
 
         if (!$terminalsCacheItem->isHit() || !$terminalsCacheItem->get()) {
-            $terminals = $this->paynlApi->getInstoreTerminals($salesChannelId);
+            $terminals = $this->paynlApi->getTerminals($salesChannelId);
             $terminalsCacheItem->set(json_encode($terminals));
 
             $this->cache->save($terminalsCacheItem);

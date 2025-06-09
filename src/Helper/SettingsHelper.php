@@ -43,7 +43,7 @@ class SettingsHelper
             return $this->getDefaultTerminalsOptions();
         }
 
-        $terminals = $this->api->getInstoreTerminals($salesChannelId);
+        $terminals = $this->api->getTerminals($salesChannelId);
         $terminals = array_map(function ($terminal) {
             return (new SettingsSelectOptionValueObject(
                 $terminal[self::TERMINAL_ID], $terminal[self::TERMINAL_NAME]

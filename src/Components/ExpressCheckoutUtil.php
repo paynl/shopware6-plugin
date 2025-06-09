@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Components;
 
 use Exception;
-use Paynl\Transaction;
+use PayNL\Sdk\Model;
+use PayNL\Sdk\Model\Request\OrderCreateRequest;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Helper\PluginHelper;
+use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
@@ -15,8 +19,6 @@ use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
 use PaynlPayment\Shopware6\Service\CartServiceInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Product;
 use RuntimeException;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
@@ -36,6 +38,9 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\Salutation\SalutationEntity;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 class ExpressCheckoutUtil
@@ -51,58 +56,60 @@ class ExpressCheckoutUtil
         'additionalAddressLine1',
     ];
 
-    /** @var CustomerService */
-    private $customerService;
-
-    /** @var CartServiceInterface */
-    private $cartService;
-
-    /** @var CartBackupService */
-    private $cartBackupService;
-
-    /** @var OrderService */
-    private $orderService;
-
-    /** @var AbstractLogoutRoute */
-    private $logoutRoute;
-
-    /** @var CountryRepositoryInterface */
-    private $countryRepository;
-
-    /** @var PaymentMethodRepository */
-    private $repoPaymentMethods;
-
-    /** @var ProductRepositoryInterface */
-    private $productRepository;
-
-    /** @var SalutationRepositoryInterface */
-    private $salutationRepository;
-
-    /** @var SalesChannelRepositoryInterface */
-    private $salesChannelRepository;
+    private CustomerService $customerService;
+    private CartServiceInterface $cartService;
+    private CartBackupService $cartBackupService;
+    private OrderService $orderService;
+    private RouterInterface $router;
+    private TranslatorInterface $translator;
+    private Api $payAPI;
+    private Config $config;
+    private PluginHelper $pluginHelper;
+    private ProcessingHelper $processingHelper;
+    private AbstractLogoutRoute $logoutRoute;
+    private CountryRepositoryInterface $countryRepository;
+    private PaymentMethodRepository $repoPaymentMethods;
+    private ProductRepositoryInterface $productRepository;
+    private SalutationRepositoryInterface $salutationRepository;
+    private SalesChannelRepositoryInterface $salesChannelRepository;
+    private string $shopwareVersion;
 
     public function __construct(
         CustomerService $customerService,
         CartServiceInterface $cartService,
         CartBackupService $cartBackupService,
         OrderService $orderService,
+        RouterInterface $router,
+        TranslatorInterface $translator,
+        Api $payAPI,
+        Config $config,
+        PluginHelper $pluginHelper,
+        ProcessingHelper $processingHelper,
         AbstractLogoutRoute $logoutRoute,
         CountryRepositoryInterface $countryRepository,
         PaymentMethodRepository $repoPaymentMethods,
         ProductRepositoryInterface $productRepository,
         SalutationRepositoryInterface $salutationRepository,
-        SalesChannelRepositoryInterface $salesChannelRepository
+        SalesChannelRepositoryInterface $salesChannelRepository,
+        string $shopwareVersion
     ) {
         $this->customerService = $customerService;
         $this->cartService = $cartService;
         $this->cartBackupService = $cartBackupService;
         $this->orderService = $orderService;
+        $this->router = $router;
+        $this->translator = $translator;
+        $this->payAPI = $payAPI;
+        $this->config = $config;
+        $this->pluginHelper = $pluginHelper;
+        $this->processingHelper = $processingHelper;
         $this->logoutRoute = $logoutRoute;
         $this->countryRepository = $countryRepository;
         $this->repoPaymentMethods = $repoPaymentMethods;
         $this->productRepository = $productRepository;
         $this->salutationRepository = $salutationRepository;
         $this->salesChannelRepository = $salesChannelRepository;
+        $this->shopwareVersion = $shopwareVersion;
     }
 
     public function getActiveIdealID(SalesChannelContext $context): string
@@ -212,9 +219,56 @@ class ExpressCheckoutUtil
         $this->logoutRoute->logout($salesChannelContext, new RequestDataBag());
     }
 
-    public function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): array
-    {
+    /** @throws PaynlPaymentException */
+    public function buildOrderCreateRequest(
+        string $orderTransactionId,
+        string $shopwareReturnUrl,
+        SalesChannelContext $salesChannelContext
+    ): OrderCreateRequest {
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $currency = $salesChannelContext->getCurrency()->getIsoCode();
+        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
+        $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
+
+        $exchangeUrl = $this->router->generate(
+            'frontend.account.PaynlPayment.ideal-express.finish-payment',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
+        $description = sprintf(
+            '%s %s',
+            $this->translator->trans('transactionLabels.order'),
+            $orderNumber
+        );
+
+        $request = new OrderCreateRequest();
+        $request->setServiceId($this->config->getServiceId($salesChannelId));
+        $request->setDescription($description);
+        $request->setReference($orderNumber);
+        $request->setReturnurl($shopwareReturnUrl);
+        $request->setExchangeUrl($exchangeUrl);
+        $request->setAmount($orderTransaction->getOrder()->getAmountTotal());
+        $request->setCurrency($currency);
+        $request->setTestmode((bool) $this->config->getTestMode($salesChannelId));
+
+        $request->enableFastCheckout();
+
+        $payNLOrder = new Model\Order();
+
+        $payNLOrder->setProducts($this->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext));
+
+        $request->setOrder($payNLOrder);
+
+        $request->setStats($this->getOrderStats());
+
+        $request->setConfig($this->payAPI->getConfig($salesChannelContext->getSalesChannel()->getId(), true));
+
+        return $request;
+    }
+
+    public function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): Model\Products
+    {
         $context = $salesChannelContext->getContext();
 
         /** @var OrderLineItemCollection $orderLineItems*/
@@ -230,6 +284,7 @@ class ExpressCheckoutUtil
         $criteria->addFilter(new EqualsAnyFilter('product.id', $productsIds));
         $entities = $this->productRepository->search($criteria, $context);
         $elements = $entities->getElements();
+        $products = new Model\Products();
 
         /** @var OrderLineItemEntity $item */
         foreach ($productsItems as $item) {
@@ -238,17 +293,17 @@ class ExpressCheckoutUtil
                 $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
             }
 
-            $products[] = new Product(
-                new Amount(
-                    (int) round($item->getUnitPrice() * 100),
-                    $currency
-                ),
-                (string) $elements[$item->getReferencedId()]->get('autoIncrement'),
-                $item->getLabel(),
-                Transaction::PRODUCT_TYPE_ARTICLE,
-                $item->getPrice()->getQuantity(),
-                $vatPercentage
-            );
+            $product = new Model\Product();
+            $product->setId((string) $elements[$item->getReferencedId()]->get('autoIncrement'));
+            $product->setDescription($item->getLabel());
+            $product->setType(Model\Product::TYPE_ARTICLE);
+            $product->setAmount($item->getUnitPrice());
+            $product->setCurrency($order->getCurrency()->getIsoCode());
+            $product->setQuantity($item->getPrice()->getQuantity());
+            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
+            $product->setVatPercentage($vatPercentage);
+
+            $products->addProduct($product);
         }
 
         $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
@@ -259,32 +314,47 @@ class ExpressCheckoutUtil
                 $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
             }
 
-            $products[] = new Product(
-                new Amount(
-                    (int) round($item->getUnitPrice() * 100),
-                    $currency
-                ),
-                'payment',
-                $item->getLabel(),
-                Transaction::PRODUCT_TYPE_PAYMENT,
-                $item->getPrice()->getQuantity(),
-                $vatPercentage
-            );
+            $product = new Model\Product();
+            $product->setId('payment');
+            $product->setDescription($item->getLabel());
+            $product->setType(Model\Product::TYPE_PAYMENT);
+            $product->setAmount($item->getUnitPrice());
+            $product->setCurrency($order->getCurrency()->getIsoCode());
+            $product->setQuantity($item->getPrice()->getQuantity());
+            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
+            $product->setVatPercentage($vatPercentage);
+
+            $products->addProduct($product);
         }
 
-        $products[] = new Product(
-            new Amount(
-                (int) round($order->getShippingTotal() * 100),
-                $currency
-            ),
-            'shipping',
-            'Shipping',
-            Transaction::PRODUCT_TYPE_SHIPPING,
-            1,
-            $order->getShippingCosts()->getCalculatedTaxes()->getAmount()
+        $product = new Model\Product();
+        $product->setId('shipping');
+        $product->setDescription('Shipping');
+        $product->setType(Model\Product::TYPE_SHIPPING);
+        $product->setAmount($order->getShippingTotal());
+        $product->setCurrency($order->getCurrency()->getIsoCode());
+        $product->setQuantity(1);
+        $product->setVatCode(
+            paynl_determine_vat_class_by_percentage(
+                $order->getShippingCosts()->getCalculatedTaxes()->getAmount()
+            )
         );
+        $product->setVatPercentage($order->getShippingCosts()->getCalculatedTaxes()->getAmount());
+
+        $products->addProduct($product);
 
         return $products;
+    }
+
+    public function getOrderStats(): Model\Stats
+    {
+        return (new Model\Stats())
+            ->setObject(sprintf(
+                'Shopware v%s | %s | %s',
+                $this->shopwareVersion,
+                $this->pluginHelper->getPluginVersionFromComposer(),
+                substr(phpversion(), 0, 3)
+            ));
     }
 
     public function getCountryIdByCode(string $code, Context $context): ?string

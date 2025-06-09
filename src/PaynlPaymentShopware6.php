@@ -19,12 +19,10 @@ use PaynlPayment\Shopware6\Helper\InstallHelper;
 use PaynlPayment\Shopware6\Helper\IpSettingsHelper;
 use PaynlPayment\Shopware6\Helper\StringHelper;
 use PaynlPayment\Shopware6\Helper\TransactionLanguageHelper;
-use PaynlPayment\Shopware6\PaymentHandler\Factory\PaymentHandlerFactory;
 use PaynlPayment\Shopware6\Repository\Customer\CustomerRepository;
 use PaynlPayment\Shopware6\Repository\CustomerAddress\CustomerAddressRepository;
 use PaynlPayment\Shopware6\Repository\Language\LanguageRepository;
 use PaynlPayment\Shopware6\Repository\Media\MediaRepository;
-use PaynlPayment\Shopware6\Repository\Order\OrderRepository;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\Repository\Product\ProductRepository;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository;
@@ -43,13 +41,9 @@ use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
-use Shopware\Core\Kernel;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
-use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
@@ -115,36 +109,7 @@ class PaynlPaymentShopware6 extends Plugin
         # load the dependencies that are compatible
         # with our current shopware version
         $loader = new DependencyLoader($this->container);
-        $loader->loadServices();
         $loader->prepareStorefrontBuild();
-    }
-
-    /**
-     * @param RoutingConfigurator $routes
-     * @param string $environment
-     * @return void
-     */
-    public function configureRoutes(RoutingConfigurator $routes, string $environment): void
-    {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        /** @var Container $container */
-        $container = $this->container;
-
-        $loader = new DependencyLoader($container);
-
-        $routeDir = $loader->getRoutesPath($this->getPath());
-
-        $fileSystem = new Filesystem();
-
-        if ($fileSystem->exists($routeDir)) {
-            $routes->import($routeDir . '/{routes}/*' . Kernel::CONFIG_EXTS, 'glob');
-            $routes->import($routeDir . '/{routes}/' . $environment . '/**/*' . Kernel::CONFIG_EXTS, 'glob');
-            $routes->import($routeDir . '/{routes}' . Kernel::CONFIG_EXTS, 'glob');
-            $routes->import($routeDir . '/{routes}_' . $environment . Kernel::CONFIG_EXTS, 'glob');
-        }
     }
 
     private function getConfig(): Config
@@ -175,9 +140,7 @@ class PaynlPaymentShopware6 extends Plugin
         return new InstallHelper(
             $connection,
             $pluginIdProvider,
-            $this->getConfig(),
-            $this->getPaynlApi(),
-            $this->getPaymentHandlerFactory(),
+            $this->getPayAPI(),
             $this->getMediaHelper(),
             new PaymentMethodRepository($paymentMethodRepository),
             new SalesChannelRepository($salesChannelRepository),
@@ -186,12 +149,10 @@ class PaynlPaymentShopware6 extends Plugin
         );
     }
 
-    private function getPaynlApi(): Api
+    private function getPayAPI(): Api
     {
         /** @var EntityRepository $productRepository */
         $productRepository = $this->container->get('product.repository');
-        /** @var EntityRepository $orderRepository */
-        $orderRepository = $this->container->get('order.repository');
         /** @var TranslatorInterface $translator */
         $translator = $this->container->get('translator');
         /** @var RequestStack $requestStack */
@@ -200,11 +161,8 @@ class PaynlPaymentShopware6 extends Plugin
         return new Api(
             $this->getConfig(),
             $this->getCustomerHelper(),
-            $this->getTransactionLanguageHelper(),
             new StringHelper(),
-            new IpSettingsHelper($this->getConfig()),
             new ProductRepository($productRepository),
-            new OrderRepository($orderRepository),
             $translator,
             $requestStack,
             $this->getLogger()
@@ -221,7 +179,9 @@ class PaynlPaymentShopware6 extends Plugin
         return new CustomerHelper(
             $this->getConfig(),
             new CustomerAddressRepository($customerAddressRepository),
-            new CustomerRepository($customerRepository)
+            new CustomerRepository($customerRepository),
+            $this->getTransactionLanguageHelper(),
+            new IpSettingsHelper($this->getConfig()),
         );
     }
 
@@ -247,11 +207,6 @@ class PaynlPaymentShopware6 extends Plugin
             new LanguageRepository($languageRepository),
             $requestStack
         );
-    }
-
-    private function getPaymentHandlerFactory(): PaymentHandlerFactory
-    {
-        return new PaymentHandlerFactory();
     }
 
     private function getLogger(): LoggerInterface

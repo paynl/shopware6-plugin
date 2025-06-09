@@ -2,91 +2,49 @@
 
 namespace PaynlPayment\Shopware6\ValueObjects;
 
-use PaynlPayment\Shopware6\Components\Api;
+use PayNL\Sdk\Model\Method;
+use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
 
 class PaymentMethodValueObject
 {
     public const TECHNICAL_NAME_PREFIX = 'paynl_';
 
-    private $id;
-    private $hashedId;
-    private $name;
-    private $visibleName;
-    private $banks;
-    private $brandId;
-    private $description;
+    private Method $originalMethod;
+    private string $hashedId;
 
-    public function __construct(array $paymentMethod)
+    public function __construct(Method $paymentMethod)
     {
-        $brand = $paymentMethod[Api::PAYMENT_METHOD_BRAND] ?? [];
-
-        $this->id = (int)$paymentMethod[Api::PAYMENT_METHOD_ID];
-        $this->hashedId = md5($paymentMethod[Api::PAYMENT_METHOD_ID]);
-        $this->name = (string)$paymentMethod[Api::PAYMENT_METHOD_NAME];
-        $this->visibleName = (string)$paymentMethod[Api::PAYMENT_METHOD_VISIBLE_NAME];
-        $this->banks = $paymentMethod[Api::PAYMENT_METHOD_BANKS] ?? [];
-        $this->brandId = (int)($brand[Api::PAYMENT_METHOD_BRAND_ID] ?? null);
-        $this->description = (string)($brand[Api::PAYMENT_METHOD_BRAND_DESCRIPTION] ?? null);
+        $this->originalMethod = $paymentMethod;
+        $this->hashedId = md5((string) $paymentMethod->getId());
     }
 
-    /**
-     * @return int
-     */
-    public function getId(): int
+    public function getOriginalMethod(): Method
     {
-        return $this->id;
+        return $this->originalMethod;
     }
 
-    /**
-     * @return string
-     */
     public function getHashedId(): string
     {
         return $this->hashedId;
     }
 
-    /**
-     * @return string
-     */
-    public function getName(): string
+    public function getBrandId(): string
     {
-        return $this->name;
+        return pathinfo($this->originalMethod->getImage(), PATHINFO_FILENAME);
     }
 
     public function getTechnicalName(): string
     {
-        return self::TECHNICAL_NAME_PREFIX . $this->getName();
+        return self::TECHNICAL_NAME_PREFIX . $this->originalMethod->getName();
     }
 
-    /**
-     * @return string
-     */
-    public function getVisibleName(): string
-    {
-        return $this->visibleName;
-    }
-
-    /**
-     * @return mixed[]
-     */
     public function getBanks(): array
     {
-        return $this->banks;
+        return $this->originalMethod->getId() === Method::IDEAL ? $this->originalMethod->getOptions() : [];
     }
 
-    /**
-     * @return null|int
-     */
-    public function getBrandId(): ?int
+    public function isPayLater(): bool
     {
-        return $this->brandId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
+        return in_array($this->originalMethod->getId(), PayLaterPaymentMethodsEnum::PAY_LATER_PAYMENT_METHODS);
     }
 }
