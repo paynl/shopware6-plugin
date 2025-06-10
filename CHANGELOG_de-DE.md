@@ -1,3 +1,8 @@
+# 1.7.2
+- iDEAL und PayPal Express-Buttons zur Produktseite hinzugefügt für ein schnelleres Checkout-Erlebnis
+- Verschiedene neue Zahlungsmethoden integriert
+- Kleine technische Optimierung im Hintergrund
+
 # 1.7.1
 - Verbesserte Validierung zur Erhöhung der Sicherheit und Transaktionsintegrität
 

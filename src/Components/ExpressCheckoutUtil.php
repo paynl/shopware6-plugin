@@ -20,6 +20,8 @@ use PaynlPayment\Shopware6\Service\CartServiceInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
 use RuntimeException;
+use Shopware\Core\Checkout\Cart\Cart;
+use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
@@ -166,6 +168,31 @@ class ExpressCheckoutUtil
         $data->add(['tos' => true]);
 
         return $this->orderService->createOrder($data, $context);
+    }
+
+    public function addProduct(string $productId, int $quantity, SalesChannelContext $context): Cart
+    {
+        if (!$this->cartBackupService->isBackupExisting($context)) {
+            $this->cartBackupService->backupCart($context);
+        }
+
+        $cart = $this->cartService->getCalculatedMainCart($context);
+
+        $cart->setLineItems(new LineItemCollection());
+        $this->cartService->updateCart($cart);
+
+        $this->cartService->addProduct($productId, $quantity, $context);
+
+        return $this->cartService->getCalculatedMainCart($context);
+    }
+
+    public function restoreCart(SalesChannelContext $context): void
+    {
+        if ($this->cartBackupService->isBackupExisting($context)) {
+            $this->cartBackupService->restoreCart($context);
+        }
+
+        $this->cartBackupService->clearBackup($context);
     }
 
     public function isNotCompletedOrder(string $orderId, Context $context): bool
@@ -323,9 +350,10 @@ class ExpressCheckoutUtil
     {
         return (new Model\Stats())
             ->setObject(sprintf(
-                'Shopware v%s %s',
+                'Shopware v%s | %s | %s',
                 $this->shopwareVersion,
                 $this->pluginHelper->getPluginVersionFromComposer(),
+                substr(phpversion(), 0, 3)
             ));
     }
 

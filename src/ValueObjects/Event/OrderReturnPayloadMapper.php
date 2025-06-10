@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\ValueObjects\Event;
 
-use PaynlPayment\Shopware6\ValueObjects\PAY\ArrayDataMapperInterface;
+use PaynlPayment\Shopware6\ValueObjects\ArrayDataMapperInterface;
 use Shopware\Commercial\ReturnManagement\Entity\OrderReturn\OrderReturnEntity;
 
 class OrderReturnPayloadMapper implements ArrayDataMapperInterface

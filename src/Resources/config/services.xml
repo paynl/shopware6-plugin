@@ -2,6 +2,10 @@
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <imports>
+        <import resource="services/controller.xml"/>
+    </imports>
+
     <services>
         <!--Logger-->
         <service id="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory" class="PaynlPayment\Shopware6\Service\Logger\PaynlLoggerFactory">
@@ -211,7 +215,9 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\CartService" class="PaynlPayment\Shopware6\Service\CartService" public="true">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
             <argument type="service" id="Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher"/>
+            <argument type="service" id="Shopware\Core\Checkout\Cart\LineItemFactoryHandler\ProductLineItemFactory"/>
             <argument type="service" id="PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGateway"/>
         </service>
 
@@ -245,11 +251,6 @@
         <service id="PaynlPayment\Shopware6\Service\OrderService" class="PaynlPayment\Shopware6\Service\OrderService">
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
             <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\OrderService"/>
-        </service>
-
-        <service id="PaynlPayment\Shopware6\Service\PAY\v1\OrderService" class="PaynlPayment\Shopware6\Service\PAY\v1\OrderService">
-            <argument type="service" id="paynl.app_system.guzzle"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PayPal\v2\OrderService" class="PaynlPayment\Shopware6\Service\PayPal\v2\OrderService">
