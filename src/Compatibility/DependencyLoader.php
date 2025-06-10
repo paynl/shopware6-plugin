@@ -42,8 +42,8 @@ class DependencyLoader
             mkdir($distFileFolder, 0777, true);
         }
 
-        if ($versionCompare->gte('6.7')) {
-            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-67.js';
+        if ($versionCompare->gte('6.6')) {
+            $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-66.js';
             $target = $distFileFolder . '/paynl-payment-shopware6.js';
         } else {
             $file = $pluginRoot . '/src/Resources/app/storefront/dist/storefront/paynl-payment-shopware6-65.js';
