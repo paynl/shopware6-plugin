@@ -40,7 +40,12 @@ class ConfigController extends AbstractController
             : [$salesChannelId];
 
         if ($this->isSinglePaymentMethod($salesChannelsIds)) {
-            return new JsonResponse([]);
+            $this->installSinglePaymentMethodSalesChannels($context, $salesChannelsIds);
+
+            return $this->json([
+                'success' => true,
+                'message' => "paynlValidation.messages.paymentMethodsSuccessfullyInstalled"
+            ]);
         }
 
         try {
@@ -53,30 +58,6 @@ class ConfigController extends AbstractController
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => $e->getMessage()]);
         }
-    }
-
-    #[Route('/api/paynl/store-settings', name: 'api.action.PaynlPayment.storeSettings', methods: ['POST'])]
-    public function storeSettings(Request $request, Context $context): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $salesChannelId = $data['salesChannelId'] ?? '';
-        $salesChannelsIds = empty($salesChannelId) ? $this->installHelper->getSalesChannels($context)->getIds()
-            : [$salesChannelId];
-
-        foreach ($salesChannelsIds as $salesChannelId) {
-            if ($this->config->getSinglePaymentMethodInd($salesChannelId)) {
-                $this->installHelper->addSinglePaymentMethod($salesChannelId, $context);
-
-                $paymentMethodId = md5((string)InstallHelper::SINGLE_PAYMENT_METHOD_ID);
-                $this->installHelper->setDefaultPaymentMethod($salesChannelId, $context, $paymentMethodId);
-
-                continue;
-            }
-
-            $this->installHelper->removeSinglePaymentMethod($salesChannelId, $context);
-        }
-
-        return $this->json(['success' => true]);
     }
 
     #[Route('/api/paynl/get-payment-terminals', name: 'api.action.PaynlPayment.getPaymentTerminals', methods: ['GET'])]
@@ -112,8 +93,21 @@ class ConfigController extends AbstractController
     private function installPaymentMethodsSalesChannels(Context $context, array $salesChannels)
     {
         foreach ($salesChannels as $salesChannelId) {
-            $this->installHelper->installPaymentMethods($salesChannelId, $context);
+            $this->installHelper->removeSinglePaymentMethod($salesChannelId, $context);
             $this->installHelper->activatePaymentMethods($context);
+        }
+    }
+
+
+    private function installSinglePaymentMethodSalesChannels(Context $context, array $salesChannels)
+    {
+        $this->installHelper->deactivatePaymentMethods($context);
+
+        foreach ($salesChannels as $salesChannelId) {
+            $this->installHelper->addSinglePaymentMethod($salesChannelId, $context);
+
+            $paymentMethodId = md5((string) InstallHelper::SINGLE_PAYMENT_METHOD_ID);
+            $this->installHelper->setDefaultPaymentMethod($salesChannelId, $context, $paymentMethodId);
         }
     }
 
