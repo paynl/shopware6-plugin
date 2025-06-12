@@ -93,7 +93,7 @@ class ConfigController extends AbstractController
     private function installPaymentMethodsSalesChannels(Context $context, array $salesChannels)
     {
         foreach ($salesChannels as $salesChannelId) {
-            $this->installHelper->removeSinglePaymentMethod($salesChannelId, $context);
+            $this->installHelper->installPaymentMethods($salesChannelId, $context);
             $this->installHelper->activatePaymentMethods($context);
         }
     }
