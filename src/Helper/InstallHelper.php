@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\Helper;
 
 use Doctrine\DBAL\Connection;
 use PayNL\Sdk\Exception\PayException;
+use PayNL\Sdk\Model\Method;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Entity\PaynlTransactionEntityDefinition;
@@ -34,7 +35,7 @@ class InstallHelper
 
     const PAYMENT_METHOD_PAYNL = 'paynl_payment';
 
-    const SINGLE_PAYMENT_METHOD_ID = '123456789';
+    const SINGLE_PAYMENT_METHOD_ID = 123456789;
 
     const PAYNL_PAYMENT_FILTER = 'PaynlPayment';
 
@@ -120,16 +121,12 @@ class InstallHelper
         $this->deleteSalesChannelPaymentMethods($salesChannelId, $context);
         $this->updateSinglePaymentMethod($context, true);
 
-        $paymentMethodData[] = [
-            API::PAYMENT_METHOD_ID => self::SINGLE_PAYMENT_METHOD_ID,
-            API::PAYMENT_METHOD_NAME => 'Pay by PAY.',
-            API::PAYMENT_METHOD_VISIBLE_NAME => 'Pay by PAY.',
-            API::PAYMENT_METHOD_BRAND => [
-                API::PAYMENT_METHOD_BRAND_DESCRIPTION => 'Pay by PAY.'
-            ]
-        ];
+        $singlePaymentMethod = new Method();
+        $singlePaymentMethod->setId((self::SINGLE_PAYMENT_METHOD_ID));
+        $singlePaymentMethod->setName('Pay by PAY.');
+        $singlePaymentMethod->setDescription('Pay by PAY.');
 
-        $this->upsertPaymentMethods($paymentMethodData, $salesChannelId, $context);
+        $this->upsertPaymentMethods([$singlePaymentMethod], $salesChannelId, $context);
     }
 
     public function removeSinglePaymentMethod(string $salesChannelId, Context $context): void
@@ -156,7 +153,7 @@ class InstallHelper
     {
         /** @var PaymentMethodEntity $paymentMethod */
         $paymentMethod = $this->paymentMethodRepository->search(
-            new Criteria([md5(self::SINGLE_PAYMENT_METHOD_ID)]),
+            new Criteria([md5((string) self::SINGLE_PAYMENT_METHOD_ID)]),
             $context
         )->first();
 
@@ -211,7 +208,7 @@ class InstallHelper
     private function getSinglePaymentMethod(Context $context): ?PaymentMethodEntity
     {
         return $this->paymentMethodRepository->search(
-            new Criteria([md5(self::SINGLE_PAYMENT_METHOD_ID)]),
+            new Criteria([md5((string) self::SINGLE_PAYMENT_METHOD_ID)]),
             $context
         )->first();
     }
