@@ -117,6 +117,11 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         $accountPaymentMethodPageLoadedEvent->getPage()->assign([
             'showDescription' => $this->config->getShowDescription($salesChannelId)
         ]);
+
+        $configs = $this->systemConfigService->all($salesChannelId);
+        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
+
+        $accountPaymentMethodPageLoadedEvent->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
     }
 
     public function onAccountOrderEditPageLoaded(AccountEditOrderPageLoadedEvent $accountEditOrderPageLoadedEvent)
