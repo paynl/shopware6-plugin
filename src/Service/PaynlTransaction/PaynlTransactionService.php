@@ -24,7 +24,10 @@ class PaynlTransactionService
         /** @var PaynlTransactionEntity $payTransaction */
         $payTransaction = $this->paynlTransactionsRepository
             ->search(
-                (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId)),
+                (new Criteria())
+                    ->addFilter(new EqualsFilter('orderId', $orderId))
+                    ->addAssociation('order')
+                    ->addAssociation('orderTransaction.order'),
                 $context
             )
             ->first();
