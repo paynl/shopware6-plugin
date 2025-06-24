@@ -354,9 +354,9 @@ class Api
         if (!$this->config->isRefundAllowed($salesChannelId)) {
             $message = 'PAY-PLUGIN-001: You did not activate refund option in plugin, check %s';
             $url = sprintf(
-                '<a target="_blank" href="https://docs.pay.nl/plugins?language=en#shopware-six-errordefinitions">
+                '<a target="_blank" href="https://developer.pay.nl/docs/shopware6#refunds">
 %s</a>',
-                'docs.pay.nl/shopware6/instructions'
+                'developer.pay.nl/docs/shopware6#refunds'
             );
 
             throw new Exception(sprintf($message, $url));
