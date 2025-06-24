@@ -184,27 +184,13 @@ Component.register('paynl-plugin-settings', {
             this.isLoading = true;
 
             this.$refs.systemConfig.saveAll().then(() => {
-                const salesChannelId = this.$refs.systemConfig.currentSalesChannelId ?
-                    this.$refs.systemConfig.currentSalesChannelId : '';
+                this.createNotificationSuccess({
+                    title: this.$tc('paynlDefault.success'),
+                    message: this.$tc('paynlValidation.messages.settingsSavedSuccessfully')
+                });
 
-                this.PaynlPaymentService.storeSettings({salesChannelId: salesChannelId})
-                    .then(() => {
-                        this.isLoading = false;
-                        this.isSaveSuccessful = true;
-
-                        this.createNotificationSuccess({
-                            title: this.$tc('paynlDefault.success'),
-                            message: this.$tc('paynlValidation.messages.settingsSavedSuccessfully')
-                        });
-                    })
-                    .catch((error) => {
-                        this.createNotificationError({
-                            title: this.$tc('paynlDefault.error'),
-                            message: error
-                        });
-
-                        this.isLoading = false;
-                    });
+                this.isLoading = false;
+                this.isSaveSuccessful = true;
             }).catch((error) => {
                 this.createNotificationError({
                     title: this.$tc('paynlDefault.error'),
