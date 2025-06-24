@@ -68,15 +68,16 @@ class OrderDeliverySubscriber implements EventSubscriberInterface
             return;
         }
 
-        if (!$this->config->isAutomaticShipping((string) $event->getSalesChannelId())) {
-            return;
-        }
-
         $context = $event->getContext();
         $orderDeliveryId = $event->getTransition()->getEntityId();
         $paynlTransaction = $this->isPaynlOrder($orderDeliveryId, $context);
 
         if (!$paynlTransaction instanceof PaynlTransactionEntity) {
+            return;
+        }
+
+        $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
+        if (!$this->config->isAutomaticShipping($salesChannelId)) {
             return;
         }
 
@@ -92,7 +93,7 @@ class OrderDeliverySubscriber implements EventSubscriberInterface
             $this->api->capture(
                 $paynlTransaction->getPaynlTransactionId(),
                 $paynlTransaction->getAmount(),
-                (string) $event->getSalesChannelId()
+                $salesChannelId
             );
         } catch (PaynlTransactionException $exception) {
             $this->logger->error('Error on capturing PAY. transaction ' . $paynlTransaction->getPaynlTransactionId(), [
