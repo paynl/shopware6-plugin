@@ -71,7 +71,7 @@ class MediaHelper
 
     public function addImageToMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
     {
-        if ($this->isAlreadyExist($paymentMethodValueObject->getName(), $context)) {
+        if ($this->isAlreadyExist($paymentMethodValueObject->getOriginalMethod()->getName(), $context)) {
             return;
         }
 
@@ -94,7 +94,7 @@ class MediaHelper
 
         $this->fileSaver->persistFileToMedia(
             $mediaFile,
-            $this->getMediaName($paymentMethodValueObject->getName()),
+            $this->getMediaName($paymentMethodValueObject->getOriginalMethod()->getName()),
             $mediaId,
             $context
         );

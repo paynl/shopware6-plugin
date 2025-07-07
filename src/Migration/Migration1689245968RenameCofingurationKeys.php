@@ -25,11 +25,5 @@ SQL;
 
     public function updateDestructive(Connection $connection): void
     {
-        $query = <<<SQL
-            UPDATE `system_config` 
-            SET `configuration_key` = REPLACE(`configuration_key`, 'config', 'settings') 
-            WHERE `configuration_key` LIKE 'PaynlPaymentShopware6.config%';
-SQL;
-        $connection->executeStatement($query);
     }
 }

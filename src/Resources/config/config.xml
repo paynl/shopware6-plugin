@@ -14,13 +14,13 @@
             <label lang="nl-NL">Token-Code (AT-xxxx-xxxx)</label>
             <label lang="de-DE">Token-Code (AT-xxxx-xxxx)</label>
             <helpText>The AT-code belonging to your API-token, you can find your tokencode at:
-                https://admin.pay.nl/company/tokens
+                https://my.pay.nl/company/tokens
             </helpText>
             <helpText lang="nl-NL">De AT-code die bij je API-token hoort, je kunt deze vinden op:
-                https://admin.pay.nl/company/tokens
+                https://my.pay.nl/company/tokens
             </helpText>
             <helpText lang="de-DE">Der AT-Code, der zu Ihrem API-token gehört, finden Sie unter:
-                https://admin.pay.nl/company/tokens
+                https://my.pay.nl/company/tokens
             </helpText>
         </input-field>
         <input-field>
@@ -29,10 +29,10 @@
             <label>API-token</label>
             <label lang="nl-NL">API-token</label>
             <label lang="de-DE">API-token</label>
-            <helpText>Your API token, you can find your API tokens at: https://admin.pay.nl/company/tokens</helpText>
-            <helpText lang="nl-NL">Uw API-token, u kunt uw API-tokens vinden op: https://admin.pay.nl/company/tokens
+            <helpText>Your API token, you can find your API tokens at: https://my.pay.nl/company/tokens</helpText>
+            <helpText lang="nl-NL">Uw API-token, u kunt uw API-tokens vinden op: https://my.pay.nl/company/tokens
             </helpText>
-            <helpText lang="de-DE">Ihr API-Token finden Sie unter https://admin.pay.nl/company/tokens</helpText>
+            <helpText lang="de-DE">Ihr API-Token finden Sie unter https://my.pay.nl/company/tokens</helpText>
         </input-field>
         <input-field>
             <name>serviceId</name>
@@ -41,13 +41,13 @@
             <label lang="nl-NL">Service-ID (SL-xxxx-xxxx)</label>
             <label lang="de-DE">Service-ID (SL-xxxx-xxxx)</label>
             <helpText>Your Service-ID (SL-xxxx-xxxx), You can find your Service-ID at:
-                https://admin.pay.nl/programs/programs
+                https://my.pay.nl/programs/programs
             </helpText>
             <helpText lang="nl-NL">Uw Service-ID (SL-xxxx-xxxx), u kunt uw Service-ID vinden op:
-                https://admin.pay.nl/programs/programs
+                https://my.pay.nl/programs/programs
             </helpText>
             <helpText lang="de-DE">Ihre Service-ID (SL-xxxx-xxxx), Ihre Service-ID finden Sie unter:
-                https://admin.pay.nl/programs/programs
+                https://my.pay.nl/programs/programs
             </helpText>
         </input-field>
         <input-field type="single-select">
