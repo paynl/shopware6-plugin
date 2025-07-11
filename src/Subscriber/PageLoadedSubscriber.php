@@ -245,7 +245,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 $criteria,
                 $event->getSalesChannelContext()->getContext()
             )
-            ->first();
+            ->last();
 
         if ($paynlTransaction instanceof PaynlTransactionEntity) {
             $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
