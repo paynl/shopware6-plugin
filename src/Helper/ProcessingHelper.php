@@ -285,18 +285,6 @@ class ProcessingHelper
         }
     }
 
-    /** @throws Exception */
-    public function instorePaymentUpdateState(
-        string $paynlTransactionId,
-        string $transitionName,
-        int $paynlTransactionStatusCode
-    ): void {
-        /** @var PaynlTransactionEntity $transactionEntity */
-        $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
-
-        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $paynlTransactionStatusCode);
-    }
-
     public function processNotify(string $paynlTransactionId): string
     {
         try {
@@ -587,6 +575,7 @@ class ProcessingHelper
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $payTransactionId));
         $criteria->addAssociation('order');
+        $criteria->addAssociation('order.stateMachineState');
         $criteria->addAssociation('orderTransaction.stateMachineState');
         $criteria->addAssociation('orderTransaction.order');
 
@@ -599,6 +588,7 @@ class ProcessingHelper
         $criteria = (new Criteria())->addFilter(new EqualsFilter('orderId', $orderId));
         $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING));
         $criteria->addAssociation('order');
+        $criteria->addAssociation('order.stateMachineState');
         $criteria->addAssociation('orderTransaction.stateMachineState');
         $criteria->addAssociation('orderTransaction.order');
 
