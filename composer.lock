@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b449ba2535ce70173bf223c9664de995",
+    "content-hash": "e8d799963c09965df4c9c101ba37777a",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -333,16 +333,16 @@
         },
         {
             "name": "paynl/php-sdk",
-            "version": "dev-main",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paynl/php-sdk.git",
-                "reference": "f69550a3911d09564931bf60c09c83770115a861"
+                "reference": "5cec49d219b1c0260f1abed2ac9b61cd270c46c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paynl/php-sdk/zipball/f69550a3911d09564931bf60c09c83770115a861",
-                "reference": "f69550a3911d09564931bf60c09c83770115a861",
+                "url": "https://api.github.com/repos/paynl/php-sdk/zipball/5cec49d219b1c0260f1abed2ac9b61cd270c46c8",
+                "reference": "5cec49d219b1c0260f1abed2ac9b61cd270c46c8",
                 "shasum": ""
             },
             "require": {
@@ -362,7 +362,6 @@
                 "squizlabs/php_codesniffer": "^3",
                 "symfony/var-dumper": "^7"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "files": [
@@ -388,9 +387,9 @@
             "support": {
                 "email": "webshop@pay.nl",
                 "issues": "https://github.com/paynl/php-sdk/issues",
-                "source": "https://github.com/paynl/php-sdk/tree/v0.2.4"
+                "source": "https://github.com/paynl/php-sdk/tree/v1.0.2"
             },
-            "time": "2025-05-27T11:41:14+00:00"
+            "time": "2025-06-26T10:26:43+00:00"
         },
         {
             "name": "psr/container",
@@ -720,9 +719,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "RC",
-    "stability-flags": {
-        "paynl/php-sdk": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
