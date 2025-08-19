@@ -322,7 +322,7 @@ class ProcessingHelper
                 $currentActionName
             );
 
-            $this->payAPI->approve($paynlTransactionId, $salesChannelId);
+            $payOrder = $this->payAPI->approve($paynlTransactionId, $salesChannelId);
 
         } elseif ($payTransactionStatus->isBeingVerified()
             && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
@@ -333,7 +333,7 @@ class ProcessingHelper
                 $currentActionName
             );
 
-            $this->payAPI->decline($paynlTransactionId, $salesChannelId);
+            $payOrder = $this->payAPI->decline($paynlTransactionId, $salesChannelId);
 
         } elseif ($payTransactionStatus->isAuthorized()
             && $currentActionName === StateMachineTransitionActions::ACTION_PAID
@@ -344,7 +344,7 @@ class ProcessingHelper
                 $currentActionName
             );
 
-            $this->payAPI->capture($paynlTransactionId, null, $salesChannelId);
+            $payOrder = $this->payAPI->capture($paynlTransactionId, null, $salesChannelId);
 
         } elseif ($payTransactionStatus->isAuthorized()
             && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
@@ -355,14 +355,14 @@ class ProcessingHelper
                 $currentActionName
             );
 
-            $this->payAPI->void($paynlTransactionId, $salesChannelId);
+            $payOrder = $this->payAPI->void($paynlTransactionId, $salesChannelId);
         } else {
             return;
         }
 
         $this->orderStatusUpdater->updateOrderStatus(
             $paynlTransactionEntity->getOrder(),
-            $payTransactionStatus->getStatusCode(),
+            $payOrder->getStatusCode(),
             $salesChannelId,
             Context::createDefaultContext()
         );
