@@ -18,7 +18,7 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
             return;
         }
 
-        if (form.getAttribute('id') === 'profilePersonalForm' && el.id === 'accountType') {
+        if (form.getAttribute('id') === 'profilePersonalForm' && el.name === 'accountType') {
             selectedValues.isBusiness = Boolean(el.value === 'business');
             this.toggleCocField(selectedValues, form);
             return;
@@ -33,7 +33,7 @@ export default class PaynlKvkCocFieldTogglePlugin extends Plugin {
             return;
         }
 
-        if (!['accountType', 'addressaccountType'].includes(el.id)) {
+        if (!['accountType', 'addressaccountType'].includes(el.name)) {
             return;
         }
 

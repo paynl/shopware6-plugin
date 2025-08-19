@@ -1,3 +1,7 @@
+# 2.0.0
+- Implemented new version of PAY SDK
+- Fixed the migration and storefront issues
+
 # 1.7.2
 - Added iDEAL and PayPal express buttons added to product page for a faster checkout experience
 - Various new payment methods added

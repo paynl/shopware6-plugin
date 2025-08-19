@@ -20,6 +20,7 @@ class PaynlTransactionStatusesEnum
     const STATUS_PAID = 100;
     const STATUS_PAID_CHECKAMOUNT = -51;
     const STATUS_FAILURE = -60;
+    const STATUS_VOID = -61;
     const STATUS_DENIED_63 = -63;
     const STATUS_DENIED_64 = -64;
     const STATUS_CHARGEBACK = -71;
@@ -36,6 +37,7 @@ class PaynlTransactionStatusesEnum
         self::STATUS_EXPIRED => StateMachineTransitionActions::ACTION_CANCEL,
         self::STATUS_PAID_CHECKAMOUNT => StateMachineTransitionActions::ACTION_CANCEL,
         self::STATUS_FAILURE => StateMachineTransitionActions::ACTION_CANCEL,
+        self::STATUS_VOID => StateMachineTransitionActions::ACTION_CANCEL,
         self::STATUS_DENIED_63 => StateMachineTransitionActions::ACTION_CANCEL,
         self::STATUS_DENIED_64 => StateMachineTransitionActions::ACTION_CANCEL,
 

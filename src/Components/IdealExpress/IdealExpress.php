@@ -4,29 +4,21 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Components\IdealExpress;
 
+use PayNL\Sdk\Exception\PayException;
+use PayNL\Sdk\Model;
+use PayNL\Sdk\Model\Pay\PayOrder;
+use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\ExpressCheckoutUtil;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
-use PaynlPayment\Shopware6\Exceptions\PayPaymentApi;
 use PaynlPayment\Shopware6\Repository\OrderDelivery\OrderDeliveryRepositoryInterface;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Integration;
-use PaynlPayment\Shopware6\ValueObjects\PAY\OrderDataMapper;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Response\CreateOrderResponse;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Throwable;
 use Exception;
-use PaynlPayment\Shopware6\Components\Config;
-use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Order\OrderAddressRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\OrderCustomer\OrderCustomerRepositoryInterface;
 use PaynlPayment\Shopware6\Service\CustomerService;
 use PaynlPayment\Shopware6\Service\OrderService;
-use PaynlPayment\Shopware6\Service\PAY\v1\OrderService as PayOrderService;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Amount;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\CreateOrder;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Optimize;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\Order;
-use PaynlPayment\Shopware6\ValueObjects\PAY\Order\PaymentMethod;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
@@ -35,18 +27,12 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEnti
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 class IdealExpress
 {
-    private Config $config;
-    private RouterInterface $router;
-    private TranslatorInterface $translator;
     private CustomerService $customerService;
     private OrderService $orderService;
-    private PayOrderService $payOrderService;
+    private Api $payAPI;
     private ProcessingHelper $processingHelper;
     private ExpressCheckoutUtil $expressCheckoutUtil;
     private OrderAddressRepositoryInterface $repoOrderAddresses;
@@ -54,24 +40,18 @@ class IdealExpress
     private OrderDeliveryRepositoryInterface $orderDeliveryRepository;
 
     public function __construct(
-        Config $config,
-        RouterInterface $router,
-        TranslatorInterface $translator,
         CustomerService $customerService,
         OrderService $orderService,
-        PayOrderService $payOrderService,
+        Api $payAPI,
         ProcessingHelper $processingHelper,
         ExpressCheckoutUtil $expressCheckoutUtil,
         OrderAddressRepositoryInterface $repoOrderAddresses,
         OrderCustomerRepositoryInterface $orderCustomerRepository,
         OrderDeliveryRepositoryInterface $orderDeliveryRepository
     ) {
-        $this->config = $config;
-        $this->router = $router;
-        $this->translator = $translator;
         $this->customerService = $customerService;
         $this->orderService = $orderService;
-        $this->payOrderService = $payOrderService;
+        $this->payAPI = $payAPI;
         $this->processingHelper = $processingHelper;
         $this->expressCheckoutUtil = $expressCheckoutUtil;
         $this->repoOrderAddresses = $repoOrderAddresses;
@@ -80,9 +60,8 @@ class IdealExpress
     }
 
     /** @throws Exception */
-    public function updateOrder(OrderEntity $order, array $webhookData, SalesChannelContext $context): ?OrderEntity
+    public function updateOrder(OrderEntity $order, array $customerData, SalesChannelContext $context): ?OrderEntity
     {
-        $customerData = $this->getCustomerWebhookData($webhookData);
         if (empty($customerData)) {
             return $order;
         }
@@ -148,10 +127,9 @@ class IdealExpress
 
     public function updateOrderCustomer(
         OrderCustomerEntity $customer,
-        array $webhookData,
+        array $customerData,
         SalesChannelContext $context
     ): void {
-        $customerData = $this->getCustomerWebhookData($webhookData);
         if (empty($customerData)) {
             return;
         }
@@ -168,16 +146,15 @@ class IdealExpress
 
     public function updateCustomer(
         CustomerEntity $customer,
-        array $webhookData,
+        array $customerWebhookData,
         SalesChannelContext $context
     ): ?CustomerEntity {
-        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
         if (empty($customerWebhookData)) {
             return $customer;
         }
 
-        $shippingAddressData = $this->getAddressData($webhookData, $context);
-        $invoiceAddressData = $this->getAddressData($webhookData, $context, null, 'billingAddress');
+        $shippingAddressData = $this->getAddressData($customerWebhookData, $context);
+        $invoiceAddressData = $this->getAddressData($customerWebhookData, $context, null, 'billingAddress');
 
         $shippingAddressId = $this->expressCheckoutUtil->getCustomerAddressId($customer, $shippingAddressData);
         $billingAddressId = $this->expressCheckoutUtil->getCustomerAddressId($customer, $invoiceAddressData);
@@ -207,6 +184,10 @@ class IdealExpress
         return $this->customerService->updateCustomer($customerData, $context);
     }
 
+    /**
+     * @throws PaynlPaymentException
+     * @throws Throwable
+     */
     public function createPayment(
         OrderEntity $order,
         string $shopwareReturnUrl,
@@ -251,13 +232,13 @@ class IdealExpress
 
             $orderTransaction = $this->processingHelper->getOrderTransaction($transaction->getId(), $context->getContext());
 
-            $this->processingHelper->storePaynlTransactionData(
+            $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 $orderResponse->getOrderId(),
                 $context->getContext()
             );
         } catch (Throwable $exception) {
-            $this->processingHelper->storePaynlTransactionData(
+            $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 '',
                 $context->getContext(),
@@ -267,89 +248,45 @@ class IdealExpress
             throw $exception;
         }
 
-        return $orderResponse->getLinks()->getRedirect();
+        return $orderResponse->getPaymentUrl();
     }
 
     /** @throws Exception */
-    public function processNotify(array $orderData): string
+    public function processNotify(PayOrder $payOrder): string
     {
-        $orderDataMapper = new OrderDataMapper();
-        $order = $orderDataMapper->mapArray($orderData);
-
-        return $this->processingHelper->processNotify($order->getOrderId());
+        return $this->processingHelper->processNotify($payOrder->getOrderId());
     }
 
-    /** @throws PayPaymentApi */
-    public function getPayTransactionByID(string $transactionId, SalesChannelContext $salesChannelContext): array
+    /** @throws PayException */
+    public function getPayTransactionByID(string $transactionId, SalesChannelContext $salesChannelContext): PayOrder
     {
-        return $this->payOrderService->getOrderStatus($transactionId, $salesChannelContext->getSalesChannel()->getId());
+        return $this->payAPI->getOrderStatus($transactionId, $salesChannelContext->getSalesChannel()->getId());
     }
 
+    /**
+     * @throws PaynlPaymentException
+     * @throws Exception
+     */
     private function createPayIdealExpressOrder(
         string $orderTransactionId,
         string $shopwareReturnUrl,
         SalesChannelContext $salesChannelContext
-    ): CreateOrderResponse {
-        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
-        $orderTransaction = $this->processingHelper->getOrderTransaction($orderTransactionId, $salesChannelContext->getContext());
-        $orderNumber = $orderTransaction->getOrder()->getOrderNumber();
+    ): Model\Pay\PayOrder {
+        $orderCreateRequest = $this->expressCheckoutUtil->buildOrderCreateRequest($orderTransactionId, $shopwareReturnUrl, $salesChannelContext);
+        $orderCreateRequest->setPaymentMethodId(Model\Method::IDEAL);
 
-        $exchangeUrl = $this->router->generate(
-            'frontend.account.PaynlPayment.ideal-express.finish-payment',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        );
-
-        $amount = (int) round($orderTransaction->getOrder()->getAmountTotal() * 100);
-        $currency = $salesChannelContext->getCurrency()->getIsoCode();
-
-        $amount = new Amount($amount, $currency);
-
-        $description = sprintf(
-            '%s %s',
-            $this->translator->trans('transactionLabels.order'),
-            $orderNumber
-        );
-
-        $optimize = new Optimize(
-            'fastCheckout',
-            true,
-            true,
-            true
-        );
-
-        $paymentMethod = new PaymentMethod(PaynlPaymentMethodsIdsEnum::IDEAL_PAYMENT, null, null);
-        $products = $this->expressCheckoutUtil->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext);
-        $order = new Order($products);
-
-        $integration = $this->config->getTestMode($salesChannelId) ? new Integration(true) : null;
-
-        $createOrder = new CreateOrder(
-            $this->config->getServiceId($salesChannelId),
-            $amount,
-            $description,
-            $orderNumber,
-            $shopwareReturnUrl,
-            $exchangeUrl,
-            $optimize,
-            $paymentMethod,
-            $integration,
-            $order
-        );
-
-        return $this->payOrderService->create($createOrder, $salesChannelId);
+        return $orderCreateRequest->start();
     }
 
     /**
      * @return array<string, string|null>
      */
     private function getAddressData(
-        array $webhookData,
+        array $customerWebhookData,
         SalesChannelContext $context,
         ?string $salutationId = null,
         string $addressType = 'shippingAddress'
     ): array {
-        $customerWebhookData = $this->getCustomerWebhookData($webhookData);
         $countryCode = strtoupper($customerWebhookData[$addressType]['countryCode']);
         $countryId = $this->expressCheckoutUtil->getCountryIdByCode($countryCode, $context->getContext());
         if (empty($countryId)) {
@@ -371,14 +308,5 @@ class IdealExpress
             'city' => $customerWebhookData[$addressType]['city'],
             'additionalAddressLine1' => null,
         ];
-    }
-
-    private function getCustomerWebhookData(array $webhookData): ?array
-    {
-        if (empty($webhookData['checkoutData'])) {
-            return null;
-        }
-
-        return (array) $webhookData['checkoutData'] ?? null;
     }
 }

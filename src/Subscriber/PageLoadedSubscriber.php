@@ -23,11 +23,13 @@ use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelEntityLoadedEvent;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Shopware\Storefront\Page\Account\Login\AccountLoginPageLoadedEvent;
 use Shopware\Storefront\Page\Account\Order\AccountEditOrderPageLoadedEvent;
 use Shopware\Storefront\Page\Account\PaymentMethod\AccountPaymentMethodPageLoadedEvent;
 use Shopware\Storefront\Page\Account\Profile\AccountProfilePageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Finish\CheckoutFinishPageLoadedEvent;
+use Shopware\Storefront\Page\Checkout\Register\CheckoutRegisterPageLoadedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PageLoadedSubscriber implements EventSubscriberInterface
@@ -62,24 +64,19 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             CheckoutConfirmPageLoadedEvent::class => 'onCheckoutConfirmPageLoaded',
             AccountEditOrderPageLoadedEvent::class => 'onAccountOrderEditPageLoaded',
             AccountProfilePageLoadedEvent::class => 'onAccountProfilePageLoaded',
+            AccountLoginPageLoadedEvent::class => 'onAccountLoginPageLoaded',
             AccountPaymentMethodPageLoadedEvent::class => 'onAccountPaymentMethodPageLoaded',
             CheckoutFinishPageLoadedEvent::class => 'onCheckoutFinishedPageLoaded',
+            CheckoutRegisterPageLoadedEvent::class => 'onCheckoutRegisterPageLoaded',
             'sales_channel.payment_method.loaded' => 'onPaymentMethodsLoaded',
         ];
     }
 
     public function onCheckoutConfirmPageLoaded(CheckoutConfirmPageLoadedEvent $checkoutConfirmPageLoadedEvent)
     {
+        $this->addCommonExtensions($checkoutConfirmPageLoadedEvent->getSalesChannelContext(), $checkoutConfirmPageLoadedEvent->getPage());
+
         $salesChannelId = $checkoutConfirmPageLoadedEvent->getSalesChannelContext()->getSalesChannel()->getId();
-
-        $checkoutConfirmPageLoadedEvent->getPage()->assign([
-            'showDescription' => $this->config->getShowDescription($salesChannelId)
-        ]);
-
-        $configs = $this->systemConfigService->all($salesChannelId);
-        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
-
-        $checkoutConfirmPageLoadedEvent->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
 
         // Payment surcharging
         if ($this->config->isSurchargePaymentMethods($salesChannelId)) {
@@ -109,14 +106,9 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function onAccountPaymentMethodPageLoaded(
-        AccountPaymentMethodPageLoadedEvent $accountPaymentMethodPageLoadedEvent
-    ) {
-        $salesChannelId = $accountPaymentMethodPageLoadedEvent->getSalesChannelContext()->getSalesChannel()->getId();
-
-        $accountPaymentMethodPageLoadedEvent->getPage()->assign([
-            'showDescription' => $this->config->getShowDescription($salesChannelId)
-        ]);
+    public function onAccountPaymentMethodPageLoaded(AccountPaymentMethodPageLoadedEvent $event)
+    {
+        $this->addCommonExtensions($event->getSalesChannelContext(), $event->getPage());
     }
 
     public function onAccountOrderEditPageLoaded(AccountEditOrderPageLoadedEvent $accountEditOrderPageLoadedEvent)
@@ -124,14 +116,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         $salesChannelContext = $accountEditOrderPageLoadedEvent->getSalesChannelContext();
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
 
-        $accountEditOrderPageLoadedEvent->getPage()->assign([
-            'showDescription' => $this->config->getShowDescription($salesChannelId)
-        ]);
-
-        $configs = $this->systemConfigService->all($salesChannelId);
-        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
-
-        $accountEditOrderPageLoadedEvent->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
+        $this->addCommonExtensions($salesChannelContext, $accountEditOrderPageLoadedEvent->getPage());
 
         // Payment surcharging
         if ($this->config->isSurchargePaymentMethods($salesChannelId)) {
@@ -233,10 +218,17 @@ class PageLoadedSubscriber implements EventSubscriberInterface
 
     public function onAccountProfilePageLoaded(AccountProfilePageLoadedEvent $event): void
     {
-        $configs = $this->systemConfigService->all($event->getSalesChannelContext()->getSalesChannelId());
-        $payNLCustomData = new CustomPageDataValueObject($configs, $this->shopwareVersion);
+        $this->addCommonExtensions($event->getSalesChannelContext(), $event->getPage());
+    }
 
-        $event->getPage()->addExtension(StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID, $payNLCustomData);
+    public function onAccountLoginPageLoaded(AccountLoginPageLoadedEvent $event): void
+    {
+        $this->addCommonExtensions($event->getSalesChannelContext(), $event->getPage());
+    }
+
+    public function onCheckoutRegisterPageLoaded(CheckoutRegisterPageLoadedEvent $event): void
+    {
+        $this->addCommonExtensions($event->getSalesChannelContext(), $event->getPage());
     }
 
     private function addPaynlTransactionStatus(CheckoutFinishPageLoadedEvent $event): void
@@ -253,7 +245,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 $criteria,
                 $event->getSalesChannelContext()->getContext()
             )
-            ->first();
+            ->last();
 
         if ($paynlTransaction instanceof PaynlTransactionEntity) {
             $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
@@ -267,6 +259,18 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 ]
             ]);
         }
+    }
+
+    private function addCommonExtensions(SalesChannelContext $context, object $page): void
+    {
+        $salesChannelId = $context->getSalesChannel()->getId();
+        $page->assign(['showDescription' => $this->config->getShowDescription($salesChannelId)]);
+
+        $configs = $this->systemConfigService->all($salesChannelId);
+        $page->addExtension(
+            StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID,
+            new CustomPageDataValueObject($configs, $this->shopwareVersion)
+        );
     }
 
     /** @param LineItemCollection|OrderLineItemCollection $lineItems */
