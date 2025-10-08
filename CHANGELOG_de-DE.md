@@ -1,4 +1,6 @@
 # 2.0.1
+- Verschiedene Zahlungsmethoden hinzugefügt, einschließlich Klarna Sofortzahlung (Pay in Full)
+- Transfer Data exception behoben
 
 # 2.0.0
 - Neue Version des Pay. SDK implementiert
