@@ -1,3 +1,5 @@
+# 2.0.1
+
 # 2.0.0
 - Implemented new version of PAY SDK
 - Fixed the migration and storefront issues

@@ -1,3 +1,5 @@
+# 2.0.1
+
 # 2.0.0
 - Neue Version des Pay. SDK implementiert
 - Probleme bei der Migration und im Storefront behoben
