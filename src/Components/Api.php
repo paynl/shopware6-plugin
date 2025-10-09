@@ -321,7 +321,7 @@ class Api
             $transferData['gaClientId'] = $this->getGoogleAnalyticsClientId();
         }
 
-        return $transferData;
+        return [$transferData];
     }
 
     private function getGoogleAnalyticsClientId(): string
