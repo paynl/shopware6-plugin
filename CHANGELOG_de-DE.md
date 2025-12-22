@@ -1,3 +1,5 @@
+# 2.0.2
+
 # 2.0.1
 - Verschiedene Zahlungsmethoden hinzugefügt, einschließlich Klarna Sofortzahlung (Pay in Full)
 - Transfer Data exception behoben

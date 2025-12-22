@@ -1,3 +1,5 @@
+# 2.0.2
+
 # 2.0.1
 - Added various payment methods, including Klarna Pay in Full
 - Fixed Transfer Data exception
