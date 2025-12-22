@@ -19,6 +19,7 @@ use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepositoryInterfa
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -232,6 +233,8 @@ class InstallHelper
 
                 // don't update the name and description if payment method already exists in Shopware
                 unset($paymentMethodData['name'], $paymentMethodData['description']);
+                // Also don't update translations for existing payment methods
+                unset($paymentMethodData['translations']);
             } catch (EntityNotFoundException $exception) {
 
             }
@@ -356,7 +359,12 @@ class InstallHelper
             'customFields' => [
                 self::PAYMENT_METHOD_PAYNL => 1,
                 'paynlId' => $paymentMethodValueObject->getOriginalMethod()->getId()
-            ]
+            ],
+            'translations' => [
+                Defaults::LANGUAGE_SYSTEM => [
+                    'name' => $paymentMethodValueObject->getOriginalMethod()->getName(),
+                ],
+            ],
         ];
 
         if ($paymentMethodValueObject->getBanks()) {
