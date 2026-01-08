@@ -16,9 +16,11 @@ use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInter
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepositoryInterface;
+use PaynlPayment\Shopware6\Repository\Language\LanguageRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -27,6 +29,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
+use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 
 class InstallHelper
@@ -57,6 +60,7 @@ class InstallHelper
     private SalesChannelRepositoryInterface $salesChannelRepository;
     private SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository;
     private SystemConfigRepositoryInterface $systemConfigRepository;
+    private LanguageRepositoryInterface $languageRepository;
 
     public function __construct(
         Connection $connection,
@@ -66,7 +70,8 @@ class InstallHelper
         PaymentMethodRepositoryInterface $paymentMethodRepository,
         SalesChannelRepositoryInterface $salesChannelRepository,
         SalesChannelPaymentMethodRepositoryInterface $paymentMethodSalesChannelRepository,
-        SystemConfigRepositoryInterface $systemConfigRepository
+        SystemConfigRepositoryInterface $systemConfigRepository,
+        LanguageRepositoryInterface $languageRepository
     ) {
         $this->pluginIdProvider = $pluginIdProvider;
         $this->connection = $connection;
@@ -78,6 +83,7 @@ class InstallHelper
         $this->salesChannelRepository = $salesChannelRepository;
         $this->paymentMethodSalesChannelRepository = $paymentMethodSalesChannelRepository;
         $this->systemConfigRepository = $systemConfigRepository;
+        $this->languageRepository = $languageRepository;
     }
 
     /**
@@ -220,30 +226,112 @@ class InstallHelper
 
         foreach ($payPaymentMethods as $paymentMethod) {
             $paymentMethodValueObject = new PaymentMethodValueObject($paymentMethod);
-
-            if (!empty($paymentMethodValueObject->getBrandId())) {
-                $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
-            }
+            
+            $this->addPaymentMethodMedia($paymentMethodValueObject, $context);
+            
             $paymentMethodHashId = $paymentMethodValueObject->getHashedId();
             $paymentMethodData = $this->getPaymentMethodData($context, $paymentMethodValueObject);
-
-            try {
-                $this->paymentMethodRepository->getPaymentMethodById($paymentMethodHashId, $context);
-
-                // don't update the name and description if payment method already exists in Shopware
-                unset($paymentMethodData['name'], $paymentMethodData['description']);
-            } catch (EntityNotFoundException $exception) {
-
-            }
+            $paymentMethodData = $this->mergeWithExistingPaymentMethod($paymentMethodHashId, $paymentMethodData, $context);
 
             $paymentMethods[] = $paymentMethodData;
-
-            $salesChannelData = $this->getSalesChannelsData($paymentMethodHashId, $salesChannelId, $context);
-            $salesChannelsData = array_merge($salesChannelsData, $salesChannelData);
+            $salesChannelsData = array_merge(
+                $salesChannelsData,
+                $this->getSalesChannelsData($paymentMethodHashId, $salesChannelId, $context)
+            );
         }
 
         $this->paymentMethodRepository->upsert($paymentMethods, $context);
         $this->paymentMethodSalesChannelRepository->upsert($salesChannelsData, $context);
+    }
+
+    /**
+     * Add payment method media/logo if available
+     */
+    private function addPaymentMethodMedia(PaymentMethodValueObject $paymentMethodValueObject, Context $context): void
+    {
+        if (!empty($paymentMethodValueObject->getBrandId())) {
+            $this->mediaHelper->addImageToMedia($paymentMethodValueObject, $context);
+        }
+    }
+
+    /**
+     * Merge payment method data with existing payment method (preserves translations)
+     *
+     * @param string $paymentMethodId
+     * @param array<string, mixed> $paymentMethodData
+     * @param Context $context
+     * @return array<string, mixed>
+     */
+    private function mergeWithExistingPaymentMethod(string $paymentMethodId, array $paymentMethodData, Context $context): array
+    {
+        $existingPaymentMethod = $this->findExistingPaymentMethod($paymentMethodId, $context);
+        
+        if ($existingPaymentMethod === null) {
+            return $paymentMethodData;
+        }
+
+        $paymentMethodData['translations'] = $this->mergeTranslations(
+            $existingPaymentMethod,
+            $paymentMethodData['translations'] ?? []
+        );
+
+        // Don't update name and description for existing payment methods
+        unset($paymentMethodData['name'], $paymentMethodData['description']);
+
+        return $paymentMethodData;
+    }
+
+    /**
+     * Find existing payment method with translations
+     */
+    private function findExistingPaymentMethod(string $paymentMethodId, Context $context): ?PaymentMethodEntity
+    {
+        try {
+            $criteria = new Criteria([$paymentMethodId]);
+            $criteria->addAssociation('translations');
+            
+            return $this->paymentMethodRepository->search($criteria, $context)->first();
+        } catch (EntityNotFoundException $exception) {
+            return null;
+        }
+    }
+
+    /**
+     * Merge existing translations with new translations (new translations take precedence)
+     *
+     * @param PaymentMethodEntity $existingPaymentMethod
+     * @param array<string, array<string, string>> $newTranslations
+     * @return array<string, array<string, string>>
+     */
+    private function mergeTranslations(PaymentMethodEntity $existingPaymentMethod, array $newTranslations): array
+    {
+        $existingTranslations = $this->extractExistingTranslations($existingPaymentMethod);
+        
+        return array_replace($existingTranslations, $newTranslations);
+    }
+
+    /**
+     * Extract translations from existing payment method entity
+     *
+     * @param PaymentMethodEntity $paymentMethod
+     * @return array<string, array<string, string>>
+     */
+    private function extractExistingTranslations(PaymentMethodEntity $paymentMethod): array
+    {
+        $translations = [];
+        
+        if (!$paymentMethod->getTranslations()) {
+            return $translations;
+        }
+
+        foreach ($paymentMethod->getTranslations() as $translation) {
+            $translations[$translation->getLanguageId()] = [
+                'name' => $translation->getName(),
+                'description' => $translation->getDescription(),
+            ];
+        }
+
+        return $translations;
     }
 
     private function removeOldMedia(string $salesChannelId, Context $context): void
@@ -341,34 +429,224 @@ class InstallHelper
 
     private function getPaymentMethodData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
     {
+        $originalMethod = $paymentMethodValueObject->getOriginalMethod();
+        
+        $paymentData = $this->buildBasePaymentData($context, $paymentMethodValueObject);
+        $paymentData['translations'] = $this->buildPaymentMethodTranslations($originalMethod, $context);
+        $paymentData['customFields'] = $this->buildPaymentMethodCustomFields($paymentMethodValueObject);
+
+        return $paymentData;
+    }
+
+    /**
+     * Build base payment method data structure
+     *
+     * @param Context $context
+     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @return array<string, mixed>
+     */
+    private function buildBasePaymentData(Context $context, PaymentMethodValueObject $paymentMethodValueObject): array
+    {
+        $originalMethod = $paymentMethodValueObject->getOriginalMethod();
         $pluginId = $this->pluginIdProvider->getPluginIdByBaseClass(PaynlPaymentShopware6::class, $context);
 
-        $paymentData = [
+        return [
             'id' => $paymentMethodValueObject->getHashedId(),
             'handlerIdentifier' => PaynlPaymentHandler::class,
-            'name' => $paymentMethodValueObject->getOriginalMethod()->getName(),
-            'description' => $paymentMethodValueObject->getOriginalMethod()->getDescription(),
+            'name' => $originalMethod->getName(),
+            'description' => $originalMethod->getDescription(),
             'technicalName' => $paymentMethodValueObject->getTechnicalName(),
             'pluginId' => $pluginId,
-            'mediaId' => $this->mediaHelper->getMediaId($paymentMethodValueObject->getOriginalMethod()->getName(), $context),
+            'mediaId' => $this->mediaHelper->getMediaId($originalMethod->getName(), $context),
             'afterOrderEnabled' => true,
             'active' => true,
-            'customFields' => [
-                self::PAYMENT_METHOD_PAYNL => 1,
-                'paynlId' => $paymentMethodValueObject->getOriginalMethod()->getId()
-            ]
+        ];
+    }
+
+    /**
+     * Build payment method translations from API response
+     *
+     * @param Method $originalMethod
+     * @param Context $context
+     * @return array<string, array<string, string>>
+     */
+    private function buildPaymentMethodTranslations(Method $originalMethod, Context $context): array
+    {
+        return $this->mapApiTranslationsToShopware(
+            $originalMethod->getTranslations(),
+            $originalMethod->getName(),
+            $context
+        );
+    }
+
+    /**
+     * Build custom fields for payment method
+     *
+     * @param PaymentMethodValueObject $paymentMethodValueObject
+     * @return array<string, mixed>
+     */
+    private function buildPaymentMethodCustomFields(PaymentMethodValueObject $paymentMethodValueObject): array
+    {
+        $customFields = [
+            self::PAYMENT_METHOD_PAYNL => 1,
+            'paynlId' => $paymentMethodValueObject->getOriginalMethod()->getId()
         ];
 
         if ($paymentMethodValueObject->getBanks()) {
-            $paymentData['customFields']['displayBanks'] = true;
-            $paymentData['customFields']['banks'] = $paymentMethodValueObject->getBanks();
+            $customFields['displayBanks'] = true;
+            $customFields['banks'] = $paymentMethodValueObject->getBanks();
         }
 
         if ($paymentMethodValueObject->isPayLater()) {
-            $paymentData['customFields']['isPayLater'] = true;
+            $customFields['isPayLater'] = true;
         }
 
-        return $paymentData;
+        return $customFields;
+    }
+
+    /**
+     * Map PAY. API translations to Shopware format
+     *
+     * @param array<string, array<string, string>> $apiTranslations
+     * @param string $defaultName
+     * @param Context $context
+     * @return array<string, array<string, string>>
+     */
+    private function mapApiTranslationsToShopware(array $apiTranslations, string $defaultName, Context $context): array
+    {
+        $translations = $this->createSystemLanguageTranslation($defaultName);
+        $translations = $this->addApiNameTranslations($translations, $apiTranslations, $context);
+        $translations = $this->addApiDescriptionTranslations($translations, $apiTranslations, $context);
+
+        return $translations;
+    }
+
+    /**
+     * Create system language translation (base translation)
+     *
+     * @param string $defaultName
+     * @return array<string, array<string, string>>
+     */
+    private function createSystemLanguageTranslation(string $defaultName): array
+    {
+        return [
+            Defaults::LANGUAGE_SYSTEM => ['name' => $defaultName]
+        ];
+    }
+
+    /**
+     * Add name translations from API
+     *
+     * @param array<string, array<string, string>> $translations
+     * @param array<string, array<string, string>> $apiTranslations
+     * @param Context $context
+     * @return array<string, array<string, string>>
+     */
+    private function addApiNameTranslations(array $translations, array $apiTranslations, Context $context): array
+    {
+        if (empty($apiTranslations['name'])) {
+            return $translations;
+        }
+
+        foreach ($apiTranslations['name'] as $localeCode => $translatedName) {
+            $languageId = $this->convertLocaleToLanguageId($localeCode, $context);
+            
+            if ($languageId !== null) {
+                $translations[$languageId] = ['name' => $translatedName];
+            }
+        }
+
+        return $translations;
+    }
+
+    /**
+     * Add description translations from API
+     *
+     * @param array<string, array<string, string>> $translations
+     * @param array<string, array<string, string>> $apiTranslations
+     * @param Context $context
+     * @return array<string, array<string, string>>
+     */
+    private function addApiDescriptionTranslations(array $translations, array $apiTranslations, Context $context): array
+    {
+        if (empty($apiTranslations['description'])) {
+            return $translations;
+        }
+
+        foreach ($apiTranslations['description'] as $localeCode => $translatedDescription) {
+            $languageId = $this->convertLocaleToLanguageId($localeCode, $context);
+            
+            if ($languageId !== null) {
+                if (!isset($translations[$languageId])) {
+                    $translations[$languageId] = [];
+                }
+                $translations[$languageId]['description'] = $translatedDescription;
+            }
+        }
+
+        return $translations;
+    }
+
+    /**
+     * Convert API locale code to Shopware language ID
+     *
+     * @param string $apiLocaleCode Locale code from PAY. API (e.g., "de_DE")
+     * @param Context $context
+     * @return string|null Shopware language UUID or null if not found
+     */
+    private function convertLocaleToLanguageId(string $apiLocaleCode, Context $context): ?string
+    {
+        $shopwareLocaleCode = $this->convertApiLocaleToShopwareFormat($apiLocaleCode);
+        
+        return $this->findLanguageByLocaleCode($shopwareLocaleCode, $context);
+    }
+
+    /**
+     * Convert API locale format to Shopware format
+     *
+     * @param string $apiLocaleCode API format (e.g., "de_DE")
+     * @return string Shopware format (e.g., "de-DE")
+     */
+    private function convertApiLocaleToShopwareFormat(string $apiLocaleCode): string
+    {
+        return str_replace('_', '-', $apiLocaleCode);
+    }
+
+    /**
+     * Find language by locale code in Shopware
+     *
+     * @param string $localeCode Shopware locale code (e.g., "de-DE")
+     * @param Context $context
+     * @return string|null Language UUID or null if not found
+     */
+    private function findLanguageByLocaleCode(string $localeCode, Context $context): ?string
+    {
+        $criteria = new Criteria();
+        $criteria->addAssociation('locale');
+
+        $languages = $this->languageRepository->search($criteria, $context);
+
+        foreach ($languages as $language) {
+            if ($this->isMatchingLocale($language, $localeCode)) {
+                return $language->getId();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if language entity matches the given locale code
+     *
+     * @param LanguageEntity $language
+     * @param string $localeCode
+     * @return bool
+     */
+    private function isMatchingLocale(LanguageEntity $language, string $localeCode): bool
+    {
+        $locale = $language->getLocale();
+        
+        return $locale !== null && $locale->getCode() === $localeCode;
     }
 
     public function deactivatePaymentMethods(Context $context): void
