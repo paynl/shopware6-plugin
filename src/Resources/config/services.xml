@@ -48,6 +48,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Language\LanguageRepository"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Helper\MediaHelper">

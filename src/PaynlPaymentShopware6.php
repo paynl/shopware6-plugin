@@ -136,6 +136,8 @@ class PaynlPaymentShopware6 extends Plugin
         $salesChannelRepository = $this->container->get('sales_channel.repository');
         /** @var EntityRepository $systemConfigRepository */
         $systemConfigRepository = $this->container->get('system_config.repository');
+        /** @var EntityRepository $languageRepository */
+        $languageRepository = $this->container->get('language.repository');
 
         return new InstallHelper(
             $connection,
@@ -145,7 +147,8 @@ class PaynlPaymentShopware6 extends Plugin
             new PaymentMethodRepository($paymentMethodRepository),
             new SalesChannelRepository($salesChannelRepository),
             new SalesChannelPaymentMethodRepository($paymentMethodSalesChannelRepository),
-            new SystemConfigRepository($systemConfigRepository)
+            new SystemConfigRepository($systemConfigRepository),
+            new LanguageRepository($languageRepository)
         );
     }
 
