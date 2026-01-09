@@ -328,7 +328,7 @@ class Api
     {
         $allCookies = $this->requestStack->getCurrentRequest()->cookies->all();
         $gaCookies = array_filter($allCookies, function ($key) {
-            return $this->stringHelper->endsWith($key, '_ga');
+            return $this->stringHelper->endsWith((string) $key, '_ga');
         }, ARRAY_FILTER_USE_KEY);
 
         if (empty($gaCookies)) {
