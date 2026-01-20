@@ -6,8 +6,8 @@ namespace PaynlPayment\Shopware6\Service;
 
 use PaynlPayment\Shopware6\Compatibility\Gateway\CompatibilityGatewayInterface;
 use Shopware\Core\Checkout\Cart\Cart;
+use Shopware\Core\Checkout\Cart\LineItemFactoryHandler\LineItemFactoryInterface;
 use Shopware\Core\Checkout\Cart\SalesChannel\CartService as SalesChannelCartService;
-use Shopware\Core\Checkout\Cart\LineItemFactoryHandler\ProductLineItemFactory;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\SalesChannel\SalesChannelContextSwitcher;
@@ -21,13 +21,13 @@ class CartService implements CartServiceInterface
     /** @var SalesChannelContextSwitcher */
     private $contextSwitcher;
 
-    /** @var ProductLineItemFactory */
+    /** @var LineItemFactoryInterface */
     private $productItemFactory;
 
     /** @var CompatibilityGatewayInterface */
     private $compatibilityGateway;
 
-    public function __construct(SalesChannelCartService $swCartService, SalesChannelContextSwitcher $contextSwitcher, ProductLineItemFactory $productItemFactory, CompatibilityGatewayInterface $compatibilityGateway)
+    public function __construct(SalesChannelCartService $swCartService, SalesChannelContextSwitcher $contextSwitcher, LineItemFactoryInterface $productItemFactory, CompatibilityGatewayInterface $compatibilityGateway)
     {
         $this->swCartService = $swCartService;
         $this->contextSwitcher = $contextSwitcher;

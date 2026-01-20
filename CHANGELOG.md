@@ -1,3 +1,9 @@
+# 2.0.2
+- Added new payment methods: PIX, FLOA, and Bancomat
+- Updated translation loading to use the getConfig API
+- Implemented the payment finalize endpoint
+- Various minor fixes and improvements
+
 # 2.0.1
 - Added various payment methods, including Klarna Pay in Full
 - Fixed Transfer Data exception
