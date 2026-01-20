@@ -1,4 +1,8 @@
 # 2.0.2
+- Neue Zahlungsmethoden hinzugefügt: PIX, FLOA und Bancomat
+- Laden der Übersetzungen auf die getConfig-API umgestellt
+- payment-finalize-Endpoint implementiert
+- Diverse kleinere Fehlerbehebungen und Verbesserungen
 
 # 2.0.1
 - Verschiedene Zahlungsmethoden hinzugefügt, einschließlich Klarna Sofortzahlung (Pay in Full)
