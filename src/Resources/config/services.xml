@@ -374,6 +374,8 @@
         <service id="PaynlPayment\Shopware6\Subscriber\OrderSubscriber">
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="request_stack"/>
+            <argument>%kernel.shopware_version%</argument>
+            <argument>%instance_id%</argument>
             <tag name="kernel.event_subscriber"/>
         </service>
 

@@ -104,6 +104,16 @@
                 gehosteten Zahlungsseiten von PAY um.
             </helpText>
         </input-field>
+        <input-field>
+            <name>shopwareApiIdentifier</name>
+            <copyable>true</copyable>
+            <label>Shopware API identifier</label>
+            <label lang="nl-NL">Shopware API identifier</label>
+            <label lang="de-DE">Shopware API identifier</label>
+            <helpText>Shopware Partner API identifier for commission tracking</helpText>
+            <helpText lang="nl-NL">Uw Shopware API-identificatie voor commissietracking</helpText>
+            <helpText lang="de-DE">Ihre Shopware API-Kennung für Provisionsverfolgung</helpText>
+        </input-field>
         <component name="paynl-config-section-api">
             <name>paynlConfigSectionApi</name>
         </component>
