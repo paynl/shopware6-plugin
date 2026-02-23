@@ -191,7 +191,9 @@ class InitiatePaymentAction
 
     private function displaySafeErrorMessages(string $errorMessage)
     {
-        if (strpos(strtolower($errorMessage), 'minimum amount') !== false) {
+        if (preg_match('/^(PAY-\d+)\s*-\s*(.+)$/s', trim($errorMessage), $matches)) {
+            $flashBagMessage = 'ID: ' . $matches[1] . '<br>' . 'Message: ' . $matches[2];
+        } elseif (strpos(strtolower($errorMessage), 'minimum amount') !== false) {
             $flashBagMessage = $this->translator->trans('checkout.messages.orderAmountPaymentError');
         } else {
             $flashBagMessage = $this->translator->trans('checkout.messages.orderDefaultError');
