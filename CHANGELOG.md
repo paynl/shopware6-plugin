@@ -1,3 +1,5 @@
+# 2.0.3
+
 # 2.0.2
 - Added new payment methods: PIX, FLOA, and Bancomat
 - Updated translation loading to use the getConfig API
