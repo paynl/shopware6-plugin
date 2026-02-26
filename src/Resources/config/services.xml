@@ -83,6 +83,31 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Language\LanguageRepository"/>
         </service>
 
+        <!-- Router (headless support) -->
+        <service id="PaynlPayment\Shopware6\Service\Router\RoutingDetector">
+            <argument type="service" id="request_stack"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder">
+            <argument type="service" id="router"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Router\RoutingDetector"/>
+            <argument>%env(default::APP_URL)%</argument>
+        </service>
+
+        <!-- Payment finalize (shared storefront + API) -->
+        <service id="PaynlPayment\Shopware6\Service\Payment\PaymentFinalizeFacade">
+            <argument type="service" id="Shopware\Core\Checkout\Payment\Controller\PaymentController"/>
+            <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <argument type="service" id="router"/>
+        </service>
+
+        <!-- Notify callback (shared storefront + API) -->
+        <service id="PaynlPayment\Shopware6\Service\Notification\NotificationFacade">
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+        </service>
+
         <!--Components-->
         <service id="PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
@@ -156,6 +181,7 @@
             <argument type="service" id="translator"/>
             <argument type="service" id="request_stack"/>
             <argument>%kernel.shopware_version%</argument>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Payment\FinalizePaymentAction" public="true">

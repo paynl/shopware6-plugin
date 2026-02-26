@@ -11,6 +11,7 @@ use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
+use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -30,6 +31,7 @@ use Throwable;
 class InitiatePaymentAction
 {
     private UrlGeneratorInterface $router;
+    private PaymentUrlBuilder $paymentUrlBuilder;
     private Api $payAPI;
     private LoggerInterface $logger;
     private PaymentMethodTerminalService $paymentMethodTerminalService;
@@ -50,9 +52,11 @@ class InitiatePaymentAction
         RequestDataBagHelper $requestDataBagHelper,
         TranslatorInterface $translator,
         RequestStack $requestStack,
-        string $shopwareVersion
+        string $shopwareVersion,
+        PaymentUrlBuilder $paymentUrlBuilder
     ) {
         $this->router = $router;
+        $this->paymentUrlBuilder = $paymentUrlBuilder;
         $this->payAPI = $api;
         $this->logger = $logger;
         $this->paymentMethodTerminalService = $paymentMethodTerminalService;
@@ -130,11 +134,12 @@ class InitiatePaymentAction
         SalesChannelContext $salesChannelContext
     ): string {
         $payTransactionId = '';
-        $exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $exchangeUrl = $this->paymentUrlBuilder->buildExchangeUrl();
 
-        $parameterUrl = parse_url($returnUrl)['query'];
-        $paymentToken = explode('=', $parameterUrl)[1];
-        $returnUrl = $this->router->generate('frontend.PaynlPayment.finalize-transaction', ['_sw_payment_token' => $paymentToken], UrlGeneratorInterface::ABSOLUTE_URL);
+        $parameterUrl = parse_url($returnUrl, PHP_URL_QUERY) ?? '';
+        parse_str($parameterUrl, $params);
+        $paymentToken = $params['_sw_payment_token'] ?? '';
+        $returnUrl = $this->paymentUrlBuilder->buildReturnUrl($paymentToken);
 
         $terminal = $this->getRequestTerminal();
 

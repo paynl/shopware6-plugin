@@ -12,7 +12,7 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\Storefront\Notification\NotificationController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Notification\NotificationFacade"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
@@ -57,10 +57,23 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Controller\Storefront\Payment\PaymentController" public="true">
-            <argument type="service" id="Shopware\Core\Checkout\Payment\Controller\PaymentController"/>
-            <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Payment\PaymentFinalizeFacade"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <!-- API Controllers (headless) -->
+        <service id="PaynlPayment\Shopware6\Controller\Api\Notification\NotificationController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Notification\NotificationFacade"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Controller\Api\Payment\PaymentController" public="true">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Payment\PaymentFinalizeFacade"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
