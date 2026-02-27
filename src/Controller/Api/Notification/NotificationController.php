@@ -8,7 +8,9 @@ use PaynlPayment\Shopware6\Service\Notification\NotificationFacade;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
+#[Route(path: '/api/paynl', defaults: ['_routeScope' => ['api'], 'auth_required' => false, 'auth_enabled' => false])]
 class NotificationController extends AbstractController
 {
     private NotificationFacade $notificationFacade;
@@ -18,6 +20,7 @@ class NotificationController extends AbstractController
         $this->notificationFacade = $notificationFacade;
     }
 
+    #[Route('/notify', name: 'api.PaynlPayment.notify', methods: ['GET', 'POST'])]
     public function notify(Request $request): Response
     {
         $body = $this->notificationFacade->onNotify($request);

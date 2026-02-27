@@ -5,22 +5,4 @@
         https://symfony.com/schema/routing/routing-1.0.xsd">
 
     <import resource="../../**/Controller/**/*Controller.php" type="attribute" />
-
-    <route id="api.PaynlPayment.finalize-transaction"
-           path="/api/paynl/payment/finalize-transaction"
-           methods="GET">
-        <default key="_controller">PaynlPayment\Shopware6\Controller\Api\Payment\PaymentController::finalizeTransaction</default>
-        <default key="_routeScope"><list><string>api</string></list></default>
-        <default key="auth_required"><bool>false</bool></default>
-        <default key="auth_enabled"><bool>false</bool></default>
-    </route>
-
-    <route id="api.PaynlPayment.notify"
-           path="/api/paynl/notify"
-           methods="GET|POST">
-        <default key="_controller">PaynlPayment\Shopware6\Controller\Api\Notification\NotificationController::notify</default>
-        <default key="_routeScope"><list><string>api</string></list></default>
-        <default key="auth_required"><bool>false</bool></default>
-        <default key="auth_enabled"><bool>false</bool></default>
-    </route>
 </routes>

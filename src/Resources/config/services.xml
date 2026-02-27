@@ -83,7 +83,6 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Language\LanguageRepository"/>
         </service>
 
-        <!-- Router (headless support) -->
         <service id="PaynlPayment\Shopware6\Service\Router\RoutingDetector">
             <argument type="service" id="request_stack"/>
         </service>
@@ -94,7 +93,6 @@
             <argument>%env(default::APP_URL)%</argument>
         </service>
 
-        <!-- Payment finalize (shared storefront + API) -->
         <service id="PaynlPayment\Shopware6\Service\Payment\PaymentFinalizeFacade">
             <argument type="service" id="Shopware\Core\Checkout\Payment\Controller\PaymentController"/>
             <argument type="service" id="paynl_payments.logger"/>
@@ -103,7 +101,6 @@
             <argument type="service" id="router"/>
         </service>
 
-        <!-- Notify callback (shared storefront + API) -->
         <service id="PaynlPayment\Shopware6\Service\Notification\NotificationFacade">
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
         </service>
@@ -171,17 +168,16 @@
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Payment\InitiatePaymentAction" public="true">
-            <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder"/>
             <argument type="service" id="translator"/>
             <argument type="service" id="request_stack"/>
             <argument>%kernel.shopware_version%</argument>
-            <argument type="service" id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Payment\FinalizePaymentAction" public="true">

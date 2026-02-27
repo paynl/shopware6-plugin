@@ -64,7 +64,6 @@
             </call>
         </service>
 
-        <!-- API Controllers (headless) -->
         <service id="PaynlPayment\Shopware6\Controller\Api\Notification\NotificationController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Service\Notification\NotificationFacade"/>
             <call method="setContainer">

@@ -23,40 +23,34 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 class InitiatePaymentAction
 {
-    private UrlGeneratorInterface $router;
-    private PaymentUrlBuilder $paymentUrlBuilder;
     private Api $payAPI;
     private LoggerInterface $logger;
     private PaymentMethodTerminalService $paymentMethodTerminalService;
     private ProcessingHelper $processingHelper;
     private PluginHelper $pluginHelper;
     private RequestDataBagHelper $requestDataBagHelper;
+    private PaymentUrlBuilder $paymentUrlBuilder;
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private string $shopwareVersion;
 
     public function __construct(
-        RouterInterface $router,
         Api $api,
         LoggerInterface $logger,
         PaymentMethodTerminalService $paymentMethodTerminalService,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         RequestDataBagHelper $requestDataBagHelper,
+        PaymentUrlBuilder $paymentUrlBuilder,
         TranslatorInterface $translator,
         RequestStack $requestStack,
-        string $shopwareVersion,
-        PaymentUrlBuilder $paymentUrlBuilder
+        string $shopwareVersion
     ) {
-        $this->router = $router;
-        $this->paymentUrlBuilder = $paymentUrlBuilder;
         $this->payAPI = $api;
         $this->logger = $logger;
         $this->paymentMethodTerminalService = $paymentMethodTerminalService;
@@ -65,6 +59,7 @@ class InitiatePaymentAction
         $this->requestDataBagHelper = $requestDataBagHelper;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
+        $this->paymentUrlBuilder = $paymentUrlBuilder;
         $this->shopwareVersion = $shopwareVersion;
     }
 
