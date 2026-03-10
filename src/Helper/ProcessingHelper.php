@@ -22,6 +22,7 @@ use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionDefinition;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
+use Shopware\Core\Checkout\Payment\PaymentException;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -198,6 +199,18 @@ class ProcessingHelper
             'transactionId' => $paynlTransactionId,
             'statusCode' => $payTransactionStatus->getStatusCode()
         ]);
+
+        if ($payTransactionStatus->getStatusCode() === PaynlTransactionStatusesEnum::STATUS_CANCEL) {
+            $orderTransactionID = $payTransactionEntity->getOrderTransaction()->getUniqueIdentifier();
+
+            $message = sprintf(
+                'Payment for order %s (%s) was cancelled by the customer.',
+                $payTransactionEntity->getOrder()->getOrderNumber(),
+                $paynlTransactionId
+            );
+
+            throw PaymentException::customerCanceled($orderTransactionID, $message);
+        }
     }
 
     /**
