@@ -173,7 +173,7 @@ class Api
             $this->translator->trans('transactionLabels.order'),
             $orderNumber
         ));
-        $request->setReference($orderNumber);
+        $request->setReference($orderNumber ?? '');
         $request->setReturnurl($additionalTransactionInfo->getReturnUrl());
         $request->setExchangeUrl($additionalTransactionInfo->getExchangeUrl());
         $request->setAmount($amount);

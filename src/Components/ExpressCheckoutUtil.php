@@ -245,7 +245,7 @@ class ExpressCheckoutUtil
         $request = new OrderCreateRequest();
         $request->setServiceId($this->config->getServiceId($salesChannelId));
         $request->setDescription($description);
-        $request->setReference($orderNumber);
+        $request->setReference($orderNumber ?? '');
         $request->setReturnurl($shopwareReturnUrl);
         $request->setExchangeUrl($exchangeUrl);
         $request->setAmount($orderTransaction->getOrder()->getAmountTotal());
