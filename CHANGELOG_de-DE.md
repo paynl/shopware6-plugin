@@ -1,4 +1,5 @@
 # 2.0.3
+- Behoben: Zahlungs-TypeError bei leeren optionalen Adressfeldern (z. B. Hausnummerzusatz); optionale Shopware-Werte werden nun sicher an das PayNL SDK übergeben.
 
 # 2.0.2
 - Neue Zahlungsmethoden hinzugefügt: PIX, FLOA und Bancomat
