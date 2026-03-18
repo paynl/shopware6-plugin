@@ -59,12 +59,12 @@ class CustomerHelper
         }
 
         $customer->setGender($gender);
-        $customer->setPhone((string) $customerEntity->getDefaultBillingAddress()->getPhoneNumber());
+        $customer->setPhone($customerEntity->getDefaultBillingAddress()->getPhoneNumber() ?? '');
         $customer->setEmail($customerEntity->getEmail());
         $customer->setReference($customerEntity->getCustomerNumber());
 
         $company = new \PayNL\Sdk\Model\Company();
-        $company->setName((string) $customerEntity->getDefaultBillingAddress()->getCompany());
+        $company->setName($customerEntity->getDefaultBillingAddress()->getCompany() ?? '');
         $cocNumber = $customerEntity->getDefaultBillingAddress()->getCustomFields()['cocNumber'] ?? null;
         if ($cocNumber) {
             $company->setCoc((string) $cocNumber);
@@ -108,17 +108,17 @@ class CustomerHelper
                 $houseNumberExtension = implode(' ', $houseNumberArr);
             }
         } else {
-            $houseNumber = $customerShippingAddress->getAdditionalAddressLine1();
-            $houseNumberExtension = $customerShippingAddress->getAdditionalAddressLine2();
+            $houseNumber = $customerShippingAddress->getAdditionalAddressLine1() ?? '';
+            $houseNumberExtension = $customerShippingAddress->getAdditionalAddressLine2() ?? '';
         }
 
         $devAddress = new \PayNL\Sdk\Model\Address();
-        $devAddress->setStreetName($street);
-        $devAddress->setStreetNumber($houseNumber);
-        $devAddress->setStreetNumberExtension($houseNumberExtension);
-        $devAddress->setZipCode($customerShippingAddress->getZipcode());
-        $devAddress->setCity($customerShippingAddress->getCity());
-        $devAddress->setCountryCode($country->getIso());
+        $devAddress->setStreetName($street ?? '');
+        $devAddress->setStreetNumber($houseNumber ?? '');
+        $devAddress->setStreetNumberExtension($houseNumberExtension ?? '');
+        $devAddress->setZipCode($customerShippingAddress->getZipcode() ?? '');
+        $devAddress->setCity($customerShippingAddress->getCity() ?? '');
+        $devAddress->setCountryCode($country->getIso() ?? '');
 
         return $devAddress;
     }
@@ -147,17 +147,17 @@ class CustomerHelper
                 $houseNumberExtension = implode(' ', $houseNumberArr);
             }
         } else {
-            $houseNumber = $customerBillingAddress->getAdditionalAddressLine1();
-            $houseNumberExtension = $customerBillingAddress->getAdditionalAddressLine2();
+            $houseNumber = $customerBillingAddress->getAdditionalAddressLine1() ?? '';
+            $houseNumberExtension = $customerBillingAddress->getAdditionalAddressLine2() ?? '';
         }
 
         $invoiceAddress = new Address();
-        $invoiceAddress->setStreetName($street);
-        $invoiceAddress->setStreetNumber($houseNumber);
-        $invoiceAddress->setStreetNumberExtension($houseNumberExtension);
-        $invoiceAddress->setZipCode($customerBillingAddress->getZipcode());
-        $invoiceAddress->setCity($customerBillingAddress->getCity());
-        $invoiceAddress->setCountryCode($country->getIso());
+        $invoiceAddress->setStreetName($street ?? '');
+        $invoiceAddress->setStreetNumber($houseNumber ?? '');
+        $invoiceAddress->setStreetNumberExtension($houseNumberExtension ?? '');
+        $invoiceAddress->setZipCode($customerBillingAddress->getZipcode() ?? '');
+        $invoiceAddress->setCity($customerBillingAddress->getCity() ?? '');
+        $invoiceAddress->setCountryCode($country->getIso() ?? '');
 
         return $invoiceAddress;
     }

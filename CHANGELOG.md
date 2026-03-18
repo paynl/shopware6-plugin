@@ -1,3 +1,6 @@
+# 2.0.3
+- Fixed payment TypeError when optional address fields (e.g. house number extension) were empty; optional Shopware values are now safely passed to the PayNL SDK.
+
 # 2.0.2
 - Added new payment methods: PIX, FLOA, and Bancomat
 - Updated translation loading to use the getConfig API
