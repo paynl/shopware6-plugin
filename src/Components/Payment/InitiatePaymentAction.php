@@ -11,6 +11,7 @@ use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
+use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
@@ -22,37 +23,34 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 class InitiatePaymentAction
 {
-    private UrlGeneratorInterface $router;
     private Api $payAPI;
     private LoggerInterface $logger;
     private PaymentMethodTerminalService $paymentMethodTerminalService;
     private ProcessingHelper $processingHelper;
     private PluginHelper $pluginHelper;
     private RequestDataBagHelper $requestDataBagHelper;
+    private PaymentUrlBuilder $paymentUrlBuilder;
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private string $shopwareVersion;
 
     public function __construct(
-        RouterInterface $router,
         Api $api,
         LoggerInterface $logger,
         PaymentMethodTerminalService $paymentMethodTerminalService,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         RequestDataBagHelper $requestDataBagHelper,
+        PaymentUrlBuilder $paymentUrlBuilder,
         TranslatorInterface $translator,
         RequestStack $requestStack,
         string $shopwareVersion
     ) {
-        $this->router = $router;
         $this->payAPI = $api;
         $this->logger = $logger;
         $this->paymentMethodTerminalService = $paymentMethodTerminalService;
@@ -61,6 +59,7 @@ class InitiatePaymentAction
         $this->requestDataBagHelper = $requestDataBagHelper;
         $this->translator = $translator;
         $this->requestStack = $requestStack;
+        $this->paymentUrlBuilder = $paymentUrlBuilder;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -130,11 +129,12 @@ class InitiatePaymentAction
         SalesChannelContext $salesChannelContext
     ): string {
         $payTransactionId = '';
-        $exchangeUrl = $this->router->generate('frontend.PaynlPayment.notify', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $exchangeUrl = $this->paymentUrlBuilder->buildExchangeUrl();
 
-        $parameterUrl = parse_url($returnUrl)['query'];
-        $paymentToken = explode('=', $parameterUrl)[1];
-        $returnUrl = $this->router->generate('frontend.PaynlPayment.finalize-transaction', ['_sw_payment_token' => $paymentToken], UrlGeneratorInterface::ABSOLUTE_URL);
+        $parameterUrl = parse_url($returnUrl, PHP_URL_QUERY) ?? '';
+        parse_str($parameterUrl, $params);
+        $paymentToken = $params['_sw_payment_token'] ?? '';
+        $returnUrl = $this->paymentUrlBuilder->buildReturnUrl($paymentToken);
 
         $terminal = $this->getRequestTerminal();
 
