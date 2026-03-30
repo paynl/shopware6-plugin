@@ -28,6 +28,8 @@ use Throwable;
 
 class InitiatePaymentAction
 {
+    private const PAY_ERROR_MESSAGE_PATTERN = '/^(PAY-\d+)\s*-\s*(.+)$/s';
+
     private Api $payAPI;
     private LoggerInterface $logger;
     private PaymentMethodTerminalService $paymentMethodTerminalService;
@@ -191,7 +193,7 @@ class InitiatePaymentAction
 
     private function displaySafeErrorMessages(string $errorMessage)
     {
-        if (preg_match('/^(PAY-\d+)\s*-\s*(.+)$/s', trim($errorMessage), $matches)) {
+        if (preg_match(self::PAY_ERROR_MESSAGE_PATTERN, trim($errorMessage), $matches)) { //NOSONAR
             $flashBagMessage = 'ID: ' . $matches[1] . '<br>' . 'Message: ' . $matches[2];
         } elseif (strpos(strtolower($errorMessage), 'minimum amount') !== false) {
             $flashBagMessage = $this->translator->trans('checkout.messages.orderAmountPaymentError');
