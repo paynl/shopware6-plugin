@@ -1,3 +1,5 @@
+# 2.0.4
+
 # 2.0.3
 - Fixed payment TypeError when optional address fields (e.g. house number extension) were empty; optional Shopware values are now safely passed to the PayNL SDK.
 
