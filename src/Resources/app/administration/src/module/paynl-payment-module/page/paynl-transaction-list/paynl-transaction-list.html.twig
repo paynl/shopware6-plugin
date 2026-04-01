@@ -36,7 +36,7 @@
                         {{ getTransactionOrderNumber(item) }}
                     </router-link>
                     <span v-else class="sw-data-grid__cell-value">
-                        {{ getTransactionOrderNumber(item) || '—' }}
+                        {{ getTransactionOrderNumber(item) || $t('transactions-list.order_not_found') }}
                     </span>
                 </template>
 

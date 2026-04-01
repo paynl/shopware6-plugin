@@ -23,6 +23,7 @@
         "customer": "Customer",
         "status": "Transaction status",
         "links": "Links",
-        "exception": "Error"
+        "exception": "Error",
+        "order_not_found": "Order not found"
     }
 }
