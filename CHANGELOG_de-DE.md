@@ -1,4 +1,8 @@
 # 2.0.4
+- Mehrere Logos wurden aktualisiert, einschließlich der iDEAL Co-Branding-Version mit iDEAL | Wero.
+- Die Implementierung wurde auf die Nutzung der Store API anstelle von Storefront-Routen ausgerichtet.
+- Frontend-Fehler werden nun bereinigt, wenn eine eindeutige API-Fehlermeldung zurückgegeben wird, wodurch Fehlerbehandlung und Benutzererfahrung verbessert werden.
+- Zahlungsabbrüche durch Kunden werden nun korrekt verarbeitet und sowohl im Storefront als auch in der Headless-API angezeigt.
 
 # 2.0.3
 - Behoben: Zahlungs-TypeError bei leeren optionalen Adressfeldern (z. B. Hausnummerzusatz); optionale Shopware-Werte werden nun sicher an das PayNL SDK übergeben.
