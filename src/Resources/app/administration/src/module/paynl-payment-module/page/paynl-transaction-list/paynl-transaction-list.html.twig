@@ -28,16 +28,20 @@
                 </template>
 
                 <template #column-order.orderNumber="{ item }">
-                    <router-link v-if="isUserOrdersViewer"
-                                 class="sw-data-grid__cell-value"
-                                 :to="{ name: 'sw.order.detail', params: { id: item.orderId }}">
-                        {{ item.order.orderNumber }}
+                    <router-link
+                        v-if="isUserOrdersViewer() && hasLinkedOrder(item)"
+                        class="sw-data-grid__cell-value"
+                        :to="{ name: 'sw.order.detail', params: { id: item.orderId } }"
+                    >
+                        {{ getTransactionOrderNumber(item) }}
                     </router-link>
+                    <span v-else class="sw-data-grid__cell-value">
+                        {{ getTransactionOrderNumber(item) || $t('transactions-list.order_not_found') }}
+                    </span>
                 </template>
 
-
                 <template #column-customer.lastName="{ item }">
-                    <router-link v-if="isUserCustomersViewer"
+                    <router-link v-if="isUserCustomersViewer()"
                                  class="sw-data-grid__cell-value"
                                  :to="{ name: 'sw.customer.detail.base', params: { id: item.customerId } }">
                         {{ (item.customer && item.customer.lastName) || '' }} {{ (item.customer && item.customer.firstName) || '' }}
@@ -45,9 +49,14 @@
                 </template>
 
                 <template #column-status="{ item }">
-                    <sw-label :variant="getVariantFromPaymentState(item.stateMachineState.technicalName)" appearance="pill">
-                        {{ item.stateMachineState.name }}
+                    <sw-label
+                        v-if="getPaymentStateTechnicalName(item)"
+                        :variant="getPaymentStateVariant(item)"
+                        appearance="pill"
+                    >
+                        {{ getPaymentStateLabel(item) }}
                     </sw-label>
+                    <span v-else class="sw-data-grid__cell-value">—</span>
                 </template>
 
                 <template #column-updatedAt="{ item }">
