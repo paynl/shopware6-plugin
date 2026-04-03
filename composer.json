@@ -26,7 +26,7 @@
     "require": {
         "shopware/core": "^6.5",
         "shopware/storefront": "^6.5",
-        "paynl/php-sdk": ">=0.2.6"
+        "paynl/php-sdk": ">=0.2.6 <1.1.0"
     },
     "minimum-stability": "RC",
     "license": "MIT",
