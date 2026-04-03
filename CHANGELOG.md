@@ -1,3 +1,6 @@
+# 2.0.5
+- Downgraded paynl/php-sdk to version 1.0.9.
+
 # 2.0.4
 - Updated several logo's, including iDEAL co-branded version with iDEAL | Wero
 - Aligned implementation towards using the Store API instead of storefront routes.
