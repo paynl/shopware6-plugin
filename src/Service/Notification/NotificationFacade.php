@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\Notification;
 
+use PayNL\Sdk\Util\Exchange;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Symfony\Component\HttpFoundation\Request;
+use Throwable;
 
 class NotificationFacade
 {
-    private const REQUEST_ORDER_ID = 'orderId';
-    private const REQUEST_OBJECT = 'object';
-    private const REQUEST_STATUS = 'status';
-    private const REQUEST_ACTION = 'action';
-    private const PENDING_ACTION = 'pending';
-    private const PENDING_RESPONSE = 'TRUE| Pending payment';
-
     private ProcessingHelper $processingHelper;
 
     public function __construct(ProcessingHelper $processingHelper)
@@ -28,40 +23,51 @@ class NotificationFacade
      */
     public function onNotify(Request $request): string
     {
-        $transactionId = $this->getTransactionIdFromRequest($request);
-        $action = $this->getActionFromRequest($request);
+        $payload = $this->buildPayloadFromRequest($request);
+        $exchange = new Exchange($payload);
 
-        if ($action === self::PENDING_ACTION) {
-            return self::PENDING_RESPONSE;
+        try {
+            $payOrder = $exchange->process();
+
+            if ($payOrder->isPending()) {
+                return $exchange->setResponse(true, 'Pending payment', true);
+            }
+
+            $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId());
+            [$responseResult, $responseMessage] = $notifyResult;
+        } catch (Throwable $exception) {
+            $responseResult = false;
+            $responseMessage = $exception->getMessage();
         }
 
-        return $this->processingHelper->processNotify($transactionId);
+        return $exchange->setResponse($responseResult, $responseMessage, true);
     }
 
-    private function getTransactionIdFromRequest(Request $request): string
+    private function buildPayloadFromRequest(Request $request): array
     {
-        $transactionId = $request->get('order_id', '');
+        $rawBody = $request->getContent();
 
-        if ($transactionId !== '') {
-            return (string) $transactionId;
+        if (!empty($rawBody)) {
+            $decoded = json_decode($rawBody, true, 512, JSON_BIGINT_AS_STRING);
+
+            if (json_last_error() === JSON_ERROR_NONE && isset($decoded['object'])) {
+                return $decoded;
+            }
         }
 
-        $notifyObject = $request->get(self::REQUEST_OBJECT, []);
+        $all = array_merge(
+            $request->query->all(),
+            $request->request->all()
+        );
 
-        return (string) ($notifyObject[self::REQUEST_ORDER_ID] ?? '');
-    }
-
-    private function getActionFromRequest(Request $request): string
-    {
-        $action = $request->get(self::REQUEST_ACTION, '');
-
-        if ($action !== '') {
-            return strtolower((string) $action);
+        if (!empty($all)) {
+            return $all;
         }
 
-        $notifyObject = $request->get(self::REQUEST_OBJECT, []);
-        $status = $notifyObject[self::REQUEST_STATUS] ?? [];
+        if (!empty($decoded) && is_array($decoded)) {
+            return $decoded;
+        }
 
-        return strtolower((string) ($status[self::REQUEST_ACTION] ?? ''));
+        return [];
     }
 }
