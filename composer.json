@@ -1,7 +1,7 @@
 {
     "name": "paynl/shopware6-plugin",
     "description": "Pay. Shopware Plugin",
-    "version": "v2.0.4",
+    "version": "v2.0.5",
     "type": "shopware-platform-plugin",
     "extra": {
         "shopware-plugin-class": "PaynlPayment\\Shopware6\\PaynlPaymentShopware6",
@@ -26,7 +26,7 @@
     "require": {
         "shopware/core": "^6.5",
         "shopware/storefront": "^6.5",
-        "paynl/php-sdk": ">=0.2.6"
+        "paynl/php-sdk": ">=0.2.6 <1.1.0"
     },
     "minimum-stability": "RC",
     "license": "MIT",

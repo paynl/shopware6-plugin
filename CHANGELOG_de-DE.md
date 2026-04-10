@@ -1,3 +1,6 @@
+# 2.0.5
+- paynl/php-sdk wurde auf Version 1.0.9 herabgestuft.
+
 # 2.0.4
 - Mehrere Logos wurden aktualisiert, einschließlich der iDEAL Co-Branding-Version mit iDEAL | Wero.
 - Die Implementierung wurde auf die Nutzung der Store API anstelle von Storefront-Routen ausgerichtet.

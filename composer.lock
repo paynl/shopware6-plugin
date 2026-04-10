@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7fd6de968ef765d8a8f511cf3136d1e5",
+    "content-hash": "719ab102e96d1f4582e79f9fbd735c07",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -333,16 +333,16 @@
         },
         {
             "name": "paynl/php-sdk",
-            "version": "1.0.5",
+            "version": "1.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paynl/php-sdk.git",
-                "reference": "9627b58ae8cdfa5cceaf61fb8d89756b9e73dc06"
+                "reference": "445cc0681573641f785cdc144119b866bd60bea2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paynl/php-sdk/zipball/9627b58ae8cdfa5cceaf61fb8d89756b9e73dc06",
-                "reference": "9627b58ae8cdfa5cceaf61fb8d89756b9e73dc06",
+                "url": "https://api.github.com/repos/paynl/php-sdk/zipball/445cc0681573641f785cdc144119b866bd60bea2",
+                "reference": "445cc0681573641f785cdc144119b866bd60bea2",
                 "shasum": ""
             },
             "require": {
@@ -355,7 +355,6 @@
             },
             "require-dev": {
                 "ext-simplexml": "*",
-                "phpmd/phpmd": "^2",
                 "phpstan/phpstan": "^2",
                 "phpunit/phpunit": "^11",
                 "roave/security-advisories": "dev-master",
@@ -387,9 +386,9 @@
             "support": {
                 "email": "webshop@pay.nl",
                 "issues": "https://github.com/paynl/php-sdk/issues",
-                "source": "https://github.com/paynl/php-sdk/tree/v1.0.5"
+                "source": "https://github.com/paynl/php-sdk/tree/v1.0.9"
             },
-            "time": "2025-07-31T08:56:16+00:00"
+            "time": "2026-01-13T19:13:31+00:00"
         },
         {
             "name": "psr/container",
