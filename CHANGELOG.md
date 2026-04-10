@@ -1,3 +1,5 @@
+# 2.0.6
+
 # 2.0.5
 - Downgraded paynl/php-sdk to version 1.0.9.
 

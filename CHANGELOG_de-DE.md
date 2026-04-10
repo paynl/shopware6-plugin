@@ -1,3 +1,5 @@
+# 2.0.6
+
 # 2.0.5
 - paynl/php-sdk wurde auf Version 1.0.9 herabgestuft.
 
