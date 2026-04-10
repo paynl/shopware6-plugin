@@ -154,6 +154,44 @@ Component.register('paynl-transaction-list', {
             ).variant;
         },
 
+        getTransactionOrderNumber(item) {
+            if (!item || !item.order) {
+                return '';
+            }
+
+            return item.order.orderNumber || '';
+        },
+
+        hasLinkedOrder(item) {
+            return Boolean(item && item.order && item.order.orderNumber);
+        },
+
+        getPaymentStateTechnicalName(item) {
+            if (!item || !item.stateMachineState) {
+                return '';
+            }
+
+            return item.stateMachineState.technicalName || '';
+        },
+
+        getPaymentStateLabel(item) {
+            if (!item || !item.stateMachineState) {
+                return '';
+            }
+
+            return item.stateMachineState.name || '';
+        },
+
+        getPaymentStateVariant(item) {
+            const technicalName = this.getPaymentStateTechnicalName(item);
+
+            if (!technicalName) {
+                return 'neutral';
+            }
+
+            return this.getVariantFromPaymentState(technicalName);
+        },
+
         getData(date) {
             if (date <= 0) {
                 return '';

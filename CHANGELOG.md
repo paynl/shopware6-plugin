@@ -1,3 +1,15 @@
+# 2.0.5
+- Downgraded paynl/php-sdk to version 1.0.9.
+
+# 2.0.4
+- Updated several logo's, including iDEAL co-branded version with iDEAL | Wero
+- Aligned implementation towards using the Store API instead of storefront routes.
+- Cleared frontend errors when a clear API error message is returned, improving error handling and user experience.
+- Customer payment cancellations are now correctly handled and shown in the storefront and headless API.
+
+# 2.0.3
+- Fixed payment TypeError when optional address fields (e.g. house number extension) were empty; optional Shopware values are now safely passed to the PayNL SDK.
+
 # 2.0.2
 - Added new payment methods: PIX, FLOA, and Bancomat
 - Updated translation loading to use the getConfig API

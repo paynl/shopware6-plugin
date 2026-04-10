@@ -23,6 +23,7 @@
         "customer": "Klant",
         "status": "Transactie status",
         "links": "Links",
-        "exception": "Error"
+        "exception": "Error",
+        "order_not_found": "Bestelling niet gevonden"
     }
 }
