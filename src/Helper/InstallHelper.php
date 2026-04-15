@@ -131,6 +131,18 @@ class InstallHelper
         $singlePaymentMethod->setId((self::SINGLE_PAYMENT_METHOD_ID));
         $singlePaymentMethod->setName('Pay by PAY.');
         $singlePaymentMethod->setDescription('Pay by PAY.');
+        $singlePaymentMethod->setTranslations([
+            'name' => [
+                'en_GB' => 'Pay by PAY.',
+                'de_DE' => 'Mit PAY. bezahlen',
+                'nl_NL' => 'Betalen met PAY.',
+            ],
+            'description' => [
+                'en_GB' => 'Pay by PAY.',
+                'de_DE' => 'Mit PAY. bezahlen',
+                'nl_NL' => 'Betalen met PAY.',
+            ],
+        ]);
 
         $this->upsertPaymentMethods([$singlePaymentMethod], $salesChannelId, $context);
     }
