@@ -70,7 +70,10 @@ class ExpressCheckoutDataService implements ExpressCheckoutDataServiceInterface
             'expressCheckoutEnabled' => $this->config->getPaymentPayPalExpressCheckoutEnabled($salesChannelId),
             'expressShoppingCartEnabled' => $this->config->getPaymentPayPalExpressShoppingCartEnabled($salesChannelId),
             'expressProductPageEnabled' => $this->config->getPaymentPayPalExpressProductEnabled($salesChannelId),
-            'clientId' => $this->config->getPaymentPayPalClientIdSandbox($salesChannelId),
+            'clientId' => $this->config->getTestMode($salesChannelId)
+                ? $this->config->getPaymentPayPalClientIdSandbox($salesChannelId)
+                : $this->config->getPaymentPayPalClientIdProduction($salesChannelId)
+            ,
             'currency' => $salesChannelContext->getCurrency()->getIsoCode(),
             'languageIso' => $this->getInContextButtonLanguage($salesChannelContext->getContext()),
             'contextSwitchUrl' => $this->router->generate('frontend.account.PaynlPayment.paypal-express.prepare-cart'),

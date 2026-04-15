@@ -315,14 +315,12 @@ class PayPalExpress
         if (!empty($orderDetailResponse->getPurchaseUnits())) {
             $shipping = $orderDetailResponse->getPurchaseUnits()[0]->getShipping();
             $payerAddress = $shipping->getAddress();
-            $names = explode(' ', $shipping->getFullName());
-            $lastName = array_pop($names);
-            $firstName = implode(' ', $names);
         } else {
             $payerAddress = $payer->getAddress();
-            $firstName = $payer->getFirstName();
-            $lastName = $payer->getLastName();
         }
+
+        $firstName = $payer->getFirstName();
+        $lastName = $payer->getLastName();
 
         $countryCode = $payerAddress->getCountryCode();
         $phone = $payer->getPhone();
