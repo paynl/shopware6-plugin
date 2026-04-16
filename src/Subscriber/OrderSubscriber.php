@@ -55,6 +55,15 @@ class OrderSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $order = $orderPlacedEvent->getOrder();
+        $turnover = $order->getAmountTotal();
+
+        $currency = 'EUR';
+        $currencyEntity = $order->getCurrency();
+        if ($currencyEntity !== null) {
+            $currency = $currencyEntity->getIsoCode();
+        }
+
         $now = new DateTime();
         $data = [
             'identifier' => $shopwareApiIdentifier,
@@ -62,8 +71,9 @@ class OrderSubscriber implements EventSubscriberInterface
             'instanceId' => $this->instanceId,
             'shopwareVersion' => $this->shopwareVersion,
             'reportDataKeys' => [
-                'numberOfFulfilledOrders' => 1
+                'turnover' => $turnover,
             ],
+            'currency' => $currency,
         ];
 
         try {
