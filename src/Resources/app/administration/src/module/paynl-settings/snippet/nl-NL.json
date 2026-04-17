@@ -13,6 +13,8 @@
         "settingsForm": {
             "save": "Opslaan",
             "installPaymentMethods": "Betaalmethoden installeren",
+            "applyChanges": "Wijzigingen toepassen",
+            "applyChangesHelp": "Installeert of werkt PAY-betaalmethoden in Shopware bij zodat ze overeenkomen met uw opgeslagen configuratie.",
             "testApiKeys": "Test API Sleutel"
         }
     },

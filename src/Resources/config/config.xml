@@ -95,13 +95,16 @@
             <label lang="nl-NL">Gebruik een uniforme betaalmethode aangeboden door PAY.</label>
             <label lang="de-DE">Verwenden Sie eine einheitliche, von PAY angebotene Zahlungsmethode.</label>
             <helpText>This option turns off all other payment methods and redirects the user to PAY's hosted payment
-                pages.
+                pages. After changing this setting, click Apply changes in the API section so payment methods in
+                Shopware stay in sync with your configuration.
             </helpText>
             <helpText lang="nl-NL">Deze optie deactiveert alternatieve betaalmethoden en stuurt de gebruiker door naar
-                de hosted payment pages van PAY.
+                de hosted payment pages van PAY. Klik na het wijzigen van deze instelling in het API-gedeelte op
+                „Wijzigingen toepassen“, zodat de betaalmethoden in Shopware overeenkomen met uw configuratie.
             </helpText>
             <helpText lang="de-DE">Diese Option deaktiviert alternative Zahlungsmethoden und leitet den Benutzer auf die
-                gehosteten Zahlungsseiten von PAY um.
+                gehosteten Zahlungsseiten von PAY um. Nach einer Änderung klicken Sie im API-Bereich auf
+                „Änderungen übernehmen“, damit die Zahlungsmethoden in Shopware mit Ihrer Konfiguration übereinstimmen.
             </helpText>
         </input-field>
         <component name="paynl-config-section-api">
