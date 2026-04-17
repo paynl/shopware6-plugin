@@ -110,6 +110,9 @@ class ProcessingHelper
     public function notifyActionUpdateTransactionByPayTransactionId(string $paynlTransactionId): array
     {
         $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
+        if ($paynlTransactionEntity === null) {
+            throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
+        }
 
         $payTransactionStatus = $this->payAPI->getTransactionStatus(
             $paynlTransactionId,
@@ -228,8 +231,11 @@ class ProcessingHelper
      */
     public function refundActionUpdateTransactionByTransactionId(string $paynlTransactionId): void
     {
-        /** @var PaynlTransactionEntity $transactionEntity */
         $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
+        if ($paynlTransactionEntity === null) {
+            throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
+        }
+
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
@@ -337,6 +343,9 @@ class ProcessingHelper
     ): void {
         $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
         $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
+        if ($paynlTransactionEntity === null) {
+            throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
+        }
 
         if ($payTransactionStatus->isBeingVerified()
             && $currentActionName === StateMachineTransitionActions::ACTION_PAID
@@ -595,7 +604,23 @@ class ProcessingHelper
         );
     }
 
-    private function getPayTransactionEntityByPayTransactionId(string $payTransactionId): PaynlTransactionEntity
+    public function getSalesChannelIdByPaynlTransactionId(string $paynlTransactionId): ?string
+    {
+        $entity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
+
+        if ($entity === null) {
+            return null;
+        }
+
+        $order = $entity->getOrder();
+        if ($order === null) {
+            return null;
+        }
+
+        return $order->getSalesChannelId();
+    }
+
+    private function getPayTransactionEntityByPayTransactionId(string $payTransactionId): ?PaynlTransactionEntity
     {
         $criteria = (new Criteria());
         $criteria->addFilter(new EqualsFilter('paynlTransactionId', $payTransactionId));
