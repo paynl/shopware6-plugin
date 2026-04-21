@@ -24,11 +24,9 @@
         }
     },
     "require": {
-        "shopware/core": "^6.5",
-        "shopware/storefront": "^6.5",
         "paynl/php-sdk": ">=0.2.6"
     },
-    "minimum-stability": "RC",
+    "minimum-stability": "stable",
     "license": "MIT",
     "authors": [
         {
@@ -36,10 +34,43 @@
             "email": "support@pay.nl"
         }
     ],
+    "config": {
+        "optimize-autoloader": true
+    },
     "autoload": {
         "psr-4": {
             "PaynlPayment\\Shopware6\\": "src/",
-            "PayNL\\": "vendor/paynl/php-sdk/src/"
-        }
+            "PayNL\\Sdk\\": "vendor/paynl/php-sdk/src/",
+            "Doctrine\\Common\\Collections\\": "vendor/doctrine/collections/src",
+            "Doctrine\\Deprecations\\": "vendor/doctrine/deprecations/src",
+            "GuzzleHttp\\Promise\\": "vendor/guzzlehttp/promises/src/",
+            "GuzzleHttp\\Psr7\\": "vendor/guzzlehttp/psr7/src/",
+            "GuzzleHttp\\": "vendor/guzzlehttp/guzzle/src/",
+            "Laminas\\Hydrator\\": "vendor/laminas/laminas-hydrator/src/",
+            "Laminas\\Stdlib\\": "vendor/laminas/laminas-stdlib/src/",
+            "Psr\\Container\\": "vendor/psr/container/src/",
+            "Psr\\Http\\Client\\": "vendor/psr/http-client/src/",
+            "Psr\\Http\\Message\\": [
+                "vendor/psr/http-message/src/",
+                "vendor/psr/http-factory/src/"
+            ],
+            "Symfony\\Component\\Serializer\\": "vendor/symfony/serializer/",
+            "Symfony\\Polyfill\\Ctype\\": "vendor/symfony/polyfill-ctype/",
+            "Symfony\\Polyfill\\Php84\\": "vendor/symfony/polyfill-php84/",
+            "Webmozart\\Assert\\": "vendor/webmozart/assert/src/"
+        },
+        "files": [
+            "vendor/symfony/deprecation-contracts/function.php",
+            "vendor/symfony/polyfill-php84/bootstrap.php",
+            "vendor/ralouphie/getallheaders/src/getallheaders.php",
+            "vendor/symfony/polyfill-ctype/bootstrap.php",
+            "vendor/guzzlehttp/guzzle/src/functions_include.php",
+            "vendor/paynl/php-sdk/src/Resources/functions/text.php",
+            "vendor/paynl/php-sdk/src/Resources/functions/vat.php",
+            "vendor/paynl/php-sdk/src/Resources/functions/misc.php"
+        ],
+        "classmap": [
+            "vendor/symfony/polyfill-php84/Resources/stubs"
+        ]
     }
 }
