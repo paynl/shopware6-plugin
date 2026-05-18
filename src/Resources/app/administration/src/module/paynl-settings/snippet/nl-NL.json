@@ -21,7 +21,10 @@
             "paymentMethodsInstallLabel": "Installatiefout!",
             "paymentMethodsInstallMessage": "Betaalmethoden kunnen niet worden geïnstalleerd",
             "wrongCredentials": "Voer inloggegevens in.",
-            "shouldNotBeBlank": "Dit veld mag niet leeg zijn."
+            "shouldNotBeBlank": "Dit veld mag niet leeg zijn.",
+            "invalidSalesChannel": "Ongeldig of onbekend verkoopkanaal.",
+            "invalidCredentials": "API-gegevens zijn onvolledig of ongeldig.",
+            "paymentMethodsInstallFailed": "Betaalmethoden konden niet worden geïnstalleerd."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Betaalmethoden succesvol toegevoegd.",

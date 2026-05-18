@@ -21,7 +21,10 @@
             "paymentMethodsInstallLabel": "Fehler beim Installieren!",
             "paymentMethodsInstallMessage": "Zahlungsarten konnten nicht installiert werden.",
             "wrongCredentials": "Bitte geben Sie die Anmeldeinformationen ein.",
-            "shouldNotBeBlank": "Das Feld darf nicht leer sein."
+            "shouldNotBeBlank": "Das Feld darf nicht leer sein.",
+            "invalidSalesChannel": "Ungültiger oder unbekannter Verkaufskanal.",
+            "invalidCredentials": "API-Zugangsdaten sind unvollständig oder ungültig.",
+            "paymentMethodsInstallFailed": "Zahlungsarten konnten nicht installiert werden."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",

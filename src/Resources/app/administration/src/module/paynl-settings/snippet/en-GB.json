@@ -21,7 +21,10 @@
             "paymentMethodsInstallLabel": "Installation error!",
             "paymentMethodsInstallMessage": "Could not install payment methods.",
             "wrongCredentials": "Please insert credentials data.",
-            "shouldNotBeBlank": "The field cannot be empty."
+            "shouldNotBeBlank": "The field cannot be empty.",
+            "invalidSalesChannel": "Invalid or unknown sales channel.",
+            "invalidCredentials": "API credentials are incomplete or invalid.",
+            "paymentMethodsInstallFailed": "Payment methods could not be installed."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Payment methods were successfully added.",
