@@ -21,7 +21,13 @@
             "paymentMethodsInstallLabel": "Fehler beim Installieren!",
             "paymentMethodsInstallMessage": "Zahlungsarten konnten nicht installiert werden.",
             "wrongCredentials": "Bitte geben Sie die Anmeldeinformationen ein.",
-            "shouldNotBeBlank": "Das Feld darf nicht leer sein."
+            "shouldNotBeBlank": "Das Feld darf nicht leer sein.",
+            "missingTransactionId": "Transaktions-ID ist erforderlich.",
+            "transactionNotFound": "Transaktion nicht gefunden.",
+            "missingFields": "Erforderliche Felder fehlen.",
+            "invalidAmount": "Der Erstattungsbetrag muss größer als null sein.",
+            "refundExceedsAvailable": "Der Erstattungsbetrag übersteigt den verfügbaren Betrag.",
+            "refundDataFailed": "Erstattungsdaten konnten nicht abgerufen werden."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",
