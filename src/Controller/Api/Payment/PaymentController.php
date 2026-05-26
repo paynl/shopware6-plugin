@@ -24,8 +24,6 @@ class PaymentController extends AbstractController
     #[Route('/finalize-transaction', name: 'api.PaynlPayment.finalize-transaction', methods: ['GET'])]
     public function finalizeTransaction(Request $request, Context $context): Response
     {
-        $result = $this->finalizeFacade->finalizeTransaction($request, $context);
-
-        return $result->getResponse();
+        return $this->finalizeFacade->finalizeTransaction($request, $context)->getResponse();
     }
 }
