@@ -114,7 +114,7 @@ class ProcessingHelper
             throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
         }
 
-        $payTransactionStatus = $this->payAPI->getTransactionStatus(
+        $payTransactionStatus = $this->payAPI->getOrderStatus(
             $paynlTransactionId,
             $paynlTransactionEntity->getOrder()->getSalesChannelId()
         );
@@ -202,7 +202,7 @@ class ProcessingHelper
         $paynlTransactionId = $payTransactionEntity->getPaynlTransactionId();
         $salesChannelId = $payTransactionEntity->getOrder()->getSalesChannelId();
 
-        $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
+        $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
         $transitionName = $this->getOrderActionNameByPayTransactionStatusCode($payTransactionStatus->getStatusCode());
 
         $this->updateTransactionStatus($payTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
@@ -238,7 +238,7 @@ class ProcessingHelper
 
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
-        $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
+        $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
         $transitionName = $this->getOrderActionNameByPayTransactionStatusCode($payTransactionStatus->getStatusCode());
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
@@ -341,7 +341,7 @@ class ProcessingHelper
         string $currentActionName,
         string $salesChannelId
     ): void {
-        $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
+        $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
         $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
         if ($paynlTransactionEntity === null) {
             throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
