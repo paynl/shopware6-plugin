@@ -50,6 +50,46 @@ class PaymentFinalizeFacade
 
     public function finalizeTransaction(Request $request, Context $context): FinalizeResult
     {
+        $orderTransaction = $this->getOrderTransactionFromRequest($request, $context);
+
+        $storedFinishUrl = $this->getOrderTransactionFinishUrl($orderTransaction);
+        if ($storedFinishUrl !== '') {
+            return $this->redirectResult($orderTransaction, $storedFinishUrl);
+        }
+
+        try {
+            $response = $this->paymentController->finalizeTransaction($request);
+            if ($response instanceof RedirectResponse) {
+                return $this->redirectResult($orderTransaction, $response->getTargetUrl(), $context);
+            }
+        } catch (HttpException $e) {
+            $this->logger->error('{message}. Redirecting to confirm page.', [
+                'message' => $e->getMessage(),
+                'error' => $e,
+            ]);
+        }
+
+        $storedFinishUrl = $this->getOrderTransactionFinishUrl($orderTransaction);
+        if ($storedFinishUrl !== '') {
+            return $this->redirectResult($orderTransaction, $storedFinishUrl);
+        }
+
+        $order = $orderTransaction->getOrder();
+        if ($order === null) {
+            throw PaynlTransactionException::notFoundByPayTransactionError($orderTransaction->getId());
+        }
+
+        $fallbackUrl = $this->router->generate(
+            'frontend.checkout.finish.page',
+            ['orderId' => $order->getId()],
+            RouterInterface::ABSOLUTE_URL
+        );
+
+        return $this->redirectResult($orderTransaction, $fallbackUrl, $context);
+    }
+
+    private function getOrderTransactionFromRequest(Request $request, Context $context): OrderTransactionEntity
+    {
         $payOrderId = (string) $request->query->get('id');
 
         $criteria = new Criteria();
@@ -75,30 +115,39 @@ class PaymentFinalizeFacade
             throw PaynlTransactionException::notFoundByPayTransactionError($orderTransaction->getId());
         }
 
-        try {
-            $response = $this->paymentController->finalizeTransaction($request);
-            if ($response instanceof RedirectResponse) {
-                return new FinalizeResult($response, $orderTransaction);
-            }
-        } catch (HttpException $e) {
-            $this->logger->error('{message}. Redirecting to confirm page.', [
-                'message' => $e->getMessage(),
-                'error' => $e,
-            ]);
+        return $orderTransaction;
+    }
+
+    private function redirectResult(
+        OrderTransactionEntity $orderTransaction,
+        string $targetUrl,
+        ?Context $context = null
+    ): FinalizeResult {
+        if ($context !== null) {
+            $this->saveOrderTransactionFinishUrl($orderTransaction, $targetUrl, $context);
         }
 
-        $finishUrl = $this->getOrderTransactionFinishUrl($orderTransaction);
-        if ($finishUrl !== '') {
-            return new FinalizeResult(new RedirectResponse($finishUrl), $orderTransaction);
+        return new FinalizeResult(new RedirectResponse($targetUrl), $orderTransaction);
+    }
+
+    private function saveOrderTransactionFinishUrl(
+        OrderTransactionEntity $orderTransaction,
+        string $finishUrl,
+        Context $context
+    ): void {
+        if ($finishUrl === '' || $finishUrl === $this->getOrderTransactionFinishUrl($orderTransaction)) {
+            return;
         }
 
-        $redirectUrl = $this->router->generate(
-            'frontend.checkout.finish.page',
-            ['orderId' => $order->getId()],
-            RouterInterface::ABSOLUTE_URL
-        );
+        $customFields = $orderTransaction->getCustomFields() ?? [];
+        $paynlCustomFields = $customFields[self::PAY_CUSTOM_FIELD] ?? [];
+        $paynlCustomFields[self::TRANSACTION_FINISH_URL] = $finishUrl;
+        $customFields[self::PAY_CUSTOM_FIELD] = $paynlCustomFields;
 
-        return new FinalizeResult(new RedirectResponse($redirectUrl), $orderTransaction);
+        $this->orderTransactionRepository->update([[
+            'id' => $orderTransaction->getId(),
+            'customFields' => $customFields,
+        ]], $context);
     }
 
     private function getOrderTransactionFinishUrl(OrderTransactionEntity $orderTransaction): string
