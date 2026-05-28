@@ -5,6 +5,7 @@ import './page/paynl-plugin-settings';
 
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
+import nlNL from './snippet/nl-NL.json';
 
 const { Module } = Shopware;
 
@@ -20,7 +21,8 @@ Module.register('paynl-settings', {
     color: '#23ac70',
     snippets: {
         'de-DE': deDE,
-        'en-GB': enGB
+        'en-GB': enGB,
+        'nl-NL': nlNL,
     },
 
     routeMiddleware(next, currentRoute) {

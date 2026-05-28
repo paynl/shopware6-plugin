@@ -13,6 +13,8 @@
         "settingsForm": {
             "save": "Speichern",
             "installPaymentMethods": "Zahlungsarten installieren",
+            "applyChanges": "Änderungen übernehmen",
+            "applyChangesHelp": "Installiert oder aktualisiert PAY-Zahlungsmethoden in Shopware, sodass sie Ihrer gespeicherten Konfiguration entsprechen.",
             "testApiKeys": "API-Schlüssel testen"
         }
     },
