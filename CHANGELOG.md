@@ -1,3 +1,10 @@
+# 2.0.6
+- Switched all order status checks to OrderStatusRequest for correct TGU/non-TGU API routing.
+- Made finalize-transaction idempotent for Store API/headless checkout and registered the route under Store API.
+- Fixed uniform “Pay by PAY.” payment method translations and configuration texts; renamed install action to Apply changes with clearer help text.
+- Improved exchange notifications (SDK config per sales channel, JSON payloads, pending handling, better errors).
+- Improved payment method technical name generation (Pay.nl ID + sanitized label).
+
 # 2.0.5
 - Downgraded paynl/php-sdk to version 1.0.9.
 

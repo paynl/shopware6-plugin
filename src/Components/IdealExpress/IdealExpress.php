@@ -254,7 +254,10 @@ class IdealExpress
     /** @throws Exception */
     public function processNotify(PayOrder $payOrder): string
     {
-        return $this->processingHelper->processNotify($payOrder->getOrderId());
+        $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId());
+        ['result' => $responseResult, 'message' => $responseMessage] = $notifyResult;
+
+        return ($responseResult ? 'TRUE' : 'FALSE') . '| ' . $responseMessage;
     }
 
     /** @throws PayException */

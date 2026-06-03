@@ -4,23 +4,20 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\Notification;
 
+use PayNL\Sdk\Util\Exchange;
+use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Throwable;
 
 class NotificationFacade
 {
-    private const REQUEST_ORDER_ID = 'orderId';
-    private const REQUEST_OBJECT = 'object';
-    private const REQUEST_STATUS = 'status';
-    private const REQUEST_ACTION = 'action';
-    private const PENDING_ACTION = 'pending';
-    private const PENDING_RESPONSE = 'TRUE| Pending payment';
-
-    private ProcessingHelper $processingHelper;
-
-    public function __construct(ProcessingHelper $processingHelper)
-    {
-        $this->processingHelper = $processingHelper;
+    public function __construct(
+        private ProcessingHelper $processingHelper,
+        private Api $api,
+        private LoggerInterface $logger,
+    ) {
     }
 
     /**
@@ -28,40 +25,83 @@ class NotificationFacade
      */
     public function onNotify(Request $request): string
     {
-        $transactionId = $this->getTransactionIdFromRequest($request);
-        $action = $this->getActionFromRequest($request);
+        $payload = $this->buildPayloadFromRequest($request);
+        $exchange = new Exchange($payload);
 
-        if ($action === self::PENDING_ACTION) {
-            return self::PENDING_RESPONSE;
+        try {
+            $paynlOrderId = $exchange->getPayOrderId();
+        } catch (Throwable $e) {
+            $this->logger->error('PAY. notify: could not read pay order id from payload', [
+                'exception' => $e->getMessage(),
+            ]);
+
+            return $exchange->setResponse(false, 'Invalid payload', true);
         }
 
-        return $this->processingHelper->processNotify($transactionId);
+        if ($paynlOrderId === '') {
+            $this->logger->warning('PAY. notify: empty pay order id');
+
+            return $exchange->setResponse(false, 'Missing pay order id', true);
+        }
+
+        $salesChannelId = $this->processingHelper->getSalesChannelIdByPaynlTransactionId($paynlOrderId);
+        if ($salesChannelId === null || $salesChannelId === '') {
+            $this->logger->warning('PAY. notify: no local Paynl transaction for PAY order', [
+                'paynlOrderId' => $paynlOrderId,
+            ]);
+
+            return $exchange->setResponse(false, 'Transaction not found', true);
+        }
+
+        $sdkConfig = $this->api->getConfig($salesChannelId);
+
+        try {
+            $payOrder = $exchange->process($sdkConfig);
+
+            if ($payOrder->isPending()) {
+                return $exchange->setResponse(true, 'Pending payment', true);
+            }
+
+            $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId());
+            ['result' => $responseResult, 'message' => $responseMessage] = $notifyResult;
+        } catch (Throwable $exception) {
+            $this->logger->error('PAY. notify: processing failed', [
+                'paynlOrderId' => $paynlOrderId,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            $responseResult = false;
+            $responseMessage = $exception->getMessage();
+        }
+
+        return $exchange->setResponse($responseResult, $responseMessage, true);
     }
 
-    private function getTransactionIdFromRequest(Request $request): string
+    private function buildPayloadFromRequest(Request $request): array
     {
-        $transactionId = $request->get('order_id', '');
+        $rawBody = $request->getContent();
 
-        if ($transactionId !== '') {
-            return (string) $transactionId;
+        if (!empty($rawBody)) {
+            $decoded = json_decode($rawBody, true, 512, JSON_BIGINT_AS_STRING);
+
+            if (json_last_error() === JSON_ERROR_NONE && isset($decoded['object'])) {
+                return $decoded;
+            }
         }
 
-        $notifyObject = $request->get(self::REQUEST_OBJECT, []);
+        $all = array_merge(
+            $request->query->all(),
+            $request->request->all()
+        );
 
-        return (string) ($notifyObject[self::REQUEST_ORDER_ID] ?? '');
-    }
-
-    private function getActionFromRequest(Request $request): string
-    {
-        $action = $request->get(self::REQUEST_ACTION, '');
-
-        if ($action !== '') {
-            return strtolower((string) $action);
+        if (!empty($all)) {
+            return $all;
         }
 
-        $notifyObject = $request->get(self::REQUEST_OBJECT, []);
-        $status = $notifyObject[self::REQUEST_STATUS] ?? [];
+        if (!empty($decoded) && is_array($decoded)) {
+            return $decoded;
+        }
 
-        return strtolower((string) ($status[self::REQUEST_ACTION] ?? ''));
+        return [];
     }
 }

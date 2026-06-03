@@ -3,8 +3,19 @@
         <sw-button @click="onTestCredentials" ref="testCredentialsButton" :isLoading="testCredentialsIsLoading" variant="secondary" size="default" ghost>
             {{ $tc('paynlSettings.settingsForm.testApiKeys') }}
         </sw-button>
-        <sw-button @click="onInstallPaymentMethods" ref="installPaymentsButton" :isLoading="installPaymentMethodsIsLoading" variant="secondary" size="default" ghost>
-            {{ $tc('paynlSettings.settingsForm.installPaymentMethods') }}
+        <sw-button
+            v-tooltip="{
+                message: $tc('paynlSettings.settingsForm.applyChangesHelp'),
+                placement: 'bottom',
+                showOnDisabledElements: true
+            }"
+            @click="onInstallPaymentMethods"
+            ref="installPaymentsButton"
+            :isLoading="installPaymentMethodsIsLoading"
+            variant="secondary"
+            size="default"
+            ghost>
+            {{ $tc('paynlSettings.settingsForm.applyChanges') }}
         </sw-button>
     </sw-button-group>
 </sw-container>

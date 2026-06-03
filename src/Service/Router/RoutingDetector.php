@@ -15,16 +15,6 @@ class RoutingDetector
         $this->requestStack = $requestStack;
     }
 
-    public function isAdminApiRoute(): bool
-    {
-        $request = $this->requestStack->getCurrentRequest();
-        if ($request === null) {
-            return false;
-        }
-
-        return strpos($request->getPathInfo(), '/api/paynl/') !== false;
-    }
-
     public function isStoreApiRoute(): bool
     {
         $request = $this->requestStack->getCurrentRequest();
@@ -35,8 +25,4 @@ class RoutingDetector
         return strpos($request->getPathInfo(), '/store-api') === 0;
     }
 
-    public function isStorefrontRoute(): bool
-    {
-        return !$this->isAdminApiRoute() && !$this->isStoreApiRoute();
-    }
 }

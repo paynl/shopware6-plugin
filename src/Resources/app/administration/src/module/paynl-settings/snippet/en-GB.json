@@ -13,6 +13,8 @@
         "settingsForm": {
             "save": "Save",
             "installPaymentMethods": "Install payment methods",
+            "applyChanges": "Apply changes",
+            "applyChangesHelp": "Installs or updates PAY payment methods in Shopware so they match your saved configuration.",
             "testApiKeys": "Test API Keys"
         }
     },

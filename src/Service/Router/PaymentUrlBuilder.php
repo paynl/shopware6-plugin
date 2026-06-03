@@ -31,13 +31,11 @@ class PaymentUrlBuilder
         $params = [self::ROUTE_PARAM_PAYMENT_TOKEN => $paymentToken];
 
         if ($this->routingDetector->isStoreApiRoute()) {
-            $url = $this->router->generate(
-                'api.PaynlPayment.finalize-transaction',
+            return (string) $this->router->generate(
+                'store-api.PaynlPayment.finalize-transaction',
                 $params,
                 RouterInterface::ABSOLUTE_URL
             );
-
-            return $this->applyAdminDomain($url);
         }
 
         return (string) $this->router->generate(
