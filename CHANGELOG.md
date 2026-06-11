@@ -1,3 +1,6 @@
+# 2.0.7
+- Fixed service config parsing when payment methods return non-null `settings`; patched `paynl/php-sdk` `Method` model hydration.
+
 # 2.0.6
 - Switched all order status checks to OrderStatusRequest for correct TGU/non-TGU API routing.
 - Made finalize-transaction idempotent for Store API/headless checkout and registered the route under Store API.
