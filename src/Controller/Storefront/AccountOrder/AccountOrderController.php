@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route(defaults: ['_routeScope' => ['storefront'], 'csrf_protected' => true, 'auth_required' => true, 'auth_enabled' => true])]
+#[Route(defaults: ['_routeScope' => ['storefront'], 'auth_required' => true, 'auth_enabled' => true])]
 class AccountOrderController extends StorefrontController
 {
     private CustomerHelper $customerHelper;
@@ -67,7 +67,7 @@ class AccountOrderController extends StorefrontController
                 $errors['phone'] = $phoneError;
             } else {
                 $billingAddress = $customer->getDefaultBillingAddress();
-                $updateError = $this->updateCustomerPhone($billingAddress, $phone, $context, $request, $customer->getId());
+                $updateError = $this->updateCustomerPhone($billingAddress, $phone, $context);
                 if ($updateError) {
                     $errors['phone'] = $updateError;
                 } else {

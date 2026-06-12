@@ -23,7 +23,7 @@
             "wrongCredentials": "Bitte geben Sie die Anmeldeinformationen ein.",
             "invalidSalesChannel": "Ungültiger oder unbekannter Verkaufskanal.",
             "invalidCredentials": "API-Zugangsdaten sind unvollständig oder ungültig.",
-            "paymentMethodsInstallFailed": "Zahlungsarten konnten nicht installiert werden."
+            "paymentMethodsInstallFailed": "Zahlungsarten konnten nicht installiert werden.",
             "shouldNotBeBlank": "Das Feld darf nicht leer sein.",
             "missingTransactionId": "Transaktions-ID ist erforderlich.",
             "transactionNotFound": "Transaktion nicht gefunden.",
