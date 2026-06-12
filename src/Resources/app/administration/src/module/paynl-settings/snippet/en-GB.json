@@ -21,13 +21,16 @@
             "paymentMethodsInstallLabel": "Installation error!",
             "paymentMethodsInstallMessage": "Could not install payment methods.",
             "wrongCredentials": "Please insert credentials data.",
-            "shouldNotBeBlank": "The field cannot be empty.",
             "missingTransactionId": "Transaction ID is required.",
             "transactionNotFound": "Transaction not found.",
             "missingFields": "Required fields are missing.",
             "invalidAmount": "Refund amount must be greater than zero.",
             "refundExceedsAvailable": "Refund amount exceeds the available amount.",
             "refundDataFailed": "Could not retrieve refund data."
+            "shouldNotBeBlank": "The field cannot be empty.",
+            "invalidSalesChannel": "Invalid or unknown sales channel.",
+            "invalidCredentials": "API credentials are incomplete or invalid.",
+            "paymentMethodsInstallFailed": "Payment methods could not be installed."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Payment methods were successfully added.",
