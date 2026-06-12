@@ -1,3 +1,5 @@
+# 2.0.8
+
 # 2.0.7
 - Fixed service config parsing when payment methods return non-null `settings`; patched `paynl/php-sdk` `Method` model hydration.
 

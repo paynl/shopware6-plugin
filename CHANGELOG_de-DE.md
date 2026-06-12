@@ -1,3 +1,5 @@
+# 2.0.8
+
 # 2.0.7
 - Behoben: Service-Konfiguration konnte nicht verarbeitet werden, wenn Zahlungsmethoden nicht-leere `settings`; SDK-Hydration im `Method`-Modell korrigiert.
 
