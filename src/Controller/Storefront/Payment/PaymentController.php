@@ -59,9 +59,4 @@ class PaymentController extends AbstractController
             'customFields' => $currentCustomFields
         ]], $salesChannelContext->getContext());
     }
-
-    private function getOrderTransactionFinishUrl(OrderTransactionEntity $orderTransaction): string
-    {
-        return (string)($orderTransaction->getCustomFieldsValue(self::PAY_CUSTOM_FIELD)[self::TRANSACTION_FINISH_URL] ?? '');
-    }
 }
