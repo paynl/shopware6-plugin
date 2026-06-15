@@ -17,6 +17,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
@@ -47,13 +48,13 @@ class RefundController extends AbstractController
     {
         $paynlTransactionId = $request->query->get('transactionId');
         if (!is_string($paynlTransactionId) || trim($paynlTransactionId) === '') {
-            return new JsonResponse(['errorMessage' => 'paynlValidation.error.missingTransactionId'], 400);
+            return new JsonResponse(['errorMessage' => 'paynlValidation.error.missingTransactionId'], Response::HTTP_BAD_REQUEST);
         }
         $paynlTransactionId = trim($paynlTransactionId);
 
         $paynlTransaction = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId, $context);
         if ($paynlTransaction === null) {
-            return new JsonResponse(['errorMessage' => 'paynlValidation.error.transactionNotFound'], 404);
+            return new JsonResponse(['errorMessage' => 'paynlValidation.error.transactionNotFound'], Response::HTTP_NOT_FOUND);
         }
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
 
@@ -75,7 +76,7 @@ class RefundController extends AbstractController
 
             return new JsonResponse([
                 'errorMessage' => $exception->getMessage()
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -85,7 +86,7 @@ class RefundController extends AbstractController
         $post = $request->request->all();
 
         if (empty($post['transactionId']) || !isset($post['amount'])) {
-            return new JsonResponse([['type' => 'danger', 'content' => 'paynlValidation.error.missingFields']], 400);
+            return new JsonResponse([['type' => 'danger', 'content' => 'paynlValidation.error.missingFields']], Response::HTTP_BAD_REQUEST);
         }
 
         $paynlTransactionId = trim((string) $post['transactionId']);
@@ -94,12 +95,12 @@ class RefundController extends AbstractController
         $products = is_array($post['products'] ?? null) ? $post['products'] : [];
 
         if ($paynlTransactionId === '' || $amount <= 0) {
-            return new JsonResponse([['type' => 'danger', 'content' => 'paynlValidation.error.invalidAmount']], 400);
+            return new JsonResponse([['type' => 'danger', 'content' => 'paynlValidation.error.invalidAmount']], Response::HTTP_BAD_REQUEST);
         }
 
         $paynlTransaction = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId, $context);
         if ($paynlTransaction === null) {
-            return new JsonResponse([['type' => 'danger', 'content' => 'paynlValidation.error.transactionNotFound']], 404);
+            return new JsonResponse([['type' => 'danger', 'content' => 'paynlValidation.error.transactionNotFound']], Response::HTTP_NOT_FOUND);
         }
         $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
         $salesChannel = $paynlTransaction->getOrder()->getSalesChannel();

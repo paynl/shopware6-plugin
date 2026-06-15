@@ -13,6 +13,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(defaults: ['_routeScope' => ['storefront'], 'auth_required' => true, 'auth_enabled' => true])]
@@ -35,7 +36,7 @@ class AccountOrderController extends StorefrontController
         $customer = $salesChannelContext->getCustomer();
 
         if (!$customer) {
-            return new JsonResponse(['error' => 'Customer not found'], 401);
+            return new JsonResponse(['error' => 'Customer not found'], Response::HTTP_UNAUTHORIZED);
         }
 
         $dob = $request->request->get('dob');
@@ -81,14 +82,14 @@ class AccountOrderController extends StorefrontController
             return new JsonResponse([
                 'success' => false,
                 'errors' => $errors
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         if (empty($updated)) {
             return new JsonResponse([
                 'success' => false,
                 'error' => 'No fields provided'
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         return new JsonResponse([

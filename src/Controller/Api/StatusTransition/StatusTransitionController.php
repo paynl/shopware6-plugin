@@ -13,6 +13,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
@@ -37,7 +38,7 @@ class StatusTransitionController extends AbstractController
     {
         $orderTransactionId = $request->request->get('transactionId', '');
         if (empty($orderTransactionId)) {
-            return new JsonResponse(['error' => 'Transaction ID required'], 400);
+            return new JsonResponse(['error' => 'Transaction ID required'], Response::HTTP_BAD_REQUEST);
         }
 
         $currentActionName = $request->request->get('currentActionName', '');
@@ -53,7 +54,7 @@ class StatusTransitionController extends AbstractController
                 ->first();
 
             if (empty($paynlTransaction) || empty($paynlTransaction->getOrder())) {
-                return new JsonResponse(['error' => 'Transaction not found'], 404);
+                return new JsonResponse(['error' => 'Transaction not found'], Response::HTTP_NOT_FOUND);
             }
 
             $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
@@ -68,7 +69,7 @@ class StatusTransitionController extends AbstractController
                 );
             }
 
-            return new JsonResponse(['success' => true], 200);
+            return new JsonResponse(['success' => true], Response::HTTP_OK);
         } catch (Exception $exception) {
             $this->logger->error('Error on changing transaction status.', [
                 'exception' => $exception,
@@ -77,7 +78,7 @@ class StatusTransitionController extends AbstractController
                 'trace' => $exception->getTraceAsString()
             ]);
 
-            return new JsonResponse(['error' => 'Unable to change transaction status'], 500);
+            return new JsonResponse(['error' => 'Unable to change transaction status'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
