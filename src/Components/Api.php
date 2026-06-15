@@ -15,7 +15,6 @@ use PayNL\Sdk\Model\Request\OrderVoidRequest;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
 use PayNL\Sdk\Model\Request\TerminalsBrowseRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
-use PayNL\Sdk\Model\Request\TransactionStatusRequest;
 use PayNL\Sdk\Model\Response\TransactionRefundResponse;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
@@ -115,14 +114,6 @@ class Api
         $orderCreateRequest->setConfig($config);
 
         return $orderCreateRequest->start();
-    }
-
-    /** @throws PayException */
-    public function getTransactionStatus(string $transactionId, string $salesChannelId): PayOrder
-    {
-        $config = $this->getConfig($salesChannelId);
-
-        return (new TransactionStatusRequest($transactionId))->setConfig($config)->start();
     }
 
     /** @throws PayException */

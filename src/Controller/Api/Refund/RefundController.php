@@ -60,7 +60,7 @@ class RefundController extends AbstractController
         try {
             $this->logger->info('Refund data for transaction ' . $paynlTransactionId);
 
-            $payTransactionStatus = $this->payAPI->getTransactionStatus($paynlTransactionId, $salesChannelId);
+            $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
             $refundedAmount = $payTransactionStatus->getAmountRefunded();
             $availableForRefund = $payTransactionStatus->getAmount() - $refundedAmount;
 
