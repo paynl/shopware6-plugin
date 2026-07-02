@@ -72,6 +72,7 @@ class OrderSubscriber implements EventSubscriberInterface
             'shopwareVersion' => $this->shopwareVersion,
             'reportDataKeys' => [
                 'turnover' => $turnover,
+                'numberOfCustomers' => 1,
             ],
             'currency' => $currency,
         ];
