@@ -339,7 +339,8 @@ class ProcessingHelper
         string $paynlId,
         string $paynlTransactionId,
         string $currentActionName,
-        string $salesChannelId
+        string $salesChannelId,
+        Context $context
     ): void {
         $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
         $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
@@ -398,7 +399,7 @@ class ProcessingHelper
             $paynlTransactionEntity->getOrder(),
             $payOrder->getStatusCode(),
             $salesChannelId,
-            Context::createDefaultContext()
+            $context
         );
     }
 
