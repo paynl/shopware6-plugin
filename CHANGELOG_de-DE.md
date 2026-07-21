@@ -1,4 +1,9 @@
 # 2.0.8
+- PayPal Express-Produktivkonfiguration und Zahler-Adressverarbeitung behoben.
+- Shopware-Partner-Provisionstracking beim Bestellabschluss hinzugefügt.
+- Zahlungsmethoden-Logos für Nationale Golfbon und Kadokaart hinzugefügt.
+- paynl/php-sdk auf 1.0.10 aktualisiert.
+- Plugin-Routen in Admin-API, Express-Checkout, Rückerstattungen und Kundenbestellungen abgesichert.
 
 # 2.0.7
 - Behoben: Service-Konfiguration konnte nicht verarbeitet werden, wenn Zahlungsmethoden nicht-leere `settings`; SDK-Hydration im `Method`-Modell korrigiert.

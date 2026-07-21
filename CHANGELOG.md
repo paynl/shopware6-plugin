@@ -1,4 +1,9 @@
 # 2.0.8
+- Fixed PayPal Express production configuration.
+- Added Shopware Partner commission reporting on order placement.
+- Added Nationale Golfbon and Kadokaart payment method logos.
+- Updated paynl/php-sdk to 1.0.10.
+- Hardened plugin routes across Admin API, storefront express checkout, refunds, and account order endpoints.
 
 # 2.0.7
 - Fixed service config parsing when payment methods return non-null `settings`; patched `paynl/php-sdk` `Method` model hydration.
