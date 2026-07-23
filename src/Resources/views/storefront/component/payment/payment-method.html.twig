@@ -75,6 +75,23 @@
                         </div>
                     {% endif %}
 
+                    {% if payment.translated.customFields.paynlId == 11 and payment.id is same as(selectedPaymentMethodId) %}
+                        <script type="module" src="https://parts.pay.nl/sdk/payparts-sdk.js"></script>
+                        {% set payPartsOptions = {
+                            sessionUrl:         path('frontend.PaynlPayment.payparts.session'),
+                            createOrderUrl:     path('frontend.PaynlPayment.payparts.create-order'),
+                            linkTransactionUrl: path('frontend.PaynlPayment.payparts.link-transaction'),
+                            country:            context.customer.activeBillingAddress.country.iso|default('NL')|upper,
+                            language:           app.request.locale|slice(0, 2)|lower,
+                        } %}
+                        <div class="paynl-payparts-card-wrapper is-loading"
+                             data-paynl-payparts-card="true"
+                             data-paynl-payparts-card-options="{{ payPartsOptions|json_encode|escape('html_attr') }}">
+                            <div id="paynl-card-payments"></div>
+                            <div class="paynl-payparts-card-error alert alert-danger d-none" role="alert"></div>
+                        </div>
+                    {% endif %}
+
                     {% if payment.translated.customFields.isPayLater %}
                         {% set customerBirthday = context.customer.birthday %}
 

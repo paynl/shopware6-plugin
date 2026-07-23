@@ -307,6 +307,174 @@
     }
 }
 
+// ─── PAY.Parts card-payments component ───────────────────────────────────────
+// $pp-blue matches the SDK's "Pay" button colour.
+$pp-blue: #3b5bdb;
+
+.paynl-payparts-card-wrapper {
+    margin-top: 16px;
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid rgba($pp-blue, 0.35);
+    border-radius: 8px;
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus-within {
+        border-color: $pp-blue;
+        box-shadow: 0 0 0 3px rgba($pp-blue, 0.12);
+    }
+
+    &.is-loading {
+        position: relative;
+        min-height: 220px;
+
+        #paynl-card-payments {
+            visibility: hidden;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 36px;
+            height: 36px;
+            margin: -18px 0 0 -18px;
+            border: 3px solid #dee2e6;
+            border-top-color: #6c757d;
+            border-radius: 50%;
+            animation: paynl-spin 0.65s linear infinite;
+        }
+    }
+}
+
+#paynl-card-payments {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+
+    &.is-ready {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.paynl-payparts-card-error {
+    margin-top: 14px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+// ─── PAY.Parts SDK internal elements ─────────────────────────────────────────
+// The SDK renders regular DOM so these classes are directly targetable.
+// All rules are scoped to our wrapper to prevent bleed.
+
+.paynl-payparts-card-wrapper {
+    .payparts-credit-card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .cc-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 0;
+    }
+
+    .checkout-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0;
+    }
+
+    .cc-required-indicator {
+        display: none;
+    }
+
+    .payparts-input {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid rgba($pp-blue, 0.35);
+        border-radius: 6px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        outline: none;
+
+        &::placeholder {
+            color: #adb5bd;
+        }
+
+        &:focus {
+            border-color: $pp-blue;
+            box-shadow: 0 0 0 3px rgba($pp-blue, 0.12);
+        }
+    }
+
+    .cc-number-wrapper {
+        position: relative;
+
+        .payparts-input {
+            padding-right: 120px;
+        }
+    }
+
+    .cc-row {
+        display: flex;
+        gap: 16px;
+
+        .cc-field {
+            flex: 1;
+        }
+    }
+
+    .cc-pay-button {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+        margin-top: 4px;
+
+        &.cc-pay-disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+    }
+
+    .cc-error-wrapper {
+        &:not(:empty) {
+            padding: 10px 14px;
+            background: #fff3f3;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: #721c24;
+        }
+    }
+}
+
+@keyframes paynl-spin {
+    to { transform: rotate(360deg); }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+
+@media (max-width: 576px) {
+    .paynl-payparts-card-wrapper {
+        padding: 14px;
+    }
+}
+
 @media screen and (max-width: 480px) {
     .paynl-ideal-modal {
         padding: 20px;

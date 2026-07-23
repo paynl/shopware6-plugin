@@ -283,6 +283,32 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
         </service>
 
+        <!-- PAY.Parts -->
+        <service id="PaynlPayment\Shopware6\Service\PayParts\PayPartsApiClient">
+            <argument type="service" id="paynl.app_system.guzzle"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PayParts\SessionDataMapper">
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PayParts\SessionService">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\PayPartsApiClient"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\SessionDataMapper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PayParts\OrderCreationService">
+            <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
+            <argument type="service" id="router"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinker">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
+            <argument type="service" id="router"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataService">
             <argument type="service" id="router"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
