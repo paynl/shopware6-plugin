@@ -88,8 +88,7 @@ class SessionService
     ): SessionCustomer {
         $billing = $customer->getActiveBillingAddress() ?? $customer->getDefaultBillingAddress();
         // Extract the BCP 47 language subtag from "nl-NL", "de-DE", etc.
-        // Falls back to "en" if the locale association is not loaded.
-        $localeCode = $context->getLanguage()->getTranslationCode()?->getCode() ?? 'en-GB';
+        $localeCode = $context->getLanguageInfo()->localeCode ?: 'en-GB';
         $language   = strtolower(substr($localeCode, 0, 2));
 
         return new SessionCustomer(
