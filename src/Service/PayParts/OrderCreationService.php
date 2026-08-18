@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\PayParts;
 
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Service\CartServiceInterface;
 use PaynlPayment\Shopware6\Service\OrderService;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Response\OrderCreationResult;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionCollection;
@@ -15,11 +17,19 @@ class OrderCreationService
 {
     private OrderService $orderService;
     private RouterInterface $router;
+    private CartServiceInterface $cartService;
+    private PaymentMethodRepository $paymentMethodRepository;
 
-    public function __construct(OrderService $orderService, RouterInterface $router)
-    {
+    public function __construct(
+        OrderService $orderService,
+        RouterInterface $router,
+        CartServiceInterface $cartService,
+        PaymentMethodRepository $paymentMethodRepository
+    ) {
         $this->orderService = $orderService;
-        $this->router       = $router;
+        $this->router = $router;
+        $this->cartService = $cartService;
+        $this->paymentMethodRepository = $paymentMethodRepository;
     }
 
     /**
@@ -30,7 +40,14 @@ class OrderCreationService
      */
     public function createFromContext(SalesChannelContext $context): OrderCreationResult
     {
-        $order = $this->orderService->createOrder(new DataBag(), $context);
+        $creditCardPaymentMethodId = $this->paymentMethodRepository
+            ->getActiveCreditCardID($context->getContext());
+
+        if ($context->getPaymentMethod()->getId() !== $creditCardPaymentMethodId) {
+            $context = $this->cartService->updatePaymentMethod($context, $creditCardPaymentMethodId);
+        }
+
+        $order = $this->orderService->createOrder(new DataBag(['tos' => '1']), $context);
 
         /** @var OrderTransactionCollection $transactions */
         $transactions = $order->getTransactions();
@@ -48,10 +65,17 @@ class OrderCreationService
             RouterInterface::ABSOLUTE_URL
         );
 
+        $editOrderUrl = $this->router->generate(
+            'frontend.account.edit-order.page',
+            ['orderId' => $order->getId()],
+            RouterInterface::ABSOLUTE_URL
+        );
+
         return new OrderCreationResult(
             $order->getId(),
             $transaction->getId(),
-            $finishUrl
+            $finishUrl,
+            $editOrderUrl
         );
     }
 }

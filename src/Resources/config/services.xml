@@ -301,12 +301,28 @@
         <service id="PaynlPayment\Shopware6\Service\PayParts\OrderCreationService">
             <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
             <argument type="service" id="router"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\CartService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PayParts\PayPartsStorefrontDataService">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
+            <argument type="service" id="router"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\LocaleCodeHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\SessionService"/>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinkValidator">
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinker">
             <argument type="service" id="PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="router"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinkValidator"/>
+            <argument type="service" id="paynl_payments.logger"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataService">
@@ -375,6 +391,7 @@
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="Shopware\Core\Checkout\Cart\CartPersister"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\PayPartsStorefrontDataService"/>
             <argument>%kernel.shopware_version%</argument>
 
             <tag name="kernel.event_subscriber"/>

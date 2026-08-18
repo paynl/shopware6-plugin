@@ -8,12 +8,15 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Enums\StorefrontSubscriberEnum;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
+use PaynlPayment\Shopware6\Service\PayParts\PayPartsStorefrontDataService;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService;
 use PaynlPayment\Shopware6\ValueObjects\CustomPageDataValueObject;
+use PaynlPayment\Shopware6\ValueObjects\PayParts\Storefront\PayPartsCheckoutData;
 use Shopware\Core\Checkout\Cart\AbstractCartPersister;
 use Shopware\Core\Checkout\Cart\Exception\CartTokenNotFoundException;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
@@ -30,6 +33,7 @@ use Shopware\Storefront\Page\Account\Profile\AccountProfilePageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Finish\CheckoutFinishPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Register\CheckoutRegisterPageLoadedEvent;
+use Shopware\Storefront\Page\Page;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PageLoadedSubscriber implements EventSubscriberInterface
@@ -39,6 +43,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
     protected SystemConfigService $systemConfigService;
     protected AbstractCartPersister $cartPersister;
     protected PaynlTransactionsRepositoryInterface $paynlTransactionRepository;
+    protected PayPartsStorefrontDataService $payPartsStorefrontDataService;
 
     private string $shopwareVersion;
 
@@ -48,6 +53,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         SystemConfigService $systemConfigService,
         AbstractCartPersister $cartPersister,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
+        PayPartsStorefrontDataService $payPartsStorefrontDataService,
         string $shopwareVersion
     ) {
         $this->config = $config;
@@ -55,6 +61,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         $this->systemConfigService = $systemConfigService;
         $this->cartPersister = $cartPersister;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->payPartsStorefrontDataService = $payPartsStorefrontDataService;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -104,6 +111,11 @@ class PageLoadedSubscriber implements EventSubscriberInterface
 
             $checkoutConfirmPageLoadedEvent->getPage()->setPaymentMethods($paymentMethods);
         }
+
+        $this->addPayPartsCheckoutData(
+            $checkoutConfirmPageLoadedEvent->getPage(),
+            $checkoutConfirmPageLoadedEvent->getSalesChannelContext()
+        );
     }
 
     public function onAccountPaymentMethodPageLoaded(AccountPaymentMethodPageLoadedEvent $event)
@@ -150,6 +162,12 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 $salesChannelContext
             );
         }
+
+        $this->addPayPartsCheckoutData(
+            $accountEditOrderPageLoadedEvent->getPage(),
+            $accountEditOrderPageLoadedEvent->getSalesChannelContext(),
+            $accountEditOrderPageLoadedEvent->getPage()->getOrder()
+        );
     }
 
     public function onPaymentMethodsLoaded(SalesChannelEntityLoadedEvent $event): void
@@ -271,6 +289,19 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID,
             new CustomPageDataValueObject($configs, $this->shopwareVersion)
         );
+    }
+
+    private function addPayPartsCheckoutData(Page $page, SalesChannelContext $context, ?OrderEntity $order = null): void
+    {
+        $payPartsData = $order !== null
+            ? $this->payPartsStorefrontDataService->buildForOrder($order, $context, $page->getPaymentMethods())
+            : $this->payPartsStorefrontDataService->build($context, $page->getPaymentMethods());
+
+        if (!$payPartsData instanceof PayPartsCheckoutData || !$payPartsData->isEnabled()) {
+            return;
+        }
+
+        $page->addExtension(StorefrontSubscriberEnum::PAY_PARTS_CHECKOUT_EXTENSION_ID, $payPartsData);
     }
 
     /** @param LineItemCollection|OrderLineItemCollection $lineItems */

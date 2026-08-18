@@ -1,6 +1,21 @@
 {% sw_extends '@Storefront/storefront/component/payment/payment-form.html.twig' %}
 
 {% set settingUsePAYStyles = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs.PaynlPaymentShopware6.config.usePAYStyles %}
+{% set payParts = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_PARTS_CHECKOUT_EXTENSION_ID')] %}
+
+{% block component_payment_form_element %}
+    {% if payParts and payParts.enabled %}
+        <script type="module" src="{{ payParts.sdkUrl }}"></script>
+        <div class="paynl-payparts-card-wrapper is-loading"
+             data-paynl-payparts-card="true"
+             data-paynl-payparts-card-options="{{ payParts.pluginOptions|json_encode|escape('html_attr') }}">
+            <div id="paynl-card-payments"></div>
+            <div class="paynl-payparts-card-error alert alert-danger d-none" role="alert"></div>
+        </div>
+    {% endif %}
+
+    {{ parent() }}
+{% endblock %}
 
 {% block component_payment_form_list %}
     <span id="paynl-payment-plugin" data-paynl-payment-plugin></span>

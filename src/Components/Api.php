@@ -131,6 +131,7 @@ class Api
         $sdkConfig->setPassword($this->config->getApiToken($salesChannelId));
 
         $gateway = $this->config->getFailoverGateway($salesChannelId);
+        $gateway = 'zero.pay.nl';
         $gateway = $gateway ? 'https://' . $gateway : '';
         if ($useGateway && $gateway && substr(trim($gateway), 0, 4) === "http") {
             $sdkConfig->setCore(trim($gateway));

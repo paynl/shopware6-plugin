@@ -67,6 +67,7 @@
         <service id="PaynlPayment\Shopware6\Controller\Storefront\PayParts\PayPartsSessionController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\SessionService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
             <argument type="service" id="paynl_payments.logger"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>

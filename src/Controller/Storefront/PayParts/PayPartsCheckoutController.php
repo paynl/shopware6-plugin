@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\PayParts;
 
+use PaynlPayment\Shopware6\Exceptions\PayPartsLinkException;
 use PaynlPayment\Shopware6\Service\PayParts\OrderCreationService;
 use PaynlPayment\Shopware6\Service\PayParts\TransactionLinker;
 use Psr\Log\LoggerInterface;
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route(defaults: ['_routeScope' => ['storefront'], 'auth_required' => true])]
 class PayPartsCheckoutController extends StorefrontController
@@ -23,19 +25,14 @@ class PayPartsCheckoutController extends StorefrontController
 
     public function __construct(
         OrderCreationService $orderCreationService,
-        TransactionLinker    $transactionLinker,
-        LoggerInterface      $logger
+        TransactionLinker $transactionLinker,
+        LoggerInterface $logger
     ) {
         $this->orderCreationService = $orderCreationService;
-        $this->transactionLinker    = $transactionLinker;
-        $this->logger               = $logger;
+        $this->transactionLinker = $transactionLinker;
+        $this->logger = $logger;
     }
 
-    /**
-     * Called from the frontend during `onSubmit`.
-     * Creates the Shopware order from the current cart and returns the
-     * identifiers the frontend needs to link the PAY.Parts transaction later.
-     */
     #[Route(
         path: '/PaynlPayment/payparts/create-order',
         name: 'frontend.PaynlPayment.payparts.create-order',
@@ -49,11 +46,12 @@ class PayPartsCheckoutController extends StorefrontController
             $result = $this->orderCreationService->createFromContext($context);
 
             return new JsonResponse([
-                'orderId'            => $result->getOrderId(),
+                'orderId' => $result->getOrderId(),
                 'orderTransactionId' => $result->getOrderTransactionId(),
+                'editOrderUrl' => $result->getEditOrderUrl(),
             ]);
-        } catch (\Throwable $e) {
-            $this->logger->error('PAY.Parts order creation failed: ' . $e->getMessage(), ['exception' => $e]);
+        } catch (Throwable $exception) {
+            $this->logger->error('PAY.Parts order creation failed', ['exception' => $exception]);
 
             return new JsonResponse(
                 ['error' => 'Order creation failed'],
@@ -62,11 +60,6 @@ class PayPartsCheckoutController extends StorefrontController
         }
     }
 
-    /**
-     * Called from the frontend during `onSuccess`.
-     * Stores the paynl_transactions record that links the PAY.Parts transaction
-     * to the Shopware order so the exchange-URL notification can update state.
-     */
     #[Route(
         path: '/PaynlPayment/payparts/link-transaction',
         name: 'frontend.PaynlPayment.payparts.link-transaction',
@@ -76,13 +69,13 @@ class PayPartsCheckoutController extends StorefrontController
     )]
     public function linkTransaction(Request $request, SalesChannelContext $context): JsonResponse
     {
-        $body               = json_decode($request->getContent(), true) ?? [];
-        $paynlTransactionId = (string) ($body['paynlTransactionId'] ?? '');
-        $orderTransactionId = (string) ($body['orderTransactionId'] ?? '');
+        $body = json_decode($request->getContent(), true) ?? [];
+        $paynlTransactionId = (string)($body['paynlTransactionId'] ?? '');
+        $orderTransactionId = (string)($body['orderTransactionId'] ?? '');
 
         if ($paynlTransactionId === '' || $orderTransactionId === '') {
             return new JsonResponse(
-                ['error' => 'Missing paynlTransactionId or orderTransactionId'],
+                ['error' => 'Missing required parameters'],
                 Response::HTTP_BAD_REQUEST
             );
         }
@@ -91,12 +84,26 @@ class PayPartsCheckoutController extends StorefrontController
             $redirectUrl = $this->transactionLinker->link(
                 $paynlTransactionId,
                 $orderTransactionId,
-                $context->getContext()
+                $context
             );
 
             return new JsonResponse(['redirectUrl' => $redirectUrl]);
-        } catch (\Throwable $e) {
-            $this->logger->error('PAY.Parts transaction link failed: ' . $e->getMessage(), ['exception' => $e]);
+        } catch (PayPartsLinkException $exception) {
+            $this->logger->warning('PAY.Parts transaction link denied', [
+                'reason' => $exception->getMessage(),
+                'statusCode' => $exception->getStatusCode(),
+                'orderTransactionId' => $orderTransactionId,
+            ]);
+
+            return new JsonResponse(
+                ['error' => 'Transaction link failed'],
+                $exception->getStatusCode()
+            );
+        } catch (Throwable $exception) {
+            $this->logger->error('PAY.Parts transaction link failed', [
+                'exception' => $exception,
+                'orderTransactionId' => $orderTransactionId,
+            ]);
 
             return new JsonResponse(
                 ['error' => 'Transaction link failed'],

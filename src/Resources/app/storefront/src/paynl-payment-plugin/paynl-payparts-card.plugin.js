@@ -18,7 +18,7 @@ const READY_CLASS             = 'is-ready';
  *  1. init()      → hide native submit button, fetch session, init SDK, bind component
  *  2. onSubmit    → create Shopware order via AJAX, call event.resolve()
  *  3. onSuccess   → link PAY.Parts transaction to the order, redirect to finish page
- *  4. onError     → show inline error, call event.resolve() to allow retry
+ *  4. onError     → SDK renders its own error; resolve so the customer can retry
  */
 export default class PaynlPayPartsCardPlugin extends Plugin {
 
@@ -33,14 +33,26 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         country: 'NL',
         /** BCP 47 language subtag derived from the storefront locale */
         language: 'nl',
+        /** Enable SDK debug output — set true on staging, false on production */
+        debugMode: false,
+        /**
+         * Edit-order retry mode — populated by the backend when payment is retried
+         * on an existing order (empty string on first checkout).
+         */
+        orderId: '',
+        orderTransactionId: '',
+        editOrderUrl: '',
     };
 
     init() {
         this._client             = new HttpClient();
-        this._checkout           = null;     // PAY.Parts Checkout instance
-        this._orderTransactionId = null;     // stored in onSubmit, used in onSuccess
+        this._checkout           = null;
 
-        // Show spinner immediately (wrapper ships with is-loading from Twig)
+        // Pre-populate from options when retrying payment on an existing order.
+        // The idempotent guard in _onSubmit will skip create-order automatically.
+        this._orderTransactionId = this.options.orderTransactionId || null;
+        this._editOrderUrl       = this.options.editOrderUrl || null;
+
         this.el.classList.add(LOADING_CLASS);
         this._hideNativeSubmit();
         this._fetchSessionAndMount();
@@ -50,7 +62,13 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
 
     /** POST to the backend to create a PAY.Parts session, then mount the SDK. */
     _fetchSessionAndMount() {
-        this._client.post(this.options.sessionUrl, null, (responseText, request) => {
+        // In edit-order mode, send the existing orderId so the session is built
+        // from the order instead of the (empty) cart.
+        const body = this.options.orderId
+            ? JSON.stringify({ orderId: this.options.orderId })
+            : null;
+
+        this._client.post(this.options.sessionUrl, body, (responseText, request) => {
             if (request.status >= 400) {
                 this._showError('Session creation failed. Please reload and try again.');
                 return;
@@ -75,23 +93,23 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
             throw new Error('PAY.Parts SDK is not available. Please reload the page.');
         }
 
-        // init() returns the Checkout instance; language/country drive SDK localisation
         this._checkout = await window.PayPartsSDK.init({
             sessionToken,
             apiUrl,
-            country:  this.options.country,
-            language: this.options.language,
+            country:   this.options.country,
+            language:  this.options.language,
+            debugMode: this.options.debugMode,
         });
 
-        // Events must be assigned after init(), not inside the options object
         this._checkout.events = {
-            onReady:   (event) => this._onReady(event),
-            onSubmit:  (event) => this._onSubmit(event),
-            onSuccess: (event) => this._onSuccess(event),
-            onError:   (event) => this._onError(event),
+            onReady:           (event) => this._onReady(event),
+            onSubmit:          (event) => this._onSubmit(event),
+            onSuccess:         (event) => this._onSuccess(event),
+            onError:           (event) => this._onError(event),
+            onInfoUpdated:     (event) => this._onInfoUpdated(event),
+            onShippingUpdated: (event) => this._onShippingUpdated(event),
         };
 
-        // prepare() + bind() is the PAY.Parts API for mounting a component
         const cardComponent = this._checkout.prepare('card-payments');
         await cardComponent.bind(CARD_COMPONENT_SELECTOR);
 
@@ -111,8 +129,14 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     /**
      * User pressed "Pay" inside the SDK component.
      * Create the Shopware order first; resolve so PAY.Parts can continue with 3DS/auth.
+     * Guard makes this idempotent — a retry uses the already-created order.
      */
     _onSubmit(event) {
+        if (this._orderTransactionId !== null) {
+            event.resolve();
+            return Promise.resolve();
+        }
+
         return new Promise((resolve) => {
             this._client.post(this.options.createOrderUrl, null, (responseText, request) => {
                 if (request.status >= 400) {
@@ -121,8 +145,9 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
                     return;
                 }
 
-                const { orderTransactionId } = JSON.parse(responseText);
+                const { orderTransactionId, editOrderUrl } = JSON.parse(responseText);
                 this._orderTransactionId = orderTransactionId; // needed in onSuccess
+                this._editOrderUrl = editOrderUrl ?? null;     // needed on payment/link errors
                 event.resolve(); // tell the SDK the order is ready; proceed with payment
                 resolve();
             });
@@ -135,7 +160,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
      * finish page (the exchange URL will handle final status updates).
      */
     _onSuccess(event) {
-        const paynlTransactionId = event.transaction?.transactionId ?? '';
+        const paynlTransactionId = event.orderId ?? '';
         const body = JSON.stringify({
             paynlTransactionId,
             orderTransactionId: this._orderTransactionId,
@@ -146,27 +171,63 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
                 event.resolve(); // always resolve so the SDK can clean up
 
                 if (request.status >= 400) {
-                    // Linking failed; reload so the customer can retry
-                    window.location.reload();
+                    this._redirectToEditOrder();
                     resolve();
                     return;
                 }
 
                 const { redirectUrl } = JSON.parse(responseText);
-                window.location.href = redirectUrl; // go to checkout finish page
+                this._redirectToUrl(redirectUrl);
                 resolve();
             });
         });
     }
 
-    /** Payment failed — display the SDK error message and let the user retry. */
+    /**
+     * Payment failed — the SDK renders its own error inside #paynl-card-payments,
+     * so no additional UI update is needed here.
+     * Resolving keeps the SDK interactive so the customer can correct and retry.
+     * The idempotent guard in _onSubmit ensures the Shopware order is not re-created
+     * on the next "Pay" attempt.
+     */
     _onError(event) {
-        const message = event.error?.message ?? 'Payment failed. Please try again.';
-        this._showError(message);
-        event.resolve(); // resolve so the SDK stays interactive for a retry
+        event.resolve();
     }
 
+    /** Fired when customer info is updated inside the SDK — no action needed for card-only. */
+    _onInfoUpdated() {}
+
+    /** Fired when shipping is changed inside the SDK — no action needed for card-only. */
+    _onShippingUpdated() {}
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    /** Redirect to the backend-generated edit-order URL when an order exists. */
+    _redirectToEditOrder() {
+        if (!this._editOrderUrl) {
+            return;
+        }
+
+        this._redirectToUrl(this._editOrderUrl);
+    }
+
+    /**
+     * Follow a redirect URL after validating it is on the same origin.
+     *
+     * @param {string} redirectUrl
+     */
+    _redirectToUrl(redirectUrl) {
+        try {
+            const parsed = new URL(redirectUrl, window.location.origin);
+            if (parsed.origin !== window.location.origin) {
+                this._showError('Unexpected redirect. Please contact support.');
+                return;
+            }
+            window.location.href = parsed.href;
+        } catch (e) {
+            this._showError('Invalid redirect URL. Please contact support.');
+        }
+    }
 
     /** Hide the native Shopware "Confirm order" button; the SDK provides its own "Pay" button. */
     _hideNativeSubmit() {
@@ -182,7 +243,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
 
         const cardEl = this.el.querySelector(CARD_COMPONENT_SELECTOR);
         if (cardEl) {
-            cardEl.classList.add(READY_CLASS); // triggers CSS fade-in transition
+            cardEl.classList.add(READY_CLASS);
         }
     }
 
