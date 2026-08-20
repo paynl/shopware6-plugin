@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Controller\StoreApi\Payment;
 
 use PaynlPayment\Shopware6\Service\Payment\PaymentFinalizeFacade;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\Framework\Context;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,8 +22,8 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/finalize-transaction', name: 'store-api.PaynlPayment.finalize-transaction', methods: ['GET'])]
-    public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): Response
+    public function finalizeTransaction(Request $request): Response
     {
-        return $this->finalizeFacade->finalizeTransaction($request, $salesChannelContext->getContext())->getResponse();
+        return $this->finalizeFacade->finalizeTransaction($request, Context::createDefaultContext())->getResponse();
     }
 }
