@@ -134,23 +134,18 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     _onSubmit(event) {
         if (this._orderTransactionId !== null) {
             event.resolve();
-            return Promise.resolve();
+            return;
         }
 
-        return new Promise((resolve) => {
-            this._client.post(this.options.createOrderUrl, null, (responseText, request) => {
-                if (request.status >= 400) {
-                    event.reject(new Error('Order creation failed. Please try again.'));
-                    resolve();
-                    return;
-                }
-
-                const { orderTransactionId, editOrderUrl } = JSON.parse(responseText);
-                this._orderTransactionId = orderTransactionId; // needed in onSuccess
-                this._editOrderUrl = editOrderUrl ?? null;     // needed on payment/link errors
-                event.resolve(); // tell the SDK the order is ready; proceed with payment
-                resolve();
-            });
+        this._client.post(this.options.createOrderUrl, null, (responseText, request) => {
+            if (request.status >= 400) {
+                event.reject(new Error('Order creation failed. Please try again.'));
+                return;
+            }
+            const {orderTransactionId, editOrderUrl} = JSON.parse(responseText);
+            this._orderTransactionId = orderTransactionId;
+            this._editOrderUrl = editOrderUrl ?? null;
+            event.resolve();
         });
     }
 

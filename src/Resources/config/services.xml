@@ -124,6 +124,7 @@
             <argument type="service" id="translator" />
             <argument type="service" id="request_stack"/>
             <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="cache.app"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" public="true">
@@ -296,6 +297,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\SessionDataMapper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PayParts\OrderCreationService">

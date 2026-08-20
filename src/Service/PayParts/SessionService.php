@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\PayParts;
 
+use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Exceptions\PayPartsApiException;
+use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\CreateSessionRequest;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionAddress;
@@ -25,30 +27,33 @@ class SessionService
 {
     private const PRODUCTION_URL = 'https://parts.pay.nl';
     private const BETA_URL       = 'https://zero-parts.pay.nl';
-    private const SDK_URL        = 'https://parts.pay.nl/sdk/payparts-sdk.js';
+    private const SDK_URL        = 'https://zero-parts.pay.nl/sdk/payparts-sdk.js';
 
     private PayPartsApiClient $apiClient;
     private SessionDataMapper $dataMapper;
     private Config $config;
     private PaymentUrlBuilder $paymentUrlBuilder;
+    private Api $api;
 
     public function __construct(
         PayPartsApiClient $apiClient,
         SessionDataMapper $dataMapper,
         Config $config,
-        PaymentUrlBuilder $paymentUrlBuilder
+        PaymentUrlBuilder $paymentUrlBuilder,
+        Api $api
     ) {
         $this->apiClient = $apiClient;
         $this->dataMapper = $dataMapper;
         $this->config = $config;
         $this->paymentUrlBuilder = $paymentUrlBuilder;
+        $this->api = $api;
     }
 
     /** @throws PayPartsApiException */
     public function createFromCart(Cart $cart, SalesChannelContext $context): CreateSessionResponse
     {
         $salesChannelId = $context->getSalesChannel()->getId();
-        $request        = $this->buildRequestFromCart($cart, $context, $salesChannelId);
+        $request        = $this->buildRequestFromCart($cart, $context);
 
         return $this->executeSessionCreate($request, $salesChannelId);
     }
@@ -57,7 +62,7 @@ class SessionService
     public function createFromOrder(OrderEntity $order, SalesChannelContext $context): CreateSessionResponse
     {
         $salesChannelId = $context->getSalesChannel()->getId();
-        $request        = $this->buildRequestFromOrder($order, $context, $salesChannelId);
+        $request        = $this->buildRequestFromOrder($order, $context);
 
         return $this->executeSessionCreate($request, $salesChannelId);
     }
@@ -84,9 +89,7 @@ class SessionService
         return self::SDK_URL;
     }
 
-    // ─── Request builders ────────────────────────────────────────────────────
-
-    private function buildRequestFromCart(Cart $cart, SalesChannelContext $context, string $salesChannelId): CreateSessionRequest
+    private function buildRequestFromCart(Cart $cart, SalesChannelContext $context): CreateSessionRequest
     {
         $amountCents = (int)round($cart->getPrice()->getTotalPrice() * 100);
         $currency    = $context->getCurrency()->getIsoCode();
@@ -101,7 +104,7 @@ class SessionService
         );
     }
 
-    private function buildRequestFromOrder(OrderEntity $order, SalesChannelContext $context, string $salesChannelId): CreateSessionRequest
+    private function buildRequestFromOrder(OrderEntity $order, SalesChannelContext $context): CreateSessionRequest
     {
         $amountCents = (int)round($order->getAmountTotal() * 100);
         // Order currency takes precedence; fall back to context when not yet associated.
@@ -118,67 +121,48 @@ class SessionService
         );
     }
 
-    // ─── Order builders ──────────────────────────────────────────────────────
-
     private function buildOrderFromCart(Cart $cart): SessionOrder
     {
-        $products      = [];
-        $totalVatCents = 0;
-
-        foreach ($cart->getLineItems() as $lineItem) {
-            if ($lineItem->getType() !== LineItem::PRODUCT_LINE_ITEM_TYPE) {
-                continue;
-            }
-
-            $price          = $lineItem->getPrice();
-            $vatCents       = (int)round(($price?->getCalculatedTaxes()->getAmount() ?? 0) * 100);
-            $totalVatCents += $vatCents;
-
-            $products[] = $this->buildSessionProduct(
-                (string)$lineItem->getLabel(),
-                $lineItem->getQuantity(),
-                (string)$lineItem->getReferencedId(),
-                $price?->getUnitPrice() ?? 0.0,
-                $price?->getTotalPrice() ?? 0.0,
-                $price?->getCalculatedTaxes()->first()?->getTaxRate() ?? 0.0,
-            );
-        }
-
-        $shippingCents = (int)round(($cart->getShippingCosts()?->getTotalPrice() ?? 0) * 100);
-
-        return new SessionOrder($products, $shippingCents, $totalVatCents);
+        return new SessionOrder(
+            $this->buildProductsFromLineItems($cart->getLineItems()),
+            (int) round(($cart->getShippingCosts()?->getTotalPrice() ?? 0) * 100),
+            (int) round($cart->getPrice()->getCalculatedTaxes()->getAmount() * 100),
+        );
     }
 
     private function buildOrderFromEntity(OrderEntity $order): SessionOrder
     {
-        $products      = [];
-        $totalVatCents = 0;
+        return new SessionOrder(
+            $this->buildProductsFromLineItems($order->getLineItems() ?? []),
+            (int) round($order->getShippingTotal() * 100),
+            (int) round(($order->getAmountTotal() - $order->getAmountNet()) * 100),
+        );
+    }
 
-        foreach ($order->getLineItems() ?? [] as $lineItem) {
+    /** @return SessionProduct[] */
+    private function buildProductsFromLineItems(iterable $lineItems): array
+    {
+        $products = [];
+
+        foreach ($lineItems as $lineItem) {
             if ($lineItem->getType() !== LineItem::PRODUCT_LINE_ITEM_TYPE) {
                 continue;
             }
 
-            $price          = $lineItem->getPrice();
-            $vatCents       = (int)round(($price?->getCalculatedTaxes()->getAmount() ?? 0) * 100);
-            $totalVatCents += $vatCents;
+            $price = $lineItem->getPrice();
 
             $products[] = $this->buildSessionProduct(
-                (string)$lineItem->getLabel(),
+                (string) $lineItem->getLabel(),
                 $lineItem->getQuantity(),
-                (string)$lineItem->getReferencedId(),
+                (string) $lineItem->getReferencedId(),
                 $price?->getUnitPrice() ?? 0.0,
                 $price?->getTotalPrice() ?? 0.0,
                 $price?->getCalculatedTaxes()->first()?->getTaxRate() ?? 0.0,
             );
         }
 
-        $shippingCents = (int)round($order->getShippingTotal() * 100);
-
-        return new SessionOrder($products, $shippingCents, $totalVatCents);
+        return $products;
     }
-
-    // ─── Shared helpers ──────────────────────────────────────────────────────
 
     /** Single source of truth for converting line-item price fields into a SessionProduct. */
     private function buildSessionProduct(
@@ -239,10 +223,19 @@ class SessionService
         return $this->dataMapper->mapCreateSession($rawResponse);
     }
 
+    /** @throws PayPartsApiException */
     private function buildBasicToken(string $salesChannelId): string
     {
-        $slCode = $this->config->getServiceId($salesChannelId);
-        $secret = $this->config->getApiToken($salesChannelId);
+        $slCode = trim($this->config->getServiceId($salesChannelId));
+        if ($slCode === '') {
+            throw PayPartsApiException::sessionCreateFailed('Service ID is not configured');
+        }
+
+        try {
+            $secret = $this->api->getServiceSecret($salesChannelId);
+        } catch (PaynlPaymentException $exception) {
+            throw PayPartsApiException::sessionCreateFailed($exception->getMessage());
+        }
 
         return base64_encode($slCode . ':' . $secret);
     }
