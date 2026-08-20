@@ -52,11 +52,6 @@ class Config
         return (bool)$this->get($salesChannelId, 'useSinglePaymentMethod');
     }
 
-    public function getShopwareApiIdentifier(string $salesChannelId): string
-    {
-        return (string)$this->get($salesChannelId, 'shopwareApiIdentifier');
-    }
-
     public function getTestMode(string $salesChannelId): int
     {
         return (int)$this->get($salesChannelId, 'testMode');
