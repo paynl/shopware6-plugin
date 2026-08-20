@@ -3,7 +3,8 @@
 - Shopware-Partner-Provisionstracking beim Bestellabschluss hinzugefügt.
 - Zahlungsmethoden-Logos für Nationale Golfbon und Kadokaart hinzugefügt.
 - paynl/php-sdk auf 1.0.10 aktualisiert.
-- Plugin-Routen in Admin-API, Express-Checkout, Rückerstattungen und Kundenbestellungen abgesichert.
+- Plugin-Routen in Admin-API, Express-Checkout, Rückerstattungen und Kundenbestellungen abgesichert
+- Headless-Zahlungsrückkehr (finalize-transaction) und Zahlungsstart bei Bestellnummern mit Bindestrichen behoben.
 
 # 2.0.7
 - Behoben: Service-Konfiguration konnte nicht verarbeitet werden, wenn Zahlungsmethoden nicht-leere `settings`; SDK-Hydration im `Method`-Modell korrigiert.
