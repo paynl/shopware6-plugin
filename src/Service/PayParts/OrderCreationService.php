@@ -59,12 +59,6 @@ class OrderCreationService
             );
         }
 
-        $finishUrl = $this->router->generate(
-            'frontend.checkout.finish.page',
-            ['orderId' => $order->getId()],
-            RouterInterface::ABSOLUTE_URL
-        );
-
         $editOrderUrl = $this->router->generate(
             'frontend.account.edit-order.page',
             ['orderId' => $order->getId()],
@@ -74,7 +68,6 @@ class OrderCreationService
         return new OrderCreationResult(
             $order->getId(),
             $transaction->getId(),
-            $finishUrl,
             $editOrderUrl
         );
     }

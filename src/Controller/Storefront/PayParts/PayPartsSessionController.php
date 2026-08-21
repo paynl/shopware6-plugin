@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Controller\Storefront\PayParts;
 
 use PaynlPayment\Shopware6\Exceptions\PayPartsApiException;
+use PaynlPayment\Shopware6\Exceptions\PayPartsLinkException;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\Service\CartService;
 use PaynlPayment\Shopware6\Service\PayParts\SessionService;
@@ -67,6 +68,16 @@ class PayPartsSessionController extends StorefrontController
                 'sessionId'    => $response->getSessionId(),
                 'apiUrl'       => $this->sessionService->getApiUrl($salesChannelId),
             ]);
+        } catch (PayPartsLinkException $exception) {
+            $this->logger->warning('PAY.Parts session access denied', [
+                'reason'  => $exception->getMessage(),
+                'orderId' => $orderId,
+            ]);
+
+            return new JsonResponse(
+                ['error' => 'Could not initialize payment session'],
+                $exception->getStatusCode()
+            );
         } catch (PayPartsApiException $exception) {
             $this->logger->error('PAY.Parts session create failed', ['exception' => $exception]);
 
@@ -80,13 +91,13 @@ class PayPartsSessionController extends StorefrontController
     /**
      * Loads an order by ID, verifying it belongs to the currently authenticated customer.
      *
-     * @throws PayPartsApiException when the customer is not authenticated or the order is not found
+     * @throws PayPartsLinkException when the customer is not authenticated or the order is not found
      */
     private function loadOrderForCustomer(string $orderId, SalesChannelContext $context): OrderEntity
     {
         $customer = $context->getCustomer();
         if ($customer === null) {
-            throw new PayPartsApiException('Unauthenticated', Response::HTTP_FORBIDDEN);
+            throw PayPartsLinkException::accessDenied();
         }
 
         $criteria = new Criteria([$orderId]);
@@ -96,7 +107,7 @@ class PayPartsSessionController extends StorefrontController
         $order = $this->orderRepository->search($criteria, $context->getContext())->first();
 
         if (!$order instanceof OrderEntity) {
-            throw new PayPartsApiException('Order not found or access denied', Response::HTTP_FORBIDDEN);
+            throw PayPartsLinkException::accessDenied();
         }
 
         return $order;

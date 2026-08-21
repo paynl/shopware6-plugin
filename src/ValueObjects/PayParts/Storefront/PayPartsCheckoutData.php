@@ -24,6 +24,10 @@ class PayPartsCheckoutData extends Struct
     protected string $orderTransactionId = '';
     protected string $editOrderUrl       = '';
 
+    /**
+     * True when PAY.Parts checkout data was built for an available credit card method.
+     * Callers receive null from the builder when PayParts is not applicable.
+     */
     public function isEnabled(): bool
     {
         return $this->paymentMethodId !== '';

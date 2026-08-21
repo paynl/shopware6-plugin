@@ -196,19 +196,52 @@ class SessionService
             lastName:  $customer->getLastName(),
             email:     $customer->getEmail(),
             phone:     $billing?->getPhoneNumber(),
-            address:   $billing ? $this->buildAddress($billing) : null,
+            address:   $billing ? $this->buildAddress($billing, $context->getSalesChannelId()) : null,
         );
     }
 
-    private function buildAddress(CustomerAddressEntity $address): SessionAddress
+    private function buildAddress(CustomerAddressEntity $address, string $salesChannelId): SessionAddress
     {
+        [$street, $houseNumber] = $this->parseStreetAndHouseNumber($address, $salesChannelId);
+
         return new SessionAddress(
-            street:      $address->getStreet() ?? '',
-            houseNumber: $address->getAdditionalAddressLine1() ?? '',
+            street:      $street,
+            houseNumber: $houseNumber,
             postalCode:  $address->getZipcode() ?? '',
             city:        $address->getCity() ?? '',
             country:     $address->getCountry()?->getIso() ?? '',
         );
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function parseStreetAndHouseNumber(CustomerAddressEntity $address, string $salesChannelId): array
+    {
+        $street = $address->getStreet() ?? '';
+        $houseNumber = '';
+        $houseNumberExtension = '';
+
+        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
+            $parsed = paynl_split_address($street);
+            $street = $parsed['street'] ?? '';
+            $houseNumber = $parsed['number'] ?? '';
+
+            $houseNumberParts = explode(' ', (string) $houseNumber);
+            if (count($houseNumberParts) > 1) {
+                $houseNumber = array_shift($houseNumberParts);
+                $houseNumberExtension = implode(' ', $houseNumberParts);
+            }
+        } else {
+            $houseNumber = $address->getAdditionalAddressLine1() ?? '';
+            $houseNumberExtension = $address->getAdditionalAddressLine2() ?? '';
+        }
+
+        if ($houseNumberExtension !== '') {
+            $houseNumber = trim($houseNumber . ' ' . $houseNumberExtension);
+        }
+
+        return [$street, $houseNumber];
     }
 
     /** @throws PayPartsApiException */

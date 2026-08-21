@@ -9,7 +9,6 @@ class OrderCreationResult
     public function __construct(
         private string $orderId,
         private string $orderTransactionId,
-        private string $finishUrl,
         private string $editOrderUrl
     ) {
     }
@@ -22,11 +21,6 @@ class OrderCreationResult
     public function getOrderTransactionId(): string
     {
         return $this->orderTransactionId;
-    }
-
-    public function getFinishUrl(): string
-    {
-        return $this->finishUrl;
     }
 
     public function getEditOrderUrl(): string

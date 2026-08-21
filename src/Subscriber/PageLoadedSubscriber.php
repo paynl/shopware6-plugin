@@ -11,7 +11,6 @@ use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsReposit
 use PaynlPayment\Shopware6\Service\PayParts\PayPartsStorefrontDataService;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService;
 use PaynlPayment\Shopware6\ValueObjects\CustomPageDataValueObject;
-use PaynlPayment\Shopware6\ValueObjects\PayParts\Storefront\PayPartsCheckoutData;
 use Shopware\Core\Checkout\Cart\AbstractCartPersister;
 use Shopware\Core\Checkout\Cart\Exception\CartTokenNotFoundException;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
@@ -297,7 +296,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             ? $this->payPartsStorefrontDataService->buildForOrder($order, $context, $page->getPaymentMethods())
             : $this->payPartsStorefrontDataService->build($context, $page->getPaymentMethods());
 
-        if (!$payPartsData instanceof PayPartsCheckoutData || !$payPartsData->isEnabled()) {
+        if ($payPartsData === null || !$payPartsData->isEnabled()) {
             return;
         }
 

@@ -164,9 +164,11 @@ class Api
                     return $secret;
                 }
             );
-        } catch (PaynlPaymentException $exception) {
-            throw $exception;
         } catch (Throwable $exception) {
+            if ($exception instanceof PaynlPaymentException) {
+                throw $exception;
+            }
+
             throw new PaynlPaymentException(
                 'Failed to fetch PAY. service secret: ' . $exception->getMessage(),
                 0,
