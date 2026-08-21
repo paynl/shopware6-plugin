@@ -1,13 +1,10 @@
 import Plugin from 'src/plugin-system/plugin.class';
 import IMask from '../../node_modules/imask/dist/imask';
 import DomAccess from 'src/helper/dom-access.helper';
-import HttpClient from 'src/service/http-client.service';
 import ButtonLoadingIndicator from 'src/utility/loading-indicator/button-loading-indicator.util';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
-        this._client = new HttpClient();
-
         this.paymentMethodsScriptsInit();
         this.paymentPinMessageInit();
         this.paymentAdditionalInit();
@@ -21,9 +18,9 @@ export default class PaynlPaymentPlugin extends Plugin {
             this.initPayLaterEvents();
 
             const form = trigger.parentNode;
-            form.addEventListener('submit', this.onSavePaymentMethod);
-            form.addEventListener('change', this.onChangeCallback);
-            form.addEventListener('focus', this.removeInvalid, true);
+            form.addEventListener('submit', this.onSavePaymentMethod.bind(this));
+            form.addEventListener('change', this.onChangeCallback.bind(this));
+            form.addEventListener('focus', this.removeInvalid.bind(this), true);
         }
     }
 
@@ -34,6 +31,11 @@ export default class PaynlPaymentPlugin extends Plugin {
         formOrder.addEventListener('submit', function (event) {
             const invalid = [];
             const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
+
+            // Early return if no PayNL method is active
+            if (!currentPaymentMethod) {
+                return;
+            }
 
             if (currentPaymentMethod.querySelector('.paynl-dob')) {
                 const dobInput = currentPaymentMethod.querySelector('input.paynl-dob[type="text"]');
@@ -144,11 +146,11 @@ export default class PaynlPaymentPlugin extends Plugin {
         const paynlDateOfBirth = document.querySelectorAll('.paynl-dob');
 
         paynlPhone.forEach((element) => {
-            element.addEventListener('keydown', this.showPayLaterSaveButton);
+            element.addEventListener('keydown', this.showPayLaterSaveButton.bind(this));
         });
 
         paynlDateOfBirth.forEach((element) => {
-            element.addEventListener('change', this.showPayLaterSaveButton);
+            element.addEventListener('change', this.showPayLaterSaveButton.bind(this));
         });
     }
 
@@ -156,6 +158,11 @@ export default class PaynlPaymentPlugin extends Plugin {
         const data = {};
         const invalid = [];
         const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
+
+        // Early return if no PayNL method is active
+        if (!currentPaymentMethod) {
+            return;
+        }
 
         if (currentPaymentMethod.querySelector('.paynl-ideal-banks-select')) {
             const idealBankSelect = currentPaymentMethod.querySelector('.paynl-ideal-banks-select');
@@ -197,12 +204,6 @@ export default class PaynlPaymentPlugin extends Plugin {
 
             return;
         }
-
-        this.savePayLaterFields(data);
-    }
-
-    savePayLaterFields(data) {
-        this._client.post('/PaynlPayment/order/change/paylater-fields', JSON.stringify(data));
     }
 
     onChangeCallback(event) {
