@@ -12,6 +12,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundExcepti
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodDefinition;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Exception;
@@ -138,5 +139,47 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
         }
 
         throw new Exception('Payment Method PayPal Express not found in system');
+    }
+
+    /** @throws Exception */
+    public function getActiveCreditCardID(Context $context): string
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
+        $criteria->addFilter(new EqualsFilter('active', true));
+
+        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
+
+        foreach ($paymentMethods as $paymentMethod) {
+            if ($this->isCreditCardMethod($paymentMethod)) {
+                return (string) $paymentMethod->get('id');
+            }
+        }
+
+        throw new Exception('Payment Method Credit Card not found in system');
+    }
+
+    public function findCreditCardInCollection(PaymentMethodCollection $methods): ?PaymentMethodEntity
+    {
+        foreach ($methods as $paymentMethod) {
+            if ($this->isCreditCardMethod($paymentMethod)) {
+                return $paymentMethod;
+            }
+        }
+
+        return null;
+    }
+
+    private function isCreditCardMethod(PaymentMethodEntity $paymentMethod): bool
+    {
+        return $this->matchesPaynlId($paymentMethod, PaynlPaymentMethodsIdsEnum::CREDIT_CARD_PAYMENT);
+    }
+
+    private function matchesPaynlId(PaymentMethodEntity $paymentMethod, int $paynlId): bool
+    {
+        $customFields = $paymentMethod->getTranslation('customFields') ?? $paymentMethod->getCustomFields() ?? [];
+        $methodPaynlId = $customFields['paynlId'] ?? null;
+
+        return $methodPaynlId !== null && (int) $methodPaynlId === $paynlId;
     }
 }
