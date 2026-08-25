@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\PayParts;
 
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Storefront\PayPartsCheckoutData;
@@ -21,17 +22,20 @@ class PayPartsStorefrontDataService
     private RouterInterface $router;
     private LocaleCodeHelper $localeCodeHelper;
     private SessionService $sessionService;
+    private Config $config;
 
     public function __construct(
         PaymentMethodRepository $paymentMethodRepository,
         RouterInterface $router,
         LocaleCodeHelper $localeCodeHelper,
-        SessionService $sessionService
+        SessionService $sessionService,
+        Config $config
     ) {
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->router                  = $router;
         $this->localeCodeHelper        = $localeCodeHelper;
         $this->sessionService          = $sessionService;
+        $this->config                  = $config;
     }
 
     /**
@@ -42,7 +46,15 @@ class PayPartsStorefrontDataService
         SalesChannelContext $context,
         PaymentMethodCollection $availablePaymentMethods
     ): ?PayPartsCheckoutData {
-        $creditCardMethod = $this->paymentMethodRepository->findCreditCardInCollection($availablePaymentMethods);
+        $salesChannelId = $context->getSalesChannelId();
+
+        if (!$this->config->isPayPartsCreditCardWidgetEnabled($salesChannelId)) {
+            return null;
+        }
+
+        $creditCardMethod = $this->paymentMethodRepository
+            ->findPayPartsCardMethodInCollection($availablePaymentMethods);
+
         if ($creditCardMethod === null) {
             return null;
         }

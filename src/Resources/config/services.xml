@@ -312,6 +312,7 @@
             <argument type="service" id="router"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\LocaleCodeHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\SessionService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinkValidator">

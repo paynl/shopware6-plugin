@@ -59,6 +59,7 @@ class PayPartsCheckoutData extends Struct
     public function getPluginOptions(): array
     {
         $options = [
+            'paymentMethodId'    => $this->paymentMethodId,
             'sessionUrl'         => $this->sessionUrl,
             'createOrderUrl'     => $this->createOrderUrl,
             'linkTransactionUrl' => $this->linkTransactionUrl,

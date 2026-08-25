@@ -11,8 +11,8 @@ const READY_CLASS             = 'is-ready';
 /**
  * Shopware storefront plugin that mounts the PAY.Parts `card-payments` component.
  *
- * The Twig template renders this element only when paynlId == 11 is the
- * currently selected payment method, so no runtime selection-checking is needed.
+ * The Twig template renders this element when Pay.Parts is enabled and a card
+ * payment method is available — no runtime payment-method selection is needed.
  *
  * Lifecycle:
  *  1. init()      → hide native submit button, fetch session, init SDK, bind component
@@ -42,6 +42,8 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         orderId: '',
         orderTransactionId: '',
         editOrderUrl: '',
+        /** Shopware UUID of the Pay.Parts card payment method resolved for this checkout */
+        paymentMethodId: '',
     };
 
     init() {
@@ -137,7 +139,10 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
             return;
         }
 
-        this._client.post(this.options.createOrderUrl, null, (responseText, request) => {
+        this._client.post(
+            this.options.createOrderUrl,
+            JSON.stringify({ paymentMethodId: this.options.paymentMethodId }),
+            (responseText, request) => {
             if (request.status >= 400) {
                 event.reject(new Error('Order creation failed. Please try again.'));
                 return;

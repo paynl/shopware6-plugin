@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\PayParts;
 
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Exceptions\PayPartsLinkException;
+use PaynlPayment\Shopware6\Exceptions\PayPartsOrderException;
 use PaynlPayment\Shopware6\Service\PayParts\OrderCreationService;
 use PaynlPayment\Shopware6\Service\PayParts\TransactionLinker;
 use Psr\Log\LoggerInterface;
@@ -21,15 +23,18 @@ class PayPartsCheckoutController extends StorefrontController
 {
     private OrderCreationService $orderCreationService;
     private TransactionLinker $transactionLinker;
+    private Config $config;
     private LoggerInterface $logger;
 
     public function __construct(
         OrderCreationService $orderCreationService,
         TransactionLinker $transactionLinker,
+        Config $config,
         LoggerInterface $logger
     ) {
         $this->orderCreationService = $orderCreationService;
         $this->transactionLinker = $transactionLinker;
+        $this->config = $config;
         $this->logger = $logger;
     }
 
@@ -40,16 +45,40 @@ class PayPartsCheckoutController extends StorefrontController
         defaults: ['XmlHttpRequest' => true],
         methods: ['POST']
     )]
-    public function createOrder(SalesChannelContext $context): JsonResponse
+    public function createOrder(Request $request, SalesChannelContext $context): JsonResponse
     {
+        if (!$this->config->isPayPartsCreditCardWidgetEnabled($context->getSalesChannelId())) {
+            return new JsonResponse(
+                ['error' => 'Order creation failed'],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
         try {
-            $result = $this->orderCreationService->createFromContext($context);
+            $body = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            $body = [];
+        }
+        $paymentMethodId = trim((string) ($body['paymentMethodId'] ?? '')) ?: null;
+
+        try {
+            $result = $this->orderCreationService->createFromContext($context, $paymentMethodId);
 
             return new JsonResponse([
                 'orderId' => $result->getOrderId(),
                 'orderTransactionId' => $result->getOrderTransactionId(),
                 'editOrderUrl' => $result->getEditOrderUrl(),
             ]);
+        } catch (PayPartsOrderException $exception) {
+            $this->logger->warning('PAY.Parts order creation denied', [
+                'reason' => $exception->getMessage(),
+                'statusCode' => $exception->getStatusCode(),
+            ]);
+
+            return new JsonResponse(
+                ['error' => 'Order creation failed'],
+                $exception->getStatusCode()
+            );
         } catch (Throwable $exception) {
             $this->logger->error('PAY.Parts order creation failed', ['exception' => $exception]);
 

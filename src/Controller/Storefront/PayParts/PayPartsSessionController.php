@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Controller\Storefront\PayParts;
 
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Exceptions\PayPartsApiException;
 use PaynlPayment\Shopware6\Exceptions\PayPartsLinkException;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
@@ -26,17 +27,20 @@ class PayPartsSessionController extends StorefrontController
     private SessionService $sessionService;
     private CartService $cartService;
     private OrderRepositoryInterface $orderRepository;
+    private Config $config;
     private LoggerInterface $logger;
 
     public function __construct(
         SessionService $sessionService,
         CartService $cartService,
         OrderRepositoryInterface $orderRepository,
+        Config $config,
         LoggerInterface $logger
     ) {
         $this->sessionService  = $sessionService;
         $this->cartService     = $cartService;
         $this->orderRepository = $orderRepository;
+        $this->config          = $config;
         $this->logger          = $logger;
     }
 
@@ -54,6 +58,13 @@ class PayPartsSessionController extends StorefrontController
 
         try {
             $salesChannelId = $context->getSalesChannel()->getId();
+
+            if (!$this->config->isPayPartsCreditCardWidgetEnabled($salesChannelId)) {
+                return new JsonResponse(
+                    ['error' => 'Could not initialize payment session'],
+                    Response::HTTP_FORBIDDEN
+                );
+            }
 
             if ($orderId !== '') {
                 $order    = $this->loadOrderForCustomer($orderId, $context);

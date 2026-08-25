@@ -117,6 +117,16 @@
         <title lang="nl-NL">Betalingen</title>
 
         <input-field type="bool">
+            <name>enablePayPartsCreditCardWidget</name>
+            <label>Enable Pay.Parts for credit cards to show credit card form in checkout</label>
+            <label lang="nl-NL">Pay.Parts voor creditcards inschakelen om creditcardformulier in checkout te tonen</label>
+            <label lang="de-DE">Pay.Parts für Kreditkarten aktivieren, um das Kreditkartenformular im Checkout anzuzeigen</label>
+            <helpText>Enable this option to display the credit card form in your checkout. Before enabling it, make sure Credit Card is enabled for the relevant sales location in My.pay. The form will only be available in checkout when credit card payments are enabled for that sales location.</helpText>
+            <helpText lang="nl-NL">Schakel deze optie in om het creditcardformulier in uw checkout weer te geven. Zorg er voordat u dit inschakelt voor dat Creditcard is geactiveerd voor de betreffende verkooplocatie in My.pay. Het formulier is alleen beschikbaar in de checkout wanneer creditcardbetalingen zijn ingeschakeld voor die verkooplocatie.</helpText>
+            <helpText lang="de-DE">Aktivieren Sie diese Option, um das Kreditkartenformular in Ihrem Checkout anzuzeigen. Stellen Sie vor der Aktivierung sicher, dass Kreditkarte für den relevanten Verkaufsstandort in My.pay aktiviert ist. Das Formular ist im Checkout nur verfügbar, wenn Kreditkartenzahlungen für diesen Verkaufsstandort aktiviert sind.</helpText>
+        </input-field>
+
+        <input-field type="bool">
             <name>cocNumberRequired</name>
             <label>CoC number required</label>
             <label lang="nl-NL">KvK nummer verplicht</label>

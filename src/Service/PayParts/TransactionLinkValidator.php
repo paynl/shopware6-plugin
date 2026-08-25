@@ -118,7 +118,7 @@ class TransactionLinkValidator
         }
 
         $paynlId = $this->api->getPaynlPaymentMethodIdFromShopware($orderTransaction);
-        if ($paynlId !== PaynlPaymentMethodsIdsEnum::CREDIT_CARD_PAYMENT) {
+        if (!PaynlPaymentMethodsIdsEnum::isPayPartsCardPayment($paynlId)) {
             return PayPartsLinkException::invalidPaymentMethod();
         }
 
