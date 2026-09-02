@@ -192,14 +192,20 @@ class Api
 
         $request->setOrder($payNLOrder);
 
-        $request->setStats((new Model\Stats())
+        $stats = (new Model\Stats())
             ->setObject(sprintf(
                 'Shopware v%s | %s | %s',
                 $additionalTransactionInfo->getShopwareVersion(),
                 $additionalTransactionInfo->getPluginVersion(),
                 substr(phpversion(), 0, 3)
-            ))
-        );
+            ));
+
+        $instanceId = $additionalTransactionInfo->getInstanceId();
+        if ($instanceId !== null && $instanceId !== '') {
+            $stats->setExtra3($instanceId);
+        }
+
+        $request->setStats($stats);
 
         if ($this->getTransferData($salesChannelId)) {
             $request->setTransferData($this->getTransferData($salesChannelId));
