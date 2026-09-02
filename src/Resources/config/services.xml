@@ -165,6 +165,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\Salutation\SalutationRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepository"/>
             <argument>%kernel.shopware_version%</argument>
+            <argument>%instance_id%</argument>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Payment\InitiatePaymentAction" public="true">
@@ -178,6 +179,7 @@
             <argument type="service" id="translator"/>
             <argument type="service" id="request_stack"/>
             <argument>%kernel.shopware_version%</argument>
+            <argument>%instance_id%</argument>
         </service>
 
         <service id="PaynlPayment\Shopware6\Components\Payment\FinalizePaymentAction" public="true">
