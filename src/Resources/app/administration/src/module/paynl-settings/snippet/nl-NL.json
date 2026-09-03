@@ -23,7 +23,16 @@
             "paymentMethodsInstallLabel": "Installatiefout!",
             "paymentMethodsInstallMessage": "Betaalmethoden kunnen niet worden geïnstalleerd",
             "wrongCredentials": "Voer inloggegevens in.",
-            "shouldNotBeBlank": "Dit veld mag niet leeg zijn."
+            "missingTransactionId": "Transactie-ID is verplicht.",
+            "transactionNotFound": "Transactie niet gevonden.",
+            "missingFields": "Verplichte velden ontbreken.",
+            "invalidAmount": "Het terugbetalingsbedrag moet groter zijn dan nul.",
+            "refundExceedsAvailable": "Het terugbetalingsbedrag overschrijdt het beschikbare bedrag.",
+            "refundDataFailed": "Terugbetalingsgegevens konden niet worden opgehaald.",
+            "shouldNotBeBlank": "Dit veld mag niet leeg zijn.",
+            "invalidSalesChannel": "Ongeldig of onbekend verkoopkanaal.",
+            "invalidCredentials": "API-gegevens zijn onvolledig of ongeldig.",
+            "paymentMethodsInstallFailed": "Betaalmethoden konden niet worden geïnstalleerd."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Betaalmethoden succesvol toegevoegd.",

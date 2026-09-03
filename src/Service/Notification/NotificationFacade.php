@@ -62,7 +62,7 @@ class NotificationFacade
                 return $exchange->setResponse(true, 'Pending payment', true);
             }
 
-            $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId());
+            $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId(), $payOrder);
             ['result' => $responseResult, 'message' => $responseMessage] = $notifyResult;
         } catch (Throwable $exception) {
             $this->logger->error('PAY. notify: processing failed', [

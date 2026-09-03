@@ -1,3 +1,11 @@
+# 2.0.8
+- PayPal Express-Produktivkonfiguration und Zahler-Adressverarbeitung behoben.
+- Zahlungsmethoden-Logos für Nationale Golfbon und Kadokaart hinzugefügt.
+- paynl/php-sdk auf 1.0.10 aktualisiert.
+- Plugin-Routen in Admin-API, Express-Checkout, Rückerstattungen und Kundenbestellungen abgesichert
+- Headless-Zahlungsrückkehr (finalize-transaction) und Zahlungsstart bei Bestellnummern mit Bindestrichen behoben
+- Behoben: Rückerstattungs-Exchange-Benachrichtigungen setzen erstattete Bestellungen nicht mehr auf bezahlt.
+
 # 2.0.7
 - Behoben: Service-Konfiguration konnte nicht verarbeitet werden, wenn Zahlungsmethoden nicht-leere `settings`; SDK-Hydration im `Method`-Modell korrigiert.
 

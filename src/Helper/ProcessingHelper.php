@@ -119,40 +119,7 @@ class ProcessingHelper
             $paynlTransactionEntity->getOrder()->getSalesChannelId()
         );
 
-        if ($this->checkDoubleOrderTransactions($paynlTransactionEntity, Context::createDefaultContext())) {
-            $this->updateOldPayTransactionStatus($paynlTransactionEntity, $payTransactionStatus);
-
-            return [
-                'result' => true,
-                'message' => "The current transaction's commands are ignored due to a later completed transaction.",
-            ];
-        }
-
-        $transitionName = $this->getOrderActionNameByPayTransactionStatusCode($payTransactionStatus->getStatusCode());
-
-        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
-
-        if ($this->isUnprocessedTransactionState($payTransactionStatus)) {
-            return [
-                'result' => true,
-                'message' => sprintf('TRUE| No change made (%s)', $payTransactionStatus->getStatusName()),
-            ];
-        }
-
-        $this->logger->info('PAY. transaction was successfully updated', [
-            'transactionId' => $paynlTransactionId,
-            'statusCode' => $payTransactionStatus->getStatusCode()
-        ]);
-
-        return [
-            'result' => true,
-            'message' => sprintf(
-                'TRUE| Status updated to: %s (%s) orderNumber: %s',
-                $payTransactionStatus->getStatusName(),
-                $payTransactionStatus->getStatusCode(),
-                $payTransactionStatus->getOrderId()
-            ),
-        ];
+        return $this->notifyActionUpdateTransactionWithPayOrder($paynlTransactionId, $payTransactionStatus);
     }
 
     private function updateOldPayTransactionStatus(
@@ -239,7 +206,8 @@ class ProcessingHelper
         $salesChannelId = $paynlTransactionEntity->getOrder()->getSalesChannelId();
 
         $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
-        $transitionName = $this->getOrderActionNameByPayTransactionStatusCode($payTransactionStatus->getStatusCode());
+
+        $transitionName = $this->getOrderActionNameFromPayOrder($payTransactionStatus);
 
         $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $payTransactionStatus->getStatusCode());
     }
@@ -313,10 +281,31 @@ class ProcessingHelper
         }
     }
 
-    public function processNotify(string $paynlTransactionId): array
+    /**
+     * Process notification with optional pre-fetched PayOrder from Exchange.
+     * Prevents double API calls and preserves refund exchange context.
+     *
+     * @param string $paynlTransactionId PAY transaction ID
+     * @param PayOrder|null $payOrder Optional pre-fetched PayOrder (e.g., from Exchange)
+     */
+    public function processNotify(string $paynlTransactionId, ?PayOrder $payOrder = null): array
     {
         try {
-            return $this->notifyActionUpdateTransactionByPayTransactionId($paynlTransactionId);
+            if ($payOrder === null) {
+                // Fetch from API if not provided (backward compatibility)
+                $entity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
+                if ($entity === null) {
+                    throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
+                }
+
+                // Use TransactionStatus API (refund-aware)
+                $payOrder = $this->payAPI->getOrderStatus(
+                    $paynlTransactionId,
+                    $entity->getOrder()->getSalesChannelId()
+                );
+            }
+
+            return $this->notifyActionUpdateTransactionWithPayOrder($paynlTransactionId, $payOrder);
         } catch (Throwable $e) {
             $this->logger->error('Error on notifying transaction.', [
                 'transactionId' => $paynlTransactionId,
@@ -331,6 +320,132 @@ class ProcessingHelper
     }
 
     /**
+     * Update transaction using already-fetched PayOrder.
+     * Checks refund status BEFORE mapping to prevent paid-after-refund bug.
+     *
+     * @throws PaynlTransactionException
+     * @throws PayException
+     * @throws Exception
+     */
+    private function notifyActionUpdateTransactionWithPayOrder(
+        string $paynlTransactionId,
+        PayOrder $payOrder
+    ): array {
+        $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
+        if ($paynlTransactionEntity === null) {
+            throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
+        }
+
+        if ($this->checkDoubleOrderTransactions($paynlTransactionEntity, Context::createDefaultContext())) {
+            $this->updateOldPayTransactionStatus($paynlTransactionEntity, $payOrder);
+
+            return [
+                'result' => true,
+                'message' => "The current transaction's commands are ignored due to a later completed transaction.",
+            ];
+        }
+
+        $transitionName = $this->getOrderActionNameFromPayOrder($payOrder);
+        $statusCode = $payOrder->getStatusCode();
+
+        if ($this->isRefundReversalAttempt($paynlTransactionEntity, $transitionName)) {
+            return [
+                'result' => true,
+                'message' => sprintf('TRUE| No change made - transaction already refunded (%s)', $payOrder->getStatusName()),
+            ];
+        }
+
+        $this->updateTransactionStatus($paynlTransactionEntity, $transitionName, $statusCode);
+
+        if ($this->isUnprocessedTransactionState($payOrder)) {
+            return [
+                'result' => true,
+                'message' => sprintf('TRUE| No change made (%s)', $payOrder->getStatusName()),
+            ];
+        }
+
+        $this->logger->info('PAY. transaction was successfully updated', [
+            'transactionId' => $paynlTransactionId,
+            'statusCode' => $statusCode,
+            'statusAction' => $payOrder->getStatusName(),
+        ]);
+
+        return [
+            'result' => true,
+            'message' => sprintf(
+                'TRUE| Status updated to: %s (%s) orderNumber: %s',
+                $payOrder->getStatusName(),
+                $statusCode,
+                $payOrder->getOrderId()
+            ),
+        ];
+    }
+
+    /**
+     * Resolve transition name from PayOrder, checking refund status FIRST.
+     * This fixes the bug where refund exchanges get mapped to "paid" via code 100.
+     *
+     * @throws Exception
+     */
+    private function getOrderActionNameFromPayOrder(PayOrder $payOrder): string
+    {
+        // 1. Check SDK refund helpers (uses PayStatus mapper on status code)
+        if ($payOrder->isRefunded(false)) {
+            return StateMachineTransitionActions::ACTION_REFUND;
+        }
+
+        if ($payOrder->isRefundedPartial()) {
+            return StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
+        }
+
+        // 2. Check status action name (exchange events like "REFUND", "PARTIAL_REFUND")
+        $statusAction = strtoupper($payOrder->getStatusName());
+        if ($statusAction === 'REFUND') {
+            return StateMachineTransitionActions::ACTION_REFUND;
+        }
+        if ($statusAction === 'PARTIAL_REFUND') {
+            return StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
+        }
+
+        // 3. Check refunded amount (edge case: code 100 but money refunded)
+        if ($payOrder->getAmountRefunded() > 0) {
+            $totalAmount = $payOrder->getAmount();
+            $refundedAmount = $payOrder->getAmountRefunded();
+
+            if ($refundedAmount >= $totalAmount) {
+                return StateMachineTransitionActions::ACTION_REFUND;
+            }
+
+            return StateMachineTransitionActions::ACTION_REFUND_PARTIALLY;
+        }
+
+        // 4. Fall back to existing code-based mapping
+        return $this->getOrderActionNameByPayTransactionStatusCode($payOrder->getStatusCode());
+    }
+
+    /**
+     * Prevent reopening already-refunded transactions as paid.
+     */
+    private function isRefundReversalAttempt(
+        PaynlTransactionEntity $entity,
+        string $attemptedTransition
+    ): bool {
+        if ($attemptedTransition !== StateMachineTransitionActions::ACTION_PAID) {
+            return false;
+        }
+
+        $currentState = $entity->getOrderTransaction()
+            ?->getStateMachineState()
+            ?->getTechnicalName();
+
+        return in_array($currentState, [
+            OrderTransactionStates::STATE_REFUNDED,
+            OrderTransactionStates::STATE_PARTIALLY_REFUNDED,
+            StateMachineStateEnum::ACTION_REFUNDING,
+        ], true);
+    }
+
+    /**
      * @throws PaynlTransactionException
      * @throws PayException
      * @throws Exception
@@ -339,7 +454,8 @@ class ProcessingHelper
         string $paynlId,
         string $paynlTransactionId,
         string $currentActionName,
-        string $salesChannelId
+        string $salesChannelId,
+        Context $context
     ): void {
         $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
         $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
@@ -398,7 +514,7 @@ class ProcessingHelper
             $paynlTransactionEntity->getOrder(),
             $payOrder->getStatusCode(),
             $salesChannelId,
-            Context::createDefaultContext()
+            $context
         );
     }
 

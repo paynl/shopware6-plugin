@@ -1,3 +1,11 @@
+# 2.0.8
+- Fixed PayPal Express production configuration.
+- Added Nationale Golfbon and Kadokaart payment method logos.
+- Updated paynl/php-sdk to 1.0.10.
+- Hardened plugin routes across Admin API, storefront express checkout, refunds, and account order endpoints
+- Fixed headless payment return (finalize-transaction) and payment start for order numbers with hyphens
+- Fixed refund exchange notify handling so refunded orders are no longer set back to paid.
+
 # 2.0.7
 - Fixed service config parsing when payment methods return non-null `settings`; patched `paynl/php-sdk` `Method` model hydration.
 
