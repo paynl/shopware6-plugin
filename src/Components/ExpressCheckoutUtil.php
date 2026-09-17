@@ -73,6 +73,7 @@ class ExpressCheckoutUtil
     private SalutationRepositoryInterface $salutationRepository;
     private SalesChannelRepositoryInterface $salesChannelRepository;
     private string $shopwareVersion;
+    private ?string $instanceId;
 
     public function __construct(
         CustomerService $customerService,
@@ -91,7 +92,8 @@ class ExpressCheckoutUtil
         ProductRepositoryInterface $productRepository,
         SalutationRepositoryInterface $salutationRepository,
         SalesChannelRepositoryInterface $salesChannelRepository,
-        string $shopwareVersion
+        string $shopwareVersion,
+        ?string $instanceId
     ) {
         $this->customerService = $customerService;
         $this->cartService = $cartService;
@@ -110,6 +112,7 @@ class ExpressCheckoutUtil
         $this->salutationRepository = $salutationRepository;
         $this->salesChannelRepository = $salesChannelRepository;
         $this->shopwareVersion = $shopwareVersion;
+        $this->instanceId = $instanceId;
     }
 
     public function getActiveIdealID(SalesChannelContext $context): string
@@ -348,13 +351,19 @@ class ExpressCheckoutUtil
 
     public function getOrderStats(): Model\Stats
     {
-        return (new Model\Stats())
+        $stats = (new Model\Stats())
             ->setObject(sprintf(
                 'Shopware v%s | %s | %s',
                 $this->shopwareVersion,
                 $this->pluginHelper->getPluginVersionFromComposer(),
                 substr(phpversion(), 0, 3)
             ));
+
+        if ($this->instanceId !== null && $this->instanceId !== '') {
+            $stats->setExtra3($this->instanceId);
+        }
+
+        return $stats;
     }
 
     public function getCountryIdByCode(string $code, Context $context): ?string
