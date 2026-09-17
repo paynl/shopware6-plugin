@@ -13,6 +13,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
@@ -33,9 +34,13 @@ class StatusTransitionController extends AbstractController
     }
 
     #[Route('/api/paynl/change-transaction-status', name: 'api.PaynlPayment.changeTransactionStatus', methods: ['POST'])]
-    public function changeTransactionStatus(Request $request): JsonResponse
+    public function changeTransactionStatus(Request $request, Context $context): JsonResponse
     {
         $orderTransactionId = $request->request->get('transactionId', '');
+        if (empty($orderTransactionId)) {
+            return new JsonResponse(['error' => 'Transaction ID required'], Response::HTTP_BAD_REQUEST);
+        }
+
         $currentActionName = $request->request->get('currentActionName', '');
         try {
             /** @var PaynlTransactionEntity $paynlTransaction */
@@ -44,12 +49,12 @@ class StatusTransitionController extends AbstractController
                     (new Criteria())
                         ->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId))
                         ->addAssociation('order'),
-                    Context::createDefaultContext()
+                    $context
                 )
                 ->first();
 
             if (empty($paynlTransaction) || empty($paynlTransaction->getOrder())) {
-                return new JsonResponse($request->request->all());
+                return new JsonResponse(['error' => 'Transaction not found'], Response::HTTP_NOT_FOUND);
             }
 
             $salesChannelId = $paynlTransaction->getOrder()->getSalesChannelId();
@@ -59,21 +64,21 @@ class StatusTransitionController extends AbstractController
                     $paynlTransaction->getId(),
                     $paynlTransaction->getPaynlTransactionId(),
                     $currentActionName,
-                    $salesChannelId
+                    $salesChannelId,
+                    $context
                 );
             }
 
-            return new JsonResponse($request->request->all());
+            return new JsonResponse(['success' => true], Response::HTTP_OK);
         } catch (Exception $exception) {
             $this->logger->error('Error on changing transaction status.', [
                 'exception' => $exception,
                 'transactionId' => $orderTransactionId,
-                'actionName' => $currentActionName
+                'actionName' => $currentActionName,
+                'trace' => $exception->getTraceAsString()
             ]);
 
-            return new JsonResponse([
-                'errorMessage' => $exception->getMessage()
-            ], 400);
+            return new JsonResponse(['error' => 'Unable to change transaction status'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
