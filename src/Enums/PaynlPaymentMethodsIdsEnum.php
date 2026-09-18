@@ -51,6 +51,6 @@ class PaynlPaymentMethodsIdsEnum
 
     public static function isPayPartsCardPayment(int $paynlId): bool
     {
-        return in_array($paynlId, self::getPayPartsCardPaymentIds(), true);
+        return in_array($paynlId, static::getPayPartsCardPaymentIds(), true);
     }
 }
