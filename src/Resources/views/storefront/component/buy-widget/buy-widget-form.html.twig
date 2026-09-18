@@ -17,11 +17,13 @@
             {% endif %}
 
             <div class="btn-block js-ideal-express-container">
-                <a href="{{ path('frontend.account.PaynlPayment.ideal-express.product.start-payment', {productId: productId, quantity: 1}) }}" id="btn-fast-checkout"
+                <a href="#" id="btn-fast-checkout"
                    style="background-image: url('{{ asset('bundles/paynlpaymentshopware6/logos/ideal/ecs/fastCheckoutIdeal.png') }}')"
                    class="btn btn-primary btn-block btn-buy w-100"
                    data-product-id="{{ productId }}"
                    data-paynl-express-product-button="true"
+                   data-start-product-payment-url="{{ path('frontend.account.PaynlPayment.ideal-express.product.start-payment') }}"
+                   data-quantity="1"
                    title="{{ "payment.idealExpressCheckout.buttonTitle" | trans }}">{{ "payment.idealExpressCheckout.buttonTitle" | trans }}
                 </a>
             </div>

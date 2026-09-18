@@ -18,13 +18,6 @@
             </call>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Controller\Storefront\AccountOrder\AccountOrderController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
         <service id="PaynlPayment\Shopware6\Controller\Storefront\Ideal\IdealExpressController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil" />
             <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" />

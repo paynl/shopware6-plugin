@@ -1,13 +1,10 @@
 import Plugin from 'src/plugin-system/plugin.class';
 import IMask from '../../node_modules/imask/dist/imask';
 import DomAccess from 'src/helper/dom-access.helper';
-import HttpClient from 'src/service/http-client.service';
 import ButtonLoadingIndicator from 'src/utility/loading-indicator/button-loading-indicator.util';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
-        this._client = new HttpClient();
-
         this.paymentMethodsScriptsInit();
         this.paymentPinMessageInit();
         this.paymentAdditionalInit();
@@ -35,6 +32,7 @@ export default class PaynlPaymentPlugin extends Plugin {
             const invalid = [];
             const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
 
+            // Early return if no PayNL method is active
             if (!currentPaymentMethod) {
                 return;
             }
@@ -156,16 +154,15 @@ export default class PaynlPaymentPlugin extends Plugin {
         });
     }
 
-    onSavePaymentMethod(event) {
+    onSavePaymentMethod(element) {
+        const data = {};
+        const invalid = [];
         const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
 
-        // Methods without an extra block (e.g. PAY.Parts credit card) have nothing to save.
+        // Early return if no PayNL method is active
         if (!currentPaymentMethod) {
             return;
         }
-
-        const data = {};
-        const invalid = [];
 
         if (currentPaymentMethod.querySelector('.paynl-ideal-banks-select')) {
             const idealBankSelect = currentPaymentMethod.querySelector('.paynl-ideal-banks-select');
@@ -202,21 +199,11 @@ export default class PaynlPaymentPlugin extends Plugin {
                 element.classList.add('invalid');
             });
 
-            event.preventDefault();
-            event.stopPropagation();
+            element.preventDefault();
+            element.stopPropagation();
 
             return;
         }
-
-        if (Object.keys(data).length === 0) {
-            return;
-        }
-
-        this.savePayLaterFields(data);
-    }
-
-    savePayLaterFields(data) {
-        this._client.post('/PaynlPayment/order/change/paylater-fields', JSON.stringify(data));
     }
 
     onChangeCallback(event) {
