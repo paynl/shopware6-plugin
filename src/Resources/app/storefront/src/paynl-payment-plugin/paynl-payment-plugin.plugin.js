@@ -261,7 +261,11 @@ export default class PaynlPaymentPlugin extends Plugin {
     showPayLaterSaveButton(event) {
         const input = event.target;
         const paynlPaymentMethodExtra = input.closest('.paynl-payment-method-extra');
-        const saveBtn = paynlPaymentMethodExtra.querySelector('.paynl-change-payment-method');
+        const saveBtn = paynlPaymentMethodExtra?.querySelector('.paynl-change-payment-method');
+
+        if (!saveBtn) {
+            return;
+        }
 
         saveBtn.classList.remove('d-none');
     }

@@ -72,6 +72,11 @@ class Config
         return (bool)$this->get($salesChannelId, 'surchargePaymentMethods');
     }
 
+    public function isPayPartsCreditCardWidgetEnabled(string $salesChannelId): bool
+    {
+        return (bool) $this->get($salesChannelId, 'enablePayPartsCreditCardWidget');
+    }
+
     /**
      * @return string[]
      */
