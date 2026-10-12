@@ -3,6 +3,16 @@ import { expect, type Page } from '@playwright/test';
 
 const PAY_HOST = /pay\.nl|achterelkebetaling\.nl|payments\.nl/i;
 const ISSUER_HOST = /ideal\.nl|cloudflare/i;
+const WERO_PAY_HOST = /(?:^|\/\/)ext\.pay\.wero\.ideal\.nl(?::\d+)?(?:[/?#]|$)/i;
+
+function isPayHost(href: string): boolean {
+    return WERO_PAY_HOST.test(href) || (PAY_HOST.test(href) && !ISSUER_HOST.test(href));
+}
+
+function isIssuerHost(href: string): boolean {
+    return !WERO_PAY_HOST.test(href) && ISSUER_HOST.test(href);
+}
+
 const CHECKOUT_HOST = String.raw`checkout\.(?:pay\.nl|achterelkebetaling\.nl|payments\.nl)`;
 const ORDER_UUID = String.raw`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`;
 const SANDBOX_FORM = new RegExp(
@@ -31,7 +41,7 @@ async function isCloudflareChallenge(page: Page): Promise<boolean> {
 }
 
 async function leaveIssuerChallenge(page: Page): Promise<void> {
-    if (!ISSUER_HOST.test(page.url()) && !(await isCloudflareChallenge(page))) {
+    if (!isIssuerHost(page.url()) && !(await isCloudflareChallenge(page))) {
         return;
     }
 
@@ -155,7 +165,7 @@ export async function completePaySandbox(
     status: SandboxPaymentStatus = 'captured',
 ): Promise<void> {
     await page.waitForURL(
-        (url) => PAY_HOST.test(url.href) && !ISSUER_HOST.test(url.href),
+        (url) => isPayHost(url.href),
         { timeout: 60_000 },
     );
     await fillSandboxForm(page, amount, status);
@@ -211,6 +221,18 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         const parsed = parseAmount(raw);
         if (parsed.amount !== expected || parsed.sandboxAmount !== expected.toFixed(2)) {
             throw new Error(`parseAmount(${JSON.stringify(raw)}) => ${parsed.amount} / ${parsed.sandboxAmount}`);
+        }
+    }
+
+    const hostCases: Array<[string, boolean, boolean]> = [
+        ['https://ext.pay.wero.ideal.nl/10001', true, false],
+        ['https://checkout.pay.nl/en-us/sandbox/00000000-0000-0000-0000-000000000000', true, false],
+        ['https://www.ideal.nl/issuer', false, true],
+        ['https://challenges.cloudflare.com/', false, true],
+    ];
+    for (const [href, pay, issuer] of hostCases) {
+        if (isPayHost(href) !== pay || isIssuerHost(href) !== issuer) {
+            throw new Error(`host ${href} => pay ${isPayHost(href)}, issuer ${isIssuerHost(href)}`);
         }
     }
     console.log('parseAmount self-check ok');
