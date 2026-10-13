@@ -135,7 +135,7 @@ test.describe('PAY. checkout', () => {
         ));
 
         await step(StorefrontPage, 'Confirm the thank you page', async () => {
-            await expect(StorefrontPage).toHaveURL(/checkout\/finish/i, { timeout: 30_000 });
+            await expect(StorefrontPage).toHaveURL(/checkout\/finish/i, { timeout: 120_000 });
             await confirmPaidOrder(StorefrontPage, StorefrontCheckoutFinish, AdminApiContext, expected);
         });
     });

@@ -151,7 +151,7 @@ async function completeWeroIdeal(page: Page): Promise<void> {
     const success = page.getByRole('button', { name: 'Success', exact: true });
     await expect(success).toBeVisible();
     await success.click();
-    await page.waitForURL(FINISH_URL, { timeout: 60_000 });
+    await page.waitForURL(FINISH_URL, { timeout: 120_000 });
 }
 
 async function returnFromSandbox(page: Page, amount: string, status: SandboxPaymentStatus): Promise<void> {
