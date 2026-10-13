@@ -4,7 +4,24 @@ const PROFILER_CSS = '.sf-toolbar, .sf-toolbar-block { display: none !important;
 const ACCEPT_ALL_COOKIES = /accept all|alle cookies accepteren|alle cookies akzeptieren/i;
 
 export async function prepareStorefront(page: Page): Promise<void> {
-    await page.setExtraHTTPHeaders({ 'ngrok-skip-browser-warning': 'true' });
+    // Only the shop needs this. A page-wide header is copied onto the iDEAL
+    // simulator call and that API rejects it in the CORS preflight.
+    const appUrl = (process.env.APP_URL ?? '').replace(/\/$/, '');
+    if (appUrl) {
+        await page.route('**/*', async (route) => {
+            if (!route.request().url().startsWith(appUrl)) {
+                await route.continue();
+                return;
+            }
+
+            await route.continue({
+                headers: {
+                    ...route.request().headers(),
+                    'ngrok-skip-browser-warning': 'true',
+                },
+            });
+        });
+    }
     if (await page.getByText(/you are about to visit|ngrok-free\.app|visit site/i).first().isVisible({ timeout: 2000 }).catch(() => false)) {
         await page.reload({ waitUntil: 'domcontentloaded' });
     }
