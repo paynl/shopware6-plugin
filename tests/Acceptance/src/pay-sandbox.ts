@@ -135,6 +135,24 @@ async function submitSandboxStatus(page: Page, amount: string, status: SandboxPa
 }
 
 const FINISH_URL = /checkout\/finish|PaynlPayment\/finalize-transaction/i;
+const IDEAL_TEST_HANDLER = /https:\/\/handler\.ext\.idealtesttool\.nl(?:\/|$)/i;
+
+/** iDEAL test mode opens Wero, then the iDEAL test handler. Sandbox checkout stays on checkout.pay.nl. */
+async function completeWeroIdeal(page: Page): Promise<void> {
+    const selectBank = page.getByRole('button', { name: 'Select your bank' });
+    await expect(selectBank).toBeVisible();
+    await selectBank.click();
+
+    const testBank = page.locator('a[href*="issuerId=TESTNL2A"]');
+    await expect(testBank, `TESTNL2A was not listed at ${page.url()}`).toBeVisible();
+    await testBank.click();
+    await page.waitForURL(IDEAL_TEST_HANDLER, { timeout: 60_000 });
+
+    const success = page.getByRole('button', { name: 'Success', exact: true });
+    await expect(success).toBeVisible();
+    await success.click();
+    await page.waitForURL(FINISH_URL, { timeout: 60_000 });
+}
 
 async function returnFromSandbox(page: Page, amount: string, status: SandboxPaymentStatus): Promise<void> {
     if (FINISH_URL.test(page.url())) {
@@ -168,6 +186,10 @@ export async function completePaySandbox(
         (url) => isPayHost(url.href),
         { timeout: 60_000 },
     );
+    if (WERO_PAY_HOST.test(page.url())) {
+        await completeWeroIdeal(page);
+        return;
+    }
     await fillSandboxForm(page, amount, status);
     await returnFromSandbox(page, amount, status);
 }
