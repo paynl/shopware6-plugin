@@ -1,5 +1,14 @@
-import { expect, type Page, type Response } from '@playwright/test';
+import { expect, type Locator, type Page, type Response } from '@playwright/test';
 import { dismissAdminPopups } from './admin-popups';
+
+/** Shopware 6.7 lists transitions as `li.sw-select-result` with numeric `sw-select-option--*` classes, not `--paid`. */
+const PAID_CAPTURE_HIGHLIGHT = /^(Paid(\s*\(Capture\))?|Bezahlt \(Erfassung\)|Betaald \(Capture\))$/i;
+
+function paidCaptureSelectResult(page: Page): Locator {
+    return page.locator('li.sw-select-result').filter({
+        has: page.locator('.sw-highlight-text').filter({ hasText: PAID_CAPTURE_HIGHLIGHT }),
+    });
+}
 
 export async function captureAuthorizedOrder(page: Page, orderId: string): Promise<void> {
     await page.goto(`./#/sw/order/detail/${orderId}/general`, { waitUntil: 'domcontentloaded' });
@@ -9,9 +18,9 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
     await expect(payment, 'Payment status select was not shown on the order').toBeVisible({ timeout: 60_000 });
     await payment.locator('.sw-single-select__selection').click();
 
-    const paid = page.locator('.sw-select-result.sw-select-option--paid');
-    await expect(paid, `Paid was not offered from ${await payment.innerText()}`).toBeVisible();
-    await paid.click();
+    const paid = paidCaptureSelectResult(page);
+    await expect(paid.first(), 'Paid capture was not offered in the payment status list').toBeVisible({ timeout: 60_000 });
+    await paid.first().click();
 
     const confirm = page.locator('.sw-order-state-change-modal-attach-documents__button');
     await expect(confirm).toBeVisible();
