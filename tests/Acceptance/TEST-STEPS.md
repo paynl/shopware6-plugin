@@ -29,7 +29,7 @@ After submit, the browser must land on a PAY. host (`pay.nl`, `achterelkebetalin
 4. Type `PAY_SANDBOX_SECRET` into `#secret` (the field is switched to a password input first).
 5. Select the requested status: **Authorised** (`#authorised`) or **Captured** (`#captured`). Fill that status’s amount with the checkout total when the amount field is present.
 6. Click **Update status**. An “invalid secret” message fails the test immediately.
-7. Wait until the shop returns to `/checkout/finish` or `/PaynlPayment/finalize-transaction`. **Authorised** stays on the sandbox (its continue link opens a new tab), so the helper then selects **Captured** and submits again in the same tab before waiting for the shop.
+7. Wait until the shop returns to `/checkout/finish` or `/PaynlPayment/finalize-transaction`. **Captured** redirects there directly. **Authorised** reloads the sandbox; the helper follows **Continue to the website** (English, German, or Dutch label) via its `href` in the same tab, then waits for the shop URL.
 
 ---
 
@@ -87,9 +87,10 @@ Both tests place an order with the shared guest checkout and the uniform **Pay b
 
 Timeout: 5 minutes.
 
-1. Place the order and complete the sandbox as **Authorised**, which the sandbox helper then finishes as **Captured** so the browser can return to the shop.
-2. Poll the Admin API until the Shopware transaction state is `paid` (up to 2 minutes).
-3. Load the `paynl-transactions` row for that order. It must have a PAY. transaction id, and its `stateId` must be `100` (PAY. paid).
+1. Place the order and complete the sandbox as **Authorised**; the helper returns to the shop via the sandbox continue link without capturing at PAY.
+2. Poll the Admin API until the Shopware transaction state is `authorize` (up to 2 minutes). The `paynl-transactions` row must have `stateId` `95` (PAY. authorised).
+3. Open admin, dismiss popups, open the order, change payment status to **Paid**, and confirm. `POST /paynl/change-transaction-status` must succeed with `currentActionName` `paid`.
+4. Poll until the Shopware transaction is `paid`. The PAY. transaction `stateId` must be `100`.
 
 ### Admin refund of a paid payment refunds it at PAY.
 

@@ -155,7 +155,19 @@ async function completeWeroIdeal(page: Page): Promise<void> {
     await page.waitForURL(FINISH_URL, { timeout: 120_000 });
 }
 
-async function returnFromSandbox(page: Page, amount: string, status: SandboxPaymentStatus): Promise<void> {
+const CONTINUE_TO_SHOP = /continue to the website|weiter zur website|doorgaan naar de website|terug naar de webshop|back to the shop/i;
+
+async function continueToShopFromSandbox(page: Page): Promise<void> {
+    const continueLink = page.locator('a[href][target="_blank"]').filter({ hasText: CONTINUE_TO_SHOP }).first();
+    await expect(continueLink, `Continue to shop link was not shown at ${page.url()}`).toBeVisible({ timeout: 60_000 });
+    const href = await continueLink.getAttribute('href');
+    if (!href) {
+        throw new Error(`Continue to shop link has no href at ${page.url()}`);
+    }
+    await page.goto(new URL(href, page.url()).href, { waitUntil: 'domcontentloaded' });
+}
+
+async function returnFromSandbox(page: Page, _amount: string, status: SandboxPaymentStatus): Promise<void> {
     if (FINISH_URL.test(page.url())) {
         return;
     }
@@ -165,10 +177,9 @@ async function returnFromSandbox(page: Page, amount: string, status: SandboxPaym
         return;
     }
 
-    // Authorised (95) reloads the sandbox. "Continue to the website" is target=_blank,
-    // so select Captured / Paid (#captured) and submit in this tab.
+    // Authorised (95) reloads the sandbox. "Continue to the website" is target=_blank; navigate in this tab.
     if (status === 'authorised') {
-        await submitSandboxStatus(page, amount, 'captured');
+        await continueToShopFromSandbox(page);
         if (!FINISH_URL.test(page.url())) {
             await page.waitForURL(FINISH_URL, { timeout: 60_000 });
         }

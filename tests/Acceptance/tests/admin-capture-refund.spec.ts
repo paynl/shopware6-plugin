@@ -1,6 +1,6 @@
 import { test, expect, type FixtureTypes } from '@shopware-ag/acceptance-test-suite';
 import type { Locator, Page } from '@playwright/test';
-import { assertPayRefundAccepted, refundOrder } from '../src/admin-order';
+import { assertPayRefundAccepted, captureAuthorizedOrder, refundOrder } from '../src/admin-order';
 import { dismissAdminPopups, openAdmin } from '../src/admin-popups';
 import {
     acceptTermsAndSubmitOrder,
@@ -109,6 +109,7 @@ test.use(payConfigPageTestUse);
 
 test.describe('PAY. admin capture and refund', () => {
     test('admin Paid on an authorised payment captures it', async ({
+        browser,
         StorefrontPage,
         StorefrontProductDetail,
         StorefrontCheckoutConfirm,
@@ -133,13 +134,29 @@ test.describe('PAY. admin capture and refund', () => {
             Register,
         }, 'authorised');
 
-        const authorized = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
+        const authorized = await step(StorefrontPage, 'Wait until the payment is authorized', () => waitForOrderPaymentState(
+            AdminApiContext,
+            { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
+            'authorize',
+        ));
+        const before = await readPaynlTransactionState(AdminApiContext, authorized.id);
+        expect(before.stateId).toBe(95);
+
+        const adminPage = await openAdmin(browser);
+        try {
+            await step(adminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(adminPage, 2_000));
+            await step(adminPage, 'Set payment status to Paid (capture)', () => captureAuthorizedOrder(adminPage, authorized.id));
+        } finally {
+            await adminPage.context().close();
+        }
+
+        const paid = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
             AdminApiContext,
             { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
             'paid',
         ));
-        const before = await readPaynlTransactionState(AdminApiContext, authorized.id);
-        expect(before.stateId).toBe(100);
+        const after = await readPaynlTransactionState(AdminApiContext, paid.id);
+        expect(after.stateId).toBe(100);
     });
 
     test.describe('admin refund', () => {
