@@ -105,6 +105,8 @@ async function switchOn(checkbox: Locator): Promise<boolean> {
     return true;
 }
 
+test.use(payConfigPageTestUse);
+
 test.describe('PAY. admin capture and refund', () => {
     test('admin Paid on an authorised payment captures it', async ({
         StorefrontPage,
@@ -141,8 +143,6 @@ test.describe('PAY. admin capture and refund', () => {
     });
 
     test.describe('admin refund', () => {
-        test.use(payConfigPageTestUse);
-
         test.skip('admin refund of a paid payment refunds it at PAY.', async ({
             browser,
             StorefrontPage,

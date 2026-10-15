@@ -24,9 +24,9 @@ async function expectPrefilledConfigInput(page: Page, name: string, label: strin
     expect(length > 0, `${fieldLabel} must be pre-configured (e2e configure or local setup)`).toBe(true);
 }
 
-test.describe('PAY. plugin config', () => {
-    test.use(payConfigPageTestUse);
+test.use(payConfigPageTestUse);
 
+test.describe('PAY. plugin config', () => {
     test('Test API Keys connects with the sales location', async ({ browser }) => {
         expectPayCredentialsEnv();
         const adminPage = await openAdmin(browser);
