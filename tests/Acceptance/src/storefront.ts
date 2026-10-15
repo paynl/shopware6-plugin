@@ -1,6 +1,6 @@
-import { expect, type BrowserContext, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { appears } from './locator-helpers';
 
-const PROFILER_CSS = '.sf-toolbar, .sf-toolbar-block { display: none !important; pointer-events: none !important; }';
 const ACCEPT_ALL_COOKIES = /accept all|alle cookies accepteren|alle cookies akzeptieren/i;
 
 export async function prepareStorefront(page: Page): Promise<void> {
@@ -22,29 +22,29 @@ export async function prepareStorefront(page: Page): Promise<void> {
             });
         });
     }
-    if (await page.getByText(/you are about to visit|ngrok-free\.app|visit site/i).first().isVisible({ timeout: 2000 }).catch(() => false)) {
+    const ngrokWarning = page.getByText(/you are about to visit|ngrok-free\.app|visit site/i).first();
+    if (await appears(ngrokWarning, 2000)) {
         await page.reload({ waitUntil: 'domcontentloaded' });
     }
-    await hideProfiler(page);
     await acceptCookies(page);
 }
 
 export async function acceptCookies(page: Page): Promise<void> {
     const acceptAll = page.getByRole('button', { name: ACCEPT_ALL_COOKIES }).first();
-    if (await acceptAll.isVisible({ timeout: 4000 }).catch(() => false)) {
+    if (await appears(acceptAll, 4000)) {
         await acceptAll.click();
         return;
     }
 
     const requiredOnly = page.getByRole('button', { name: /only technically required/i }).first();
-    if (await requiredOnly.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await appears(requiredOnly, 1000)) {
         await requiredOnly.click();
     }
 }
 
 export async function enableGuestCheckout(page: Page): Promise<boolean> {
     const createAccount = page.getByRole('checkbox', { name: /create a customer account/i });
-    if (await createAccount.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await appears(createAccount, 3000)) {
         if (await createAccount.isChecked()) {
             await createAccount.uncheck({ force: true });
         }
@@ -55,7 +55,7 @@ export async function enableGuestCheckout(page: Page): Promise<boolean> {
     }
 
     const guest = page.locator('#personalGuest, input[name="guest"]').first();
-    if (await guest.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await appears(guest, 1000)) {
         await guest.check({ force: true });
         return true;
     }
@@ -65,19 +65,7 @@ export async function enableGuestCheckout(page: Page): Promise<boolean> {
 
 export async function isPasswordRequired(page: Page): Promise<boolean> {
     const password = page.locator('#personalPassword, input[name="password"]').first();
-    return password.isVisible({ timeout: 1000 }).catch(() => false);
-}
-
-export async function hideProfiler(page: Page): Promise<void> {
-    await page.addStyleTag({ content: PROFILER_CSS }).catch(() => undefined);
-}
-
-export async function hideProfilerOnContext(context: BrowserContext): Promise<void> {
-    await context.addInitScript((css: string) => {
-        const style = document.createElement('style');
-        style.textContent = css;
-        document.documentElement.append(style);
-    }, PROFILER_CSS);
+    return appears(password, 1000);
 }
 
 async function storefrontFailureContext(page: Page): Promise<string> {
@@ -106,7 +94,7 @@ export async function addProductToCart(page: Page, quantity = '1'): Promise<void
     const quantityField = page.locator('.buy-widget:not(.d-none), .product-detail-buy').locator(
         'select#quantity, input[name="quantity"], input.quantity-selector-group-input, .product-detail-quantity-select',
     ).first();
-    if (await quantityField.isVisible().catch(() => false)) {
+    if (await appears(quantityField, 2000)) {
         const tag = await quantityField.evaluate((element) => element.tagName);
         if (tag === 'SELECT') {
             await quantityField.selectOption(quantity);

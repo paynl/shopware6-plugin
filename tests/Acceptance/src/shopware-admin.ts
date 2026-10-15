@@ -474,11 +474,20 @@ export type PaidOrder = {
     stateMachineState?: { technicalName: string };
     transactions: Array<{
         id: string;
+        createdAt?: string;
         amount: { totalPrice: number };
         stateMachineState: { technicalName: string };
         paymentMethod?: { name: string };
     }>;
 };
+
+export function latestOrderTransaction(order: Pick<PaidOrder, 'transactions'>): PaidOrder['transactions'][number] {
+    const transactions = order.transactions ?? [];
+    expect(transactions.length, 'Order has no transactions').toBeGreaterThan(0);
+    return [...transactions].sort((left, right) =>
+        (right.createdAt ?? '').localeCompare(left.createdAt ?? ''),
+    )[0];
+}
 
 export async function waitForOrderPaymentState(
     adminApi: AdminApiContext,
@@ -502,6 +511,7 @@ export async function waitForOrderPaymentState(
                     currency: {},
                     stateMachineState: {},
                     transactions: {
+                        sort: [{ field: 'createdAt', order: 'DESC' }],
                         associations: {
                             stateMachineState: {},
                             paymentMethod: {},
@@ -516,7 +526,7 @@ export async function waitForOrderPaymentState(
         const order = payload.data[0];
 
         if (order) {
-            const transaction = order.transactions?.[0];
+            const transaction = order.transactions?.length ? latestOrderTransaction(order) : undefined;
             lastState = transaction?.stateMachineState?.technicalName ?? 'missing-transaction';
             if (lastState === technicalName) {
                 return order;
@@ -538,7 +548,7 @@ export async function waitForPaidOrder(
     timeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000),
 ): Promise<PaidOrder> {
     const order = await waitForOrderPaymentState(adminApi, lookup, 'paid', timeoutMs);
-    const transaction = order.transactions[0];
+    const transaction = latestOrderTransaction(order);
     expect(order.currency.isoCode).toBe(expected.currency);
     expect(order.amountTotal).toBeCloseTo(expected.amount, 2);
     expect(transaction.amount.totalPrice).toBeCloseTo(expected.amount, 2);

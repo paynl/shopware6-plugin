@@ -12,7 +12,7 @@ Two tests are skipped and do not run:
 The checkout tests and the capture/refund tests all reach the confirm page the same way.
 
 1. Through the Admin API, make sure the sales channel has both the `https` and `http` versions of the storefront URL as domain aliases, so the shop recognises the tunnel.
-2. Open the storefront home page. Hide the Symfony profiler, and accept the cookie banner if it is shown.
+2. Open the storefront home page and accept the cookie banner if it is shown.
 3. Open the fixture product’s detail page, set quantity to 1, and click **Add to cart**.
 4. In the off-canvas cart, click **Go to checkout**.
 5. If the shop shows the register page, turn guest checkout on (uncheck **Create a customer account**, or check the guest option). The Shopware suite then fills and submits the guest registration form. The test waits until the URL is `/checkout/confirm`.
@@ -95,8 +95,8 @@ Timeout: 5 minutes.
 
 Skipped (`test.skip`). Timeout would be 5 minutes. It opens a separate admin browser, separate from the storefront session.
 
-1. Open `/admin/#/login`, sign in with `SHOPWARE_ADMIN_USERNAME` / `SHOPWARE_ADMIN_PASSWORD` (defaults `admin` / `shopware`), and wait until the URL hash is no longer the login screen.
-2. Dismiss the Shopware usage-data dialog (**Reject all**) and the “new Shopware version” dialog (**Cancel**), and hide the profiler.
+1. Open `/admin/#/login`, sign in with `SHOPWARE_ADMIN_USERNAME` / `SHOPWARE_ADMIN_PASSWORD` from `.env` (written by `env:up`), and wait until the URL hash is no longer the login screen.
+2. Dismiss the Shopware usage-data dialog (**Reject all**) and the “new Shopware version” dialog (**Cancel**).
 3. Open **Extensions → PaynlPaymentShopware6** config (`#/sw/extension/config/PaynlPaymentShopware6`).
 4. Turn on **Allow refunds** and **Allow Shopware native refunds** (English, German, and Dutch labels are accepted). If either was off, click **Save** and wait for a successful `POST /_action/system-config`. Both checkboxes must end up checked. If both were already on, nothing is saved.
 5. In the storefront, place an order and complete the sandbox as **Captured**.
@@ -139,7 +139,7 @@ Skipped (`test.skip`). It builds its own customer and product, and it never subm
 3. Pick the first installed card method in this PAY. id order: `11`, `706`, `3141`, `3138`, `708`, `2268`, `710`, `711`, `712`, `715`, `1705`, `1939`, `1945`. Activate it and set it as the sales channel payment method.
 4. Create a customer `payparts-{id}@example.com` with password `shopware`, name Pay Parts, that billing and shipping address, and the card method as the default payment method.
 5. Create an active product “PayParts card {id}” at gross 10 / net 8.40, stock 10, in the sales channel’s navigation category, then clear the delayed cache.
-6. Open a new browser context on `APP_URL`, add `ngrok-skip-browser-warning` on requests to that host, and hide the profiler.
+6. Open a new browser context on `APP_URL` and add `ngrok-skip-browser-warning` on requests to that host.
 7. Go to `account/login`, accept cookies, log in as that customer, and wait until the login email field disappears.
 8. Open `detail/{productId}`, click **Buy**, then **Begin checkout**, and wait for `/checkout/confirm`.
 9. The wrapper `.paynl-payparts-card-wrapper` must be visible. Wait up to 60 seconds until `window.PayPartsSDK` exists or `.payparts-cc-gate__ctp` is in the page.

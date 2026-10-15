@@ -22,7 +22,12 @@ function loadEnvFile(path: string): void {
         const value = trimmed.slice(separator + 1).replace(/^['"]|['"]$/g, '');
         // The tunnel URLs in .env win. A leftover 127.0.0.1 in the process environment
         // makes Shopware return administration assets the browser never requests.
-        if (process.env[key] === undefined || key === 'APP_URL' || key === 'ADMIN_API_URL') {
+        if (
+            process.env[key] === undefined
+            || key === 'APP_URL'
+            || key === 'ADMIN_API_URL'
+            || key === 'SHOPWARE_ADMIN_PASSWORD'
+        ) {
             if (value !== '') {
                 process.env[key] = value;
             }

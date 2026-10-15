@@ -1,11 +1,13 @@
 name: Playwright PAY. checkout
 
 on:
-  push:
+  pull_request:
     paths:
       - '.github/workflows/playwright.yml'
       - 'tests/Acceptance/**'
       - 'src/**'
+  schedule:
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       plugin_ref:
@@ -19,7 +21,7 @@ on:
         type: string
 
 concurrency:
-  group: playwright-pay-${{ github.repository }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -37,7 +39,6 @@ jobs:
       SHOPWARE_PORT: '8080'
       SHOPWARE_WAIT_SECONDS: '600'
       SHOPWARE_ADMIN_USERNAME: admin
-      SHOPWARE_ADMIN_PASSWORD: shopware
       PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
       PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
       PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
@@ -61,7 +62,7 @@ jobs:
       - name: Checkout plugin revision
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.plugin_ref || github.ref }}
+          ref: ${{ inputs.plugin_ref || github.event.pull_request.head.sha || github.ref }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

@@ -209,13 +209,14 @@ wait_for_shopware() {
 }
 
 admin_token() {
+    [[ -n "${SHOPWARE_ADMIN_PASSWORD:-}" ]] || fail "SHOPWARE_ADMIN_PASSWORD is not set"
     local base_url="${ADMIN_API_URL:?ADMIN_API_URL is not set}"
     base_url="${base_url%/}"
     curl -fsS -X POST "${base_url}/api/oauth/token" \
         -H 'Content-Type: application/json' \
         -H 'ngrok-skip-browser-warning: true' \
         -d "$(printf '{"client_id":"administration","grant_type":"password","username":"%s","password":"%s"}' \
-            "${SHOPWARE_ADMIN_USERNAME:-admin}" "${SHOPWARE_ADMIN_PASSWORD:-shopware}")" \
+            "${SHOPWARE_ADMIN_USERNAME:-admin}" "${SHOPWARE_ADMIN_PASSWORD}")" \
         | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
 }
 
@@ -235,7 +236,8 @@ start_tunnel() {
 
     if [[ -n "${NGROK_AUTHTOKEN:-}" ]] && command -v ngrok >/dev/null 2>&1; then
         log "Starting ngrok tunnel to ${target}"
-        launch_tunnel ngrok http "${SHOPWARE_PORT}" --request-header-add "X-Forwarded-Proto:https" --log=stdout
+        # Pin IPv4. "ngrok http 8080" dials localhost, which is [::1] first.
+        launch_tunnel ngrok http "127.0.0.1:${SHOPWARE_PORT}" --request-header-add "X-Forwarded-Proto:https" --log=stdout
         local elapsed=0
         while (( elapsed < 45 )); do
             if curl -fsS http://127.0.0.1:4040/api/tunnels >/dev/null 2>&1; then
@@ -334,7 +336,8 @@ install_plugin_sdk() {
     log "Installing paynl/php-sdk into Shopware so the plugin requirement check passes"
     shopware_exec 'set -e
 cd /var/www/html
-composer require "paynl/php-sdk:>=0.2.6 <1.1.0" --no-interaction --ignore-platform-reqs --no-scripts
+SDK="$(php -r '"'"'echo json_decode(file_get_contents("custom/plugins/PaynlPaymentShopware6/composer.json"), true)["require"]["paynl/php-sdk"];'"'"')"
+composer require "paynl/php-sdk:${SDK}" --no-interaction --ignore-platform-reqs --no-scripts
 PLUGIN=/var/www/html/custom/plugins/PaynlPaymentShopware6
 mkdir -p "$PLUGIN/vendor"
 if [[ -d vendor/paynl ]]; then cp -a vendor/paynl "$PLUGIN/vendor/"; fi
@@ -342,20 +345,21 @@ if [[ -d vendor/php-curl-class ]]; then cp -a vendor/php-curl-class "$PLUGIN/ven
 '
 }
 
-disable_profiler_toolbar() {
-    log "Hiding the Symfony profiler toolbar"
-    # The toolbar covers admin modal buttons. Shopware loads config/packages/dev after web_profiler.yaml.
-    shopware_exec 'set -e
-cd /var/www/html
-mkdir -p config/packages/dev
-printf "%s\n" "web_profiler:" "    toolbar: false" > config/packages/dev/z_e2e_profiler.yaml
-'
+rotate_admin_password() {
+    local username="${SHOPWARE_ADMIN_USERNAME:-admin}"
+    local new_password
+    new_password="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)"
+    log "Setting a random Shopware admin password for this run"
+    docker exec -u dockware -e ADMIN_PW="${new_password}" -i "${CONTAINER_NAME}" bash -lc \
+        "cd /var/www/html && php bin/console user:change-password '${username}' --password=\"\${ADMIN_PW}\" -n"
+    set_env_value SHOPWARE_ADMIN_PASSWORD "${new_password}"
+    write_github_env SHOPWARE_ADMIN_PASSWORD "${new_password}"
+    export SHOPWARE_ADMIN_PASSWORD="${new_password}"
 }
 
 configure_shopware() {
     load_env_file
     require_pay_secrets
-    disable_profiler_toolbar
     local app_url="${APP_URL:?APP_URL is not set}"
     app_url="${app_url%/}"
 
@@ -373,6 +377,7 @@ if [[ -f .env ]]; then
       echo "$1=$2" >> .env
     fi
   }
+  set_shop_env APP_ENV prod
   forwarded_headers="x-forwarded-for,x-forwarded-host,x-forwarded-proto,x-forwarded-port,x-forwarded-prefix"
   set_shop_env TRUSTED_PROXIES private_ranges
   set_shop_env TRUSTED_HEADERS "$forwarded_headers"
@@ -466,6 +471,7 @@ cmd_up() {
     "${COMPOSE[@]}" pull shopware
     "${COMPOSE[@]}" up -d --force-recreate
     wait_for_shopware
+    rotate_admin_password
     start_tunnel
     configure_shopware
     log "Environment is ready. APP_URL=${APP_URL}"

@@ -1,7 +1,7 @@
 import { expect, test, clearDelayedCache } from '@shopware-ag/acceptance-test-suite';
 import type { FixtureTypes, IdProvider, Page } from '@shopware-ag/acceptance-test-suite';
 import { preparePayPartsCardCheckout } from '../src/shopware-admin';
-import { acceptCookies, hideProfilerOnContext } from '../src/storefront';
+import { acceptCookies } from '../src/storefront';
 
 type AdminApi = FixtureTypes['AdminApiContext'];
 
@@ -113,7 +113,6 @@ test.skip('Pay.Parts credit card form is shown on checkout confirm', async ({
                 },
             });
         });
-        await hideProfilerOnContext(context);
         const page = await context.newPage();
 
         try {

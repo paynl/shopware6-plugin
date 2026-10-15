@@ -14,6 +14,7 @@ import {
     readPaynlTransactionState,
     waitForOrderPaymentState,
 } from '../src/shopware-admin';
+import { maskPayConfigCredentialInputs, payConfigPageTestUse } from '../src/pay-config-page';
 import { step } from '../src/step';
 
 const REFUND_STATUS_CODES = [-72, -81, -82];
@@ -69,6 +70,7 @@ async function enableRefundSwitches(page: Page): Promise<void> {
     await page.goto('./#/sw/extension/config/PaynlPaymentShopware6', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/extension\/config\/PaynlPaymentShopware6/);
     await dismissAdminPopups(page);
+    await maskPayConfigCredentialInputs(page);
 
     const allowRefunds = page.getByRole('checkbox', { name: ALLOW_REFUNDS });
     const nativeRefunds = page.getByRole('checkbox', { name: ALLOW_NATIVE_REFUNDS });
@@ -138,55 +140,59 @@ test.describe('PAY. admin capture and refund', () => {
         expect(before.stateId).toBe(100);
     });
 
-    test.skip('admin refund of a paid payment refunds it at PAY.', async ({
-        browser,
-        StorefrontPage,
-        StorefrontProductDetail,
-        StorefrontCheckoutConfirm,
-        StorefrontCheckoutFinish,
-        ProductData,
-        DefaultSalesChannel,
-        AdminApiContext,
-        ShopCustomer,
-        Register,
-    }) => {
-        test.setTimeout(300_000);
+    test.describe('admin refund', () => {
+        test.use(payConfigPageTestUse);
 
-        const adminPage = await openAdmin(browser);
-        try {
-            await step(adminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(adminPage, 2_000));
-            await step(adminPage, 'Turn on Allow refunds and Allow Shopware native refunds', () => enableRefundSwitches(adminPage));
+        test.skip('admin refund of a paid payment refunds it at PAY.', async ({
+            browser,
+            StorefrontPage,
+            StorefrontProductDetail,
+            StorefrontCheckoutConfirm,
+            StorefrontCheckoutFinish,
+            ProductData,
+            DefaultSalesChannel,
+            AdminApiContext,
+            ShopCustomer,
+            Register,
+        }) => {
+            test.setTimeout(300_000);
 
-            const placed = await placePayOrder({
-                StorefrontPage,
-                StorefrontProductDetail,
-                StorefrontCheckoutConfirm,
-                StorefrontCheckoutFinish,
-                ProductData,
-                DefaultSalesChannel,
-                AdminApiContext,
-                ShopCustomer,
-                Register,
-            }, 'captured');
+            const adminPage = await openAdmin(browser);
+            try {
+                await step(adminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(adminPage, 2_000));
+                await step(adminPage, 'Turn on Allow refunds and Allow Shopware native refunds', () => enableRefundSwitches(adminPage));
 
-            const paid = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
-                AdminApiContext,
-                { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
-                'paid',
-            ));
-            const before = await readPaynlTransactionState(AdminApiContext, paid.id);
-            expect(before.stateId).toBe(100);
+                const placed = await placePayOrder({
+                    StorefrontPage,
+                    StorefrontProductDetail,
+                    StorefrontCheckoutConfirm,
+                    StorefrontCheckoutFinish,
+                    ProductData,
+                    DefaultSalesChannel,
+                    AdminApiContext,
+                    ShopCustomer,
+                    Register,
+                }, 'captured');
 
-            const refundMessages = await step(adminPage, 'Refund the order', () => refundOrder(adminPage, paid.id));
-            assertPayRefundAccepted(refundMessages);
+                const paid = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
+                    AdminApiContext,
+                    { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
+                    'paid',
+                ));
+                const before = await readPaynlTransactionState(AdminApiContext, paid.id);
+                expect(before.stateId).toBe(100);
 
-            const after = await readPaynlTransactionState(AdminApiContext, paid.id);
-            expect(
-                REFUND_STATUS_CODES,
-                `PAY. transaction ${after.paynlTransactionId} stayed at state ${after.stateId}`,
-            ).toContain(after.stateId);
-        } finally {
-            await adminPage.context().close();
-        }
+                const refundMessages = await step(adminPage, 'Refund the order', () => refundOrder(adminPage, paid.id));
+                assertPayRefundAccepted(refundMessages);
+
+                const after = await readPaynlTransactionState(AdminApiContext, paid.id);
+                expect(
+                    REFUND_STATUS_CODES,
+                    `PAY. transaction ${after.paynlTransactionId} stayed at state ${after.stateId}`,
+                ).toContain(after.stateId);
+            } finally {
+                await adminPage.context().close();
+            }
+        });
     });
 });

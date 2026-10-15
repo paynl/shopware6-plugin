@@ -4,6 +4,10 @@ These tests start a temporary Shopware shop, install this plugin revision, take 
 
 ## GitHub Actions
 
+The workflow runs on **pull requests** that touch `src/**` or `tests/Acceptance/**`, on a **nightly schedule** (02:00 UTC on `master`), and via **workflow_dispatch**. Each ref has its own concurrency group so one branch does not cancel another’s run.
+
+Each run starts Shopware with `APP_ENV=prod` (no Symfony profiler) and sets a **random admin password** before the public HTTPS tunnel opens.
+
 1. In the GitHub repository, open **Settings → Secrets and variables → Actions** and add:
 
    | Secret | Purpose |

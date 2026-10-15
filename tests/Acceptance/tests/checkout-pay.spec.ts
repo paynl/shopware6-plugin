@@ -7,6 +7,7 @@ import {
     assignPayPaymentMethod,
     IDEAL_PAYNL_ID,
     installIndividualPayPaymentMethods,
+    latestOrderTransaction,
     waitForPaidOrder,
 } from '../src/shopware-admin';
 import { step } from '../src/step';
@@ -31,7 +32,7 @@ async function confirmPaidOrder(
         { amount: expected.amount, currency: expected.currency },
     );
 
-    expect(order.transactions[0].stateMachineState.technicalName).toBe('paid');
+    expect(latestOrderTransaction(order).stateMachineState.technicalName).toBe('paid');
 }
 
 test.describe('PAY. checkout', () => {

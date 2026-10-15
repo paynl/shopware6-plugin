@@ -1,25 +1,34 @@
 import { expect, test } from '@shopware-ag/acceptance-test-suite';
 import type { Page, Response } from '@playwright/test';
 import { dismissAdminPopups, openAdmin } from '../src/admin-popups';
+import { maskPayConfigCredentialInputs, payConfigPageTestUse } from '../src/pay-config-page';
 import { step } from '../src/step';
 
 const SUCCESS_TEXT = /correct credentials|link erfolgreich|koppeling geslaagd|paynlValidation\.messages\.correctCredentials/i;
 
-function payCredentials(): { tokenCode: string; apiToken: string; serviceId: string } {
-    const tokenCode = process.env.PAY_TOKEN_CODE || '';
-    const apiToken = process.env.PAY_API_TOKEN || '';
-    const serviceId = process.env.PAY_SERVICE_ID || '';
-    expect(tokenCode && apiToken && serviceId, 'PAY_TOKEN_CODE, PAY_API_TOKEN and PAY_SERVICE_ID must be set').toBeTruthy();
-    return { tokenCode, apiToken, serviceId };
+function expectPayCredentialsEnv(): void {
+    expect(
+        process.env.PAY_TOKEN_CODE && process.env.PAY_API_TOKEN && process.env.PAY_SERVICE_ID,
+        'PAY_TOKEN_CODE, PAY_API_TOKEN and PAY_SERVICE_ID must be set',
+    ).toBeTruthy();
 }
 
 function configInput(page: Page, name: string, label: string) {
     return page.locator(`input[name="${name}"], input[aria-label*="${label}"]`).first();
 }
 
+async function expectPrefilledConfigInput(page: Page, name: string, label: string, fieldLabel: string): Promise<void> {
+    const input = configInput(page, name, label);
+    await expect(input).toBeVisible();
+    const length = (await input.inputValue()).length;
+    expect(length > 0, `${fieldLabel} must be pre-configured (e2e configure or local setup)`).toBe(true);
+}
+
 test.describe('PAY. plugin config', () => {
+    test.use(payConfigPageTestUse);
+
     test('Test API Keys connects with the sales location', async ({ browser }) => {
-        const credentials = payCredentials();
+        expectPayCredentialsEnv();
         const adminPage = await openAdmin(browser);
 
         try {
@@ -30,12 +39,28 @@ test.describe('PAY. plugin config', () => {
                 await expect(configInput(adminPage, 'PaynlPaymentShopware6.config.tokenCode', 'Token-Code')).toBeVisible({
                     timeout: 60_000,
                 });
+                await maskPayConfigCredentialInputs(adminPage);
             });
 
-            await step(adminPage, 'Fill Token-Code, API-token and Service-ID', async () => {
-                await configInput(adminPage, 'PaynlPaymentShopware6.config.tokenCode', 'Token-Code').fill(credentials.tokenCode);
-                await configInput(adminPage, 'PaynlPaymentShopware6.config.apiToken', 'API-token').fill(credentials.apiToken);
-                await configInput(adminPage, 'PaynlPaymentShopware6.config.serviceId', 'Service-ID').fill(credentials.serviceId);
+            await step(adminPage, 'Confirm Token-Code, API-token and Service-ID are pre-configured', async () => {
+                await expectPrefilledConfigInput(
+                    adminPage,
+                    'PaynlPaymentShopware6.config.tokenCode',
+                    'Token-Code',
+                    'Token-Code',
+                );
+                await expectPrefilledConfigInput(
+                    adminPage,
+                    'PaynlPaymentShopware6.config.apiToken',
+                    'API-token',
+                    'API-token',
+                );
+                await expectPrefilledConfigInput(
+                    adminPage,
+                    'PaynlPaymentShopware6.config.serviceId',
+                    'Service-ID',
+                    'Service-ID',
+                );
             });
 
             const connection = await step(adminPage, 'Click Test API Keys', async () => {

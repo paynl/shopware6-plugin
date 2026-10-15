@@ -1,5 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { expect, type Page } from '@playwright/test';
+import { appears } from './locator-helpers';
 
 const PAY_HOST = /pay\.nl|achterelkebetaling\.nl|payments\.nl/i;
 const ISSUER_HOST = /ideal\.nl|cloudflare/i;
@@ -111,7 +112,7 @@ async function submitSandboxStatus(page: Page, amount: string, status: SandboxPa
     await statusInput.check();
 
     const amountInput = page.locator(`input#${status}Amount`);
-    if (await amountInput.isVisible().catch(() => false)) {
+    if (await appears(amountInput, 2000)) {
         // The selected status keeps its amount input inside a disabled fieldset.
         await amountInput.evaluate((element) => {
             element.closest('fieldset')?.removeAttribute('disabled');
@@ -127,7 +128,7 @@ async function submitSandboxStatus(page: Page, amount: string, status: SandboxPa
     await updateButton.click();
 
     const invalidSecret = page.getByText(/ungültiges geheimnis|invalid secret|ongeldig geheim/i);
-    if (await invalidSecret.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await appears(invalidSecret, 5000)) {
         throw new Error(
             'PAY. rejected the sandbox secret for this sales location. Set PAY_SANDBOX_SECRET to the sales-location secret from my.pay.nl (Settings → Sales location). Do not use PAY_API_TOKEN.',
         );
