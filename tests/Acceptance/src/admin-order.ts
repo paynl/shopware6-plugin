@@ -101,9 +101,14 @@ export function assertPayRefundAccepted(messages: RefundMessage[]): void {
 }
 
 function isOrderTransactionTransition(response: Response): boolean {
+    const url = response.url();
+
     return (
         response.request().method() === 'POST'
-        && /\/api\/_action\/state-machine\/order_transaction\//.test(response.url())
+        && (
+            /\/api\/_action\/order_transaction\/.+\/state\//.test(url)
+            || /\/api\/_action\/state-machine\/order_transaction\//.test(url)
+        )
     );
 }
 

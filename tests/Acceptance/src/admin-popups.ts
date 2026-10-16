@@ -57,18 +57,22 @@ function adminBaseUrl(): string {
 }
 
 async function dismissShopwareUpdate(page: Page): Promise<boolean> {
-    const updatePopup = page.locator('div').filter({
+    const banner = page.getByRole('banner').filter({
         hasText: /a new shopware version|eine neue shopware-version|een nieuwe shopware-versie/i,
-        has: page.getByRole('button', { name: /open update|update öffnen|update openen/i }),
-    }).last();
+    });
 
-    if (!await updatePopup.isVisible().catch(() => false)) {
+    if (!await banner.first().isVisible().catch(() => false)) {
         return false;
     }
 
-    const cancel = updatePopup.getByRole('button', { name: /^(cancel|abbrechen|annuleren)$/i });
-    await cancel.click({ force: true });
-    await expect(updatePopup).toBeHidden();
+    const close = banner.getByRole('button', { name: /^(close|schließen|sluiten)$/i });
+    if (await close.first().isVisible().catch(() => false)) {
+        await close.first().click({ force: true });
+    } else {
+        await banner.getByRole('button', { name: /^(cancel|abbrechen|annuleren)$/i }).first().click({ force: true });
+    }
+
+    await expect(banner.first()).toBeHidden({ timeout: 15_000 });
     return true;
 }
 
