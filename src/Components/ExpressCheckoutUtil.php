@@ -12,7 +12,6 @@ use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Repository\Country\CountryRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
-use PaynlPayment\Shopware6\Repository\Product\ProductRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Salutation\SalutationRepositoryInterface;
 use PaynlPayment\Shopware6\Service\Cart\CartBackupService;
@@ -25,12 +24,9 @@ use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\SalesChannel\AbstractLogoutRoute;
-use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
-use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
@@ -69,7 +65,6 @@ class ExpressCheckoutUtil
     private AbstractLogoutRoute $logoutRoute;
     private CountryRepositoryInterface $countryRepository;
     private PaymentMethodRepository $repoPaymentMethods;
-    private ProductRepositoryInterface $productRepository;
     private SalutationRepositoryInterface $salutationRepository;
     private SalesChannelRepositoryInterface $salesChannelRepository;
     private string $shopwareVersion;
@@ -88,7 +83,6 @@ class ExpressCheckoutUtil
         AbstractLogoutRoute $logoutRoute,
         CountryRepositoryInterface $countryRepository,
         PaymentMethodRepository $repoPaymentMethods,
-        ProductRepositoryInterface $productRepository,
         SalutationRepositoryInterface $salutationRepository,
         SalesChannelRepositoryInterface $salesChannelRepository,
         string $shopwareVersion
@@ -106,7 +100,6 @@ class ExpressCheckoutUtil
         $this->logoutRoute = $logoutRoute;
         $this->countryRepository = $countryRepository;
         $this->repoPaymentMethods = $repoPaymentMethods;
-        $this->productRepository = $productRepository;
         $this->salutationRepository = $salutationRepository;
         $this->salesChannelRepository = $salesChannelRepository;
         $this->shopwareVersion = $shopwareVersion;
@@ -256,7 +249,9 @@ class ExpressCheckoutUtil
 
         $payNLOrder = new Model\Order();
 
-        $payNLOrder->setProducts($this->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext));
+        $payNLOrder->setProducts(
+            $this->payAPI->getOrderProducts($orderTransaction->getOrder(), $salesChannelContext->getContext())
+        );
 
         $request->setOrder($payNLOrder);
 
@@ -265,85 +260,6 @@ class ExpressCheckoutUtil
         $request->setConfig($this->payAPI->getConfig($salesChannelContext->getSalesChannel()->getId(), true));
 
         return $request;
-    }
-
-    public function getOrderProducts(OrderEntity $order, SalesChannelContext $salesChannelContext): Model\Products
-    {
-        $context = $salesChannelContext->getContext();
-
-        /** @var OrderLineItemCollection $orderLineItems*/
-        $orderLineItems = $order->getLineItems();
-        $productsItems = $orderLineItems->filterByProperty('type', 'product');
-        $productsIds = [];
-
-        foreach ($productsItems as $product) {
-            $productsIds[] = $product->getReferencedId();
-        }
-
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsAnyFilter('product.id', $productsIds));
-        $entities = $this->productRepository->search($criteria, $context);
-        $elements = $entities->getElements();
-        $products = new Model\Products();
-
-        /** @var OrderLineItemEntity $item */
-        foreach ($productsItems as $item) {
-            $vatPercentage = 0;
-            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
-                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
-            }
-
-            $product = new Model\Product();
-            $product->setId((string) $elements[$item->getReferencedId()]->get('autoIncrement'));
-            $product->setDescription($item->getLabel());
-            $product->setType(Model\Product::TYPE_ARTICLE);
-            $product->setAmount($item->getUnitPrice());
-            $product->setCurrency($order->getCurrency()->getIsoCode());
-            $product->setQuantity($item->getPrice()->getQuantity());
-            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
-            $product->setVatPercentage($vatPercentage);
-
-            $products->addProduct($product);
-        }
-
-        $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
-        /** @var OrderLineItemEntity $item */
-        foreach ($surchargeItems as $item) {
-            $vatPercentage = 0;
-            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
-                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
-            }
-
-            $product = new Model\Product();
-            $product->setId('payment');
-            $product->setDescription($item->getLabel());
-            $product->setType(Model\Product::TYPE_PAYMENT);
-            $product->setAmount($item->getUnitPrice());
-            $product->setCurrency($order->getCurrency()->getIsoCode());
-            $product->setQuantity($item->getPrice()->getQuantity());
-            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
-            $product->setVatPercentage($vatPercentage);
-
-            $products->addProduct($product);
-        }
-
-        $product = new Model\Product();
-        $product->setId('shipping');
-        $product->setDescription('Shipping');
-        $product->setType(Model\Product::TYPE_SHIPPING);
-        $product->setAmount($order->getShippingTotal());
-        $product->setCurrency($order->getCurrency()->getIsoCode());
-        $product->setQuantity(1);
-        $product->setVatCode(
-            paynl_determine_vat_class_by_percentage(
-                $order->getShippingCosts()->getCalculatedTaxes()->getAmount()
-            )
-        );
-        $product->setVatPercentage($order->getShippingCosts()->getCalculatedTaxes()->getAmount());
-
-        $products->addProduct($product);
-
-        return $products;
     }
 
     public function getOrderStats(): Model\Stats
