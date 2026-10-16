@@ -24,15 +24,33 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
 
     const modal = page.locator('.sw-order-state-change-modal');
     await expect(modal).toBeVisible();
-    const confirm = modal.locator('[data-analytics-id="sw-order-state-change-modal-attach-documents.confirm"]');
+    const confirm = modal.getByRole('button', {
+        name: /^(update status|status aktualisieren|status bijwerken)$/i,
+    });
     await expect(confirm).toBeVisible();
     await expect(confirm).toBeEnabled();
+    await confirm.scrollIntoViewIfNeeded();
+
+    const sendMail = modal.getByRole('checkbox', { name: /send email|e-mail.*customer|mail/i });
+    if (await sendMail.isChecked().catch(() => false)) {
+        await sendMail.uncheck();
+    }
 
     const captureTimeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000);
-    const statusChange = page.waitForResponse(isChangeTransactionStatus, { timeout: captureTimeoutMs });
+    const shopwareTransition = page.waitForResponse(isOrderTransactionTransition, { timeout: captureTimeoutMs });
+    const payCapture = page.waitForResponse(isChangeTransactionStatus, { timeout: captureTimeoutMs });
+
     await confirm.click();
 
-    const response = await statusChange;
+    await expect(
+        modal,
+        'Change status modal stayed open — Shopware did not start the payment transition (pop-up, animation, or admin JS)',
+    ).toBeHidden({ timeout: 30_000 });
+
+    const swResponse = await shopwareTransition;
+    expect(swResponse.ok(), `Shopware transition failed: ${swResponse.status()} ${await swResponse.text()}`).toBeTruthy();
+
+    const response = await payCapture;
     const body = await response.text();
     expect(response.ok(), `Capture status change failed: ${response.status()} ${body}`).toBeTruthy();
     const payload = JSON.parse(body) as { currentActionName?: string };
@@ -80,6 +98,13 @@ export function assertPayRefundAccepted(messages: RefundMessage[]): void {
         'PAY. refused the refund. The plugin refund switches are on and the order can be read, but this API token cannot refund the payment. Enable the refund right for the token in my.pay.nl.',
     ).not.toMatch(/forbidden/i);
     expect(messages[0]?.type, content).toBe('success');
+}
+
+function isOrderTransactionTransition(response: Response): boolean {
+    return (
+        response.request().method() === 'POST'
+        && /\/api\/_action\/state-machine\/order_transaction\//.test(response.url())
+    );
 }
 
 function isChangeTransactionStatus(response: Response): boolean {
