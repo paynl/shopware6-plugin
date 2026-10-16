@@ -4,36 +4,38 @@ Component.override('sw-order-state-history-card', {
     inject: ['PaynlPaymentService'],
 
     methods: {
-        onLeaveModalConfirm(docIds, sendMail = true) {
+        onLeaveModalConfirm(docIds, sendMail = true, internalComment = null) {
             this.showModal = false;
-            let currentActionName = this.currentActionName;
+            const currentActionName = this.currentActionName;
+            const transitionPayload = { documentIds: docIds, sendMail, internalComment };
             if (this.currentStateType === 'orderTransactionState') {
 
                 this.orderStateMachineService.transitionOrderTransactionState(
                     this.transaction.id,
-                    this.currentActionName,
-                    { documentIds: docIds, sendMail }
-                ).then(() => {
-                    let transactionId = this.transaction.id;
-                    this.PaynlPaymentService.changeTransactionStatus({transactionId, currentActionName})
-                        .then(() => {
-                            this.$emit('order-state-change');
-                            this.loadHistory();
-                        })
-                        .catch((errorResponse) => {
-                            this.createNotificationError({
-                                title: this.$tc('sw-plugin-config.titleSaveError'),
-                                message: errorResponse,
-                            });
-                        })
-                }).catch((error) => {
-                    this.createStateChangeErrorNotification(error);
+                    currentActionName,
+                    transitionPayload,
+                ).then(() => this.PaynlPaymentService.changeTransactionStatus({
+                    transactionId: this.transaction.id,
+                    currentActionName,
+                })).then(() => {
+                    this.$emit('order-state-change');
+                    this.loadHistory();
+                }).catch((errorResponse) => {
+                    if (typeof errorResponse === 'string' || errorResponse?.message) {
+                        this.createNotificationError({
+                            title: this.$tc('sw-plugin-config.titleSaveError'),
+                            message: errorResponse,
+                        });
+                        return;
+                    }
+
+                    this.createStateChangeErrorNotification(errorResponse);
                 });
             } else if (this.currentStateType === 'orderState') {
                 this.orderStateMachineService.transitionOrderState(
                     this.order.id,
                     this.currentActionName,
-                    { documentIds: docIds, sendMail }
+                    transitionPayload,
                 ).then(() => {
                     this.$emit('order-state-change');
                     this.loadHistory();
@@ -44,7 +46,7 @@ Component.override('sw-order-state-history-card', {
                 this.orderStateMachineService.transitionOrderDeliveryState(
                     this.delivery.id,
                     this.currentActionName,
-                    { documentIds: docIds, sendMail }
+                    transitionPayload,
                 ).then(() => {
                     this.$emit('order-state-change');
                     this.loadHistory();
