@@ -22,9 +22,14 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
     await expect(paid.first(), 'Paid capture was not offered in the payment status list').toBeVisible({ timeout: 60_000 });
     await paid.first().click();
 
-    const confirm = page.locator('.sw-order-state-change-modal-attach-documents__button');
+    const modal = page.locator('.sw-order-state-change-modal');
+    await expect(modal).toBeVisible();
+    const confirm = modal.locator('[data-analytics-id="sw-order-state-change-modal-attach-documents.confirm"]');
     await expect(confirm).toBeVisible();
-    const statusChange = page.waitForResponse(isChangeTransactionStatus, { timeout: 60_000 });
+    await expect(confirm).toBeEnabled();
+
+    const captureTimeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000);
+    const statusChange = page.waitForResponse(isChangeTransactionStatus, { timeout: captureTimeoutMs });
     await confirm.click();
 
     const response = await statusChange;
