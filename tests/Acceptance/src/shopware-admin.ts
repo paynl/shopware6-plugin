@@ -572,6 +572,7 @@ export async function readPaynlTransactionState(
         data: {
             limit: 1,
             filter: [{ type: 'equals', field: 'orderId', value: orderId }],
+            sort: [{ field: 'createdAt', order: 'DESC' }],
         },
     });
     expect(response.ok(), `PAY. transaction search failed: ${response.status()} ${await response.text()}`).toBeTruthy();
@@ -582,4 +583,28 @@ export async function readPaynlTransactionState(
     expect(paynlTransactionId, `No paynl_transactions row for order ${orderId}`).not.toEqual('');
     expect(Number.isNaN(stateId), `PAY. transaction ${paynlTransactionId} has no stateId`).toBe(false);
     return { stateId, paynlTransactionId };
+}
+
+export async function waitForPaynlTransactionState(
+    adminApi: AdminApiContext,
+    orderId: string,
+    expectedStateId: number,
+    timeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000),
+): Promise<{ stateId: number; paynlTransactionId: string }> {
+    const deadline = Date.now() + timeoutMs;
+    let lastStateId = -1;
+
+    while (Date.now() < deadline) {
+        const current = await readPaynlTransactionState(adminApi, orderId);
+        lastStateId = current.stateId;
+        if (current.stateId === expectedStateId) {
+            return current;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 3_000));
+    }
+
+    throw new Error(
+        `PAY. transaction for order ${orderId} did not reach stateId ${expectedStateId} within ${timeoutMs}ms (last stateId: ${lastStateId})`,
+    );
 }

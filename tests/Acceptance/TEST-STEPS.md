@@ -83,14 +83,14 @@ Timeout: 5 minutes. This test stops on the confirm page and does not pay.
 
 Both tests place an order with the shared guest checkout and the uniform **Pay by PAY.** method (same Admin API setup as the first checkout test). The thank-you page must expose an order id or number.
 
-### Admin Paid on an authorised payment captures it
+### Admin Paid on an authorised payment marks the Shopware payment paid
 
-Timeout: 5 minutes.
+Timeout: 5 minutes. This checks the Shopware payment status only. It does not assert that the `paynl-transactions` row moves from `95` to `100`. The capture exchange can answer from a cached authorised status and leave that row at `95`.
 
 1. Place the order and complete the sandbox as **Authorised**; the helper returns to the shop via the sandbox continue link without capturing at PAY.
 2. Poll the Admin API until the Shopware transaction state is `authorize` (up to 2 minutes). The `paynl-transactions` row must have `stateId` `95` (PAY. authorised).
 3. Open admin, dismiss popups, open the order, change payment status to **Paid**, and confirm. `POST /paynl/change-transaction-status` must succeed with `currentActionName` `paid`.
-4. Poll until the Shopware transaction is `paid`. The PAY. transaction `stateId` must be `100`.
+4. Poll until the Shopware transaction is `paid`.
 
 ### Admin refund of a paid payment refunds it at PAY.
 

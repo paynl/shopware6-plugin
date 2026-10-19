@@ -53,7 +53,8 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
     const response = await payCapture;
     const body = await response.text();
     expect(response.ok(), `Capture status change failed: ${response.status()} ${body}`).toBeTruthy();
-    const payload = JSON.parse(body) as { currentActionName?: string };
+    const payload = JSON.parse(body) as { currentActionName?: string; errorMessage?: string };
+    expect(payload.errorMessage ?? '', body).toEqual('');
     expect(payload.currentActionName).toBe('paid');
 }
 

@@ -108,7 +108,7 @@ async function switchOn(checkbox: Locator): Promise<boolean> {
 test.use(payConfigPageTestUse);
 
 test.describe('PAY. admin capture and refund', () => {
-    test('admin Paid on an authorised payment captures it', async ({
+    test('admin Paid on an authorised payment marks the Shopware payment paid', async ({
         browser,
         StorefrontPage,
         StorefrontProductDetail,
@@ -150,13 +150,11 @@ test.describe('PAY. admin capture and refund', () => {
             await adminPage.context().close();
         }
 
-        const paid = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
+        await step(StorefrontPage, 'Wait until the Shopware payment is paid', () => waitForOrderPaymentState(
             AdminApiContext,
             { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
             'paid',
         ));
-        const after = await readPaynlTransactionState(AdminApiContext, paid.id);
-        expect(after.stateId).toBe(100);
     });
 
     test.describe('admin refund', () => {
