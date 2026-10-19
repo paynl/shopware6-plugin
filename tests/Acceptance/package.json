@@ -1,0 +1,25 @@
+{
+  "name": "paynl-shopware6-acceptance",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Playwright acceptance tests for the PAY. Shopware 6 plugin",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report --port 9324",
+    "env:up": "bash scripts/e2e-env.sh up",
+    "env:down": "bash scripts/e2e-env.sh down",
+    "env:plugin": "bash scripts/e2e-env.sh ensure-plugin",
+    "env:diagnostics": "bash scripts/e2e-env.sh diagnostics"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@shopware-ag/acceptance-test-suite": "^12.19.0",
+    "@types/node": "^22.20.2"
+  }
+}

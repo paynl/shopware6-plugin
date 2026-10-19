@@ -1,25 +1,29 @@
-const { Component } = Shopware;
+const { Component, Store } = Shopware;
 
 Component.override('sw-order-general-info', {
     inject: ['PaynlPaymentService'],
     methods: {
-        onLeaveModalConfirm(docIds, sendMail = true) {
+        onLeaveModalConfirm(docIds, sendMail = true, internalComment = null) {
             this.showModal = false;
+            Store.get('swOrderDetail').setLoading(['states', true]);
+
+            const currentActionName = this.currentActionName;
+            const currentStateType = this.currentStateType;
+            const transitionPayload = { documentIds: docIds, sendMail, internalComment };
 
             let transition = null;
-            let currentActionName = this.currentActionName;
 
-            switch (this.currentStateType) {
+            switch (currentStateType) {
                 case 'order_transaction':
-                    transition = this.orderStateMachineService.transitionOrderTransactionState(
-                        this.transaction.id,
-                        this.currentActionName,
-                        { documentIds: docIds, sendMail },
-                    ).then(() => {
-                        let transactionId = this.transaction.id;
-                        this.PaynlPaymentService.changeTransactionStatus({
-                            transactionId,
-                            currentActionName
+                    transition = this.orderStateMachineService
+                        .transitionOrderTransactionState(
+                            this.transaction.id,
+                            currentActionName,
+                            transitionPayload,
+                        )
+                        .then(() => this.PaynlPaymentService.changeTransactionStatus({
+                            transactionId: this.transaction.id,
+                            currentActionName,
                         }).then(() => {
                             this.$emit('order-state-change');
                         }).catch((errorResponse) => {
@@ -27,26 +31,24 @@ Component.override('sw-order-general-info', {
                                 title: this.$tc('sw-plugin-config.titleSaveError'),
                                 message: errorResponse,
                             });
-                        });
-                    }).catch((error) => {
-                        this.createStateChangeErrorNotification(error);
-                    });
+                        }));
                     break;
                 case 'order_delivery':
                     transition = this.orderStateMachineService.transitionOrderDeliveryState(
                         this.delivery.id,
-                        this.currentActionName,
-                        { documentIds: docIds, sendMail },
+                        currentActionName,
+                        transitionPayload,
                     );
                     break;
                 case 'order':
                     transition = this.orderStateMachineService.transitionOrderState(
                         this.order.id,
-                        this.currentActionName,
-                        { documentIds: docIds, sendMail },
+                        currentActionName,
+                        transitionPayload,
                     );
                     break;
                 default:
+                    Store.get('swOrderDetail').setLoading(['states', false]);
                     this.createNotificationError({
                         message: this.$tc('sw-order.stateCard.labelErrorStateChange'),
                     });
@@ -54,15 +56,20 @@ Component.override('sw-order-general-info', {
             }
 
             if (transition) {
-                transition.then(() => {
-                    this.loadHistory();
-                }).catch((error) => {
-                    this.createStateChangeErrorNotification(error);
-                });
+                transition
+                    .then(() => {
+                        this.loadHistory();
+                    })
+                    .catch((error) => {
+                        this.createStateChangeErrorNotification(error);
+                    })
+                    .finally(() => {
+                        Store.get('swOrderDetail').setLoading(['states', false]);
+                    });
             }
 
             this.currentActionName = null;
             this.currentStateType = null;
-        }
-    }
+        },
+    },
 });
