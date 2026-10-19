@@ -208,16 +208,27 @@ wait_for_shopware() {
     ensure_sales_channel_domain "http://127.0.0.1:${SHOPWARE_PORT}"
 }
 
+shopware_api_url() {
+    # Payment-method install only needs the shop. The trycloudflare name is for PAY. and the browser.
+    if docker inspect -f '{{.State.Running}}' "${CONTAINER_NAME}" 2>/dev/null | grep -qx true; then
+        printf 'http://127.0.0.1:%s' "${SHOPWARE_PORT}"
+        return
+    fi
+    local base_url="${ADMIN_API_URL:?ADMIN_API_URL is not set}"
+    printf '%s' "${base_url%/}"
+}
+
 admin_token() {
     [[ -n "${SHOPWARE_ADMIN_PASSWORD:-}" ]] || fail "SHOPWARE_ADMIN_PASSWORD is not set"
-    local base_url="${ADMIN_API_URL:?ADMIN_API_URL is not set}"
-    base_url="${base_url%/}"
-    curl -fsS -X POST "${base_url}/api/oauth/token" \
+    local base_url body
+    base_url="$(shopware_api_url)"
+    body="$(curl -fsS -X POST "${base_url}/api/oauth/token" \
         -H 'Content-Type: application/json' \
         -H 'ngrok-skip-browser-warning: true' \
         -d "$(printf '{"client_id":"administration","grant_type":"password","username":"%s","password":"%s"}' \
-            "${SHOPWARE_ADMIN_USERNAME:-admin}" "${SHOPWARE_ADMIN_PASSWORD}")" \
-        | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
+            "${SHOPWARE_ADMIN_USERNAME:-admin}" "${SHOPWARE_ADMIN_PASSWORD}")")" \
+        || fail "Could not reach the Shopware admin API at ${base_url}"
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])' <<<"${body}"
 }
 
 write_github_env() {
@@ -253,7 +264,8 @@ print(https[0] if https else "")')"
         done
     elif command -v cloudflared >/dev/null 2>&1; then
         log "Starting cloudflared tunnel to ${target}"
-        launch_tunnel cloudflared tunnel --url "${target}" --no-autoupdate
+        # GitHub-hosted runners block UDP, so QUIC never registers the quick-tunnel name.
+        launch_tunnel cloudflared tunnel --protocol http2 --url "${target}" --no-autoupdate
         local elapsed=0
         while (( elapsed < 45 )); do
             public_url="$(grep -oE 'https://[a-z0-9.-]+\.trycloudflare\.com' "${TUNNEL_LOG}" | head -n 1 || true)"
@@ -268,11 +280,50 @@ print(https[0] if https else "")')"
     [[ -n "${public_url}" ]] || fail "Could not determine the public tunnel URL. See ${TUNNEL_LOG}"
     public_url="${public_url%/}/"
     log "Public shop URL: ${public_url}"
+    wait_for_public_url "${public_url}"
     # Both hosts must match. Shopware builds administration asset URLs from the API host.
     set_env_value APP_URL "${public_url}"
     set_env_value ADMIN_API_URL "${public_url}"
     write_github_env APP_URL "${public_url}"
     write_github_env ADMIN_API_URL "${public_url}"
+}
+
+tunnel_is_running() {
+    [[ -f "${TUNNEL_PID_FILE}" ]] || return 1
+    local pid
+    pid="$(cat "${TUNNEL_PID_FILE}")"
+    [[ -n "${pid}" ]] && kill -0 "${pid}" >/dev/null 2>&1
+}
+
+wait_for_public_url() {
+    local url="${1%/}/"
+    local elapsed=0
+    local limit=90
+    local code="000"
+    log "Waiting until ${url} resolves"
+    while (( elapsed < limit )); do
+        if ! tunnel_is_running; then
+            tail -n 40 "${TUNNEL_LOG}" >&2 || true
+            fail "Tunnel exited before ${url} was reachable"
+        fi
+        code="$(http_code "${url}")"
+        # 500 is Shopware's unknown-domain page, so the request reached the shop.
+        # 530 is Cloudflare's "tunnel not connected" and is not ready yet.
+        case "${code}" in
+            200|204|301|302|303|307|308|400|401|403|404|500)
+                log "Public shop URL is reachable (HTTP ${code})"
+                return 0
+                ;;
+        esac
+        sleep 3
+        elapsed=$((elapsed + 3))
+        if (( elapsed % 15 == 0 )); then
+            log "still waiting for the tunnel (${elapsed}s, HTTP ${code})"
+        fi
+    done
+    curl -sS -o /dev/null --connect-timeout 5 --max-time 15 "${url}" >&2 || true
+    tail -n 40 "${TUNNEL_LOG}" >&2 || true
+    fail "Could not resolve ${url} within ${limit}s"
 }
 
 launch_tunnel() {
@@ -428,17 +479,16 @@ php bin/console cache:clear -n
 '
 
     log "Installing PAY. payment methods"
-    local token
+    local token api_url response
     token="$(admin_token)"
-    local api_url="${ADMIN_API_URL:?ADMIN_API_URL is not set}"
-    api_url="${api_url%/}"
-    local response
+    api_url="$(shopware_api_url)"
     response="$(curl -fsS "${api_url}/api/paynl/install-payment-methods?_nocache=$(date +%s)" \
         -H "Authorization: Bearer ${token}" \
         -H 'Accept: application/json' \
         -H 'ngrok-skip-browser-warning: true' \
         -H 'Cache-Control: no-cache, no-store' \
-        -H 'Pragma: no-cache')"
+        -H 'Pragma: no-cache')" \
+        || fail "Could not install PAY. payment methods via ${api_url}"
     python3 -c 'import json,sys
 payload=json.loads(sys.argv[1])
 if not payload.get("success", True):
@@ -474,6 +524,7 @@ cmd_up() {
     rotate_admin_password
     start_tunnel
     configure_shopware
+    wait_for_public_url "${APP_URL}"
     log "Environment is ready. APP_URL=${APP_URL}"
 }
 
