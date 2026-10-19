@@ -24,16 +24,14 @@ Component.override('sw-order-general-info', {
                         .then(() => this.PaynlPaymentService.changeTransactionStatus({
                             transactionId: this.transaction.id,
                             currentActionName,
+                        }).then(() => {
+                            this.$emit('order-state-change');
                         }).catch((errorResponse) => {
                             this.createNotificationError({
                                 title: this.$tc('sw-plugin-config.titleSaveError'),
                                 message: errorResponse,
                             });
-                            throw errorResponse;
-                        }))
-                        .then(() => {
-                            this.$emit('order-state-change');
-                        });
+                        }));
                     break;
                 case 'order_delivery':
                     transition = this.orderStateMachineService.transitionOrderDeliveryState(

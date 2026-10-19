@@ -17,19 +17,17 @@ Component.override('sw-order-state-history-card', {
                 ).then(() => this.PaynlPaymentService.changeTransactionStatus({
                     transactionId: this.transaction.id,
                     currentActionName,
-                })).then(() => {
+                }).then(() => {
                     this.$emit('order-state-change');
-                    this.loadHistory();
                 }).catch((errorResponse) => {
-                    if (typeof errorResponse === 'string' || errorResponse?.message) {
-                        this.createNotificationError({
-                            title: this.$tc('sw-plugin-config.titleSaveError'),
-                            message: errorResponse,
-                        });
-                        return;
-                    }
-
-                    this.createStateChangeErrorNotification(errorResponse);
+                    this.createNotificationError({
+                        title: this.$tc('sw-plugin-config.titleSaveError'),
+                        message: errorResponse,
+                    });
+                })).then(() => {
+                    this.loadHistory();
+                }).catch((error) => {
+                    this.createStateChangeErrorNotification(error);
                 });
             } else if (this.currentStateType === 'orderState') {
                 this.orderStateMachineService.transitionOrderState(
