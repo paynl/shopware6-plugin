@@ -41,7 +41,9 @@ const isCi = !!process.env.CI;
 
 export default defineConfig({
     testDir: './tests',
-    globalSetup: './global-setup.ts',
+    // CI runs `e2e-env.sh up` first, which already calls configure_shopware.
+    // Local `npm test` still installs the plugin through global-setup.
+    globalSetup: isCi ? undefined : './global-setup.ts',
     globalTeardown: './global-teardown.ts',
     fullyParallel: false,
     forbidOnly: isCi,
