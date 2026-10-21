@@ -1,3 +1,7 @@
+# 2.0.9
+- Updated paynl/php-sdk to 2.0.2, which fixes payments failing for order numbers containing hyphens (e.g. GC-200000).
+- Reduced duplicated order product code between the payment and Express Checkout flows (no behaviour change).
+
 # 2.0.8
 - Fixed PayPal Express production configuration.
 - Added Nationale Golfbon and Kadokaart payment method logos.
