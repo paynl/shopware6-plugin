@@ -1,4 +1,7 @@
 # 2.0.9
+- Updated paynl/php-sdk to 2.0.2, which fixes payments failing for order numbers containing hyphens (e.g. GC-200000).
+- Added the Shopware instance ID to the Pay. transaction statistics for reporting.
+- Reduced duplicated order product code between the payment and Express Checkout flows (no behaviour change).
 
 # 2.0.8
 - Fixed PayPal Express production configuration.

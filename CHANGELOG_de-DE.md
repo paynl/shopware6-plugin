@@ -1,4 +1,7 @@
 # 2.0.9
+- paynl/php-sdk auf Version 2.0.2 aktualisiert; behebt fehlgeschlagene Zahlungen bei Bestellnummern mit Bindestrich (z. B. GC-200000).
+- Shopware-Instanz-ID zu den Pay.-Transaktionsstatistiken für das Reporting hinzugefügt.
+- Doppelten Code für Bestellpositionen zwischen Zahlungs- und Express-Checkout-Ablauf reduziert (keine Verhaltensänderung).
 
 # 2.0.8
 - PayPal Express-Produktivkonfiguration und Zahler-Adressverarbeitung behoben.
