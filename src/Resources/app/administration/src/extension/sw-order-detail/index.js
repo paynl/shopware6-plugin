@@ -43,12 +43,12 @@ Component.override('sw-order-detail', {
 
                     this.isPAYPayment = !!transaction;
 
-                    const isUserAllowedToEditOrder = this.acl.can('order.editor');
+                    const isUserAllowedToRefund = this.acl.can('order_refund.creator');
 
                     const transactionStatusName = transaction.stateMachineState.technicalName;
                     const isStatusAllowedForRefund = ALLOWED_REFUND_STATUSES.includes(transactionStatusName);
 
-                    this.isPAYTransactionRefundAllowed = !(isUserAllowedToEditOrder && isStatusAllowedForRefund);
+                    this.isPAYTransactionRefundAllowed = !(isUserAllowedToRefund && isStatusAllowedForRefund);
                 });
             },
             immediate: true,

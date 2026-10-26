@@ -59,6 +59,9 @@ Component.register('paynl-refund-page-view', {
     },
 
     computed: {
+        canRefund() {
+            return this.acl.can('order_refund.creator');
+        },
         fullName() {
             return this.order.orderCustomer.firstName + ' ' + this.order.orderCustomer.lastName;
         },
