@@ -1,6 +1,5 @@
 import template from './sw-order-detail.html.twig';
-
-const ALLOWED_REFUND_STATUSES = ['paid', 'paid_partially', 'refunded_partially'];
+import { isRefundDisabled } from './../../util/refund-permission.util';
 
 const { Component, Context } = Shopware;
 const Criteria = Shopware.Data.Criteria;
@@ -13,7 +12,7 @@ Component.override('sw-order-detail', {
     data() {
         return {
             isPAYPayment: false,
-            isPAYTransactionRefundAllowed: true,
+            isPAYTransactionRefundDisabled: true,
         };
     },
 
@@ -43,12 +42,10 @@ Component.override('sw-order-detail', {
 
                     this.isPAYPayment = !!transaction;
 
-                    const isUserAllowedToRefund = this.acl.can('order_refund.creator');
-
-                    const transactionStatusName = transaction.stateMachineState.technicalName;
-                    const isStatusAllowedForRefund = ALLOWED_REFUND_STATUSES.includes(transactionStatusName);
-
-                    this.isPAYTransactionRefundAllowed = !(isUserAllowedToRefund && isStatusAllowedForRefund);
+                    this.isPAYTransactionRefundDisabled = isRefundDisabled(
+                        this.acl,
+                        transaction.stateMachineState.technicalName
+                    );
                 });
             },
             immediate: true,

@@ -1,5 +1,6 @@
 import template from './paynl-refund-page-view.html.twig';
 import './paynl-refund-card.scss';
+import { hasRefundPrivilege } from './../../../../util/refund-permission.util';
 
 const { Component, Mixin } = Shopware;
 const { Criteria } = Shopware.Data;
@@ -60,7 +61,7 @@ Component.register('paynl-refund-page-view', {
 
     computed: {
         canRefund() {
-            return this.acl.can('order_refund.creator');
+            return hasRefundPrivilege(this.acl);
         },
         fullName() {
             return this.order.orderCustomer.firstName + ' ' + this.order.orderCustomer.lastName;

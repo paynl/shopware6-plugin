@@ -24,9 +24,12 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
 class RefundController extends AbstractController
 {
-    /** Privileges granted by the "Orders > Refunds" viewer / creator roles of the Shopware administration. */
+    /**
+     * Privileges granted by the "Orders > Refunds" viewer / editor roles of the Shopware administration.
+     * Core protects its own refund action with the same editor role.
+     */
     private const PRIVILEGE_REFUND_READ = 'order_transaction_capture_refund:read';
-    private const PRIVILEGE_REFUND_CREATE = 'order_transaction_capture_refund:create';
+    private const PRIVILEGE_REFUND_UPDATE = 'order_transaction_capture_refund:update';
 
     private Api $payAPI;
     private ProcessingHelper $processingHelper;
@@ -93,7 +96,7 @@ class RefundController extends AbstractController
     #[Route(
         '/api/paynl/refund',
         name: 'api.PaynlPayment.refund',
-        defaults: [PlatformRequest::ATTRIBUTE_ACL => [self::PRIVILEGE_REFUND_CREATE]],
+        defaults: [PlatformRequest::ATTRIBUTE_ACL => [self::PRIVILEGE_REFUND_UPDATE]],
         methods: ['POST']
     )]
     public function refund(Request $request, Context $context): JsonResponse
