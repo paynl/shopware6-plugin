@@ -1,3 +1,5 @@
+# 2.0.10
+
 # 2.0.9
 - Updated paynl/php-sdk to 2.0.2, which fixes payments failing for order numbers containing hyphens (e.g. GC-200000).
 - Reduced duplicated order product code between the payment and Express Checkout flows (no behaviour change).

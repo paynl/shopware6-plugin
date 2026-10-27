@@ -1,3 +1,5 @@
+# 2.0.10
+
 # 2.0.9
 - paynl/php-sdk auf Version 2.0.2 aktualisiert; behebt fehlgeschlagene Zahlungen bei Bestellnummern mit Bindestrich (z. B. GC-200000).
 - Doppelten Code für Bestellpositionen zwischen Zahlungs- und Express-Checkout-Ablauf reduziert (keine Verhaltensänderung).
