@@ -6,11 +6,11 @@
                 <sw-button
                         v-tooltip="{
                 message: $tc('sw-privileges.tooltip.warning'),
-                disabled: acl.can('order.editor'),
+                disabled: canRefund,
                 showOnDisabledElements: true
             }"
                         class="sw-order-detail__smart-bar-cancel-button"
-                        :disabled="isLoading || !acl.can('order.editor')"
+                        :disabled="isLoading || !canRefund"
                         @click="onCancelRefunding"
                 >
                     {{ $tc('global.default.cancel') }}
@@ -19,12 +19,12 @@
                 <sw-button-process
                         v-tooltip="{
                 message: $tc('sw-privileges.tooltip.warning'),
-                disabled: acl.can('order.editor'),
+                disabled: canRefund,
                 showOnDisabledElements: true
             }"
                         class="sw-order-detail__smart-bar-save-button"
                         variant="primary"
-                        :disabled="isLoading || !acl.can('order.editor')"
+                        :disabled="isLoading || !canRefund"
                         :is-loading="isLoading"
                         @click.prevent="onRefundClick"
                 >

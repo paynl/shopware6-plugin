@@ -1,4 +1,5 @@
 import template from "./index.html.twig";
+import { isRefundDisabled } from './../../util/refund-permission.util';
 
 const { Component } = Shopware;
 const { Criteria } = Shopware.Data;
@@ -26,13 +27,8 @@ Component.override('sw-order-list', {
             return false;
         },
 
-        isPaynlTransactionAllowedForRefund(statusName) {
-            let isUserAllowedToEditOrder = this.acl.can('order.editor');
-
-            let statusAllowedForRefund = ['paid', 'paid_partially', 'refunded_partially'];
-            let isStatusAllowedForRefund = statusAllowedForRefund.includes(statusName);
-
-            return !(isUserAllowedToEditOrder && isStatusAllowedForRefund);
+        isPaynlTransactionRefundDisabled(statusName) {
+            return isRefundDisabled(this.acl, statusName);
         }
     }
 });
