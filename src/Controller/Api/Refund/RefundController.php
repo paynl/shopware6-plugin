@@ -14,6 +14,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\PlatformRequest;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +24,13 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route(defaults: ['_routeScope' => ['api'], 'auth_required' => true, 'auth_enabled' => true])]
 class RefundController extends AbstractController
 {
+    /**
+     * Privileges granted by the "Orders > Refunds" viewer / editor roles of the Shopware administration.
+     * Core protects its own refund action with the same editor role.
+     */
+    private const PRIVILEGE_REFUND_READ = 'order_transaction_capture_refund:read';
+    private const PRIVILEGE_REFUND_UPDATE = 'order_transaction_capture_refund:update';
+
     private Api $payAPI;
     private ProcessingHelper $processingHelper;
     private LoggerInterface $logger;
@@ -43,7 +51,12 @@ class RefundController extends AbstractController
         $this->payTransactionRepository = $payTransactionRepository;
     }
 
-    #[Route('/api/paynl/get-refund-data', name: 'api.PaynlPayment.getRefundData', methods: ['GET'])]
+    #[Route(
+        '/api/paynl/get-refund-data',
+        name: 'api.PaynlPayment.getRefundData',
+        defaults: [PlatformRequest::ATTRIBUTE_ACL => [self::PRIVILEGE_REFUND_READ]],
+        methods: ['GET']
+    )]
     public function getRefundData(Request $request, Context $context): JsonResponse
     {
         $paynlTransactionId = $request->query->get('transactionId');
@@ -80,7 +93,12 @@ class RefundController extends AbstractController
         }
     }
 
-    #[Route('/api/paynl/refund', name: 'frontend.PaynlPayment.refund', methods: ['POST'])]
+    #[Route(
+        '/api/paynl/refund',
+        name: 'api.PaynlPayment.refund',
+        defaults: [PlatformRequest::ATTRIBUTE_ACL => [self::PRIVILEGE_REFUND_UPDATE]],
+        methods: ['POST']
+    )]
     public function refund(Request $request, Context $context): JsonResponse
     {
         $post = $request->request->all();
@@ -117,7 +135,11 @@ class RefundController extends AbstractController
             $this->payAPI->refund($paynlTransactionId, $amount, $salesChannelId, $description);
             $order = $paynlTransaction->getOrder();
             if ($order !== null) {
-                $this->restock($products, $order, $context);
+                // The route ACL already authorized the refund; restocking must not depend on product privileges.
+                $context->scope(
+                    Context::SYSTEM_SCOPE,
+                    fn (Context $systemContext) => $this->restock($products, $order, $systemContext)
+                );
             }
 
             $this->processingHelper->refundActionUpdateTransactionByTransactionId($paynlTransactionId);
