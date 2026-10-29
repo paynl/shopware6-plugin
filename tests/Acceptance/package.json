@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "@shopware-ag/acceptance-test-suite": "^12.19.0",
-    "@types/node": "^22.20.2"
+    "@shopware-ag/acceptance-test-suite": "12.19.0",
+    "@types/node": "24.19.2"
   }
 }

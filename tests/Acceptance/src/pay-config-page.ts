@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 export const payConfigPageTestUse = {
     video: 'off' as const,
     screenshot: 'off' as const,
-    trace: { mode: 'retain-on-failure' as const, screenshots: false },
+    trace: { mode: 'retain-on-failure-and-retries' as const, screenshots: false },
 };
 
 export function payConfigInputMask(page: Page) {

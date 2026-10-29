@@ -10,7 +10,20 @@ function paidCaptureSelectResult(page: Page): Locator {
     });
 }
 
-export async function captureAuthorizedOrder(page: Page, orderId: string): Promise<void> {
+const INTERNAL_COMMENT = /internal comment|interner kommentar|interne opmerking|interne toelichting/i;
+const CAPTURE_REJECTED = /PAY\. could not complete/i;
+
+export type CaptureOrderOptions = {
+    internalComment?: string;
+    /** PAY. is expected to refuse the transition. The admin must show the error. */
+    expectAccepted?: boolean;
+};
+
+export async function captureAuthorizedOrder(
+    page: Page,
+    orderId: string,
+    options: CaptureOrderOptions = {},
+): Promise<void> {
     await page.goto(`./#/sw/order/detail/${orderId}/general`, { waitUntil: 'domcontentloaded' });
     await dismissAdminPopups(page);
 
@@ -24,6 +37,10 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
 
     const modal = page.locator('.sw-order-state-change-modal');
     await expect(modal).toBeVisible();
+    if (options.internalComment !== undefined) {
+        await fillInternalComment(modal, options.internalComment);
+    }
+
     const confirm = modal.getByRole('button', {
         name: /^(update status|status aktualisieren|status bijwerken)$/i,
     });
@@ -37,10 +54,19 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
     }
 
     const captureTimeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000);
-    const shopwareTransition = page.waitForResponse(isOrderTransactionTransition, { timeout: captureTimeoutMs });
-    const payCapture = page.waitForResponse(isChangeTransactionStatus, { timeout: captureTimeoutMs });
+    const shopwareTransition = keepHandled(page.waitForResponse(isOrderTransactionTransition, { timeout: captureTimeoutMs }));
 
     await confirm.click();
+
+    if (options.expectAccepted === false) {
+        const swResponse = await shopwareTransition;
+        const body = await swResponse.text();
+        expect(swResponse.ok(), `PAY. capture was accepted: ${swResponse.status()} ${body}`).toBeFalsy();
+        const notifications = page.locator('.sw-notifications .sw-alert--error');
+        await expect(notifications, 'PAY. capture failure did not show an error notification').toBeVisible();
+        await expect(notifications).toContainText(CAPTURE_REJECTED);
+        return;
+    }
 
     await expect(
         modal,
@@ -48,18 +74,22 @@ export async function captureAuthorizedOrder(page: Page, orderId: string): Promi
     ).toBeHidden({ timeout: 30_000 });
 
     const swResponse = await shopwareTransition;
-    expect(swResponse.ok(), `Shopware transition failed: ${swResponse.status()} ${await swResponse.text()}`).toBeTruthy();
+    const body = await swResponse.text();
+    expect(
+        swResponse.ok(),
+        `Payment transition failed. PAY. capture runs inside this request, and Shopware keeps the old status when PAY. refuses it: ${swResponse.status()} ${body}`,
+    ).toBeTruthy();
+}
 
-    const response = await payCapture;
-    const body = await response.text();
-    expect(response.ok(), `Capture status change failed: ${response.status()} ${body}`).toBeTruthy();
-    const payload = JSON.parse(body) as { currentActionName?: string; errorMessage?: string };
-    expect(payload.errorMessage ?? '', body).toEqual('');
-    expect(payload.currentActionName).toBe('paid');
+async function fillInternalComment(modal: Locator, internalComment: string): Promise<void> {
+    const labelled = modal.getByLabel(INTERNAL_COMMENT);
+    const field = (await labelled.count()) > 0 ? labelled.first() : modal.locator('textarea').first();
+    await expect(field, 'Internal comment field was not shown on the status change modal').toBeVisible();
+    await field.fill(internalComment);
 }
 
 export async function refundOrder(page: Page, orderId: string): Promise<RefundMessage[]> {
-    const refundData = page.waitForResponse(isRefundData, { timeout: 60_000 });
+    const refundData = keepHandled(page.waitForResponse(isRefundData, { timeout: 60_000 }));
     await page.goto(`./#/paynl/refund/page/view/${orderId}`, { waitUntil: 'domcontentloaded' });
     await dismissAdminPopups(page);
 
@@ -77,10 +107,10 @@ export async function refundOrder(page: Page, orderId: string): Promise<RefundMe
         await shipping.click();
     }
 
-    await dismissAdminPopups(page, 2_000);
+    await dismissAdminPopups(page);
     const refundButton = page.locator('.sw-order-detail__smart-bar-save-button');
     await expect(refundButton).toBeEnabled();
-    const refundResponsePromise = page.waitForResponse(isRefund, { timeout: 60_000 });
+    const refundResponsePromise = keepHandled(page.waitForResponse(isRefund, { timeout: 60_000 }));
     await refundButton.click();
 
     const refundResponse = await refundResponsePromise;
@@ -101,6 +131,11 @@ export function assertPayRefundAccepted(messages: RefundMessage[]): void {
     expect(messages[0]?.type, content).toBe('success');
 }
 
+function keepHandled<T>(pending: Promise<T>): Promise<T> {
+    void pending.catch(() => undefined);
+    return pending;
+}
+
 function isOrderTransactionTransition(response: Response): boolean {
     const url = response.url();
 
@@ -111,10 +146,6 @@ function isOrderTransactionTransition(response: Response): boolean {
             || /\/api\/_action\/state-machine\/order_transaction\//.test(url)
         )
     );
-}
-
-function isChangeTransactionStatus(response: Response): boolean {
-    return response.url().includes('/paynl/change-transaction-status') && response.request().method() === 'POST';
 }
 
 function isRefundData(response: Response): boolean {

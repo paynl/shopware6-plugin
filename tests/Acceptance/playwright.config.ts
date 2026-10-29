@@ -1,43 +1,31 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
-
-function loadEnvFile(path: string): void {
-    if (!existsSync(path)) {
-        return;
-    }
-
-    for (const line of readFileSync(path, 'utf8').split('\n')) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) {
-            continue;
-        }
-
-        const separator = trimmed.indexOf('=');
-        if (separator === -1) {
-            continue;
-        }
-
-        const key = trimmed.slice(0, separator);
-        const value = trimmed.slice(separator + 1).replace(/^['"]|['"]$/g, '');
-        // The tunnel URLs in .env win. A leftover 127.0.0.1 in the process environment
-        // makes Shopware return administration assets the browser never requests.
-        if (
-            process.env[key] === undefined
-            || key === 'APP_URL'
-            || key === 'ADMIN_API_URL'
-            || key === 'SHOPWARE_ADMIN_PASSWORD'
-        ) {
-            if (value !== '') {
-                process.env[key] = value;
-            }
-        }
-    }
-}
+import { loadEnvFile } from './src/load-env';
 
 loadEnvFile(resolve(import.meta.dirname, '.env'));
 
 const isCi = !!process.env.CI;
+
+// ngrok shows an interstitial to any user agent that contains "Mozilla".
+// A non-browser agent skips it, so the suite does not intercept every request.
+function ngrokUserAgent(appUrl: string | undefined): string | undefined {
+    if (appUrl === undefined || appUrl === '') {
+        return undefined;
+    }
+
+    try {
+        const host = new URL(appUrl).hostname;
+        if (/(?:^|\.)ngrok(?:-free)?\.(?:app|dev|io)$/i.test(host)) {
+            return 'paynl-shopware6-acceptance';
+        }
+    } catch {
+        return undefined;
+    }
+
+    return undefined;
+}
+
+const userAgent = ngrokUserAgent(process.env.APP_URL);
 
 export default defineConfig({
     testDir: './tests',
@@ -67,7 +55,8 @@ export default defineConfig({
     use: {
         baseURL: process.env.APP_URL,
         ignoreHTTPSErrors: true,
-        trace: 'retain-on-failure',
+        // Keep the failed first attempt when the retry passes, and keep that retry too.
+        trace: 'retain-on-failure-and-retries',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
         actionTimeout: 20_000,
@@ -77,7 +66,8 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            // The device preset sets a Mozilla user agent, so the ngrok override must come after it.
+            use: { ...devices['Desktop Chrome'], ...(userAgent === undefined ? {} : { userAgent }) },
         },
     ],
 });

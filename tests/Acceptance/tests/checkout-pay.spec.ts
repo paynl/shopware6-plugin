@@ -1,6 +1,12 @@
 import { expect, test, type FixtureTypes } from '@shopware-ag/acceptance-test-suite';
 import type { Page } from '@playwright/test';
-import { acceptTermsAndSubmitOrder, reachGuestCheckoutConfirm, selectPayPaymentMethod } from '../src/guest-checkout';
+import {
+    acceptTermsAndSubmitOrder,
+    checkPaymentMethod,
+    reachGuestCheckoutConfirm,
+    selectPayPaymentMethod,
+    waitForConfirmReload,
+} from '../src/guest-checkout';
 import { completePaySandbox } from '../src/pay-sandbox';
 import {
     assignIdealPaymentMethod,
@@ -114,17 +120,14 @@ test.describe('PAY. checkout', () => {
             });
             await expect(idealMethod).toHaveCount(1);
             await expect(idealMethod).toBeVisible();
+            await expect(StorefrontPage.locator('.payment-method')).toHaveCount(1);
 
             const idealInput = idealMethod.locator(`input[data-paynlid="${IDEAL_PAYNL_ID}"]`);
-            if (!(await idealInput.isChecked())) {
-                await idealInput.check({ force: true });
-                await StorefrontPage.waitForLoadState('domcontentloaded');
-            }
+            await checkPaymentMethod(StorefrontPage, idealInput);
 
-            const savePaymentMethod = idealMethod.locator('.paynl-change-payment-method');
-            if (await savePaymentMethod.isVisible().catch(() => false)) {
-                await savePaymentMethod.click();
-                await StorefrontPage.waitForLoadState('domcontentloaded');
+            const savePaymentMethod = idealMethod.locator('.paynl-change-payment-method').first();
+            if (await savePaymentMethod.isVisible()) {
+                await waitForConfirmReload(StorefrontPage, () => savePaymentMethod.click());
             }
 
             return acceptTermsAndSubmitOrder(StorefrontCheckoutConfirm);
@@ -136,7 +139,7 @@ test.describe('PAY. checkout', () => {
         ));
 
         await step(StorefrontPage, 'Confirm the thank you page', async () => {
-            await expect(StorefrontPage).toHaveURL(/checkout\/finish/i, { timeout: 120_000 });
+            await expect(StorefrontPage).toHaveURL(/checkout\/finish/i, { timeout: 30_000 });
             await confirmPaidOrder(StorefrontPage, StorefrontCheckoutFinish, AdminApiContext, expected);
         });
     });

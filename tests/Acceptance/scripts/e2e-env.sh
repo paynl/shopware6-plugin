@@ -3,8 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ACCEPTANCE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-COMPOSE=(docker compose --project-name paynl-sw6-e2e -f "${ACCEPTANCE_DIR}/docker-compose.yml")
-CONTAINER_NAME="paynl_sw6_e2e"
 ENV_FILE="${ACCEPTANCE_DIR}/.env"
 DIAGNOSTICS_DIR="${ACCEPTANCE_DIR}/diagnostics"
 TUNNEL_LOG="${ACCEPTANCE_DIR}/diagnostics/tunnel.log"
@@ -14,7 +12,18 @@ SHOPWARE_VERSION="${SHOPWARE_VERSION:-6.7.10.0}"
 SHOPWARE_PORT="${SHOPWARE_PORT:-8080}"
 SHOPWARE_WAIT_SECONDS="${SHOPWARE_WAIT_SECONDS:-600}"
 
-export SHOPWARE_VERSION SHOPWARE_PORT
+# Compose names the container from the project. A fixed container_name collides
+# across checkouts, ports, and GitHub runs that share one Docker daemon.
+if [[ -z "${COMPOSE_PROJECT_NAME:-}" ]]; then
+    if [[ -n "${GITHUB_RUN_ID:-}" ]]; then
+        COMPOSE_PROJECT_NAME="paynl-sw6-e2e-${GITHUB_RUN_ID}"
+    else
+        COMPOSE_PROJECT_NAME="paynl-sw6-e2e-$(cksum <<<"${ACCEPTANCE_DIR}:${SHOPWARE_PORT}" | awk '{print $1}')"
+    fi
+fi
+export COMPOSE_PROJECT_NAME SHOPWARE_VERSION SHOPWARE_PORT
+
+COMPOSE=(docker compose --project-name "${COMPOSE_PROJECT_NAME}" -f "${ACCEPTANCE_DIR}/docker-compose.yml")
 
 log() {
     printf '%s %s\n' "$(date '+%H:%M:%S')" "$*"
@@ -80,8 +89,31 @@ require_pay_secrets() {
     [[ -n "${PAY_SERVICE_ID:-}" ]] || fail "PAY_SERVICE_ID is not set"
 }
 
+shopware_container_id() {
+    local id
+    id="$("${COMPOSE[@]}" ps -aq shopware 2>/dev/null || true)"
+    printf '%s' "${id%%$'\n'*}"
+}
+
+shopware_container() {
+    local id
+    id="$(shopware_container_id)"
+    if [[ -z "${id}" ]]; then
+        log "error: Shopware container for project ${COMPOSE_PROJECT_NAME} does not exist" >&2
+        exit 1
+    fi
+    printf '%s' "${id}"
+}
+
 shopware_exec() {
-    docker exec -u dockware -i "${CONTAINER_NAME}" bash -lc "$*"
+    docker exec -u dockware -i "$(shopware_container)" bash -lc "$*"
+}
+
+remove_legacy_container() {
+    if docker inspect paynl_sw6_e2e >/dev/null 2>&1; then
+        log "Removing leftover container paynl_sw6_e2e"
+        docker rm -f paynl_sw6_e2e >/dev/null
+    fi
 }
 
 http_code() {
@@ -94,7 +126,7 @@ wait_for_dockware_ready() {
     log "Waiting for Dockware to unpack Shopware (Apache is down during this; connection resets are normal)"
     local elapsed=0
     while true; do
-        if docker logs "${CONTAINER_NAME}" 2>&1 | grep -q 'container IS READY'; then
+        if docker logs "$(shopware_container)" 2>&1 | grep -q 'container IS READY'; then
             log "Dockware reports the container is ready"
             # Dockware chowns the bind mount, and the image user cannot chown it back.
             # Restore only what the host writes. Skip node_modules: Docker Desktop rejects that chown.
@@ -102,7 +134,7 @@ wait_for_dockware_ready() {
             uid="$(id -u)"
             gid="$(id -g)"
             acceptance="/var/www/html/custom/plugins/PaynlPaymentShopware6/tests/Acceptance"
-            docker exec -u root "${CONTAINER_NAME}" bash -lc \
+            docker exec -u root "$(shopware_container)" bash -lc \
                 "chown ${uid}:${gid} '${acceptance}' '${acceptance}/.env'
                  if [[ -d '${acceptance}/diagnostics' ]]; then chown -R ${uid}:${gid} '${acceptance}/diagnostics'; fi" \
                 >/dev/null 2>&1 || true
@@ -121,60 +153,6 @@ wait_for_dockware_ready() {
         elapsed=$((elapsed + 5))
         log "still unpacking Dockware (${elapsed}s)"
     done
-}
-
-shopware_mysql() {
-    docker exec -e MYSQL_PWD=root "${CONTAINER_NAME}" \
-        mysql -h 127.0.0.1 -u root --batch --raw --skip-column-names shopware -e "$1"
-}
-
-sql_escape() {
-    printf '%s' "$1" | sed "s/'/''/g"
-}
-
-ensure_sales_channel_domain() {
-    local url="${1%/}"
-    [[ -n "${url}" ]] || fail "sales channel domain URL is empty"
-    local escaped
-    escaped="$(sql_escape "${url}")"
-    log "Ensuring sales channel domain ${url}"
-
-    local existing
-    existing="$(shopware_mysql "SELECT url FROM sales_channel_domain WHERE url='${escaped}' LIMIT 1" || true)"
-    if [[ -n "${existing}" ]]; then
-        log "Sales channel domain already has ${url}"
-        return
-    fi
-
-    if [[ "${url}" == "http://127.0.0.1:${SHOPWARE_PORT}" ]]; then
-        shopware_mysql "UPDATE sales_channel_domain
-            SET url='${escaped}', updated_at=NOW(3)
-            WHERE url IN ('http://localhost', 'http://localhost/', 'http://localhost:80')"
-        existing="$(shopware_mysql "SELECT url FROM sales_channel_domain WHERE url='${escaped}' LIMIT 1" || true)"
-        if [[ -n "${existing}" ]]; then
-            shopware_exec 'cd /var/www/html && php bin/console cache:clear -n'
-            return
-        fi
-    fi
-
-    if shopware_mysql "INSERT INTO sales_channel_domain
-        (id, sales_channel_id, language_id, url, currency_id, snippet_set_id, hreflang_use_only_locale, created_at)
-        SELECT UNHEX(REPLACE(UUID(), '-', '')), sales_channel_id, language_id, '${escaped}',
-            currency_id, snippet_set_id, hreflang_use_only_locale, NOW(3)
-        FROM sales_channel_domain
-        WHERE url NOT LIKE 'default.headless%'
-        ORDER BY created_at
-        LIMIT 1"; then
-        shopware_exec 'cd /var/www/html && php bin/console cache:clear -n'
-        return
-    fi
-
-    log "Insert failed; pointing existing storefront domain at ${url}"
-    shopware_mysql "UPDATE sales_channel_domain
-        SET url='${escaped}', updated_at=NOW(3)
-        WHERE url NOT LIKE 'default.headless%'
-        LIMIT 1"
-    shopware_exec 'cd /var/www/html && php bin/console cache:clear -n'
 }
 
 wait_for_shopware() {
@@ -205,12 +183,13 @@ wait_for_shopware() {
         log "still waiting for HTTP (${elapsed}s, health-check ${health_code}, storefront ${store_code})"
     done
     log "Shopware is responding"
-    ensure_sales_channel_domain "http://127.0.0.1:${SHOPWARE_PORT}"
 }
 
 shopware_api_url() {
     # Payment-method install only needs the shop. The trycloudflare name is for PAY. and the browser.
-    if docker inspect -f '{{.State.Running}}' "${CONTAINER_NAME}" 2>/dev/null | grep -qx true; then
+    local container_id
+    container_id="$(shopware_container_id)"
+    if [[ -n "${container_id}" ]] && docker inspect -f '{{.State.Running}}' "${container_id}" 2>/dev/null | grep -qx true; then
         printf 'http://127.0.0.1:%s' "${SHOPWARE_PORT}"
         return
     fi
@@ -401,9 +380,13 @@ rotate_admin_password() {
     local new_password
     new_password="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)"
     log "Setting a random Shopware admin password for this run"
-    docker exec -u dockware -e ADMIN_PW="${new_password}" -i "${CONTAINER_NAME}" bash -lc \
+    docker exec -u dockware -e ADMIN_PW="${new_password}" -i "$(shopware_container)" bash -lc \
         "cd /var/www/html && php bin/console user:change-password '${username}' --password=\"\${ADMIN_PW}\" -n"
     set_env_value SHOPWARE_ADMIN_PASSWORD "${new_password}"
+    # Later steps print the job environment. Mask before GITHUB_ENV, or the password shows there.
+    if [[ -n "${GITHUB_ENV:-}" ]]; then
+        echo "::add-mask::${new_password}"
+    fi
     write_github_env SHOPWARE_ADMIN_PASSWORD "${new_password}"
     export SHOPWARE_ADMIN_PASSWORD="${new_password}"
 }
@@ -415,7 +398,7 @@ configure_shopware() {
     app_url="${app_url%/}"
 
     log "Pointing Shopware APP_URL at ${app_url}"
-    docker exec -u dockware -e APP_URL_VALUE="${app_url}" -i "${CONTAINER_NAME}" bash -lc 'set -e
+    docker exec -u dockware -e APP_URL_VALUE="${app_url}" -i "$(shopware_container)" bash -lc 'set -e
 cd /var/www/html
 if [[ -f .env ]]; then
   grep -q "^APP_URL=" .env && sed -i "s|^APP_URL=.*|APP_URL=${APP_URL_VALUE}|" .env || echo "APP_URL=${APP_URL_VALUE}" >> .env
@@ -434,14 +417,12 @@ if [[ -f .env ]]; then
   set_shop_env TRUSTED_HEADERS "$forwarded_headers"
   set_shop_env SYMFONY_TRUSTED_PROXIES private_ranges
   set_shop_env SYMFONY_TRUSTED_HEADERS "$forwarded_headers"
-  grep -q "^SHOPWARE_HTTP_CACHE_ENABLED=" .env && sed -i "s|^SHOPWARE_HTTP_CACHE_ENABLED=.*|SHOPWARE_HTTP_CACHE_ENABLED=0|" .env || echo "SHOPWARE_HTTP_CACHE_ENABLED=0" >> .env
+  # Empty update check means the admin "new Shopware version" notice is never created.
+  set_shop_env SHOPWARE_DISABLE_UPDATE_CHECK 1
+  # Merchants run with the storefront HTTP cache on. Finalize and return are tested that way.
+  set_shop_env SHOPWARE_HTTP_CACHE_ENABLED 1
 fi
 '
-    ensure_sales_channel_domain "${app_url}"
-    if [[ "${app_url}" == https://* ]]; then
-        ensure_sales_channel_domain "http://${app_url#https://}"
-    fi
-
     install_plugin_sdk
 
     log "Installing and activating PaynlPaymentShopware6"
@@ -464,7 +445,7 @@ php bin/console cache:clear -n
         -e PAY_TOKEN_CODE="${PAY_TOKEN_CODE}" \
         -e PAY_API_TOKEN="${PAY_API_TOKEN}" \
         -e PAY_SERVICE_ID="${PAY_SERVICE_ID}" \
-        -i "${CONTAINER_NAME}" bash -lc 'set -e
+        -i "$(shopware_container)" bash -lc 'set -e
 cd /var/www/html
 php bin/console system:config:set PaynlPaymentShopware6.config.tokenCode "$PAY_TOKEN_CODE" -n
 php bin/console system:config:set PaynlPaymentShopware6.config.apiToken "$PAY_API_TOKEN" -n
@@ -496,28 +477,50 @@ if not payload.get("success", True):
 print(payload.get("message", "payment methods installed"))
 ' "${response}"
 
+    log "Declining Shopware usage-data consent"
+    local consent
+    for consent in product_analytics backend_data; do
+        curl -fsS -X POST "${api_url}/api/consents/revoke" \
+            -H "Authorization: Bearer ${token}" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -H 'ngrok-skip-browser-warning: true' \
+            -d "{\"consent\":\"${consent}\"}" \
+            >/dev/null \
+            || fail "Could not decline Shopware consent ${consent}"
+    done
+
     log "Shop configuration complete"
 }
 
 collect_diagnostics() {
     mkdir -p "${DIAGNOSTICS_DIR}"
     log "Collecting Shopware diagnostics into ${DIAGNOSTICS_DIR}"
-    docker ps -a --filter "name=${CONTAINER_NAME}" > "${DIAGNOSTICS_DIR}/docker-ps.txt" || true
+    local container_id
+    container_id="$(shopware_container_id)"
+    if [[ -n "${container_id}" ]]; then
+        docker ps -a --filter "id=${container_id}" > "${DIAGNOSTICS_DIR}/docker-ps.txt" || true
+    else
+        echo "No container for project ${COMPOSE_PROJECT_NAME}" > "${DIAGNOSTICS_DIR}/docker-ps.txt"
+    fi
     "${COMPOSE[@]}" logs --no-color shopware > "${DIAGNOSTICS_DIR}/shopware-container.log" 2>/dev/null || true
-    shopware_exec 'cd /var/www/html
+    if [[ -n "${container_id}" ]]; then
+        docker exec -u dockware -i "${container_id}" bash -lc 'cd /var/www/html
 php bin/console plugin:list -n || true
 echo "---- .env APP_URL ----"
-grep -E "^(APP_URL|TRUSTED_PROXIES|SYMFONY_TRUSTED_PROXIES)=" .env || true
+grep -E "^(APP_URL|TRUSTED_PROXIES|SYMFONY_TRUSTED_PROXIES|SHOPWARE_HTTP_CACHE_ENABLED)=" .env || true
 echo "---- paynl logs ----"
 ls -la var/log || true
 ' > "${DIAGNOSTICS_DIR}/shopware-console.txt" 2>&1 || true
-    docker cp "${CONTAINER_NAME}:/var/www/html/var/log/." "${DIAGNOSTICS_DIR}/shopware-var-log" 2>/dev/null || true
+        docker cp "${container_id}:/var/www/html/var/log/." "${DIAGNOSTICS_DIR}/shopware-var-log" 2>/dev/null || true
+    fi
 }
 
 cmd_up() {
     load_env_file
     mkdir -p "${DIAGNOSTICS_DIR}"
-    log "Starting Shopware ${SHOPWARE_VERSION} on port ${SHOPWARE_PORT}"
+    remove_legacy_container
+    log "Starting Shopware ${SHOPWARE_VERSION} on port ${SHOPWARE_PORT} (project ${COMPOSE_PROJECT_NAME})"
     "${COMPOSE[@]}" pull shopware
     "${COMPOSE[@]}" up -d --force-recreate
     wait_for_shopware
@@ -531,6 +534,7 @@ cmd_up() {
 cmd_down() {
     stop_tunnel
     "${COMPOSE[@]}" down -v --remove-orphans || true
+    remove_legacy_container
     log "Temporary Shopware environment removed"
 }
 
@@ -538,27 +542,24 @@ cmd_redact() {
     if [[ -f "${ENV_FILE}" ]]; then
         load_env_file
     fi
-    local php_script="${SCRIPT_DIR}/redact-secrets.php"
-    local -a roots=(
-        "${ACCEPTANCE_DIR}/test-results"
-        "${ACCEPTANCE_DIR}/playwright-report"
-        "${ACCEPTANCE_DIR}/diagnostics"
-    )
-    if command -v php >/dev/null 2>&1; then
-        php "${php_script}" "${roots[@]}"
-        return
+    local acceptance="${ACCEPTANCE_DIR}"
+    local -a php=(php)
+    if ! command -v php >/dev/null 2>&1; then
+        # GitHub-hosted runners have no PHP. The Shopware container does, and these directories are bind-mounted.
+        acceptance="/var/www/html/custom/plugins/PaynlPaymentShopware6/tests/Acceptance"
+        php=(docker exec -u "$(id -u):$(id -g)"
+            -e PAY_SANDBOX_SECRET="${PAY_SANDBOX_SECRET:-}"
+            -e PAY_API_TOKEN="${PAY_API_TOKEN:-}"
+            -e PAY_TOKEN_CODE="${PAY_TOKEN_CODE:-}"
+            -e PAY_SERVICE_ID="${PAY_SERVICE_ID:-}"
+            -e NGROK_AUTHTOKEN="${NGROK_AUTHTOKEN:-}"
+            -e SHOPWARE_ADMIN_PASSWORD="${SHOPWARE_ADMIN_PASSWORD:-}"
+            "$(shopware_container)" php)
     fi
 
-    # GitHub-hosted runners have no PHP. The Shopware container does, and these directories are bind-mounted.
-    local acceptance="/var/www/html/custom/plugins/PaynlPaymentShopware6/tests/Acceptance"
-    docker exec -u "$(id -u):$(id -g)" \
-        -e PAY_SANDBOX_SECRET="${PAY_SANDBOX_SECRET:-}" \
-        -e PAY_API_TOKEN="${PAY_API_TOKEN:-}" \
-        -e PAY_TOKEN_CODE="${PAY_TOKEN_CODE:-}" \
-        -e PAY_SERVICE_ID="${PAY_SERVICE_ID:-}" \
-        -e NGROK_AUTHTOKEN="${NGROK_AUTHTOKEN:-}" \
-        "${CONTAINER_NAME}" \
-        php "${acceptance}/scripts/redact-secrets.php" \
+    # A redactor that no longer scrubs every format must block the upload, not pass silently.
+    "${php[@]}" "${acceptance}/scripts/redact-secrets.php" --self-check
+    "${php[@]}" "${acceptance}/scripts/redact-secrets.php" \
         "${acceptance}/test-results" \
         "${acceptance}/playwright-report" \
         "${acceptance}/diagnostics"
@@ -573,7 +574,7 @@ Usage: e2e-env.sh <up|down|diagnostics|configure|ensure-plugin|tunnel|redact>
   ensure-plugin Install and activate PaynlPaymentShopware6, build its administration, then PAY. test methods
   tunnel        Start only the public HTTPS tunnel
   diagnostics   Copy Shopware logs for CI artifacts
-  redact        Strip PAY. credentials from test artifacts
+  redact        Strip PAY. credentials, the admin password, and Bearer tokens from test artifacts
   down          Stop this run's tunnel and delete the Shopware containers
 EOF
 }

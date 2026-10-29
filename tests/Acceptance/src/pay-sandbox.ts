@@ -1,17 +1,29 @@
-import { pathToFileURL } from 'node:url';
 import { expect, type Page } from '@playwright/test';
-import { appears } from './locator-helpers';
 
-const PAY_HOST = /pay\.nl|achterelkebetaling\.nl|payments\.nl/i;
-const ISSUER_HOST = /ideal\.nl|cloudflare/i;
-const WERO_PAY_HOST = /(?:^|\/\/)ext\.pay\.wero\.ideal\.nl(?::\d+)?(?:[/?#]|$)/i;
+const PAY_HOST = /^(?:.+\.)?(?:pay\.nl|achterelkebetaling\.nl|payments\.nl)$/i;
+const ISSUER_HOST = /^(?:.+\.)?ideal\.nl$|^challenges\.cloudflare\.com$/i;
+const WERO_PAY_HOST = /^ext\.pay\.wero\.ideal\.nl$/i;
 
-function isPayHost(href: string): boolean {
-    return WERO_PAY_HOST.test(href) || (PAY_HOST.test(href) && !ISSUER_HOST.test(href));
+function hostname(href: string): string {
+    try {
+        return new URL(href).hostname;
+    } catch {
+        return '';
+    }
 }
 
-function isIssuerHost(href: string): boolean {
-    return !WERO_PAY_HOST.test(href) && ISSUER_HOST.test(href);
+function isWeroHost(href: string): boolean {
+    return WERO_PAY_HOST.test(hostname(href));
+}
+
+export function isPayHost(href: string): boolean {
+    const host = hostname(href);
+    return WERO_PAY_HOST.test(host) || (PAY_HOST.test(host) && !ISSUER_HOST.test(host));
+}
+
+export function isIssuerHost(href: string): boolean {
+    const host = hostname(href);
+    return !WERO_PAY_HOST.test(host) && ISSUER_HOST.test(host);
 }
 
 const CHECKOUT_HOST = String.raw`checkout\.(?:pay\.nl|achterelkebetaling\.nl|payments\.nl)`;
@@ -111,24 +123,26 @@ async function submitSandboxStatus(page: Page, amount: string, status: SandboxPa
     await expect(statusInput, `Sandbox status #${status} was not shown at ${page.url()}`).toBeVisible();
     await statusInput.check();
 
+    // The sandbox enables this status's amount field after the radio is selected.
     const amountInput = page.locator(`input#${status}Amount`);
-    if (await appears(amountInput, 2000)) {
-        // The selected status keeps its amount input inside a disabled fieldset.
-        await amountInput.evaluate((element) => {
-            element.closest('fieldset')?.removeAttribute('disabled');
-            if (element instanceof HTMLInputElement) {
-                element.disabled = false;
-            }
-        });
-        await amountInput.fill(amount);
-    }
+    await expect(amountInput, `Sandbox amount #${status}Amount stayed disabled at ${page.url()}`).toBeEnabled();
+    await amountInput.fill(amount);
 
     const updateButton = page.locator('button[type="submit"]', { hasText: 'Update status' });
     await expect(updateButton).toBeVisible();
     await updateButton.click();
+    await assertSandboxAccepted(page);
+}
 
-    const invalidSecret = page.getByText(/ungültiges geheimnis|invalid secret|ongeldig geheim/i);
-    if (await appears(invalidSecret, 5000)) {
+const INVALID_SECRET = /ungültiges geheimnis|invalid secret|ongeldig geheim/i;
+const CONTINUE_TO_SHOP = /continue to the website|weiter zur website|doorgaan naar de website|terug naar de webshop|back to the shop/i;
+
+async function assertSandboxAccepted(page: Page): Promise<void> {
+    const invalidSecret = page.getByText(INVALID_SECRET);
+    const finishMarker = page.locator('a[href][target="_blank"]').filter({ hasText: CONTINUE_TO_SHOP })
+        .or(page.locator('.finish-header'));
+    await expect(invalidSecret.or(finishMarker).first()).toBeVisible({ timeout: 60_000 });
+    if (await invalidSecret.isVisible()) {
         throw new Error(
             'PAY. rejected the sandbox secret for this sales location. Set PAY_SANDBOX_SECRET to the sales-location secret from my.pay.nl (Settings → Sales location). Do not use PAY_API_TOKEN.',
         );
@@ -152,10 +166,7 @@ async function completeWeroIdeal(page: Page): Promise<void> {
     const success = page.getByRole('button', { name: 'Success', exact: true });
     await expect(success).toBeVisible();
     await success.click();
-    await page.waitForURL(FINISH_URL, { timeout: 120_000 });
 }
-
-const CONTINUE_TO_SHOP = /continue to the website|weiter zur website|doorgaan naar de website|terug naar de webshop|back to the shop/i;
 
 async function continueToShopFromSandbox(page: Page): Promise<void> {
     const continueLink = page.locator('a[href][target="_blank"]').filter({ hasText: CONTINUE_TO_SHOP }).first();
@@ -167,7 +178,7 @@ async function continueToShopFromSandbox(page: Page): Promise<void> {
     await page.goto(new URL(href, page.url()).href, { waitUntil: 'domcontentloaded' });
 }
 
-async function returnFromSandbox(page: Page, _amount: string, status: SandboxPaymentStatus): Promise<void> {
+async function returnFromSandbox(page: Page, status: SandboxPaymentStatus): Promise<void> {
     if (FINISH_URL.test(page.url())) {
         return;
     }
@@ -198,12 +209,12 @@ export async function completePaySandbox(
         (url) => isPayHost(url.href),
         { timeout: 60_000 },
     );
-    if (WERO_PAY_HOST.test(page.url())) {
+    if (isWeroHost(page.url())) {
         await completeWeroIdeal(page);
         return;
     }
     await fillSandboxForm(page, amount, status);
-    await returnFromSandbox(page, amount, status);
+    await returnFromSandbox(page, status);
 }
 
 function normalizeDecimal(raw: string): string {
@@ -241,33 +252,4 @@ export function parseAmount(raw: string): { amount: number; currency: string; sa
         currency: currency === 'EUR' || currency === 'GBP' || currency === 'USD' ? currency : 'EUR',
         sandboxAmount: amount.toFixed(2),
     };
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-    const cases: Array<[string, number]> = [
-        ['€ 10.00', 10],
-        ['€ 10,00', 10],
-        ['1.234,56', 1234.56],
-        ['1,234.56', 1234.56],
-        ['1.234', 1234],
-    ];
-    for (const [raw, expected] of cases) {
-        const parsed = parseAmount(raw);
-        if (parsed.amount !== expected || parsed.sandboxAmount !== expected.toFixed(2)) {
-            throw new Error(`parseAmount(${JSON.stringify(raw)}) => ${parsed.amount} / ${parsed.sandboxAmount}`);
-        }
-    }
-
-    const hostCases: Array<[string, boolean, boolean]> = [
-        ['https://ext.pay.wero.ideal.nl/10001', true, false],
-        ['https://checkout.pay.nl/en-us/sandbox/00000000-0000-0000-0000-000000000000', true, false],
-        ['https://www.ideal.nl/issuer', false, true],
-        ['https://challenges.cloudflare.com/', false, true],
-    ];
-    for (const [href, pay, issuer] of hostCases) {
-        if (isPayHost(href) !== pay || isIssuerHost(href) !== issuer) {
-            throw new Error(`host ${href} => pay ${isPayHost(href)}, issuer ${isIssuerHost(href)}`);
-        }
-    }
-    console.log('parseAmount self-check ok');
 }

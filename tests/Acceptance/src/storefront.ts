@@ -1,50 +1,75 @@
 import { expect, type Page } from '@playwright/test';
-import { appears } from './locator-helpers';
 
-const ACCEPT_ALL_COOKIES = /accept all|alle cookies accepteren|alle cookies akzeptieren/i;
+type CookieGroups = {
+    hash?: string;
+    languageId?: string;
+};
 
-export async function prepareStorefront(page: Page): Promise<void> {
-    // Only the shop needs this. A page-wide header is copied onto the iDEAL
-    // simulator call and that API rejects it in the CORS preflight.
-    const appUrl = (process.env.APP_URL ?? '').replace(/\/$/, '');
-    if (appUrl) {
-        await page.route('**/*', async (route) => {
-            if (!route.request().url().startsWith(appUrl)) {
-                await route.continue();
-                return;
-            }
+const COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
-            await route.continue({
-                headers: {
-                    ...route.request().headers(),
-                    'ngrok-skip-browser-warning': 'true',
-                },
-            });
-        });
+function storefrontOrigin(page: Page): URL | undefined {
+    const current = page.url();
+    const candidate = current.startsWith('http://') || current.startsWith('https://')
+        ? current
+        : process.env.APP_URL;
+    if (candidate === undefined || candidate === '') {
+        return undefined;
     }
-    const ngrokWarning = page.getByText(/you are about to visit|ngrok-free\.app|visit site/i).first();
-    if (await appears(ngrokWarning, 2000)) {
-        await page.reload({ waitUntil: 'domcontentloaded' });
-    }
-    await acceptCookies(page);
+
+    return new URL(candidate);
 }
 
+/** Sets Shopware's consent cookies. 6.7 shows the banner again when the language hash is missing. */
 export async function acceptCookies(page: Page): Promise<void> {
-    const acceptAll = page.getByRole('button', { name: ACCEPT_ALL_COOKIES }).first();
-    if (await appears(acceptAll, 4000)) {
-        await acceptAll.click();
+    const origin = storefrontOrigin(page);
+    if (origin === undefined) {
         return;
     }
 
-    const requiredOnly = page.getByRole('button', { name: /only technically required/i }).first();
-    if (await appears(requiredOnly, 1000)) {
-        await requiredOnly.click();
+    const expires = Math.floor(Date.now() / 1000) + COOKIE_MAX_AGE_SECONDS;
+    const cookies = [{
+        name: 'cookie-preference',
+        value: '1',
+        url: `${origin.origin}/`,
+        expires,
+    }];
+
+    const groups = await page.request.get(new URL('/cookie/groups', origin).href, {
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'ngrok-skip-browser-warning': 'true',
+        },
+        failOnStatusCode: false,
+    }).catch(() => null);
+    if (groups?.ok()) {
+        const body = await groups.json().catch(() => null) as CookieGroups | null;
+        if (body?.hash && body.languageId) {
+            cookies.push({
+                name: 'cookie-config-hash',
+                value: JSON.stringify({ [body.languageId]: body.hash }),
+                url: `${origin.origin}/`,
+                expires,
+            });
+        }
     }
+
+    await page.context().addCookies(cookies);
+}
+
+/** The register form is server-rendered, so once its e-mail field shows, `isVisible()` on the rest is final. */
+async function waitForRegisterForm(page: Page): Promise<void> {
+    await expect(
+        page.locator('#personalMail, input[name="email"]').first(),
+        'Checkout register form was not shown',
+    ).toBeVisible();
 }
 
 export async function enableGuestCheckout(page: Page): Promise<boolean> {
+    await waitForRegisterForm(page);
+
     const createAccount = page.getByRole('checkbox', { name: /create a customer account/i });
-    if (await appears(createAccount, 3000)) {
+    if (await createAccount.isVisible()) {
         if (await createAccount.isChecked()) {
             await createAccount.uncheck({ force: true });
         }
@@ -55,7 +80,7 @@ export async function enableGuestCheckout(page: Page): Promise<boolean> {
     }
 
     const guest = page.locator('#personalGuest, input[name="guest"]').first();
-    if (await appears(guest, 1000)) {
+    if (await guest.isVisible()) {
         await guest.check({ force: true });
         return true;
     }
@@ -65,7 +90,8 @@ export async function enableGuestCheckout(page: Page): Promise<boolean> {
 
 export async function isPasswordRequired(page: Page): Promise<boolean> {
     const password = page.locator('#personalPassword, input[name="password"]').first();
-    return appears(password, 1000);
+    await waitForRegisterForm(page);
+    return password.isVisible();
 }
 
 async function storefrontFailureContext(page: Page): Promise<string> {
@@ -94,7 +120,8 @@ export async function addProductToCart(page: Page, quantity = '1'): Promise<void
     const quantityField = page.locator('.buy-widget:not(.d-none), .product-detail-buy').locator(
         'select#quantity, input[name="quantity"], input.quantity-selector-group-input, .product-detail-quantity-select',
     ).first();
-    if (await appears(quantityField, 2000)) {
+    // Rendered with the buy button, which is already visible.
+    if (await quantityField.isVisible()) {
         const tag = await quantityField.evaluate((element) => element.tagName);
         if (tag === 'SELECT') {
             await quantityField.selectOption(quantity);

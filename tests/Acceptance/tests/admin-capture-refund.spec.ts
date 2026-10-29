@@ -1,7 +1,7 @@
 import { test, expect, type FixtureTypes } from '@shopware-ag/acceptance-test-suite';
 import type { Locator, Page } from '@playwright/test';
-import { assertPayRefundAccepted, captureAuthorizedOrder, refundOrder } from '../src/admin-order';
-import { dismissAdminPopups, openAdmin } from '../src/admin-popups';
+import { captureAuthorizedOrder, refundOrder, assertPayRefundAccepted } from '../src/admin-order';
+import { dismissAdminPopups } from '../src/admin-popups';
 import {
     acceptTermsAndSubmitOrder,
     reachGuestCheckoutConfirm,
@@ -11,15 +11,21 @@ import {
 import { completePaySandbox, type SandboxPaymentStatus } from '../src/pay-sandbox';
 import {
     assignPayPaymentMethod,
+    expectOrderTransactionHistoryComment,
+    latestOrderTransaction,
     readPaynlTransactionState,
     waitForOrderPaymentState,
+    waitForPaynlTransactionState,
 } from '../src/shopware-admin';
-import { maskPayConfigCredentialInputs, payConfigPageTestUse } from '../src/pay-config-page';
+import { maskPayConfigCredentialInputs } from '../src/pay-config-page';
 import { step } from '../src/step';
 
 const REFUND_STATUS_CODES = [-72, -81, -82];
 const ALLOW_REFUNDS = /^(allow refunds|erstattungen zulassen|restituties toestaan)$/i;
 const ALLOW_NATIVE_REFUNDS = /^(allow shopware native refunds|shopware native refunds zulassen|shopware native refunds toestaan)$/i;
+const CAPTURE_COMMENT = 'Captured in the PAY. acceptance test';
+const UNKNOWN_PAY_ORDER_ID = '9999999999X99999';
+const REFUND_FIXME = 'PAY. refuses the refund for this API token (forbidden). The token needs the refund right in my.pay.nl. No tracking issue yet.';
 
 type CheckoutFixtures = GuestCheckout & Pick<
     FixtureTypes,
@@ -105,11 +111,9 @@ async function switchOn(checkbox: Locator): Promise<boolean> {
     return true;
 }
 
-test.use(payConfigPageTestUse);
-
 test.describe('PAY. admin capture and refund', () => {
     test('admin Paid on an authorised payment marks the Shopware payment paid', async ({
-        browser,
+        AdminPage,
         StorefrontPage,
         StorefrontProductDetail,
         StorefrontCheckoutConfirm,
@@ -139,27 +143,99 @@ test.describe('PAY. admin capture and refund', () => {
             { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
             'authorize',
         ));
-        const before = await readPaynlTransactionState(AdminApiContext, authorized.id);
-        expect(before.stateId).toBe(95);
+        const before = await waitForPaynlTransactionState(AdminApiContext, authorized.id, 95);
 
-        const adminPage = await openAdmin(browser);
-        try {
-            await step(adminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(adminPage, 2_000));
-            await step(adminPage, 'Set payment status to Paid (capture)', () => captureAuthorizedOrder(adminPage, authorized.id));
-        } finally {
-            await adminPage.context().close();
-        }
+        await step(AdminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(AdminPage));
+        await step(AdminPage, 'Set payment status to Paid (capture)', () => captureAuthorizedOrder(
+            AdminPage,
+            authorized.id,
+            { internalComment: CAPTURE_COMMENT },
+        ));
 
-        await step(StorefrontPage, 'Wait until the Shopware payment is paid', () => waitForOrderPaymentState(
+        const paid = await step(StorefrontPage, 'Wait until the Shopware payment is paid', () => waitForOrderPaymentState(
             AdminApiContext,
             { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
             'paid',
         ));
+        await step(StorefrontPage, 'Wait until PAY. captured the payment', () => waitForPaynlTransactionState(
+            AdminApiContext,
+            authorized.id,
+            100,
+        ));
+        await step(AdminPage, 'Confirm the internal comment was stored on the payment state change', () => (
+            expectOrderTransactionHistoryComment(
+                AdminApiContext,
+                latestOrderTransaction(paid).id,
+                CAPTURE_COMMENT,
+            )
+        ));
+    });
+
+    test('admin Paid shows an error when PAY. rejects the capture', async ({
+        AdminPage,
+        StorefrontPage,
+        StorefrontProductDetail,
+        StorefrontCheckoutConfirm,
+        StorefrontCheckoutFinish,
+        ProductData,
+        DefaultSalesChannel,
+        AdminApiContext,
+        ShopCustomer,
+        Register,
+    }) => {
+        test.setTimeout(300_000);
+
+        const placed = await placePayOrder({
+            StorefrontPage,
+            StorefrontProductDetail,
+            StorefrontCheckoutConfirm,
+            StorefrontCheckoutFinish,
+            ProductData,
+            DefaultSalesChannel,
+            AdminApiContext,
+            ShopCustomer,
+            Register,
+        }, 'authorised');
+        const lookup = { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber };
+
+        const authorized = await step(StorefrontPage, 'Wait until the payment is authorized', () => waitForOrderPaymentState(
+            AdminApiContext,
+            lookup,
+            'authorize',
+        ));
+        const before = await waitForPaynlTransactionState(AdminApiContext, authorized.id, 95);
+
+        await step(StorefrontPage, 'Point the PAY. row at an order PAY. does not know', async () => {
+            const patched = await AdminApiContext.patch(`./paynl-transactions/${before.id}`, {
+                data: { paynlTransactionId: UNKNOWN_PAY_ORDER_ID },
+            });
+            expect(
+                patched.ok(),
+                `Could not replace the PAY. order id: ${patched.status()} ${await patched.text()}`,
+            ).toBeTruthy();
+        });
+
+        await step(AdminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(AdminPage));
+        await step(AdminPage, 'Set payment status to Paid and expect PAY. to refuse it', () => captureAuthorizedOrder(
+            AdminPage,
+            authorized.id,
+            { expectAccepted: false },
+        ));
+
+        const stillAuthorized = await step(StorefrontPage, 'Confirm the Shopware payment stayed authorized', () => (
+            waitForOrderPaymentState(AdminApiContext, lookup, 'authorize', 15_000)
+        ));
+        expect(latestOrderTransaction(stillAuthorized).stateMachineState.technicalName).toBe('authorize');
     });
 
     test.describe('admin refund', () => {
-        test.skip('admin refund of a paid payment refunds it at PAY.', async ({
-            browser,
+        test.fixme('admin refund of a paid payment refunds it at PAY.', {
+            annotation: {
+                type: 'fixme',
+                description: REFUND_FIXME,
+            },
+        }, async ({
+            AdminPage,
             StorefrontPage,
             StorefrontProductDetail,
             StorefrontCheckoutConfirm,
@@ -172,42 +248,37 @@ test.describe('PAY. admin capture and refund', () => {
         }) => {
             test.setTimeout(300_000);
 
-            const adminPage = await openAdmin(browser);
-            try {
-                await step(adminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(adminPage, 2_000));
-                await step(adminPage, 'Turn on Allow refunds and Allow Shopware native refunds', () => enableRefundSwitches(adminPage));
+            await step(AdminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(AdminPage));
+            await step(AdminPage, 'Turn on Allow refunds and Allow Shopware native refunds', () => enableRefundSwitches(AdminPage));
 
-                const placed = await placePayOrder({
-                    StorefrontPage,
-                    StorefrontProductDetail,
-                    StorefrontCheckoutConfirm,
-                    StorefrontCheckoutFinish,
-                    ProductData,
-                    DefaultSalesChannel,
-                    AdminApiContext,
-                    ShopCustomer,
-                    Register,
-                }, 'captured');
+            const placed = await placePayOrder({
+                StorefrontPage,
+                StorefrontProductDetail,
+                StorefrontCheckoutConfirm,
+                StorefrontCheckoutFinish,
+                ProductData,
+                DefaultSalesChannel,
+                AdminApiContext,
+                ShopCustomer,
+                Register,
+            }, 'captured');
 
-                const paid = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
-                    AdminApiContext,
-                    { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
-                    'paid',
-                ));
-                const before = await readPaynlTransactionState(AdminApiContext, paid.id);
-                expect(before.stateId).toBe(100);
+            const paid = await step(StorefrontPage, 'Wait until the payment is paid', () => waitForOrderPaymentState(
+                AdminApiContext,
+                { orderId: placed.orderId || undefined, orderNumber: placed.orderNumber },
+                'paid',
+            ));
+            const before = await readPaynlTransactionState(AdminApiContext, paid.id);
+            expect(before.stateId).toBe(100);
 
-                const refundMessages = await step(adminPage, 'Refund the order', () => refundOrder(adminPage, paid.id));
-                assertPayRefundAccepted(refundMessages);
+            const refundMessages = await step(AdminPage, 'Refund the order', () => refundOrder(AdminPage, paid.id));
+            assertPayRefundAccepted(refundMessages);
 
-                const after = await readPaynlTransactionState(AdminApiContext, paid.id);
-                expect(
-                    REFUND_STATUS_CODES,
-                    `PAY. transaction ${after.paynlTransactionId} stayed at state ${after.stateId}`,
-                ).toContain(after.stateId);
-            } finally {
-                await adminPage.context().close();
-            }
+            const after = await readPaynlTransactionState(AdminApiContext, paid.id);
+            expect(
+                REFUND_STATUS_CODES,
+                `PAY. transaction ${after.paynlTransactionId} stayed at state ${after.stateId}`,
+            ).toContain(after.stateId);
         });
     });
 });

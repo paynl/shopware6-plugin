@@ -94,27 +94,53 @@ export async function findPayPaymentMethods(
     return (payload.data ?? []).map(mapPaymentMethod);
 }
 
-type PayPluginConfig = {
+export type PayPluginConfig = {
     testMode: boolean;
     useSinglePaymentMethod: boolean;
+    logging: boolean;
+    paymentScreenLanguage: string;
     enablePayPartsCreditCardWidget?: boolean;
 };
 
-async function writePayPluginConfig(adminApi: AdminApiContext, config: PayPluginConfig): Promise<void> {
+export function payPluginConfigMatches(current: PayPluginConfig, wanted: PayPluginConfig): boolean {
+    const widgetMatches = wanted.enablePayPartsCreditCardWidget === undefined
+        || current.enablePayPartsCreditCardWidget === wanted.enablePayPartsCreditCardWidget;
+
+    return current.testMode === wanted.testMode
+        && current.useSinglePaymentMethod === wanted.useSinglePaymentMethod
+        && current.logging === wanted.logging
+        && current.paymentScreenLanguage === wanted.paymentScreenLanguage
+        && widgetMatches;
+}
+
+function systemConfigPath(salesChannelId: string, domain?: string): string {
+    const params = new URLSearchParams({ salesChannelId });
+    if (domain !== undefined) {
+        params.set('domain', domain);
+    }
+
+    return `./_action/system-config?${params.toString()}`;
+}
+
+async function writePayPluginConfig(
+    adminApi: AdminApiContext,
+    salesChannelId: string,
+    config: PayPluginConfig,
+): Promise<void> {
     const tokenCode = process.env.PAY_TOKEN_CODE || '';
     const apiToken = process.env.PAY_API_TOKEN || '';
     const serviceId = process.env.PAY_SERVICE_ID || '';
     expect(tokenCode && apiToken && serviceId, 'PAY_TOKEN_CODE, PAY_API_TOKEN and PAY_SERVICE_ID must be set').toBeTruthy();
 
-    const response = await adminApi.post('./_action/system-config', {
+    const response = await adminApi.post(systemConfigPath(salesChannelId), {
         data: {
             'PaynlPaymentShopware6.config.tokenCode': tokenCode,
             'PaynlPaymentShopware6.config.apiToken': apiToken,
             'PaynlPaymentShopware6.config.serviceId': serviceId,
             'PaynlPaymentShopware6.config.testMode': config.testMode,
             'PaynlPaymentShopware6.config.useSinglePaymentMethod': config.useSinglePaymentMethod,
-            'PaynlPaymentShopware6.config.logging': true,
-            'PaynlPaymentShopware6.config.paymentScreenLanguage': 'en',
+            'PaynlPaymentShopware6.config.logging': config.logging,
+            'PaynlPaymentShopware6.config.paymentScreenLanguage': config.paymentScreenLanguage,
             ...(config.enablePayPartsCreditCardWidget === undefined
                 ? {}
                 : {
@@ -122,22 +148,6 @@ async function writePayPluginConfig(adminApi: AdminApiContext, config: PayPlugin
                 }),
         },
     });
-    expect(response.ok(), `Could not write PAY. config: ${response.status()} ${await response.text()}`).toBeTruthy();
-
-    const cache = await adminApi.delete('./_action/cache');
-    expect(cache.ok(), `Could not clear the shop cache: ${cache.status()} ${await cache.text()}`).toBeTruthy();
-}
-
-export async function setPayPluginConfig(
-    adminApi: AdminApiContext,
-    values: Record<string, string | boolean>,
-): Promise<void> {
-    const data: Record<string, string | boolean> = {};
-    for (const [key, value] of Object.entries(values)) {
-        data[`PaynlPaymentShopware6.config.${key}`] = value;
-    }
-
-    const response = await adminApi.post('./_action/system-config', { data });
     expect(response.ok(), `Could not write PAY. config: ${response.status()} ${await response.text()}`).toBeTruthy();
 
     const cache = await adminApi.delete('./_action/cache');
@@ -175,8 +185,10 @@ async function assertPluginInstalled(adminApi: AdminApiContext): Promise<void> {
     ).toBeTruthy();
 }
 
-async function installPayPaymentMethods(adminApi: AdminApiContext): Promise<void> {
-    const response = await adminApi.get(`paynl/install-payment-methods?_nocache=${Date.now()}`, {
+async function installPayPaymentMethods(adminApi: AdminApiContext, salesChannelId: string): Promise<void> {
+    const response = await adminApi.get(
+        `paynl/install-payment-methods?salesChannelId=${salesChannelId}&_nocache=${Date.now()}`,
+        {
         headers: {
             'Cache-Control': 'no-cache, no-store',
             Pragma: 'no-cache',
@@ -196,13 +208,15 @@ function asBool(value: unknown): boolean {
     return value === true || value === 1 || value === '1';
 }
 
-async function readPayPluginConfig(adminApi: AdminApiContext): Promise<PayPluginConfig> {
-    const response = await adminApi.get('./_action/system-config?domain=PaynlPaymentShopware6.config');
+async function readPayPluginConfig(adminApi: AdminApiContext, salesChannelId: string): Promise<PayPluginConfig> {
+    const response = await adminApi.get(systemConfigPath(salesChannelId, 'PaynlPaymentShopware6.config'));
     expect(response.ok(), `Could not read PAY. config: ${response.status()} ${await response.text()}`).toBeTruthy();
     const payload = (await response.json()) as Record<string, unknown>;
     return {
         testMode: asBool(payload['PaynlPaymentShopware6.config.testMode']),
         useSinglePaymentMethod: asBool(payload['PaynlPaymentShopware6.config.useSinglePaymentMethod']),
+        logging: asBool(payload['PaynlPaymentShopware6.config.logging']),
+        paymentScreenLanguage: String(payload['PaynlPaymentShopware6.config.paymentScreenLanguage'] ?? ''),
         enablePayPartsCreditCardWidget: asBool(payload['PaynlPaymentShopware6.config.enablePayPartsCreditCardWidget']),
     };
 }
@@ -222,22 +236,25 @@ async function ensureMethodActive(
 
 async function syncPayPaymentMethods(
     adminApi: AdminApiContext,
-    config: PayPluginConfig,
+    salesChannelId: string,
+    config: Omit<PayPluginConfig, 'logging' | 'paymentScreenLanguage'>,
     isReady: (methods: Array<PayPaymentMethod & { active: boolean }>) => boolean,
 ): Promise<Array<PayPaymentMethod & { active: boolean }>> {
     await assertPluginInstalled(adminApi);
-    const current = await readPayPluginConfig(adminApi);
-    const configMatches = current.testMode === config.testMode
-        && current.useSinglePaymentMethod === config.useSinglePaymentMethod
-        && (config.enablePayPartsCreditCardWidget === undefined
-            || current.enablePayPartsCreditCardWidget === config.enablePayPartsCreditCardWidget);
+    const wanted: PayPluginConfig = {
+        ...config,
+        logging: true,
+        paymentScreenLanguage: 'en',
+    };
+    const current = await readPayPluginConfig(adminApi, salesChannelId);
+    const configMatches = payPluginConfigMatches(current, wanted);
     let methods = await findPayPaymentMethods(adminApi, false);
 
     if (!configMatches || !isReady(methods)) {
         if (!configMatches) {
-            await writePayPluginConfig(adminApi, config);
+            await writePayPluginConfig(adminApi, salesChannelId, wanted);
         }
-        await installPayPaymentMethods(adminApi);
+        await installPayPaymentMethods(adminApi, salesChannelId);
         methods = await findPayPaymentMethods(adminApi, false);
     }
 
@@ -285,6 +302,72 @@ async function setSalesChannelPaymentMethod(
     ).toBeTruthy();
 }
 
+async function findAssignedPaymentMethodIds(
+    adminApi: AdminApiContext,
+    salesChannelId: string,
+): Promise<string[]> {
+    const response = await adminApi.post('./search/payment-method', {
+        data: {
+            limit: 500,
+            filter: [{ type: 'equals', field: 'salesChannels.id', value: salesChannelId }],
+        },
+    });
+    expect(
+        response.ok(),
+        `Could not list sales channel payment methods: ${response.status()} ${await response.text()}`,
+    ).toBeTruthy();
+    const payload = (await response.json()) as SearchResponse<{ id: string }>;
+
+    return (payload.data ?? []).map((method) => method.id);
+}
+
+async function removeSalesChannelPaymentMethods(
+    adminApi: AdminApiContext,
+    salesChannelId: string,
+    paymentMethodIds: string[],
+): Promise<void> {
+    if (paymentMethodIds.length === 0) {
+        return;
+    }
+
+    const response = await adminApi.post('./_action/sync', {
+        data: {
+            'delete-sales-channel-payment-method': {
+                entity: 'sales_channel_payment_method',
+                action: 'delete',
+                payload: paymentMethodIds.map((paymentMethodId) => ({
+                    salesChannelId,
+                    paymentMethodId,
+                })),
+            },
+        },
+    });
+    expect(
+        response.ok(),
+        `Could not remove other payment methods: ${response.status()} ${await response.text()}`,
+    ).toBeTruthy();
+}
+
+async function activateAndAssign(
+    adminApi: AdminApiContext,
+    salesChannelId: string,
+    method: PayPaymentMethod & { active: boolean },
+    assignment: 'add' | 'only',
+): Promise<void> {
+    await ensureMethodActive(adminApi, method);
+    await setSalesChannelPaymentMethod(adminApi, salesChannelId, method.id);
+    if (assignment === 'add') {
+        return;
+    }
+
+    const assigned = await findAssignedPaymentMethodIds(adminApi, salesChannelId);
+    await removeSalesChannelPaymentMethods(
+        adminApi,
+        salesChannelId,
+        assigned.filter((id) => id !== method.id),
+    );
+}
+
 type DomainRecord = {
     id: string;
     url?: string;
@@ -299,6 +382,8 @@ type DomainRecord = {
     };
 };
 
+// Admin API on the acceptance channel ({APP_URL}test-{id}/). SQL on Dockware's
+// default channel never matched the storefront the browser uses.
 export async function ensureStorefrontDomainAliases(
     adminApi: AdminApiContext,
     storefrontUrl: string,
@@ -354,6 +439,7 @@ export async function preparePayPartsCardCheckout(
 ): Promise<PayPaymentMethod> {
     const methods = await syncPayPaymentMethods(
         adminApi,
+        salesChannelId,
         { testMode: true, useSinglePaymentMethod: false, enablePayPartsCreditCardWidget: true },
         (installed) => installed.some((method) => method.active && isPayPartsCardPaynlId(method.paynlId)),
     );
@@ -369,8 +455,7 @@ export async function preparePayPartsCardCheckout(
         );
     }
 
-    await ensureMethodActive(adminApi, selected);
-    await setSalesChannelPaymentMethod(adminApi, salesChannelId, selected.id);
+    await activateAndAssign(adminApi, salesChannelId, selected, 'add');
 
     return selected;
 }
@@ -385,6 +470,7 @@ export async function installIndividualPayPaymentMethods(
 ): Promise<PayPaymentMethod[]> {
     const methods = await syncPayPaymentMethods(
         adminApi,
+        salesChannelId,
         { testMode: true, useSinglePaymentMethod: false },
         (installed) => installed.some((method) => method.active && isInstalledPaynlId(method.paynlId)),
     );
@@ -420,6 +506,7 @@ export async function assignPayPaymentMethod(
     ));
     const methods = await syncPayPaymentMethods(
         adminApi,
+        salesChannelId,
         { testMode: true, useSinglePaymentMethod: true },
         (installed) => installed.some((method) => method.active && matches(method.name)),
     );
@@ -436,8 +523,7 @@ export async function assignPayPaymentMethod(
         );
     }
 
-    await ensureMethodActive(adminApi, selected);
-    await setSalesChannelPaymentMethod(adminApi, salesChannelId, selected.id);
+    await activateAndAssign(adminApi, salesChannelId, selected, 'add');
 
     return selected;
 }
@@ -448,6 +534,7 @@ export async function assignIdealPaymentMethod(
 ): Promise<PayPaymentMethod> {
     const methods = await syncPayPaymentMethods(
         adminApi,
+        salesChannelId,
         { testMode: true, useSinglePaymentMethod: false },
         (installed) => installed.some((method) => method.active && method.paynlId === IDEAL_PAYNL_ID),
     );
@@ -460,8 +547,7 @@ export async function assignIdealPaymentMethod(
         );
     }
 
-    await ensureMethodActive(adminApi, selected);
-    await setSalesChannelPaymentMethod(adminApi, salesChannelId, selected.id);
+    await activateAndAssign(adminApi, salesChannelId, selected, 'only');
 
     return selected;
 }
@@ -489,20 +575,46 @@ export function latestOrderTransaction(order: Pick<PaidOrder, 'transactions'>): 
     )[0];
 }
 
+async function pollFor<T>(
+    read: () => Promise<{ token: string | number; value?: T }>,
+    expected: string | number,
+    timeoutMs: number,
+    message: string,
+): Promise<T> {
+    let matched: T | undefined;
+
+    await expect.poll(async () => {
+        const current = await read();
+        if (current.value !== undefined && current.token === expected) {
+            matched = current.value;
+        }
+
+        return current.token;
+    }, {
+        intervals: [3_000],
+        timeout: timeoutMs,
+        message,
+    }).toBe(expected);
+
+    if (matched === undefined) {
+        throw new Error(message);
+    }
+
+    return matched;
+}
+
 export async function waitForOrderPaymentState(
     adminApi: AdminApiContext,
     lookup: { orderId?: string; orderNumber?: string | null },
     technicalName: string,
     timeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000),
 ): Promise<PaidOrder> {
-    const deadline = Date.now() + timeoutMs;
-    let lastState = 'unknown';
     const filter = lookup.orderId
         ? [{ type: 'equals', field: 'id', value: lookup.orderId }]
         : [{ type: 'equals', field: 'orderNumber', value: lookup.orderNumber }];
     const label = lookup.orderNumber || lookup.orderId || 'unknown-order';
 
-    while (Date.now() < deadline) {
+    return pollFor(async () => {
         const response = await adminApi.post('./search/order', {
             data: {
                 limit: 1,
@@ -524,21 +636,11 @@ export async function waitForOrderPaymentState(
         expect(response.ok(), `Order search failed: ${response.status()} ${await response.text()}`).toBeTruthy();
         const payload = (await response.json()) as SearchResponse<PaidOrder>;
         const order = payload.data[0];
+        const transaction = order?.transactions?.length ? latestOrderTransaction(order) : undefined;
+        const state = transaction?.stateMachineState?.technicalName ?? (order ? 'missing-transaction' : 'missing-order');
 
-        if (order) {
-            const transaction = order.transactions?.length ? latestOrderTransaction(order) : undefined;
-            lastState = transaction?.stateMachineState?.technicalName ?? 'missing-transaction';
-            if (lastState === technicalName) {
-                return order;
-            }
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-    }
-
-    throw new Error(
-        `Shopware transaction for order ${label} did not reach "${technicalName}" within ${timeoutMs}ms (last state: ${lastState})`,
-    );
+        return order !== undefined && state === technicalName ? { token: state, value: order } : { token: state };
+    }, technicalName, timeoutMs, `Shopware transaction for order ${label} did not reach "${technicalName}"`);
 }
 
 export async function waitForPaidOrder(
@@ -555,19 +657,28 @@ export async function waitForPaidOrder(
     return order;
 }
 
+export type PaynlTransactionState = {
+    id: string;
+    stateId: number;
+    paynlTransactionId: string;
+};
+
 type PaynlTransactionRecord = {
+    id?: string;
     stateId?: number | string;
     paynlTransactionId?: string;
     attributes?: {
+        id?: string;
         stateId?: number | string;
         paynlTransactionId?: string;
     };
 };
 
-export async function readPaynlTransactionState(
+/** A missing or incomplete row is undefined so a poll can wait for PAY. to write it. */
+async function findPaynlTransactionState(
     adminApi: AdminApiContext,
     orderId: string,
-): Promise<{ stateId: number; paynlTransactionId: string }> {
+): Promise<PaynlTransactionState | undefined> {
     const response = await adminApi.post('./search/paynl-transactions', {
         data: {
             limit: 1,
@@ -578,11 +689,28 @@ export async function readPaynlTransactionState(
     expect(response.ok(), `PAY. transaction search failed: ${response.status()} ${await response.text()}`).toBeTruthy();
     const payload = (await response.json()) as SearchResponse<PaynlTransactionRecord>;
     const row = payload.data[0];
-    const stateId = Number(row?.stateId ?? row?.attributes?.stateId);
-    const paynlTransactionId = row?.paynlTransactionId ?? row?.attributes?.paynlTransactionId ?? '';
-    expect(paynlTransactionId, `No paynl_transactions row for order ${orderId}`).not.toEqual('');
-    expect(Number.isNaN(stateId), `PAY. transaction ${paynlTransactionId} has no stateId`).toBe(false);
-    return { stateId, paynlTransactionId };
+    if (row === undefined) {
+        return undefined;
+    }
+
+    const id = row.id ?? row.attributes?.id ?? '';
+    const stateId = Number(row.stateId ?? row.attributes?.stateId);
+    const paynlTransactionId = row.paynlTransactionId ?? row.attributes?.paynlTransactionId ?? '';
+    if (id === '' || paynlTransactionId === '' || Number.isNaN(stateId)) {
+        return undefined;
+    }
+
+    return { id, stateId, paynlTransactionId };
+}
+
+export async function readPaynlTransactionState(
+    adminApi: AdminApiContext,
+    orderId: string,
+): Promise<PaynlTransactionState> {
+    const current = await findPaynlTransactionState(adminApi, orderId);
+    expect(current, `No paynl_transactions row for order ${orderId}`).toBeTruthy();
+
+    return current as PaynlTransactionState;
 }
 
 export async function waitForPaynlTransactionState(
@@ -590,21 +718,50 @@ export async function waitForPaynlTransactionState(
     orderId: string,
     expectedStateId: number,
     timeoutMs = Number(process.env.PAY_STATUS_TIMEOUT_MS || 120_000),
-): Promise<{ stateId: number; paynlTransactionId: string }> {
-    const deadline = Date.now() + timeoutMs;
-    let lastStateId = -1;
-
-    while (Date.now() < deadline) {
-        const current = await readPaynlTransactionState(adminApi, orderId);
-        lastStateId = current.stateId;
-        if (current.stateId === expectedStateId) {
-            return current;
+): Promise<PaynlTransactionState> {
+    return pollFor(async () => {
+        const current = await findPaynlTransactionState(adminApi, orderId);
+        if (current === undefined) {
+            return { token: 'missing' };
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 3_000));
-    }
+        return current.stateId === expectedStateId
+            ? { token: current.stateId, value: current }
+            : { token: current.stateId };
+    }, expectedStateId, timeoutMs, `PAY. transaction for order ${orderId} did not reach stateId ${expectedStateId}`);
+}
 
-    throw new Error(
-        `PAY. transaction for order ${orderId} did not reach stateId ${expectedStateId} within ${timeoutMs}ms (last stateId: ${lastStateId})`,
-    );
+type StateHistoryRecord = {
+    internalComment?: string | null;
+    attributes?: { internalComment?: string | null };
+};
+
+export async function expectOrderTransactionHistoryComment(
+    adminApi: AdminApiContext,
+    orderTransactionId: string,
+    internalComment: string,
+): Promise<void> {
+    await expect.poll(async () => {
+        const response = await adminApi.post('./search/state-machine-history', {
+            data: {
+                limit: 25,
+                filter: [
+                    { type: 'equals', field: 'referencedId', value: orderTransactionId },
+                    { type: 'equals', field: 'entityName', value: 'order_transaction' },
+                    { type: 'equals', field: 'transitionActionName', value: 'paid' },
+                ],
+            },
+        });
+        expect(
+            response.ok(),
+            `State history search failed: ${response.status()} ${await response.text()}`,
+        ).toBeTruthy();
+        const payload = (await response.json()) as SearchResponse<StateHistoryRecord>;
+
+        return (payload.data ?? []).map((row) => row.internalComment ?? row.attributes?.internalComment ?? '');
+    }, {
+        intervals: [1_000],
+        timeout: 15_000,
+        message: `Paid state history for transaction ${orderTransactionId} did not store the internal comment`,
+    }).toContain(internalComment);
 }

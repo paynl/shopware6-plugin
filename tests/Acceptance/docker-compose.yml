@@ -1,7 +1,6 @@
 services:
   shopware:
     image: dockware/shopware:${SHOPWARE_VERSION:-6.7.10.0}
-    container_name: paynl_sw6_e2e
     ports:
       - "${SHOPWARE_PORT:-8080}:80"
     volumes:

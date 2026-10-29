@@ -30,14 +30,6 @@ class PaynlPaymentService extends ApiService {
             });
     }
 
-    changeTransactionStatus(data) {
-        return this.httpClient
-            .post(`${this.getApiBasePath()}/change-transaction-status`, data, {headers: this.getBasicHeaders()})
-            .then((response) => {
-                return ApiService.handleResponse(response);
-            });
-    }
-
     getPaymentTerminals(saleChannelId = '') {
         return this.httpClient
             .get(`${this.getApiBasePath()}/get-payment-terminals?salesChannelId=${saleChannelId}`,

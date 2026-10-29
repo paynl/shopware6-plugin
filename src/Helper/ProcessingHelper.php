@@ -41,6 +41,12 @@ use Throwable;
 
 class ProcessingHelper
 {
+    /**
+     * Set on transitions this plugin makes while applying a PAY. status.
+     * The order-transaction subscriber must not call PAY. again for those.
+     */
+    public const SKIP_PAY_STATUS_CHANGE = 'paynl-skip-pay-status-change';
+
     private Config $config;
     private Api $payAPI;
     private LoggerInterface $logger;
@@ -331,75 +337,82 @@ class ProcessingHelper
     }
 
     /**
-     * @throws PaynlTransactionException
+     * Approves, declines, captures or voids at PAY., depending on the PAY. status.
+     * Returns null when this action has nothing to record.
+     * Returns the current PAY. order with no remote call when PAY. is already in the target status,
+     * so a later attempt still writes the local row.
+     *
      * @throws PayException
      * @throws Exception
      */
-    public function processChangePayNLStatus(
-        string $paynlId,
+    public function requestPayNLStatusChange(
         string $paynlTransactionId,
         string $currentActionName,
         string $salesChannelId
-    ): void {
+    ): ?PayOrder {
         $payTransactionStatus = $this->payAPI->getOrderStatus($paynlTransactionId, $salesChannelId);
-        $paynlTransactionEntity = $this->getPayTransactionEntityByPayTransactionId($paynlTransactionId);
-        if ($paynlTransactionEntity === null) {
-            throw PaynlTransactionException::notFoundByPayTransactionError($paynlTransactionId);
+        $change = PayStatusChange::decide(
+            $currentActionName,
+            $payTransactionStatus->isBeingVerified(),
+            $payTransactionStatus->isAuthorized(),
+            $payTransactionStatus->getStatusCode()
+        );
+        if ($change === null) {
+            return null;
+        }
+        if ($change->remoteCall === null) {
+            return $payTransactionStatus;
         }
 
-        if ($payTransactionStatus->isBeingVerified()
-            && $currentActionName === StateMachineTransitionActions::ACTION_PAID
-        ) {
-            $this->updatePayTransactionStatus(
-                $paynlId,
-                PaynlTransactionStatusesEnum::STATUS_PAID,
-                $currentActionName
-            );
+        if ($change->remoteCall === PayStatusChange::APPROVE) {
+            return $this->payAPI->approve($paynlTransactionId, $salesChannelId);
+        }
+        if ($change->remoteCall === PayStatusChange::DECLINE) {
+            return $this->payAPI->decline($paynlTransactionId, $salesChannelId);
+        }
+        if ($change->remoteCall === PayStatusChange::CAPTURE) {
+            return $this->payAPI->capture($paynlTransactionId, null, $salesChannelId);
+        }
+        if ($change->remoteCall === PayStatusChange::VOID) {
+            return $this->payAPI->void($paynlTransactionId, $salesChannelId);
+        }
 
-            $payOrder = $this->payAPI->approve($paynlTransactionId, $salesChannelId);
+        throw new \LogicException('Unknown PAY. status change: ' . $change->remoteCall);
+    }
 
-        } elseif ($payTransactionStatus->isBeingVerified()
-            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
-        ) {
-            $this->updatePayTransactionStatus(
-                $paynlId,
-                PaynlTransactionStatusesEnum::STATUS_CANCEL,
-                $currentActionName
-            );
-
-            $payOrder = $this->payAPI->decline($paynlTransactionId, $salesChannelId);
-
-        } elseif ($payTransactionStatus->isAuthorized()
-            && $currentActionName === StateMachineTransitionActions::ACTION_PAID
-        ) {
-            $this->updatePayTransactionStatus(
-                $paynlId,
-                PaynlTransactionStatusesEnum::STATUS_PAID,
-                $currentActionName
-            );
-
-            $payOrder = $this->payAPI->capture($paynlTransactionId, null, $salesChannelId);
-
-        } elseif ($payTransactionStatus->isAuthorized()
-            && $currentActionName === StateMachineTransitionActions::ACTION_CANCEL
-        ) {
-            $this->updatePayTransactionStatus(
-                $paynlId,
-                PaynlTransactionStatusesEnum::STATUS_CANCEL,
-                $currentActionName
-            );
-
-            $payOrder = $this->payAPI->void($paynlTransactionId, $salesChannelId);
-        } else {
+    /**
+     * Records a PAY. status change that has already happened.
+     * A failed paynl_transactions update is rethrown so the admin request does not succeed
+     * while stateId stays unchanged. Shopware may already have stored the payment status:
+     * state_changed runs after that write.
+     * The order-status follow-up stays best-effort. PAY. cannot be undone from here.
+     */
+    public function applyPayNLStatusChange(
+        PaynlTransactionEntity $paynlTransaction,
+        string $currentActionName,
+        PayOrder $payOrder,
+        string $salesChannelId
+    ): void {
+        $nextPaynlStatus = PayStatusChange::localStateId($currentActionName);
+        if ($nextPaynlStatus === null) {
             return;
         }
 
-        $this->orderStatusUpdater->updateOrderStatus(
-            $paynlTransactionEntity->getOrder(),
-            $payOrder->getStatusCode(),
-            $salesChannelId,
-            Context::createDefaultContext()
-        );
+        $this->updatePayTransactionStatus($paynlTransaction->getId(), $nextPaynlStatus, $currentActionName);
+
+        try {
+            $this->orderStatusUpdater->updateOrderStatus(
+                $paynlTransaction->getOrder(),
+                $payOrder->getStatusCode(),
+                $salesChannelId,
+                Context::createDefaultContext()
+            );
+        } catch (Throwable $exception) {
+            $this->logger->error('PAY. status was changed but the order status could not be updated.', [
+                'exception' => $exception,
+                'paynlTransactionId' => $paynlTransaction->getPaynlTransactionId(),
+            ]);
+        }
     }
 
     /** @throws PaynlPaymentException */
@@ -583,6 +596,7 @@ class ProcessingHelper
         string $orderTransactionTransitionName
     ): StateMachineStateCollection {
         $context = Context::createDefaultContext();
+        $context->addState(self::SKIP_PAY_STATUS_CHANGE);
 
         if ($this->isPaidPartlyToPaidTransition($orderTransactionTransitionName, $orderTransactionId, $context)) {
             // If the previous state is "paid_partially", "paid" is currently not allowed as direct transition,

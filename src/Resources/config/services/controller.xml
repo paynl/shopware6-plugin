@@ -100,13 +100,5 @@
             </call>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Controller\Api\StatusTransition\StatusTransitionController" public="true">
-            <argument type="service" id="paynl_payments.logger"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
-            <argument type="service" id="paynl_transactions.repository"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
     </services>
 </container>
