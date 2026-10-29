@@ -57,7 +57,7 @@ class PaymentMethodValueObject
 
         $banks = [];
         foreach ($method->getOptions() as $option) {
-            $bank = IssuerValueObject::fromApiOption((array) $option);
+            $bank = IssuerValueObject::fromArray((array) $option);
             if ($bank !== null) {
                 $banks[] = $bank;
             }

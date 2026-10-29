@@ -297,6 +297,10 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+        </service>
+
         <service id="paynl.app_system.guzzle" class="GuzzleHttp\Client">
         </service>
 

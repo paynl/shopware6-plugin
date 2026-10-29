@@ -20,18 +20,18 @@ class IssuerValueObject
     }
 
     /**
-     * Build an issuer from a getConfig payment method option, or null when the option is not a bank.
+     * Build an issuer from a getConfig payment method option or from {@see toArray()}, or null when it is not a bank.
      */
-    public static function fromApiOption(array $option): ?self
+    public static function fromArray(array $data): ?self
     {
-        $issuerId = trim((string) ($option[self::ISSUER_ID] ?? ''));
-        $name = trim((string) ($option[self::NAME] ?? ''));
+        $issuerId = trim((string) ($data[self::ISSUER_ID] ?? ''));
+        $name = trim((string) ($data[self::NAME] ?? ''));
 
         if ($issuerId === '' || $name === '') {
             return null;
         }
 
-        return new self((string) ($option[self::ID] ?? ''), $issuerId, $name);
+        return new self((string) ($data[self::ID] ?? ''), $issuerId, $name);
     }
 
     public function getId(): string
