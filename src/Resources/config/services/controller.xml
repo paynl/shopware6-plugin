@@ -18,13 +18,6 @@
             </call>
         </service>
 
-        <service id="PaynlPayment\Shopware6\Controller\Storefront\AccountOrder\AccountOrderController" public="true">
-            <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
-            <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call>
-        </service>
-
         <service id="PaynlPayment\Shopware6\Controller\Storefront\Ideal\IdealExpressController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Components\ExpressCheckoutUtil" />
             <argument type="service" id="PaynlPayment\Shopware6\Components\IdealExpress\IdealExpress" />
@@ -94,6 +87,15 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="product.repository"/>
+            <argument type="service" id="paynl_transactions.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PaynlPayment\Shopware6\Controller\Api\StatusTransition\StatusTransitionController" public="true">
+            <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="paynl_transactions.repository"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>

@@ -254,7 +254,7 @@ class IdealExpress
     /** @throws Exception */
     public function processNotify(PayOrder $payOrder): string
     {
-        $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId());
+        $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId(), $payOrder);
         ['result' => $responseResult, 'message' => $responseMessage] = $notifyResult;
 
         return ($responseResult ? 'TRUE' : 'FALSE') . '| ' . $responseMessage;

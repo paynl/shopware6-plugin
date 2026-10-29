@@ -15,7 +15,7 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
@@ -27,6 +27,7 @@ use Throwable;
 class IdealExpressController extends StorefrontController
 {
     private const SNIPPET_ERROR = 'payment.idealExpressCheckout.paymentError';
+    private const MAX_QUANTITY = 999;
 
     private ExpressCheckoutUtil $expressCheckoutUtil;
     private IdealExpress $idealExpress;
@@ -57,29 +58,42 @@ class IdealExpressController extends StorefrontController
         $this->flashBag = $flashBag;
     }
 
-    #[Route('/PaynlPayment/ideal-express/product/start-payment', name: 'frontend.account.PaynlPayment.ideal-express.product.start-payment', options: ['seo' => false], methods: ['GET'])]
-    public function startProductPayment(SalesChannelContext $context, Request $request): Response
+    #[Route(
+        '/PaynlPayment/ideal-express/product/start-payment',
+        name: 'frontend.account.PaynlPayment.ideal-express.product.start-payment',
+        options: ['seo' => false],
+        defaults: ['XmlHttpRequest' => true],
+        methods: ['POST']
+    )]
+    public function startProductPayment(SalesChannelContext $context, Request $request): JsonResponse
     {
-        $productId = $request->get('productId');
-        $quantity = (int) $request ->get('quantity', '0');
+        $productId = $request->request->get('productId');
+        $quantity = (int) $request->request->get('quantity', '0');
 
-        if (empty($productId) || $quantity <= 0) {
-            $returnUrl = $this->getCheckoutConfirmPage($this->router);
-
-            if ($this->flashBag !== null) {
-                $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
-            }
-
-            return new RedirectResponse($returnUrl);
+        if (empty($productId)) {
+            return $this->jsonError('payment.idealExpressCheckout.invalidProduct');
         }
 
-        $this->expressCheckoutUtil->addProduct($productId, $quantity, $context);
+        if ($quantity <= 0 || $quantity > self::MAX_QUANTITY) {
+            return $this->jsonError('payment.idealExpressCheckout.invalidQuantity');
+        }
 
-        return $this->startPayment($context, $request);
+        try {
+            $this->expressCheckoutUtil->addProduct($productId, $quantity, $context);
+            return $this->startPayment($context, $request);
+        } catch (Throwable $ex) {
+            return $this->jsonError();
+        }
     }
 
-    #[Route('/PaynlPayment/ideal-express/start-payment', name: 'frontend.account.PaynlPayment.ideal-express.start-payment', options: ['seo' => false], methods: ['GET'])]
-    public function startPayment(SalesChannelContext $context, Request $request): Response
+    #[Route(
+        '/PaynlPayment/ideal-express/start-payment',
+        name: 'frontend.account.PaynlPayment.ideal-express.start-payment',
+        options: ['seo' => false],
+        defaults: ['XmlHttpRequest' => true],
+        methods: ['POST']
+    )]
+    public function startPayment(SalesChannelContext $context, Request $request): JsonResponse
     {
         try {
             $this->cartBackupService->clearBackup($context);
@@ -125,22 +139,25 @@ class IdealExpressController extends StorefrontController
                 $newContext
             );
 
-            return new RedirectResponse($redirectUrl);
+            return new JsonResponse(['redirectUrl' => $redirectUrl]);
         } catch (Throwable $ex) {
-            $returnUrl = $this->getCheckoutConfirmPage($this->router);
-
-            if ($this->flashBag !== null) {
-                $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
-            }
-
-            return new RedirectResponse($returnUrl);
+            return $this->jsonError();
         }
     }
 
-    #[Route(path: '/PaynlPayment/ideal-express/finish-payment', name: 'frontend.account.PaynlPayment.ideal-express.finish-payment', options: ['seo' => false], methods: ['POST', 'GET'])]
+    #[Route(
+        path: '/PaynlPayment/ideal-express/finish-payment',
+        name: 'frontend.account.PaynlPayment.ideal-express.finish-payment',
+        options: ['seo' => false],
+        methods: ['POST', 'GET']
+    )]
     public function finishPayment(RequestDataBag $data, SalesChannelContext $context): Response
     {
         $payTransactionId = (string) $data->get('object')->get('orderId');
+
+        if (empty($payTransactionId)) {
+            return new Response('FALSE| Invalid transaction ID');
+        }
 
         try {
             $payTransaction = $this->idealExpress->getPayTransactionByID($payTransactionId, $context);
@@ -187,10 +204,6 @@ class IdealExpressController extends StorefrontController
         return $this->redirectToRoute('frontend.home.page', $parameters);
     }
 
-    /**
-     * @param RouterInterface $router
-     * @return string
-     */
     protected function getCheckoutConfirmPage(RouterInterface $router): string
     {
         return $router->generate(
@@ -200,11 +213,6 @@ class IdealExpressController extends StorefrontController
         );
     }
 
-    /**
-     * @param string $orderId
-     * @param RouterInterface $router
-     * @return string
-     */
     protected function getCheckoutFinishPage(string $orderId, RouterInterface $router): string
     {
         return $router->generate(
@@ -214,5 +222,16 @@ class IdealExpressController extends StorefrontController
             ],
             $this->router::ABSOLUTE_URL
         );
+    }
+
+    private function jsonError(string $message = self::SNIPPET_ERROR): JsonResponse
+    {
+        $confirmUrl = $this->getCheckoutConfirmPage($this->router);
+
+        if ($this->flashBag !== null) {
+            $this->flashBag->add('danger', $this->trans($message));
+        }
+
+        return new JsonResponse(['redirectUrl' => $confirmUrl], Response::HTTP_BAD_REQUEST);
     }
 }

@@ -1,17 +1,11 @@
 import template from './sw-settings-payment-detail.html.twig'
 import VersionCompare from './../../../../util/version-compare.util'
 
-const IDEAL_PAYMENT_ID = 10;
-const PAYPAL_PAYMENT_ID = 138;
-const PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED = 'PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled';
-
 const { Component, Context } = Shopware
 const { Criteria } = Shopware.Data
 
 Component.override('sw-settings-payment-detail', {
     template,
-
-    inject: ['systemConfigApiService'],
 
     watch: {
         paymentMethod(){
@@ -35,10 +29,6 @@ Component.override('sw-settings-payment-detail', {
 
     data() {
         return {
-            config: {},
-            isExpressCheckoutPaymentMethod: false,
-            isIDEALPaymentMethod: false,
-            isPayPalPaymentMethod: false,
             paymentSurcharge: {},
             surchargeTypes: [
                 {
@@ -62,9 +52,6 @@ Component.override('sw-settings-payment-detail', {
         paymentSurchargeRepository() {
             return this.repositoryFactory.create('paynl_payment_surcharge')
         },
-        paymentMethodRepository() {
-            return this.repositoryFactory.create('payment_method');
-        },
         isShopware67() {
             return this.versionCompare.isGreaterOrEqual(Context.app.config.version, '6.7');
         },
@@ -75,19 +62,9 @@ Component.override('sw-settings-payment-detail', {
             this.$super('createdComponent');
 
             this.initPaymentSurchargeData();
-
-            this.fetchPayConfig();
         },
 
         initPaymentSurchargeData() {
-            this.paymentMethodRepository.get(this.paymentMethodId)
-                .then((paymentMethod) => {
-                    this.paymentMethod = paymentMethod;
-                    this.isIDEALPaymentMethod = paymentMethod.customFields.paynlId === IDEAL_PAYMENT_ID;
-                    this.isPayPalPaymentMethod = paymentMethod.customFields.paynlId === PAYPAL_PAYMENT_ID;
-                    this.isExpressCheckoutPaymentMethod = this.isIDEALPaymentMethod || this.isPayPalPaymentMethod;
-                });
-
             const criteria = new Criteria()
             criteria.addFilter(
                 Criteria.equals('paymentMethodId', this.paymentMethodId)
@@ -130,35 +107,8 @@ Component.override('sw-settings-payment-detail', {
                 })
         },
 
-        fetchPayConfig() {
-            this.isLoading = true;
-            return this.systemConfigApiService.getValues('PaynlPaymentShopware6.config', null)
-                .then(values => {
-                    // make IDEAL modal view enabled by default
-                    if (!values.hasOwnProperty(PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED)) {
-                        values[PAYMENT_IDEAL_EXPRESS_MODAL_ENABLED] = true;
-                    }
-
-                    this.config = values;
-                })
-                .finally(() => {
-                    this.isLoading = false;
-                });
-        },
-
-        saveConfig() {
-            this.isLoading = true;
-            return this.systemConfigApiService.saveValues(this.config, null)
-                .then(() => {
-                    this.isLoading = false;
-                });
-        },
-
         saveFinish() {
             this.$super('saveFinish')
-            if (this.isExpressCheckoutPaymentMethod) {
-                this.saveConfig();
-            }
 
             if (this.paymentMethodId && this.paymentSurcharge.amount >= 0.0) {
                 this.paymentSurcharge.id = this.paymentMethodId

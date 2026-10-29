@@ -8,7 +8,11 @@ class PaynlPaymentService extends ApiService {
 
     installPaymentMethods(saleChannelId = '') {
         return this.httpClient
-            .get(`${this.getApiBasePath()}/install-payment-methods?salesChannelId=${saleChannelId}`, {headers: this.getBasicHeaders()})
+            .post(
+                `${this.getApiBasePath()}/install-payment-methods`,
+                { salesChannelId: saleChannelId },
+                { headers: this.getBasicHeaders() }
+            )
             .then((response) => {
                 return ApiService.handleResponse(response);
             });

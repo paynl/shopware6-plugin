@@ -8,6 +8,7 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Helper\PayStatusChange;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
+use Shopware\Core\Framework\Context;
 use PaynlPayment\Shopware6\Repository\OrderTransaction\OrderTransactionRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\StateMachineState\StateMachineStateRepositoryInterface;
@@ -127,7 +128,8 @@ class PayStatusChangeTest extends TestCase
             $transaction,
             StateMachineTransitionActions::ACTION_PAID,
             $payOrder,
-            'sales-channel-id'
+            'sales-channel-id',
+            $this->createMock(Context::class)
         );
     }
 }

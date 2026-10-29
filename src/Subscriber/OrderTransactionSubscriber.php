@@ -111,7 +111,8 @@ final class OrderTransactionSubscriber implements EventSubscriberInterface
             $transaction,
             $accepted['action'],
             $accepted['payOrder'],
-            $transaction->getOrder()->getSalesChannelId()
+            $transaction->getOrder()->getSalesChannelId(),
+            $event->getContext()
         );
     }
 

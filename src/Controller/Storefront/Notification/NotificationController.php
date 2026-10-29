@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route(defaults: ['_routeScope' => ['storefront'], 'csrf_protected' => false, 'auth_required' => true, 'auth_enabled' => true])]
+#[Route(defaults: ['_routeScope' => ['storefront']])]
 class NotificationController extends StorefrontController
 {
     private NotificationFacade $notificationFacade;

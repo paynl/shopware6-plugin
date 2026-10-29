@@ -18,7 +18,7 @@ use Shopware\Core\System\SalesChannel\NoContentResponse;
 use Shopware\Core\System\SalesChannel\SalesChannel\AbstractContextSwitchRoute;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
@@ -63,11 +63,17 @@ class PayPalExpressController extends StorefrontController
         $this->flashBag = $flashBag;
     }
 
-    #[Route('/PaynlPayment/paypal-express/prepare-cart', name: 'frontend.account.PaynlPayment.paypal-express.prepare-cart', options: ['seo' => false], defaults: ['XmlHttpRequest' => true, 'csrf_protected' => false], methods: ['POST'])]
+    #[Route('/PaynlPayment/paypal-express/prepare-cart', name: 'frontend.account.PaynlPayment.paypal-express.prepare-cart', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function expressPrepareCart(Request $request, SalesChannelContext $context): Response
     {
+        $paymentMethodId = (string) $request->request->get('paymentMethodId', '');
+
+        if (empty($paymentMethodId)) {
+            return new JsonResponse(['error' => true], Response::HTTP_BAD_REQUEST);
+        }
+
         $this->contextSwitchRoute->switchContext(new RequestDataBag([
-            SalesChannelContextService::PAYMENT_METHOD_ID => $request->get('paymentMethodId'),
+            SalesChannelContextService::PAYMENT_METHOD_ID => $paymentMethodId,
         ]), $context);
 
         if ($request->request->getBoolean('deleteCart')) {
@@ -77,8 +83,8 @@ class PayPalExpressController extends StorefrontController
         return new NoContentResponse();
     }
 
-    #[Route('/PaynlPayment/paypal-express/start-payment', name: 'frontend.account.PaynlPayment.paypal-express.start-payment', options: ['seo' => false], defaults: ['XmlHttpRequest' => true, 'csrf_protected' => false], methods: ['POST'])]
-    public function startPayment(SalesChannelContext $context, Request $request): Response
+    #[Route('/PaynlPayment/paypal-express/start-payment', name: 'frontend.account.PaynlPayment.paypal-express.start-payment', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
+    public function startPayment(SalesChannelContext $context, Request $request): JsonResponse
     {
         try {
             $this->cartBackupService->clearBackup($context);
@@ -124,37 +130,35 @@ class PayPalExpressController extends StorefrontController
                 $newContext
             );
 
-            return new Response(json_encode(['token' => $paymentId]));
+            return new JsonResponse(['token' => $paymentId]);
         } catch (\Throwable $ex) {
-            $returnUrl = $this->getCheckoutConfirmPage($this->router);
-
             if ($this->flashBag !== null) {
                 $this->flashBag->add('danger', $this->trans(self::SNIPPET_ERROR));
             }
 
-            return new RedirectResponse($returnUrl);
+            return new JsonResponse(['error' => true], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    #[Route(path: '/PaynlPayment/paypal-express/create-payment', name: 'frontend.account.PaynlPayment.paypal-express.create-payment', options: ['seo' => false], defaults: ['XmlHttpRequest' => true, 'csrf_protected' => false], methods: ['POST'])]
-    public function createPayment(Request $request, SalesChannelContext $salesChannelContext): Response
+    #[Route(path: '/PaynlPayment/paypal-express/create-payment', name: 'frontend.account.PaynlPayment.paypal-express.create-payment', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
+    public function createPayment(Request $request, SalesChannelContext $salesChannelContext): JsonResponse
     {
+        $token = (string) $request->request->get('token', '');
+
+        if (empty($token)) {
+            return new JsonResponse(['error' => true], Response::HTTP_BAD_REQUEST);
+        }
+
         try {
-            $orderId = $request->request->get('token');
+            $payOrder = $this->paypalExpress->createPayPaymentTransaction($token, $salesChannelContext);
 
-            $payOrder = $this->paypalExpress->createPayPaymentTransaction($orderId, $salesChannelContext);
-
-            $responseArray = [
-                'redirectUrl' => $payOrder->getPaymentUrl()
-            ];
-
-            return new Response(json_encode($responseArray));
+            return new JsonResponse(['redirectUrl' => $payOrder->getPaymentUrl()]);
         } catch (Throwable $exception) {
-            return new Response(json_encode(['error' => $exception->getMessage()]), 400);
+            return new JsonResponse(['error' => true], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    #[Route(path: '/PaynlPayment/paypal-express/add-error', name: 'frontend.account.PaynlPayment.paypal-express.add-error', options: ['seo' => false, 'csrf_protected' => false], methods: ['POST'])]
+    #[Route(path: '/PaynlPayment/paypal-express/add-error', name: 'frontend.account.PaynlPayment.paypal-express.add-error', options: ['seo' => false], defaults: ['XmlHttpRequest' => true], methods: ['POST'])]
     public function addErrorMessage(Request $request): Response
     {
         if ($request->request->getBoolean('cancel')) {
