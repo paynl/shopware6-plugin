@@ -186,14 +186,16 @@ async function assertPluginInstalled(adminApi: AdminApiContext): Promise<void> {
 }
 
 async function installPayPaymentMethods(adminApi: AdminApiContext, salesChannelId: string): Promise<void> {
-    const response = await adminApi.get(
-        `paynl/install-payment-methods?salesChannelId=${salesChannelId}&_nocache=${Date.now()}`,
+    const response = await adminApi.post(
+        `paynl/install-payment-methods?_nocache=${Date.now()}`,
         {
-        headers: {
-            'Cache-Control': 'no-cache, no-store',
-            Pragma: 'no-cache',
+            data: { salesChannelId },
+            headers: {
+                'Cache-Control': 'no-cache, no-store',
+                Pragma: 'no-cache',
+            },
         },
-    });
+    );
     const body = await response.text();
     expect(
         response.ok(),

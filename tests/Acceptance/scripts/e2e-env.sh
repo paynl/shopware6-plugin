@@ -463,12 +463,14 @@ php bin/console cache:clear -n
     local token api_url response
     token="$(admin_token)"
     api_url="$(shopware_api_url)"
-    response="$(curl -fsS "${api_url}/api/paynl/install-payment-methods?_nocache=$(date +%s)" \
+    response="$(curl -fsS -X POST "${api_url}/api/paynl/install-payment-methods?_nocache=$(date +%s)" \
         -H "Authorization: Bearer ${token}" \
+        -H 'Content-Type: application/json' \
         -H 'Accept: application/json' \
         -H 'ngrok-skip-browser-warning: true' \
         -H 'Cache-Control: no-cache, no-store' \
-        -H 'Pragma: no-cache')" \
+        -H 'Pragma: no-cache' \
+        -d '{}')" \
         || fail "Could not install PAY. payment methods via ${api_url}"
     python3 -c 'import json,sys
 payload=json.loads(sys.argv[1])
