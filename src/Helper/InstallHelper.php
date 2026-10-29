@@ -17,6 +17,7 @@ use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterfa
 use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Language\LanguageRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -504,9 +505,13 @@ class InstallHelper
             'paynlId' => $paymentMethodValueObject->getOriginalMethod()->getId()
         ];
 
-        if ($paymentMethodValueObject->getBanks()) {
+        $banks = $paymentMethodValueObject->getBanks();
+        if ($banks) {
             $customFields['displayBanks'] = true;
-            $customFields['banks'] = $paymentMethodValueObject->getBanks();
+            $customFields['banks'] = array_map(
+                static fn(IssuerValueObject $bank): array => $bank->toArray(),
+                $banks
+            );
         }
 
         if ($paymentMethodValueObject->isPayLater()) {
