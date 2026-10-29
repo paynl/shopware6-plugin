@@ -708,4 +708,46 @@
             </options>
         </input-field>
     </card>
+
+    <card>
+        <title>Metjebank.nl</title>
+        <title lang="de-DE">Metjebank.nl</title>
+        <title lang="nl-NL">Metjebank.nl</title>
+
+        <name>payment_metjebank</name>
+
+        <input-field type="bool">
+            <name>paymentMetjebankBankListEnabled</name>
+            <label>Show bank list</label>
+            <label lang="de-DE">Bankliste anzeigen</label>
+            <label lang="nl-NL">Banklijst tonen</label>
+            <helpText>Let customers choose their bank in the checkout. The customer is then redirected directly to the selected bank.</helpText>
+            <helpText lang="de-DE">Kunden können ihre Bank an der Kasse auswählen. Der Kunde wird dann direkt zur ausgewählten Bank weitergeleitet.</helpText>
+            <helpText lang="nl-NL">Laat klanten hun bank kiezen bij het afrekenen. De klant wordt dan direct doorgestuurd naar de gekozen bank.</helpText>
+        </input-field>
+        <input-field type="single-select">
+            <name>paymentMetjebankBankListDisplay</name>
+            <defaultValue>radio</defaultValue>
+            <label>Bank selection</label>
+            <label lang="de-DE">Bankauswahl</label>
+            <label lang="nl-NL">Bankselectie</label>
+            <helpText>Radio buttons show the bank logos, the select box (dropdown) shows the bank names only.</helpText>
+            <helpText lang="de-DE">Radiobuttons zeigen die Banklogos, die Auswahlbox (Dropdown) zeigt nur die Banknamen.</helpText>
+            <helpText lang="nl-NL">Radiobuttons tonen de banklogo's, de selectbox (dropdown) toont alleen de banknamen.</helpText>
+            <options>
+                <option>
+                    <id>radio</id>
+                    <name>Radio buttons</name>
+                    <name lang="de-DE">Radiobuttons</name>
+                    <name lang="nl-NL">Radiobuttons</name>
+                </option>
+                <option>
+                    <id>select</id>
+                    <name>Select box (dropdown)</name>
+                    <name lang="de-DE">Auswahlbox (Dropdown)</name>
+                    <name lang="nl-NL">Selectbox (dropdown)</name>
+                </option>
+            </options>
+        </input-field>
+    </card>
 </config>
