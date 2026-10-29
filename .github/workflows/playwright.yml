@@ -14,7 +14,7 @@ on:
         description: Plugin git revision (branch, tag, or SHA). Leave empty to use the branch selected above.
         required: false
         type: string
-      shopware_version: '6.7.10.0'
+      shopware_version:
         description: Dockware Shopware image tag. Leave empty to run every version in the matrix.
         required: false
         type: string
