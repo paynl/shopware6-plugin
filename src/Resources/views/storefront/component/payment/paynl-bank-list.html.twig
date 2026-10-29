@@ -1,0 +1,43 @@
+{% set bankList = payment.customFields.bankList %}
+
+{% if bankList and bankList.banks %}
+    {# payment-method-input / paynl-payment-method-auto-submit make the payment form save the chosen bank right away #}
+    {% set bankInputClass = 'payment-method-input paynl-payment-method-auto-submit paynl-bank-input' %}
+
+    <div class="paynl-bank-list paynl-bank-list-{{ bankList.display }}">
+        {% if bankList.display == 'select' %}
+            <div class="form-group w-100">
+                <select class="form-control form-select {{ bankInputClass }}"
+                        name="paynlIssuer"
+                        aria-label="{{ "payment.selectIssuer"|trans|striptags }}">
+                    <option value="">{{ "payment.selectIssuer"|trans|sw_sanitize }}</option>
+                    {% for bank in bankList.banks %}
+                        <option value="{{ bank.issuerId }}"{% if bankList.selected and bank.issuerId is same as(bankList.selected.issuerId) %} selected{% endif %}>{{ bank.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% else %}
+            <div class="paynl-bank-options" role="radiogroup" aria-label="{{ "payment.selectIssuer"|trans|striptags }}">
+                {% for bank in bankList.banks %}
+                    {% set bankInputId = 'paynlBank-' ~ payment.id ~ '-' ~ bank.issuerId %}
+                    <div class="paynl-bank-option">
+                        <input type="radio"
+                               id="{{ bankInputId }}"
+                               class="paynl-bank-option-input {{ bankInputClass }}"
+                               name="paynlIssuer"
+                               value="{{ bank.issuerId }}"
+                               {% if bankList.selected and bank.issuerId is same as(bankList.selected.issuerId) %}checked="checked"{% endif %}>
+                        <label class="paynl-bank-option-label" for="{{ bankInputId }}">
+                            {# decorative: the bank name is always shown next to the logo #}
+                            <img class="paynl-bank-option-logo"
+                                 src="{{ asset('bundles/paynlpaymentshopware6/logos/issuers/' ~ bank.id ~ '.png') }}"
+                                 alt=""
+                                 loading="lazy">
+                            <span class="paynl-bank-option-name">{{ bank.name }}</span>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

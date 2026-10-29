@@ -207,8 +207,9 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     onChangeCallback(event) {
-        // check if event is triggered by payment method change
-        if (event.target.className.indexOf('payment-method-input') !== -1) {
+        // check if event is triggered by payment method change (a bank pick shares the class to auto-submit the form)
+        if (event.target.className.indexOf('payment-method-input') !== -1
+            && !event.target.classList.contains('paynl-bank-input')) {
             // hide previous extra data block
             const prevExtraDataBlock = event.currentTarget.querySelector('.paynl-payment-method-extra.active');
             if (prevExtraDataBlock) {
