@@ -12,6 +12,9 @@ function paidCaptureSelectResult(page: Page): Locator {
 
 const INTERNAL_COMMENT = /internal comment|interner kommentar|interne opmerking|interne toelichting/i;
 const CAPTURE_REJECTED = /PAY\. could not complete/i;
+/** 6.6 and earlier use `sw-alert`. 6.7 renders a Meteor banner and keeps the PAY. detail on the API response. */
+const ERROR_BANNER = '.sw-alert--error, .mt-banner--critical';
+const STATUS_UPDATE_ERROR = /could not complete|status code 400/i;
 
 export type CaptureOrderOptions = {
     internalComment?: string;
@@ -62,9 +65,10 @@ export async function captureAuthorizedOrder(
         const swResponse = await shopwareTransition;
         const body = await swResponse.text();
         expect(swResponse.ok(), `PAY. capture was accepted: ${swResponse.status()} ${body}`).toBeFalsy();
-        const notifications = page.locator('.sw-notifications .sw-alert--error');
+        expect(body, `PAY. rejection was not in the transition response: ${body}`).toMatch(CAPTURE_REJECTED);
+        const notifications = page.locator('.sw-notifications').locator(ERROR_BANNER).first();
         await expect(notifications, 'PAY. capture failure did not show an error notification').toBeVisible();
-        await expect(notifications).toContainText(CAPTURE_REJECTED);
+        await expect(notifications).toContainText(STATUS_UPDATE_ERROR);
         return;
     }
 

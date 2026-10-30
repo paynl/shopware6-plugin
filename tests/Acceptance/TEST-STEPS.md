@@ -103,7 +103,7 @@ Timeout: 5 minutes. Same authorised checkout as the capture test.
 1. Place the order and complete the sandbox as **Authorised**. Wait until Shopware is `authorize` and the PAY. row is `stateId` `95`.
 2. Replace that row’s PAY. order id with `9999999999X99999`, an order PAY. does not know, so the status call inside the Paid transition fails.
 3. In admin, change payment status to **Paid** and confirm.
-4. The Shopware transition request must fail. The admin error notification (`.sw-notifications .sw-alert--error`) must be visible and say that PAY. could not complete the change.
+4. The Shopware transition request must fail, and its body must say that PAY. could not complete the change. The admin error notification (`.sw-notifications .sw-alert--error` or, on 6.7, `.sw-notifications .mt-banner--critical`) must be visible. 6.7 shows Shopware’s status-update error (`status code 400`); the PAY. sentence stays on the response.
 5. The Shopware payment must still be `authorize`.
 
 ### Admin refund of a paid payment refunds it at PAY.
