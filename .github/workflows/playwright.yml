@@ -1,0 +1,150 @@
+name: Playwright PAY. checkout
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/playwright.yml'
+      - 'tests/Acceptance/**'
+      - 'src/**'
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      plugin_ref:
+        description: Plugin git revision (branch, tag, or SHA). Leave empty to use the branch selected above.
+        required: false
+        type: string
+      shopware_version:
+        description: Dockware Shopware image tag. Leave empty to run every version in the matrix.
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PAY. sandbox checkout (Shopware ${{ matrix.shopware_version }})
+    # Fork and Dependabot PRs get no repository secrets, so the suite cannot reach PAY. there.
+    if: >-
+      github.event_name != 'pull_request'
+      || (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # composer.json allows ^6.5: cover the maintained 6.6 line and the current 6.7 line.
+        shopware_version: >-
+          ${{ fromJSON(inputs.shopware_version
+          && format('["{0}"]', inputs.shopware_version)
+          || '["6.6.10.25", "6.7.10.0"]') }}
+    env:
+      CI: true
+      LANG: en-DE
+      SHOPWARE_VERSION: ${{ matrix.shopware_version }}
+      SHOPWARE_PORT: '8080'
+      SHOPWARE_WAIT_SECONDS: '600'
+      SHOPWARE_ADMIN_USERNAME: admin
+      PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
+      PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
+      PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
+      PAY_SANDBOX_SECRET: ${{ secrets.PAY_SANDBOX_SECRET }}
+      NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+      PAY_PAYMENT_METHOD: 'Pay by PAY.'
+      PAY_STATUS_TIMEOUT_MS: '120000'
+
+    steps:
+      - name: Check PAY. secrets
+        run: |
+          missing=0
+          for key in PAY_TOKEN_CODE PAY_API_TOKEN PAY_SERVICE_ID PAY_SANDBOX_SECRET; do
+            if [ -z "${!key}" ]; then
+              echo "::error::$key is not set. Add it under Settings → Secrets and variables → Actions."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Checkout plugin revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ inputs.plugin_ref || github.event.pull_request.head.sha || github.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: tests/Acceptance/package-lock.json
+
+      - name: Install test dependencies
+        working-directory: tests/Acceptance
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: tests/Acceptance
+        run: npx playwright install chromium --with-deps
+
+      - name: Install tunnel
+        env:
+          # Checksums are from the vendor release, not from the download host. Bump them with the version.
+          # cloudflared 2026.10.5: GitHub release SHA256 for cloudflared-linux-amd64
+          CLOUDFLARED_VERSION: "2026.10.5"
+          CLOUDFLARED_SHA256: "e1bc0cf084fd9e590554fe769a86b1db46701c3f847a43d902f7b974a4e16298"
+          # ngrok 3.39.13: SHA256 from the stable archive at dl.equinox.io/ngrok/ngrok-v3/stable/archive
+          NGROK_URL: "https://bin.equinox.io/a/h2cqbjsNLj7/ngrok-v3-3.39.13-linux-amd64.tar.gz"
+          NGROK_SHA256: "233e0647849913e6404150c1e9c5e4f31c1368aefee330958d038d7afecb8f2e"
+        run: |
+          tmp="$(mktemp -d)"
+          if [ -n "${NGROK_AUTHTOKEN}" ]; then
+            curl -fsSL -o "${tmp}/ngrok.tar.gz" "${NGROK_URL}"
+            echo "${NGROK_SHA256}  ${tmp}/ngrok.tar.gz" | sha256sum -c --strict -
+            sudo tar -xzf "${tmp}/ngrok.tar.gz" -C /usr/local/bin
+            ngrok config add-authtoken "${NGROK_AUTHTOKEN}"
+          else
+            curl -fsSL -o "${tmp}/cloudflared" "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-amd64"
+            echo "${CLOUDFLARED_SHA256}  ${tmp}/cloudflared" | sha256sum -c --strict -
+            sudo install "${tmp}/cloudflared" /usr/local/bin/cloudflared
+          fi
+
+      - name: Start Shopware, tunnel, and plugin
+        working-directory: tests/Acceptance
+        run: bash scripts/e2e-env.sh up
+
+      - name: Run Playwright tests
+        working-directory: tests/Acceptance
+        run: npx playwright test
+
+      - name: Collect Shopware diagnostics
+        if: always()
+        working-directory: tests/Acceptance
+        run: bash scripts/e2e-env.sh diagnostics
+
+      - name: Redact secrets from test artifacts
+        id: redact
+        if: always() && !cancelled()
+        working-directory: tests/Acceptance
+        run: bash scripts/e2e-env.sh redact
+
+      - name: Upload report, screenshots, and logs
+        if: always() && !cancelled() && steps.redact.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-pay-checkout-${{ matrix.shopware_version }}
+          path: |
+            tests/Acceptance/playwright-report/
+            tests/Acceptance/test-results/
+            tests/Acceptance/diagnostics/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Remove temporary environment
+        if: always()
+        working-directory: tests/Acceptance
+        run: bash scripts/e2e-env.sh down
