@@ -176,6 +176,8 @@ class Api
 
         if ($payPaymentMethodId === Model\Method::PIN) {
             $request->setTerminal($additionalTransactionInfo->getTerminalId());
+        } elseif ($additionalTransactionInfo->getIssuerId()) {
+            $request->setIssuerId($additionalTransactionInfo->getIssuerId());
         }
 
         $request->setTestmode((bool) $testMode);

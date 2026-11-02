@@ -63,6 +63,18 @@ class PaymentMethodIssuerService
     }
 
     /**
+     * The bank the customer saved for the payment method, when it is still safe to send to PAY.
+     */
+    public function resolveSavedIssuer(PaymentMethodEntity $paymentMethod, SalesChannelContext $salesChannelContext): ?string
+    {
+        return $this->resolveIssuer(
+            $paymentMethod,
+            $this->getSavedIssuerId($paymentMethod, $salesChannelContext),
+            $salesChannelContext->getSalesChannel()->getId()
+        );
+    }
+
+    /**
      * Data for the storefront bank list, or null when the bank list must not be shown.
      *
      * @return array{display: string, banks: array<int, array<string, string>>, selected: ?array<string, string>}|null
@@ -118,7 +130,9 @@ class PaymentMethodIssuerService
         $customFields = (array) $customer->getCustomFields();
         $selectedData = (array) ($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? []);
 
-        return $selectedData[$paymentMethod->getId()]['issuer'] ?? null;
+        $issuer = $selectedData[$paymentMethod->getId()]['issuer'] ?? null;
+
+        return is_string($issuer) ? $issuer : null;
     }
 
     private function getPayMethodId(PaymentMethodEntity $paymentMethod): int

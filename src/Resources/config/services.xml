@@ -172,6 +172,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>

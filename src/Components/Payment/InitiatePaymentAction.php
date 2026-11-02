@@ -10,6 +10,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
+use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
 use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
@@ -33,6 +34,7 @@ class InitiatePaymentAction
     private Api $payAPI;
     private LoggerInterface $logger;
     private PaymentMethodTerminalService $paymentMethodTerminalService;
+    private PaymentMethodIssuerService $paymentMethodIssuerService;
     private ProcessingHelper $processingHelper;
     private PluginHelper $pluginHelper;
     private RequestDataBagHelper $requestDataBagHelper;
@@ -45,6 +47,7 @@ class InitiatePaymentAction
         Api $api,
         LoggerInterface $logger,
         PaymentMethodTerminalService $paymentMethodTerminalService,
+        PaymentMethodIssuerService $paymentMethodIssuerService,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         RequestDataBagHelper $requestDataBagHelper,
@@ -56,6 +59,7 @@ class InitiatePaymentAction
         $this->payAPI = $api;
         $this->logger = $logger;
         $this->paymentMethodTerminalService = $paymentMethodTerminalService;
+        $this->paymentMethodIssuerService = $paymentMethodIssuerService;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
         $this->requestDataBagHelper = $requestDataBagHelper;
@@ -146,12 +150,18 @@ class InitiatePaymentAction
             $terminal
         );
 
+        $issuerId = $this->getSelectedIssuer($orderTransaction, $salesChannelContext);
+        if ($issuerId !== null) {
+            $this->logger->info('Starting PAY. payment with the selected bank: ' . $issuerId);
+        }
+
         $additionalTransactionInfo = new AdditionalTransactionInfo(
             $returnUrl,
             $exchangeUrl,
             $this->shopwareVersion,
             $this->pluginHelper->getPluginVersionFromComposer(),
-            $terminal ?: null
+            $terminal ?: null,
+            $issuerId
         );
 
         try {
@@ -202,6 +212,17 @@ class InitiatePaymentAction
         }
 
         $this->requestStack->getSession()->getFlashBag()->add('warning', $flashBagMessage);
+    }
+
+    private function getSelectedIssuer(
+        OrderTransactionEntity $orderTransaction,
+        SalesChannelContext $salesChannelContext
+    ): ?string {
+        $paymentMethod = $orderTransaction->getPaymentMethod();
+
+        return $paymentMethod !== null
+            ? $this->paymentMethodIssuerService->resolveSavedIssuer($paymentMethod, $salesChannelContext)
+            : null;
     }
 
     private function getRequestTerminal(): string

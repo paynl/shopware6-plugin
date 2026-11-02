@@ -16,19 +16,23 @@ class AdditionalTransactionInfo extends Struct
     private $pluginVersion;
     /** @var string|null */
     private $terminalId;
+    /** @var string|null */
+    private $issuerId;
 
     public function __construct(
         string  $returnUrl,
         string  $exchangeUrl,
         string  $shopwareVersion,
         string  $pluginVersion,
-        ?string $terminalId
+        ?string $terminalId,
+        ?string $issuerId = null
     ) {
         $this->returnUrl = $returnUrl;
         $this->exchangeUrl = $exchangeUrl;
         $this->shopwareVersion = $shopwareVersion;
         $this->pluginVersion = $pluginVersion;
         $this->terminalId = $terminalId;
+        $this->issuerId = $issuerId;
     }
 
     public function getReturnUrl(): string
@@ -54,5 +58,10 @@ class AdditionalTransactionInfo extends Struct
     public function getTerminalId(): ?string
     {
         return $this->terminalId;
+    }
+
+    public function getIssuerId(): ?string
+    {
+        return $this->issuerId;
     }
 }
