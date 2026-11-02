@@ -20,15 +20,15 @@
             <div class="paynl-bank-options" role="radiogroup" aria-label="{{ "payment.selectIssuer"|trans|striptags }}">
                 {% for bank in bankList.banks %}
                     {% set bankInputId = 'paynlBank-' ~ payment.id ~ '-' ~ bank.issuerId %}
-                    <div class="paynl-bank-option">
+                    <div class="paynl-bank-option form-check">
                         <input type="radio"
                                id="{{ bankInputId }}"
-                               class="paynl-bank-option-input {{ bankInputClass }}"
+                               class="form-check-input paynl-bank-option-input {{ bankInputClass }}"
                                name="paynlIssuer"
                                value="{{ bank.issuerId }}"
                                {% if bankList.selected and bank.issuerId is same as(bankList.selected.issuerId) %}checked="checked"{% endif %}>
-                        <label class="paynl-bank-option-label" for="{{ bankInputId }}">
-                            {# decorative: the bank name is always shown next to the logo #}
+                        <label class="form-check-label paynl-bank-option-label" for="{{ bankInputId }}">
+                            {# decorative: the bank name is always shown together with the logo #}
                             <img class="paynl-bank-option-logo"
                                  src="{{ asset('bundles/paynlpaymentshopware6/logos/issuers/' ~ bank.id ~ '.png') }}"
                                  alt=""
