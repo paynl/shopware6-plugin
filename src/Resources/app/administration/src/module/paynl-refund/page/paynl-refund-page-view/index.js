@@ -7,6 +7,7 @@ const { Component, Context, Mixin } = Shopware;
 const { Criteria } = Shopware.Data;
 
 const REFUND_DATA_FAILED_SNIPPET = 'paynlValidation.error.refundDataFailed';
+const REFUND_FAILED_SNIPPET = 'paynlValidation.error.refundFailed';
 
 Component.register('paynl-refund-page-view', {
     template,
@@ -110,7 +111,7 @@ Component.register('paynl-refund-page-view', {
                     }
                 })
                 .catch((exception) => {
-                    this.refundDataError = this.getRefundDataErrorMessage(exception);
+                    this.refundDataError = this.getErrorMessage(exception, REFUND_DATA_FAILED_SNIPPET);
 
                     this.createNotificationError({
                         title: this.$tc('refund.notifications.danger'),
@@ -123,13 +124,15 @@ Component.register('paynl-refund-page-view', {
         },
 
         /**
-         * The API rejects with { errorMessage } holding either the PAY. API message or a snippet key.
+         * The refund routes reject with either { errorMessage } or [{ type, content }], holding the PAY. API
+         * message or a snippet key. Anything else (e.g. a missing privilege) gets the fallback snippet.
          */
-        getRefundDataErrorMessage(exception) {
-            const errorMessage = exception?.response?.data?.errorMessage;
+        getErrorMessage(exception, fallbackSnippet) {
+            const data = exception?.response?.data;
+            const errorMessage = data?.errorMessage ?? data?.[0]?.content;
 
             if (typeof errorMessage !== 'string' || errorMessage.trim() === '') {
-                return this.$tc(REFUND_DATA_FAILED_SNIPPET);
+                return this.$tc(fallbackSnippet);
             }
 
             return this.$te(errorMessage) ? this.$tc(errorMessage) : errorMessage;
@@ -189,7 +192,7 @@ Component.register('paynl-refund-page-view', {
 
                     this.createNotificationError({
                         title: this.$tc('refund.notifications.danger'),
-                        message: exception
+                        message: this.getErrorMessage(exception, REFUND_FAILED_SNIPPET)
                     });
                 });
         },
