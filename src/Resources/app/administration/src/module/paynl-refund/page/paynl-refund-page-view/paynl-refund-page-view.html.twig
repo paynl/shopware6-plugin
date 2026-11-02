@@ -24,7 +24,7 @@
             }"
                         class="sw-order-detail__smart-bar-save-button"
                         variant="primary"
-                        :disabled="isLoading || !canRefund"
+                        :disabled="isLoading || !canRefund || hasRefundDataError"
                         :is-loading="isLoading"
                         @click.prevent="onRefundClick"
                 >
@@ -35,6 +35,9 @@
         <template #content v-if="!isLoading">
             {% block paynl_refund_page__detail %}
                 <sw-card-view v-if="order">
+                    <sw-alert v-if="hasRefundDataError" class="paynl-refund-error" :variant="errorAlertVariant" :title="$tc('refund.notifications.danger')">
+                        {{ refundDataError }}
+                    </sw-alert>
                     <paynl-refund-products-list :products="products" @change-refund-amount="changeRefundAmount"></paynl-refund-products-list>
                     <sw-card v-if="order.shippingTotal" :title="$tc('refund.detailBase.shipping')" :isLoading="isLoading" class="sw-order-user-card">
                         <sw-card-section>
@@ -72,7 +75,7 @@
                                         <dt>{{ $tc('refund.detailBase.amountToRefund') }}</dt>
                                     </dl>
                                     <dd>
-                                        <sw-number-field v-model:value="amountToRefund" :min="0" :max="maxRefundAmount" :value="0"></sw-number-field>
+                                        <sw-number-field v-model:value="amountToRefund" :min="0" :max="maxRefundAmount" :disabled="hasRefundDataError"></sw-number-field>
                                         <small v-if="showHelpText">{{ $tc('refund.detailBase.helpText') }}</small>
                                     </dd>
                                     <dl>

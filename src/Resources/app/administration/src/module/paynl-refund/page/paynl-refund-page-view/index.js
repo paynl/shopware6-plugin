@@ -1,9 +1,12 @@
 import template from './paynl-refund-page-view.html.twig';
 import './paynl-refund-card.scss';
 import { hasRefundPrivilege } from './../../../../util/refund-permission.util';
+import VersionCompare from './../../../../util/version-compare.util';
 
-const { Component, Mixin } = Shopware;
+const { Component, Context, Mixin } = Shopware;
 const { Criteria } = Shopware.Data;
+
+const REFUND_DATA_FAILED_SNIPPET = 'paynlValidation.error.refundDataFailed';
 
 Component.register('paynl-refund-page-view', {
     template,
@@ -37,6 +40,7 @@ Component.register('paynl-refund-page-view', {
             refundedAmount: 0,
 
             amountToRefund: 0,
+            refundDataError: null,
             products: null,
             identifier: '',
             description: '',
@@ -63,6 +67,13 @@ Component.register('paynl-refund-page-view', {
         canRefund() {
             return hasRefundPrivilege(this.acl);
         },
+        hasRefundDataError() {
+            return this.refundDataError !== null;
+        },
+        // sw-alert renders mt-banner since 6.7, which renamed the "error" variant to "critical".
+        errorAlertVariant() {
+            return new VersionCompare().isGreaterOrEqual(Context.app.config.version, '6.7') ? 'critical' : 'error';
+        },
         fullName() {
             return this.order.orderCustomer.firstName + ' ' + this.order.orderCustomer.lastName;
         },
@@ -86,29 +97,42 @@ Component.register('paynl-refund-page-view', {
 
     methods: {
         getDataForRefund() {
+            this.refundDataError = null;
+
             this.PaynlPaymentService.getRefundData(this.paynlTransaction.paynlTransactionId)
                 .then((data) => {
-                    if (data.errorMessage) {
-                        this.createNotificationError({
-                            title: this.$tc('refund.notifications.danger'),
-                            message: data.errorMessage
-                        });
-                    } else {
-                        this.availableForRefund = data.availableForRefund;
-                        this.refundedAmount = data.refundedAmount;
+                    this.availableForRefund = data.availableForRefund;
+                    this.refundedAmount = data.refundedAmount;
 
-                        this.amountToRefund = this.availableForRefund;
-                        if (!this.withShipping) {
-                            this.amountToRefund -= this.order.shippingTotal;
-                        }
-
-                        this.isLoading = false;
+                    this.amountToRefund = this.availableForRefund;
+                    if (!this.withShipping) {
+                        this.amountToRefund -= this.order.shippingTotal;
                     }
-                    this.isLoading = false;
                 })
                 .catch((exception) => {
+                    this.refundDataError = this.getRefundDataErrorMessage(exception);
+
+                    this.createNotificationError({
+                        title: this.$tc('refund.notifications.danger'),
+                        message: this.refundDataError
+                    });
+                })
+                .finally(() => {
                     this.isLoading = false;
                 });
+        },
+
+        /**
+         * The API rejects with { errorMessage } holding either the PAY. API message or a snippet key.
+         */
+        getRefundDataErrorMessage(exception) {
+            const errorMessage = exception?.response?.data?.errorMessage;
+
+            if (typeof errorMessage !== 'string' || errorMessage.trim() === '') {
+                return this.$tc(REFUND_DATA_FAILED_SNIPPET);
+            }
+
+            return this.$te(errorMessage) ? this.$tc(errorMessage) : errorMessage;
         },
 
         createdComponent() {
