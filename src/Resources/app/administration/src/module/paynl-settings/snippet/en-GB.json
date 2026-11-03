@@ -29,6 +29,7 @@
             "invalidAmount": "Refund amount must be greater than zero.",
             "refundExceedsAvailable": "Refund amount exceeds the available amount.",
             "refundDataFailed": "Could not retrieve refund data.",
+            "refundFailed": "The refund could not be processed.",
             "shouldNotBeBlank": "The field cannot be empty.",
             "invalidSalesChannel": "Invalid or unknown sales channel.",
             "invalidCredentials": "API credentials are incomplete or invalid.",
