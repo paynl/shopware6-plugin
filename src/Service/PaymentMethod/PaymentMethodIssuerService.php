@@ -24,30 +24,7 @@ class PaymentMethodIssuerService
 
     public function isBankListEnabled(PaymentMethodEntity $paymentMethod, string $salesChannelId): bool
     {
-        return $this->getPayMethodId($paymentMethod) === PaynlPaymentMethodsIdsEnum::METJEBANK_PAYMENT
-            && $this->config->getPaymentMetjebankBankListEnabled($salesChannelId)
-            && $this->getBanks($paymentMethod) !== [];
-    }
-
-    /**
-     * @return string one of the BankListDisplayEnum values
-     */
-    public function getDisplayType(string $salesChannelId): string
-    {
-        return $this->config->getPaymentMetjebankBankListDisplay($salesChannelId);
-    }
-
-    /**
-     * @return IssuerValueObject[]
-     */
-    public function getBanks(PaymentMethodEntity $paymentMethod): array
-    {
-        $banks = $this->getCustomFields($paymentMethod)[PaymentMethodCustomFields::BANKS_FIELD] ?? [];
-
-        return array_values(array_filter(array_map(
-            static fn($bank): ?IssuerValueObject => is_array($bank) ? IssuerValueObject::fromArray($bank) : null,
-            is_array($banks) ? $banks : []
-        )));
+        return $this->getEnabledBanks($paymentMethod, $salesChannelId) !== [];
     }
 
     /**
@@ -57,7 +34,7 @@ class PaymentMethodIssuerService
      */
     public function resolveIssuer(PaymentMethodEntity $paymentMethod, ?string $issuerId, string $salesChannelId): ?string
     {
-        $bank = $this->findBank($paymentMethod, $issuerId, $salesChannelId);
+        $bank = $this->findBank($this->getEnabledBanks($paymentMethod, $salesChannelId), $issuerId);
 
         return $bank !== null ? $bank->getIssuerId() : null;
     }
@@ -68,9 +45,8 @@ class PaymentMethodIssuerService
     public function resolveSavedBank(PaymentMethodEntity $paymentMethod, SalesChannelContext $salesChannelContext): ?IssuerValueObject
     {
         return $this->findBank(
-            $paymentMethod,
-            $this->getSavedIssuerId($paymentMethod, $salesChannelContext),
-            $salesChannelContext->getSalesChannel()->getId()
+            $this->getEnabledBanks($paymentMethod, $salesChannelContext->getSalesChannel()->getId()),
+            $this->getSavedIssuerId($paymentMethod, $salesChannelContext)
         );
     }
 
@@ -82,36 +58,56 @@ class PaymentMethodIssuerService
     public function getBankListData(PaymentMethodEntity $paymentMethod, SalesChannelContext $salesChannelContext): ?array
     {
         $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
+        $banks = $this->getEnabledBanks($paymentMethod, $salesChannelId);
 
-        if (!$this->isBankListEnabled($paymentMethod, $salesChannelId)) {
+        if ($banks === []) {
             return null;
         }
 
-        $selected = $this->findBank(
-            $paymentMethod,
-            $this->getSavedIssuerId($paymentMethod, $salesChannelContext),
-            $salesChannelId
-        );
+        $selected = $this->findBank($banks, $this->getSavedIssuerId($paymentMethod, $salesChannelContext));
 
         return [
-            'display' => $this->getDisplayType($salesChannelId),
-            'banks' => array_map(
-                static fn(IssuerValueObject $bank): array => $bank->toArray(),
-                $this->getBanks($paymentMethod)
-            ),
+            'display' => $this->config->getPaymentMetjebankBankListDisplay($salesChannelId),
+            'banks' => array_map(static fn(IssuerValueObject $bank): array => $bank->toArray(), $banks),
             'selected' => $selected !== null ? $selected->toArray() : null,
         ];
     }
 
-    private function findBank(PaymentMethodEntity $paymentMethod, ?string $issuerId, string $salesChannelId): ?IssuerValueObject
+    /**
+     * The stored banks when the bank list is switched on for this payment method, otherwise none.
+     *
+     * @return IssuerValueObject[]
+     */
+    private function getEnabledBanks(PaymentMethodEntity $paymentMethod, string $salesChannelId): array
+    {
+        $customFields = $this->getCustomFields($paymentMethod);
+
+        if ((int) ($customFields[PaymentMethodCustomFields::PAY_NL_ID_FIELD] ?? 0) !== PaynlPaymentMethodsIdsEnum::METJEBANK_PAYMENT
+            || !$this->config->getPaymentMetjebankBankListEnabled($salesChannelId)
+        ) {
+            return [];
+        }
+
+        $banks = $customFields[PaymentMethodCustomFields::BANKS_FIELD] ?? [];
+
+        return array_values(array_filter(array_map(
+            static fn($bank): ?IssuerValueObject => is_array($bank) ? IssuerValueObject::fromArray($bank) : null,
+            is_array($banks) ? $banks : []
+        )));
+    }
+
+    /**
+     * @param IssuerValueObject[] $banks
+     */
+    private function findBank(array $banks, ?string $issuerId): ?IssuerValueObject
     {
         $issuerId = trim((string) $issuerId);
 
-        if ($issuerId === '' || !$this->isBankListEnabled($paymentMethod, $salesChannelId)) {
+        if ($issuerId === '') {
             return null;
         }
 
-        foreach ($this->getBanks($paymentMethod) as $bank) {
+        foreach ($banks as $bank) {
             if ($bank->getIssuerId() === $issuerId) {
                 return $bank;
             }
@@ -129,15 +125,9 @@ class PaymentMethodIssuerService
 
         $customFields = (array) $customer->getCustomFields();
         $selectedData = (array) ($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA] ?? []);
-
         $issuer = $selectedData[$paymentMethod->getId()]['issuer'] ?? null;
 
         return is_string($issuer) ? $issuer : null;
-    }
-
-    private function getPayMethodId(PaymentMethodEntity $paymentMethod): int
-    {
-        return (int) ($this->getCustomFields($paymentMethod)[PaymentMethodCustomFields::PAY_NL_ID_FIELD] ?? 0);
     }
 
     private function getCustomFields(PaymentMethodEntity $paymentMethod): array

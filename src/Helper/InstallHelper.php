@@ -17,6 +17,7 @@ use PaynlPayment\Shopware6\Repository\SalesChannel\SalesChannelRepositoryInterfa
 use PaynlPayment\Shopware6\Repository\SalesChannelPaymentMethod\SalesChannelPaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\SystemConfig\SystemConfigRepositoryInterface;
 use PaynlPayment\Shopware6\Repository\Language\LanguageRepositoryInterface;
+use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
 use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use PaynlPayment\Shopware6\ValueObjects\PaymentMethodValueObject;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\CashPayment;
@@ -505,13 +506,14 @@ class InstallHelper
             'paynlId' => $paymentMethodValueObject->getOriginalMethod()->getId()
         ];
 
+        // Always written, so a resync also removes a bank list getConfig no longer returns
         $banks = $paymentMethodValueObject->getBanks();
-        if ($banks) {
-            $customFields['banks'] = array_map(
-                static fn(IssuerValueObject $bank): array => $bank->toArray(),
-                $banks
-            );
-        }
+        $customFields[PaymentMethodCustomFields::BANKS_FIELD] = $banks ? array_map(
+            static fn(IssuerValueObject $bank): array => $bank->toArray(),
+            $banks
+        ) : null;
+        // Legacy iDEAL flag, cleared on existing installs
+        $customFields['displayBanks'] = null;
 
         if ($paymentMethodValueObject->isPayLater()) {
             $customFields['isPayLater'] = true;

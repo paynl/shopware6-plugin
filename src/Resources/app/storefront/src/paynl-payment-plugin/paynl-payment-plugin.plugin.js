@@ -16,6 +16,7 @@ export default class PaynlPaymentPlugin extends Plugin {
         if (trigger) {
             this.initDateOfBirthMask();
             this.initPayLaterEvents();
+            this.initBankLogos();
 
             const form = trigger.parentNode;
             form.addEventListener('submit', this.onSavePaymentMethod.bind(this));
@@ -138,6 +139,18 @@ export default class PaynlPaymentPlugin extends Plugin {
                 // and other common options
                 overwrite: true  // defaults to `false`
             });
+        });
+    }
+
+    initBankLogos() {
+        // A bank PAY. adds later may not have a bundled logo yet: keep only its name
+        document.querySelectorAll('.paynl-bank-option-logo').forEach((logo) => {
+            if (logo.complete && logo.naturalWidth === 0) {
+                logo.remove();
+                return;
+            }
+
+            logo.addEventListener('error', () => logo.remove(), { once: true });
         });
     }
 

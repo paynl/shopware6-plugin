@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Service;
 
+use PaynlPayment\Shopware6\Enums\OrderCustomFieldsEnum;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -14,9 +15,6 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class OrderService implements OrderServiceInterface
 {
-    private const ISSUER_CUSTOM_FIELD = 'paynlIssuer';
-    private const ISSUER_NAME_CUSTOM_FIELD = 'paynlIssuerName';
-
     /**
      * @var OrderRepositoryInterface
      */
@@ -37,16 +35,16 @@ class OrderService implements OrderServiceInterface
     {
         $customFields = (array) $order->getCustomFields();
 
-        if ($bank === null && !isset($customFields[self::ISSUER_CUSTOM_FIELD])) {
+        if ($bank === null && !isset($customFields[OrderCustomFieldsEnum::PAYNL_ISSUER])) {
             return;
         }
 
-        // Custom fields are merged on write, a null value removes the key again
+        // Only these top level keys are written, other custom fields stay; null empties an earlier bank
         $this->orderRepository->update([[
             'id' => $order->getId(),
             'customFields' => [
-                self::ISSUER_CUSTOM_FIELD => $bank !== null ? $bank->getIssuerId() : null,
-                self::ISSUER_NAME_CUSTOM_FIELD => $bank !== null ? $bank->getName() : null,
+                OrderCustomFieldsEnum::PAYNL_ISSUER => $bank !== null ? $bank->getIssuerId() : null,
+                OrderCustomFieldsEnum::PAYNL_ISSUER_NAME => $bank !== null ? $bank->getName() : null,
             ],
         ]], $context);
     }

@@ -1,5 +1,9 @@
 {% block sw_order_detail_base_general_info_summary_sub_description %}
-    <div class="sw-order-general-info__summary-sub-description">
+    {# 6.7: the bank inside the summary sentence. Older versions render this line differently, so they keep core's markup #}
+    <div
+        v-if="isShopware67"
+        class="sw-order-general-info__summary-sub-description"
+    >
         <sw-time-ago
             :date="order.orderDateTime"
             :date-time-format="{ month: '2-digit', day: '2-digit' }"
@@ -13,4 +17,13 @@
             {{ delivery.shippingMethod.translated.name }}
         </template>
     </div>
+    <template v-else>
+        {% parent %}
+        <div
+            v-if="issuerName"
+            class="paynl-order-general-info__issuer"
+        >
+            {{ $tc('order.issuer') }}: {{ issuerName }}
+        </div>
+    </template>
 {% endblock %}

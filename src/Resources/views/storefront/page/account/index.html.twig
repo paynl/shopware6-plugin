@@ -1,8 +1,0 @@
-{% sw_extends '@Storefront/storefront/page/account/index.html.twig' %}
-
-{% block page_account_overview_payment_content %}
-    <div class="d-inline">
-        <strong>{{ context.customer.defaultPaymentMethod.translated.name }}</strong>
-    </div>
-    <p>{{ context.customer.defaultPaymentMethod.description }}</p>
-{% endblock %}

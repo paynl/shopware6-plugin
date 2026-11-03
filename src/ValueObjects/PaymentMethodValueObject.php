@@ -49,9 +49,7 @@ class PaymentMethodValueObject
     {
         $method = $this->originalMethod;
 
-        if (!in_array($method->getId(), PaynlPaymentMethodsIdsEnum::BANK_LIST_PAYMENT_METHODS, true)
-            || !$method->hasOptions()
-        ) {
+        if ($method->getId() !== PaynlPaymentMethodsIdsEnum::METJEBANK_PAYMENT || !$method->hasOptions()) {
             return [];
         }
 
