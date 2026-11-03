@@ -8,7 +8,6 @@
         }
     },
     "order": {
-        "issuer": "Bank",
         "transaction": {
             "paid": "Betaald (Capture)",
             "cancelled": "Geannuleerd (Vrijgeven)"
