@@ -38,12 +38,12 @@
                     <sw-alert v-if="hasRefundDataError" class="paynl-refund-error" :variant="errorAlertVariant" :title="$tc('refund.notifications.danger')">
                         {{ refundDataError }}
                     </sw-alert>
-                    <paynl-refund-products-list :products="products" @change-refund-amount="changeRefundAmount"></paynl-refund-products-list>
+                    <paynl-refund-products-list :products="products" :disabled="hasRefundDataError" @change-refund-amount="changeRefundAmount"></paynl-refund-products-list>
                     <sw-card v-if="order.shippingTotal" :title="$tc('refund.detailBase.shipping')" :isLoading="isLoading" class="sw-order-user-card">
                         <sw-card-section>
                             <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="0 30px">
                                 {{ $tc('refund.detailBase.shipping') }}: {{ currencyFilter(order.shippingTotal, order.currency.translated.shortName) }}
-                                <sw-checkbox-field v-model:value="withShipping" :label="$tc('refund.detailBase.allowShippingRefund')" @change="updateShippingState" @update:value="updateShippingState"></sw-checkbox-field>
+                                <sw-checkbox-field v-model:value="withShipping" :label="$tc('refund.detailBase.allowShippingRefund')" :disabled="hasRefundDataError" @change="updateShippingState" @update:value="updateShippingState"></sw-checkbox-field>
                             </sw-container>
                         </sw-card-section>
                     </sw-card>
