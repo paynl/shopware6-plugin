@@ -1,7 +1,23 @@
 const { Component } = Shopware;
+import template from './sw-order-general-info.html.twig';
+import formatPaymentMethodLabel from '../../util/payment-method-label.util';
 
 Component.override('sw-order-general-info', {
+    template,
+
     inject: ['PaynlPaymentService'],
+
+    computed: {
+        paymentMethodLabel() {
+            const customFields = this.order.customFields || {};
+
+            return formatPaymentMethodLabel(
+                this.transaction.paymentMethod.translated.distinguishableName,
+                customFields.paynlIssuerName
+            );
+        }
+    },
+
     methods: {
         onLeaveModalConfirm(docIds, sendMail = true) {
             this.showModal = false;

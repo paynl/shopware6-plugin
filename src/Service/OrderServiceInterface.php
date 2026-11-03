@@ -2,6 +2,7 @@
 
 namespace PaynlPayment\Shopware6\Service;
 
+use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
@@ -30,4 +31,9 @@ interface OrderServiceInterface
      * @return OrderEntity
      */
     public function getOrderByNumber(string $orderNumber, Context $context): OrderEntity;
+
+    /**
+     * Keep the bank chosen for the payment on the order, or remove an earlier one when no bank is given.
+     */
+    public function saveIssuer(OrderEntity $order, ?IssuerValueObject $bank, Context $context): void;
 }

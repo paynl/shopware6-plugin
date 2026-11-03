@@ -65,9 +65,9 @@ class PaymentMethodIssuerService
     /**
      * The bank the customer saved for the payment method, when it is still safe to send to PAY.
      */
-    public function resolveSavedIssuer(PaymentMethodEntity $paymentMethod, SalesChannelContext $salesChannelContext): ?string
+    public function resolveSavedBank(PaymentMethodEntity $paymentMethod, SalesChannelContext $salesChannelContext): ?IssuerValueObject
     {
-        return $this->resolveIssuer(
+        return $this->findBank(
             $paymentMethod,
             $this->getSavedIssuerId($paymentMethod, $salesChannelContext),
             $salesChannelContext->getSalesChannel()->getId()

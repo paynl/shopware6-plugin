@@ -17,7 +17,6 @@ class PaymentMethodCustomFields
 {
     const PAY_NL_PAYMENT_FIELD = 'paynl_payment';
     const PAY_NL_ID_FIELD = 'paynlId';
-    const DISPLAY_BANKS_FIELD = 'displayBanks';
     const BANKS_FIELD = 'banks';
     const BANK_LIST_FIELD = 'bankList';
     const IS_PAY_LATER_FIELD = 'isPayLater';

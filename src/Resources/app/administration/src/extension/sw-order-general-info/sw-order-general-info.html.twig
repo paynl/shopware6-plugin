@@ -1,0 +1,16 @@
+{% block sw_order_detail_base_general_info_summary_sub_description %}
+    <div class="sw-order-general-info__summary-sub-description">
+        <sw-time-ago
+            :date="order.orderDateTime"
+            :date-time-format="{ month: '2-digit', day: '2-digit' }"
+        />
+        <template v-if="transaction">
+            {{ $tc('sw-order.generalTab.info.summary.with') }}
+            {{ paymentMethodLabel }}
+        </template>
+        <template v-if="delivery">
+            {{ $tc('sw-order.generalTab.info.summary.and') }}
+            {{ delivery.shippingMethod.translated.name }}
+        </template>
+    </div>
+{% endblock %}

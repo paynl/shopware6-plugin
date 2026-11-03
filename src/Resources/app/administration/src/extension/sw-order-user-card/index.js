@@ -1,31 +1,18 @@
 const { Component } = Shopware;
 import template from './sw-order-user-card.html.twig';
+import formatPaymentMethodLabel from '../../util/payment-method-label.util';
 
 Component.override('sw-order-user-card', {
     template,
 
-    data() {
-        return {
-            payIssuer: null
-        };
-    },
+    computed: {
+        paymentMethodLabel() {
+            const customFields = this.currentOrder.customFields || {};
 
-    created() {
-        this.getPayIssuer();
-    },
-
-    methods: {
-        getPayIssuer() {
-            if (this.currentOrder.customFields !== null) {
-                let issuer = this.currentOrder.customFields.paynlIssuer;
-                if (issuer) {
-                    this.currentOrder.transactions.last().paymentMethod.customFields.banks.forEach((bank) => {
-                        if (bank.id === issuer) {
-                            this.payIssuer = bank.visibleName;
-                        }
-                    });
-                }
-            }
+            return formatPaymentMethodLabel(
+                this.currentOrder.transactions.last().paymentMethod.translated.distinguishableName,
+                customFields.paynlIssuerName
+            );
         }
     }
 });

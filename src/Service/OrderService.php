@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Service;
 
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\SalesChannel\OrderService as ShopwareOrderService;
 use Shopware\Core\Framework\Context;
@@ -13,6 +14,9 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class OrderService implements OrderServiceInterface
 {
+    private const ISSUER_CUSTOM_FIELD = 'paynlIssuer';
+    private const ISSUER_NAME_CUSTOM_FIELD = 'paynlIssuerName';
+
     /**
      * @var OrderRepositoryInterface
      */
@@ -27,6 +31,24 @@ class OrderService implements OrderServiceInterface
     {
         $this->orderRepository = $orderRepository;
         $this->swOrderService = $swOrderService;
+    }
+
+    public function saveIssuer(OrderEntity $order, ?IssuerValueObject $bank, Context $context): void
+    {
+        $customFields = (array) $order->getCustomFields();
+
+        if ($bank === null && !isset($customFields[self::ISSUER_CUSTOM_FIELD])) {
+            return;
+        }
+
+        // Custom fields are merged on write, a null value removes the key again
+        $this->orderRepository->update([[
+            'id' => $order->getId(),
+            'customFields' => [
+                self::ISSUER_CUSTOM_FIELD => $bank !== null ? $bank->getIssuerId() : null,
+                self::ISSUER_NAME_CUSTOM_FIELD => $bank !== null ? $bank->getName() : null,
+            ],
+        ]], $context);
     }
 
     public function getOrder(string $orderId, Context $context): OrderEntity

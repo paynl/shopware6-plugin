@@ -507,7 +507,6 @@ class InstallHelper
 
         $banks = $paymentMethodValueObject->getBanks();
         if ($banks) {
-            $customFields['displayBanks'] = true;
             $customFields['banks'] = array_map(
                 static fn(IssuerValueObject $bank): array => $bank->toArray(),
                 $banks

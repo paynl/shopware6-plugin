@@ -211,6 +211,22 @@ class CustomerHelper
         $this->savePaymentMethodSelectedData($paymentMethodId, 'issuer', $issuer, $customer, $context);
     }
 
+    public function clearPaynlIssuer(CustomerEntity $customer, string $paymentMethodId, Context $context): void
+    {
+        $customFields = (array) $customer->getCustomFields();
+        if (!isset($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]['issuer'])) {
+            return;
+        }
+
+        // Custom fields are merged on write, a null value removes the key
+        $this->customerRepository->upsert([[
+            'id' => $customer->getId(),
+            'customFields' => [
+                CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA => [$paymentMethodId => ['issuer' => null]],
+            ],
+        ]], $context);
+    }
+
     public function savePaynlInstoreTerminal(
         CustomerEntity $customer,
         string $paymentMethodId,
