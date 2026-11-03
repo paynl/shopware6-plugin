@@ -28,7 +28,7 @@ Module.register('paynl-refund-page', {
             },
             meta: {
                 parentPath: 'sw.order.detail.general',
-                privilege: 'order.viewer',
+                privilege: 'order_refund.viewer',
             },
         }
     },

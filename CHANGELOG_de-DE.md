@@ -1,3 +1,7 @@
+# 2.0.10
+- Pay.-Admin-API-Routen (Rückerstattungen, Statuswechsel, Pay.-Einstellungen) mit Shopware-ACL-Berechtigungen abgesichert; für Rückerstattungen ist nun die Berechtigung „Bestellungen > Rückerstattungen > Ersteller“ erforderlich.
+- Shopware-Instanz-ID zu den Pay.-Transaktionsstatistiken (extra3) als Grundlage für das Shopware-Commission-Reporting hinzugefügt.
+
 # 2.0.9
 - paynl/php-sdk auf Version 2.0.2 aktualisiert; behebt fehlgeschlagene Zahlungen bei Bestellnummern mit Bindestrich (z. B. GC-200000).
 - Doppelten Code für Bestellpositionen zwischen Zahlungs- und Express-Checkout-Ablauf reduziert (keine Verhaltensänderung).
