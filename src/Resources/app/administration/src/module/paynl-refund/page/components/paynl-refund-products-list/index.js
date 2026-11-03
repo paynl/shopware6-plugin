@@ -10,6 +10,11 @@ Component.register('paynl-refund-products-list', {
             type: Array,
             required: true,
             default: []
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 

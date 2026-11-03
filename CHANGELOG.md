@@ -1,3 +1,7 @@
+# 2.0.10
+- Secured the Pay. admin API routes (refunds, status transitions, Pay. settings) with Shopware ACL privileges; refunding now requires the "Orders > Refunds > Creator" privilege.
+- Added the Shopware instance ID to the Pay. transaction statistics (extra3) as groundwork for Shopware commission reporting.
+
 # 2.0.9
 - Updated paynl/php-sdk to 2.0.2, which fixes payments failing for order numbers containing hyphens (e.g. GC-200000).
 - Reduced duplicated order product code between the payment and Express Checkout flows (no behaviour change).

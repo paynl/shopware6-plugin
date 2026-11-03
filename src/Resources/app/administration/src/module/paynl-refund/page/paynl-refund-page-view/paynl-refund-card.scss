@@ -8,6 +8,12 @@
     .sw-field {
         margin-bottom: 0;
     }
+
+    // Same width and spacing as the sw-card blocks below it
+    .paynl-refund-error {
+        max-width: $content-width;
+        margin: 0 auto 40px;
+    }
 }
 
 .refund-card {

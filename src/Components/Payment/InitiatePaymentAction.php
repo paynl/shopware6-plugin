@@ -45,6 +45,7 @@ class InitiatePaymentAction
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private string $shopwareVersion;
+    private ?string $instanceId;
 
     public function __construct(
         Api $api,
@@ -58,7 +59,8 @@ class InitiatePaymentAction
         PaymentUrlBuilder $paymentUrlBuilder,
         TranslatorInterface $translator,
         RequestStack $requestStack,
-        string $shopwareVersion
+        string $shopwareVersion,
+        ?string $instanceId
     ) {
         $this->payAPI = $api;
         $this->logger = $logger;
@@ -72,6 +74,7 @@ class InitiatePaymentAction
         $this->requestStack = $requestStack;
         $this->paymentUrlBuilder = $paymentUrlBuilder;
         $this->shopwareVersion = $shopwareVersion;
+        $this->instanceId = $instanceId;
     }
 
     /**
@@ -168,7 +171,8 @@ class InitiatePaymentAction
             $this->shopwareVersion,
             $this->pluginHelper->getPluginVersionFromComposer(),
             $terminal ?: null,
-            $issuerId
+            issuerId: $issuerId,
+            instanceId: $this->instanceId
         );
 
         try {
