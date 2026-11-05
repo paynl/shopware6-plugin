@@ -2,7 +2,9 @@
 
 namespace PaynlPayment\Shopware6\Service;
 
+use PaynlPayment\Shopware6\Enums\OrderCustomFieldsEnum;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
+use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\SalesChannel\OrderService as ShopwareOrderService;
 use Shopware\Core\Framework\Context;
@@ -27,6 +29,24 @@ class OrderService implements OrderServiceInterface
     {
         $this->orderRepository = $orderRepository;
         $this->swOrderService = $swOrderService;
+    }
+
+    public function saveIssuer(OrderEntity $order, ?IssuerValueObject $bank, Context $context): void
+    {
+        $customFields = (array) $order->getCustomFields();
+
+        if ($bank === null && !isset($customFields[OrderCustomFieldsEnum::PAYNL_ISSUER])) {
+            return;
+        }
+
+        // Only these top level keys are written, other custom fields stay; null empties an earlier bank
+        $this->orderRepository->update([[
+            'id' => $order->getId(),
+            'customFields' => [
+                OrderCustomFieldsEnum::PAYNL_ISSUER => $bank !== null ? $bank->getIssuerId() : null,
+                OrderCustomFieldsEnum::PAYNL_ISSUER_NAME => $bank !== null ? $bank->getName() : null,
+            ],
+        ]], $context);
     }
 
     public function getOrder(string $orderId, Context $context): OrderEntity

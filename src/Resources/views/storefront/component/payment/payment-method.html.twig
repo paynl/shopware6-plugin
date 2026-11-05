@@ -23,15 +23,8 @@
             {% else %}
                 <strong>{{ payment.translated.name }}</strong>
             {% endif %}
-            {% if not paymentMethodInvalid and payment.customFields.displayBanks %}
-                {% set paynlIssuerSelected = app.session.get('paynlIssuer') ?: context.customer.customFields.paymentMethodsSelectedData[payment.id].issuer %}
-                {% if paynlIssuerSelected and context.paymentMethod.translated.customFields.banks %}
-                    {% for bank in context.paymentMethod.translated.customFields.banks %}
-                        {% if bank.id is same as(paynlIssuerSelected) %}
-                            <span id="paymentMethodBankName">({{ bank.visibleName }})</span>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
+            {% if not paymentMethodInvalid and payment.customFields.bankList.selected %}
+                <span id="paymentMethodBankName">({{ payment.customFields.bankList.selected.name }})</span>
             {% endif %}
 
             {% if (settingUsePAYStyles == false) %}
@@ -62,6 +55,9 @@
             <div class="break"></div>
             <div class="paynl-payment-method-extra-wrapper w-100">
                 <div class="paynl-payment-method-extra w-100{% if payment.id is same as(selectedPaymentMethodId) %} active{% endif %}">
+                    {#Banks#}
+                    {% sw_include '@PaynlPaymentShopware6/storefront/component/payment/paynl-bank-list.html.twig' %}
+
                     {#Terminals#}
                     {% if payment.customFields.terminals is not empty and activeRoute != "frontend.account.payment.page" %}
                         {% set configInstoreTerminalOption = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID')].configs.PaynlPaymentShopware6.config.paymentPinTerminal %}

@@ -6,8 +6,10 @@ use PayNL\Sdk\Model\Method;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\SettingsHelper;
+use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService;
 use Psr\Cache\CacheItemPoolInterface;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Page\PageLoadedEvent;
 use Throwable;
 
@@ -15,7 +17,8 @@ class PaymentMethodCustomFields
 {
     const PAY_NL_PAYMENT_FIELD = 'paynl_payment';
     const PAY_NL_ID_FIELD = 'paynlId';
-    const DISPLAY_BANKS_FIELD = 'displayBanks';
+    const BANKS_FIELD = 'banks';
+    const BANK_LIST_FIELD = 'bankList';
     const IS_PAY_LATER_FIELD = 'isPayLater';
     const HAS_ADDITIONAL_INFO_INPUT_FIELD = 'hasAdditionalInfoInput';
     const TERMINALS = 'terminals';
@@ -30,13 +33,21 @@ class PaymentMethodCustomFields
     /** @var CacheItemPoolInterface */
     private $cache;
 
+    /** @var PaymentMethodIssuerService */
+    private $issuerService;
+
     private $customFields;
 
-    public function __construct(Api $api, Config $config, CacheItemPoolInterface $cache)
-    {
+    public function __construct(
+        Api $api,
+        Config $config,
+        CacheItemPoolInterface $cache,
+        PaymentMethodIssuerService $issuerService
+    ) {
         $this->paynlApi = $api;
         $this->config = $config;
         $this->cache = $cache;
+        $this->issuerService = $issuerService;
     }
 
     public function getCustomField(string $name)
@@ -77,6 +88,16 @@ class PaymentMethodCustomFields
         $this->setCustomField(self::HAS_ADDITIONAL_INFO_INPUT_FIELD, $hasPaymentLaterInputs);
 
         $this->generatePaymentTerminals($paymentMethod, $salesChannelId);
+        $this->generateBankList($paymentMethod, $event->getSalesChannelContext());
+    }
+
+    private function generateBankList(PaymentMethodEntity $paymentMethod, SalesChannelContext $salesChannelContext): void
+    {
+        $bankList = $this->issuerService->getBankListData($paymentMethod, $salesChannelContext);
+
+        if ($bankList !== null) {
+            $this->setCustomField(self::BANK_LIST_FIELD, $bankList);
+        }
     }
 
     private function generatePaymentTerminals(PaymentMethodEntity $paymentMethod, string $salesChannelId): void

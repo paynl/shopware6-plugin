@@ -10,4 +10,3 @@ import './extension/sw-order-state-history-card';
 import './extension/sw-order-detail';
 import './extension/sw-order-detail-base';
 import './extension/sw-order-general-info';
-import './extension/sw-order-user-card';

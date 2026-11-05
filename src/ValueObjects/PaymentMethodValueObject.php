@@ -4,6 +4,7 @@ namespace PaynlPayment\Shopware6\ValueObjects;
 
 use PayNL\Sdk\Model\Method;
 use PaynlPayment\Shopware6\Enums\PayLaterPaymentMethodsEnum;
+use PaynlPayment\Shopware6\Enums\PaynlPaymentMethodsIdsEnum;
 
 class PaymentMethodValueObject
 {
@@ -41,9 +42,26 @@ class PaymentMethodValueObject
             . $this->sanitizeName($this->originalMethod->getName());
     }
 
+    /**
+     * @return IssuerValueObject[]
+     */
     public function getBanks(): array
     {
-        return $this->originalMethod->getId() === Method::IDEAL ? $this->originalMethod->getOptions() : [];
+        $method = $this->originalMethod;
+
+        if ($method->getId() !== PaynlPaymentMethodsIdsEnum::METJEBANK_PAYMENT || !$method->hasOptions()) {
+            return [];
+        }
+
+        $banks = [];
+        foreach ($method->getOptions() as $option) {
+            $bank = IssuerValueObject::fromArray((array) $option);
+            if ($bank !== null) {
+                $banks[] = $bank;
+            }
+        }
+
+        return $banks;
     }
 
     public function isPayLater(): bool

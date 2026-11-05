@@ -3,6 +3,7 @@
 namespace PaynlPayment\Shopware6\Components;
 
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReaderInterface;
+use PaynlPayment\Shopware6\Enums\BankListDisplayEnum;
 
 class Config
 {
@@ -166,6 +167,18 @@ class Config
     public function getPaymentIdealExpressLoggedInCustomerEnabled(string $salesChannelId): bool
     {
         return (bool)$this->get($salesChannelId, 'paymentIdealExpressCheckoutLoggedInCustomerEnabled');
+    }
+
+    public function getPaymentMetjebankBankListEnabled(string $salesChannelId): bool
+    {
+        return (bool)$this->get($salesChannelId, 'paymentMetjebankBankListEnabled');
+    }
+
+    public function getPaymentMetjebankBankListDisplay(string $salesChannelId): string
+    {
+        $display = (string)$this->get($salesChannelId, 'paymentMetjebankBankListDisplay');
+
+        return $display === BankListDisplayEnum::SELECT ? BankListDisplayEnum::SELECT : BankListDisplayEnum::RADIO;
     }
 
     public function getPaymentPayPalExpressCheckoutEnabled(string $salesChannelId): bool

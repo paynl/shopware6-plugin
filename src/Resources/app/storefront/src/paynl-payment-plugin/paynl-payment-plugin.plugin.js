@@ -16,6 +16,7 @@ export default class PaynlPaymentPlugin extends Plugin {
         if (trigger) {
             this.initDateOfBirthMask();
             this.initPayLaterEvents();
+            this.initBankLogos();
 
             const form = trigger.parentNode;
             form.addEventListener('submit', this.onSavePaymentMethod.bind(this));
@@ -141,6 +142,18 @@ export default class PaynlPaymentPlugin extends Plugin {
         });
     }
 
+    initBankLogos() {
+        // A bank PAY. adds later may not have a bundled logo yet: keep only its name
+        document.querySelectorAll('.paynl-bank-option-logo').forEach((logo) => {
+            if (logo.complete && logo.naturalWidth === 0) {
+                logo.remove();
+                return;
+            }
+
+            logo.addEventListener('error', () => logo.remove(), { once: true });
+        });
+    }
+
     initPayLaterEvents() {
         const paynlPhone = document.querySelectorAll('.paynl-phone');
         const paynlDateOfBirth = document.querySelectorAll('.paynl-dob');
@@ -207,8 +220,9 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     onChangeCallback(event) {
-        // check if event is triggered by payment method change
-        if (event.target.className.indexOf('payment-method-input') !== -1) {
+        // check if event is triggered by payment method change (a bank pick shares the class to auto-submit the form)
+        if (event.target.className.indexOf('payment-method-input') !== -1
+            && !event.target.classList.contains('paynl-bank-input')) {
             // hide previous extra data block
             const prevExtraDataBlock = event.currentTarget.querySelector('.paynl-payment-method-extra.active');
             if (prevExtraDataBlock) {
