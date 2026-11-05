@@ -15,7 +15,6 @@ use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
 use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
-use PaynlPayment\Shopware6\ValueObjects\IssuerValueObject;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
@@ -158,7 +157,10 @@ class InitiatePaymentAction
             $terminal
         );
 
-        $bank = $this->getSelectedBank($orderTransaction, $salesChannelContext);
+        $bank = $this->paymentMethodIssuerService->resolveSavedBank(
+            $orderTransaction->getPaymentMethod(),
+            $salesChannelContext
+        );
         $issuerId = $bank !== null ? $bank->getIssuerId() : null;
         if ($issuerId !== null) {
             $this->logger->info('Starting PAY. payment with the selected bank: ' . $issuerId);
@@ -223,17 +225,6 @@ class InitiatePaymentAction
         }
 
         $this->requestStack->getSession()->getFlashBag()->add('warning', $flashBagMessage);
-    }
-
-    private function getSelectedBank(
-        OrderTransactionEntity $orderTransaction,
-        SalesChannelContext $salesChannelContext
-    ): ?IssuerValueObject {
-        $paymentMethod = $orderTransaction->getPaymentMethod();
-
-        return $paymentMethod !== null
-            ? $this->paymentMethodIssuerService->resolveSavedBank($paymentMethod, $salesChannelContext)
-            : null;
     }
 
     private function getRequestTerminal(): string

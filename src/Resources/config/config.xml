@@ -710,9 +710,9 @@
     </card>
 
     <card>
-        <title>Metjebank.nl</title>
-        <title lang="de-DE">Metjebank.nl</title>
-        <title lang="nl-NL">Metjebank.nl</title>
+        <title>Metjebank</title>
+        <title lang="de-DE">Metjebank</title>
+        <title lang="nl-NL">Metjebank</title>
 
         <name>payment_metjebank</name>
 

@@ -111,12 +111,11 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         }
 
         $context = $salesChannelContext->getContext();
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paymentMethodId = (string) $this->requestDataBagHelper->getDataBagItem('paymentMethodId', $dataBag);
         $paymentMethod = $this->getPaymentMethodById($paymentMethodId, $context);
 
-        if (empty($paymentMethod)
-            || !$this->issuerService->isBankListEnabled($paymentMethod, $salesChannelContext->getSalesChannel()->getId())
-        ) {
+        if (empty($paymentMethod) || !$this->issuerService->isBankListEnabled($paymentMethod, $salesChannelId)) {
             return;
         }
 
@@ -128,11 +127,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $issuerId = $this->issuerService->resolveIssuer(
-            $paymentMethod,
-            $requestedIssuer,
-            $salesChannelContext->getSalesChannel()->getId()
-        );
+        $issuerId = $this->issuerService->resolveIssuer($paymentMethod, $requestedIssuer, $salesChannelId);
 
         if ($issuerId !== null) {
             $this->customerHelper->savePaynlIssuer($customer, $paymentMethodId, $issuerId, $context);
