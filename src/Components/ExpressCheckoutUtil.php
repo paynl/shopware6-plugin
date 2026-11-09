@@ -258,28 +258,15 @@ class ExpressCheckoutUtil
 
         $request->setOrder($payNLOrder);
 
-        $request->setStats($this->getOrderStats());
+        $request->setStats($this->payAPI->getOrderStats(
+            $this->shopwareVersion,
+            $this->pluginHelper->getPluginVersionFromComposer(),
+            $this->instanceId
+        ));
 
         $request->setConfig($this->payAPI->getConfig($salesChannelContext->getSalesChannel()->getId(), true));
 
         return $request;
-    }
-
-    public function getOrderStats(): Model\Stats
-    {
-        $stats = (new Model\Stats())
-            ->setObject(sprintf(
-                'Shopware v%s | %s | %s',
-                $this->shopwareVersion,
-                $this->pluginHelper->getPluginVersionFromComposer(),
-                substr(phpversion(), 0, 3)
-            ));
-
-        if ($this->instanceId !== null && $this->instanceId !== '') {
-            $stats->setExtra3($this->instanceId);
-        }
-
-        return $stats;
     }
 
     public function getCountryIdByCode(string $code, Context $context): ?string

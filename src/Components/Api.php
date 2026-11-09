@@ -192,26 +192,35 @@ class Api
 
         $request->setOrder($payNLOrder);
 
-        $stats = (new Model\Stats())
-            ->setObject(sprintf(
-                'Shopware v%s | %s | %s',
-                $additionalTransactionInfo->getShopwareVersion(),
-                $additionalTransactionInfo->getPluginVersion(),
-                substr(phpversion(), 0, 3)
-            ));
-
-        $instanceId = $additionalTransactionInfo->getInstanceId();
-        if ($instanceId !== null && $instanceId !== '') {
-            $stats->setExtra3($instanceId);
-        }
-
-        $request->setStats($stats);
+        $request->setStats($this->getOrderStats(
+            $additionalTransactionInfo->getShopwareVersion(),
+            $additionalTransactionInfo->getPluginVersion(),
+            $additionalTransactionInfo->getInstanceId()
+        ));
 
         if ($this->getTransferData($salesChannelId)) {
             $request->setTransferData($this->getTransferData($salesChannelId));
         }
 
         return $request;
+    }
+
+    /** Shared by the regular payment and Express Checkout flows, so PAY. gets the same stats from both. */
+    public function getOrderStats(string $shopwareVersion, string $pluginVersion, ?string $instanceId): Model\Stats
+    {
+        $stats = (new Model\Stats())
+            ->setObject(sprintf(
+                'Shopware v%s | %s | %s',
+                $shopwareVersion,
+                $pluginVersion,
+                substr(phpversion(), 0, 3)
+            ));
+
+        if ($instanceId !== null && $instanceId !== '') {
+            $stats->setExtra3($instanceId);
+        }
+
+        return $stats;
     }
 
     /** @throws PaynlPaymentException */
