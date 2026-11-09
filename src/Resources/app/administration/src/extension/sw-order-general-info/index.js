@@ -1,7 +1,19 @@
 const { Component } = Shopware;
+import template from './sw-order-general-info.html.twig';
 
 Component.override('sw-order-general-info', {
+    template,
+
     inject: ['PaynlPaymentService'],
+
+    computed: {
+        issuerName() {
+            const customFields = this.order.customFields || {};
+
+            return customFields.paynlIssuerName || null;
+        }
+    },
+
     methods: {
         onLeaveModalConfirm(docIds, sendMail = true) {
             this.showModal = false;

@@ -1,0 +1,11 @@
+{% block sw_order_detail_base_general_info_summary_sub %}
+    {% parent %}
+
+    {# Own line under core's summary, so core's text stays untouched in every Shopware version #}
+    <div
+        v-if="issuerName"
+        class="sw-order-general-info__summary-sub-description"
+    >
+        {{ $tc('order.issuer') }}: {{ issuerName }}
+    </div>
+{% endblock %}

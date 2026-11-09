@@ -211,6 +211,21 @@ class CustomerHelper
         $this->savePaymentMethodSelectedData($paymentMethodId, 'issuer', $issuer, $customer, $context);
     }
 
+    public function clearPaynlIssuer(CustomerEntity $customer, string $paymentMethodId, Context $context): void
+    {
+        $customFields = (array) $customer->getCustomFields();
+        if (!isset($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]['issuer'])) {
+            return;
+        }
+
+        unset($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]['issuer']);
+        if ($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId] === []) {
+            unset($customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId]);
+        }
+
+        $this->writeCustomFields($customer, $customFields, $context);
+    }
+
     public function savePaynlInstoreTerminal(
         CustomerEntity $customer,
         string $paymentMethodId,
@@ -231,9 +246,17 @@ class CustomerHelper
             return;
         }
 
-        $customFields = $customer->getCustomFields();
+        $customFields = (array) $customer->getCustomFields();
         $customFields[CustomerCustomFieldsEnum::PAYMENT_METHODS_SELECTED_DATA][$paymentMethodId][$name] = $data;
 
+        $this->writeCustomFields($customer, $customFields, $context);
+    }
+
+    /**
+     * Custom fields are written per top level key, so nested data must always be written as a whole.
+     */
+    private function writeCustomFields(CustomerEntity $customer, array $customFields, Context $context): void
+    {
         $this->customerRepository->upsert([[
             'id' => $customer->getId(),
             'customFields' => $customFields

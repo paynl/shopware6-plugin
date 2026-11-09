@@ -5,7 +5,7 @@ namespace PaynlPayment\Shopware6\Subscriber;
 use PaynlPayment\Shopware6\Helper\CustomerHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
-use PaynlPayment\Shopware6\Service\PaymentMethodCustomFields;
+use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Customer\Event\CustomerChangedPaymentMethodEvent;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
@@ -16,13 +16,10 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Shopware\Core\System\SalesChannel\Event\SalesChannelContextSwitchEvent;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
 {
-    /** @var RequestStack */
-    private $requestStack;
-
     /** @var PaymentMethodRepositoryInterface */
     private $paymentMethodRepository;
 
@@ -32,16 +29,19 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
     /** @var RequestDataBagHelper $requestDataBagHelper */
     private $requestDataBagHelper;
 
+    /** @var PaymentMethodIssuerService */
+    private $issuerService;
+
     public function __construct(
-        RequestStack $requestStack,
         PaymentMethodRepositoryInterface $paymentMethodRepository,
         CustomerHelper $customerHelper,
-        RequestDataBagHelper $requestDataBagHelper
+        RequestDataBagHelper $requestDataBagHelper,
+        PaymentMethodIssuerService $issuerService
     ) {
-        $this->requestStack = $requestStack;
         $this->paymentMethodRepository = $paymentMethodRepository;
         $this->customerHelper = $customerHelper;
         $this->requestDataBagHelper = $requestDataBagHelper;
+        $this->issuerService = $issuerService;
     }
 
     public static function getSubscribedEvents(): array
@@ -60,9 +60,7 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         if (!$event->getRequestDataBag()->has('paymentMethodId')) {
             return;
         }
-        $customer = $event->getSalesChannelContext()->getCustomer();
-
-        $this->processPayLaterFields($event->getRequestDataBag()->toRequestDataBag(), $customer, $event->getContext());
+        $this->processPayLaterFields($event->getRequestDataBag()->toRequestDataBag(), $event->getSalesChannelContext());
     }
 
     /**
@@ -73,16 +71,17 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
         if (!$event->getRequestDataBag()->has('paymentMethodId')) {
             return;
         }
-        $customer = $event->getSalesChannelContext()->getCustomer();
-
-        $this->processPayLaterFields($event->getRequestDataBag(), $customer, $event->getContext());
+        $this->processPayLaterFields($event->getRequestDataBag(), $event->getSalesChannelContext());
     }
 
-    private function processPayLaterFields(RequestDataBag $dataBag, ?CustomerEntity $customer, Context $context): void
+    private function processPayLaterFields(RequestDataBag $dataBag, SalesChannelContext $salesChannelContext): void
     {
+        $customer = $salesChannelContext->getCustomer();
         if (!($customer instanceof CustomerEntity)) {
             return;
         }
+
+        $context = $salesChannelContext->getContext();
 
         $paymentMethodId = $this->getValueFromRequestDataBag('paymentMethodId', $dataBag);
         $phoneData = (array) $this->getArrayFromRequestDataBag('phone', $dataBag);
@@ -98,31 +97,41 @@ class PaymentMethodIssuerSubscriber implements EventSubscriberInterface
             $this->customerHelper->saveCustomerBirthdate($customer, $dob, $context);
         }
 
-        $this->savePaynlPaymentMethodIssuer($dataBag, $customer, $context);
+        $this->savePaynlPaymentMethodIssuer($dataBag, $customer, $salesChannelContext);
     }
 
     private function savePaynlPaymentMethodIssuer(
         RequestDataBag $dataBag,
         CustomerEntity $customer,
-        Context $context
+        SalesChannelContext $salesChannelContext
     ): void {
+        // Not submitted: keep the bank the customer saved earlier
+        if (!$this->requestDataBagHelper->hasDataBagItem('paynlIssuer', $dataBag)) {
+            return;
+        }
+
+        $context = $salesChannelContext->getContext();
+        $salesChannelId = $salesChannelContext->getSalesChannel()->getId();
         $paymentMethodId = (string) $this->requestDataBagHelper->getDataBagItem('paymentMethodId', $dataBag);
         $paymentMethod = $this->getPaymentMethodById($paymentMethodId, $context);
 
-        if (empty($paymentMethod)) {
+        if (empty($paymentMethod) || !$this->issuerService->isBankListEnabled($paymentMethod, $salesChannelId)) {
             return;
         }
 
-        $paymentMethodCustomFields = $paymentMethod->getTranslation('customFields');
-        $paymentMethodDisplayBanks = $paymentMethodCustomFields[PaymentMethodCustomFields::DISPLAY_BANKS_FIELD] ?? null;
-        if (!$paymentMethodDisplayBanks) {
-            $this->requestStack->getSession()->remove('paynlIssuer');
+        $requestedIssuer = trim((string) $this->requestDataBagHelper->getDataBagItem('paynlIssuer', $dataBag));
+
+        // The empty "Select issuer" option removes the saved bank
+        if ($requestedIssuer === '') {
+            $this->customerHelper->clearPaynlIssuer($customer, $paymentMethodId, $context);
             return;
         }
 
-        $paynlIssuer = (string) $this->requestDataBagHelper->getDataBagItem('paynlIssuer', $dataBag);
+        $issuerId = $this->issuerService->resolveIssuer($paymentMethod, $requestedIssuer, $salesChannelId);
 
-        $this->customerHelper->savePaynlIssuer($customer, $paymentMethodId, $paynlIssuer, $context);
+        if ($issuerId !== null) {
+            $this->customerHelper->savePaynlIssuer($customer, $paymentMethodId, $issuerId, $context);
+        }
     }
 
     private function getPaymentMethodById(string $paymentMethodId, Context $context): ?PaymentMethodEntity

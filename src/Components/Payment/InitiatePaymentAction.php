@@ -10,6 +10,8 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\PluginHelper;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use PaynlPayment\Shopware6\Helper\RequestDataBagHelper;
+use PaynlPayment\Shopware6\Service\OrderServiceInterface;
+use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService;
 use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\AdditionalTransactionInfo;
@@ -33,6 +35,8 @@ class InitiatePaymentAction
     private Api $payAPI;
     private LoggerInterface $logger;
     private PaymentMethodTerminalService $paymentMethodTerminalService;
+    private PaymentMethodIssuerService $paymentMethodIssuerService;
+    private OrderServiceInterface $orderService;
     private ProcessingHelper $processingHelper;
     private PluginHelper $pluginHelper;
     private RequestDataBagHelper $requestDataBagHelper;
@@ -46,6 +50,8 @@ class InitiatePaymentAction
         Api $api,
         LoggerInterface $logger,
         PaymentMethodTerminalService $paymentMethodTerminalService,
+        PaymentMethodIssuerService $paymentMethodIssuerService,
+        OrderServiceInterface $orderService,
         ProcessingHelper $processingHelper,
         PluginHelper $pluginHelper,
         RequestDataBagHelper $requestDataBagHelper,
@@ -58,6 +64,8 @@ class InitiatePaymentAction
         $this->payAPI = $api;
         $this->logger = $logger;
         $this->paymentMethodTerminalService = $paymentMethodTerminalService;
+        $this->paymentMethodIssuerService = $paymentMethodIssuerService;
+        $this->orderService = $orderService;
         $this->processingHelper = $processingHelper;
         $this->pluginHelper = $pluginHelper;
         $this->requestDataBagHelper = $requestDataBagHelper;
@@ -149,13 +157,24 @@ class InitiatePaymentAction
             $terminal
         );
 
+        $bank = $this->paymentMethodIssuerService->resolveSavedBank(
+            $orderTransaction->getPaymentMethod(),
+            $salesChannelContext
+        );
+        $issuerId = $bank !== null ? $bank->getIssuerId() : null;
+        if ($issuerId !== null) {
+            $this->logger->info('Starting PAY. payment with the selected bank: ' . $issuerId);
+        }
+        $this->orderService->saveIssuer($orderTransaction->getOrder(), $bank, $salesChannelContext->getContext());
+
         $additionalTransactionInfo = new AdditionalTransactionInfo(
             $returnUrl,
             $exchangeUrl,
             $this->shopwareVersion,
             $this->pluginHelper->getPluginVersionFromComposer(),
             $terminal ?: null,
-            $this->instanceId
+            issuerId: $issuerId,
+            instanceId: $this->instanceId
         );
 
         try {
