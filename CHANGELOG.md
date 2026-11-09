@@ -1,5 +1,5 @@
 # 2.0.10
-- Secured the Pay. admin API routes (refunds, status transitions, Pay. settings) with Shopware ACL privileges; refunding now requires the "Orders > Refunds > Creator" privilege.
+- Secured the Pay. admin API routes (refunds, status transitions, Pay. settings) with Shopware ACL privileges; refunding now requires the "Orders > Refunds > Editor" privilege.
 - Added the Shopware instance ID to the Pay. transaction statistics (extra3) as groundwork for Shopware commission reporting.
 
 # 2.0.9
