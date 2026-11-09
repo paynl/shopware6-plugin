@@ -90,9 +90,32 @@ require_pay_secrets() {
 }
 
 shopware_container_id() {
+    # docker compose reads tests/Acceptance/.env on every command. Dockware chowns
+    # that file to its own user before the container is ready, and mode 600 then
+    # hides it from the runner. Look the container up by the labels Compose set.
     local id
-    id="$("${COMPOSE[@]}" ps -aq shopware 2>/dev/null || true)"
+    id="$(docker ps -aq \
+        --filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}" \
+        --filter "label=com.docker.compose.service=shopware" \
+        2>/dev/null || true)"
     printf '%s' "${id%%$'\n'*}"
+}
+
+restore_host_ownership() {
+    local id uid gid acceptance
+    id="$(shopware_container_id)"
+    [[ -n "${id}" ]] || return 0
+    docker inspect -f '{{.State.Running}}' "${id}" 2>/dev/null | grep -qx true || return 0
+    # Dockware chowns the bind mount, and the image user cannot chown it back.
+    # Restore only what the host writes. Skip node_modules: Docker Desktop rejects that chown.
+    uid="$(id -u)"
+    gid="$(id -g)"
+    acceptance="/var/www/html/custom/plugins/PaynlPaymentShopware6/tests/Acceptance"
+    docker exec -u root "${id}" bash -lc \
+        "chown ${uid}:${gid} '${acceptance}' '${acceptance}/.env'
+         if [[ -d '${acceptance}/diagnostics' ]]; then chown -R ${uid}:${gid} '${acceptance}/diagnostics'; fi" \
+        >/dev/null 2>&1 || true
+    lock_env_file
 }
 
 shopware_container() {
@@ -124,21 +147,13 @@ http_code() {
 
 wait_for_dockware_ready() {
     log "Waiting for Dockware to unpack Shopware (Apache is down during this; connection resets are normal)"
-    local elapsed=0
+    local elapsed=0 id
     while true; do
-        if docker logs "$(shopware_container)" 2>&1 | grep -q 'container IS READY'; then
+        id="$(shopware_container_id)"
+        # grep must drain docker logs. With pipefail, grep -q can SIGPIPE docker and hide a match.
+        if [[ -n "${id}" ]] && docker logs "${id}" 2>&1 | grep 'container IS READY' >/dev/null; then
             log "Dockware reports the container is ready"
-            # Dockware chowns the bind mount, and the image user cannot chown it back.
-            # Restore only what the host writes. Skip node_modules: Docker Desktop rejects that chown.
-            local uid gid acceptance
-            uid="$(id -u)"
-            gid="$(id -g)"
-            acceptance="/var/www/html/custom/plugins/PaynlPaymentShopware6/tests/Acceptance"
-            docker exec -u root "$(shopware_container)" bash -lc \
-                "chown ${uid}:${gid} '${acceptance}' '${acceptance}/.env'
-                 if [[ -d '${acceptance}/diagnostics' ]]; then chown -R ${uid}:${gid} '${acceptance}/diagnostics'; fi" \
-                >/dev/null 2>&1 || true
-            lock_env_file
+            restore_host_ownership
             if [[ -f "${ENV_FILE}" && ! -O "${ENV_FILE}" ]]; then
                 fail "Could not restore ownership of ${ENV_FILE}; refusing to loosen its permissions"
             fi
@@ -146,7 +161,10 @@ wait_for_dockware_ready() {
             return
         fi
         if (( elapsed >= SHOPWARE_WAIT_SECONDS )); then
-            "${COMPOSE[@]}" logs --tail 80 shopware || true
+            if [[ -n "${id}" ]]; then
+                docker logs --tail 80 "${id}" || true
+            fi
+            restore_host_ownership
             fail "Dockware did not finish startup within ${SHOPWARE_WAIT_SECONDS}s"
         fi
         sleep 5
@@ -160,7 +178,7 @@ wait_for_shopware() {
     local health="http://127.0.0.1:${SHOPWARE_PORT}/api/_info/health-check"
     local storefront="http://127.0.0.1:${SHOPWARE_PORT}/"
     log "Waiting for Shopware HTTP on port ${SHOPWARE_PORT}"
-    local elapsed=0
+    local elapsed=0 id
     local health_code="000"
     local store_code="000"
     while true; do
@@ -175,7 +193,10 @@ wait_for_shopware() {
             break
         fi
         if (( elapsed >= 120 )); then
-            "${COMPOSE[@]}" logs --tail 80 shopware || true
+            id="$(shopware_container_id)"
+            if [[ -n "${id}" ]]; then
+                docker logs --tail 80 "${id}" || true
+            fi
             fail "Shopware HTTP did not become ready within 120s after Dockware startup (health-check ${health_code}, storefront ${store_code})"
         fi
         sleep 5
@@ -496,6 +517,7 @@ print(payload.get("message", "payment methods installed"))
 }
 
 collect_diagnostics() {
+    restore_host_ownership
     mkdir -p "${DIAGNOSTICS_DIR}"
     log "Collecting Shopware diagnostics into ${DIAGNOSTICS_DIR}"
     local container_id
@@ -505,8 +527,8 @@ collect_diagnostics() {
     else
         echo "No container for project ${COMPOSE_PROJECT_NAME}" > "${DIAGNOSTICS_DIR}/docker-ps.txt"
     fi
-    "${COMPOSE[@]}" logs --no-color shopware > "${DIAGNOSTICS_DIR}/shopware-container.log" 2>/dev/null || true
     if [[ -n "${container_id}" ]]; then
+        docker logs "${container_id}" > "${DIAGNOSTICS_DIR}/shopware-container.log" 2>&1 || true
         docker exec -u dockware -i "${container_id}" bash -lc 'cd /var/www/html
 php bin/console plugin:list -n || true
 echo "---- .env APP_URL ----"
@@ -535,12 +557,14 @@ cmd_up() {
 
 cmd_down() {
     stop_tunnel
+    restore_host_ownership
     "${COMPOSE[@]}" down -v --remove-orphans || true
     remove_legacy_container
     log "Temporary Shopware environment removed"
 }
 
 cmd_redact() {
+    restore_host_ownership
     if [[ -f "${ENV_FILE}" ]]; then
         load_env_file
     fi
