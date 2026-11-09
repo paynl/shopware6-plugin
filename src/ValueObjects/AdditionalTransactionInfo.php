@@ -35,7 +35,7 @@ class AdditionalTransactionInfo extends Struct
         $this->shopwareVersion = $shopwareVersion;
         $this->pluginVersion = $pluginVersion;
         $this->terminalId = $terminalId;
-        $this->issuerId = $issuerId;
+        $this->issuerId = $issuerId === '' ? null : $issuerId;
         $this->instanceId = $instanceId;
     }
 

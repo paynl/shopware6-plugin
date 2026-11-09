@@ -176,7 +176,7 @@ class Api
 
         if ($payPaymentMethodId === Model\Method::PIN) {
             $request->setTerminal($additionalTransactionInfo->getTerminalId());
-        } elseif ($additionalTransactionInfo->getIssuerId()) {
+        } elseif ($additionalTransactionInfo->getIssuerId() !== null) {
             $request->setIssuerId($additionalTransactionInfo->getIssuerId());
         }
 

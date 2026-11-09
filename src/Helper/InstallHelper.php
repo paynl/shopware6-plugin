@@ -512,8 +512,7 @@ class InstallHelper
             static fn(IssuerValueObject $bank): array => $bank->toArray(),
             $banks
         ) : null;
-        // Legacy iDEAL flag, cleared on existing installs
-        $customFields['displayBanks'] = null;
+        $customFields[PaymentMethodCustomFields::DISPLAY_BANKS_FIELD] = null;
 
         if ($paymentMethodValueObject->isPayLater()) {
             $customFields['isPayLater'] = true;

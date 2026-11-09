@@ -53,15 +53,7 @@ class PaymentMethodValueObject
             return [];
         }
 
-        $banks = [];
-        foreach ($method->getOptions() as $option) {
-            $bank = IssuerValueObject::fromArray((array) $option);
-            if ($bank !== null) {
-                $banks[] = $bank;
-            }
-        }
-
-        return $banks;
+        return IssuerValueObject::fromArrays($method->getOptions());
     }
 
     public function isPayLater(): bool

@@ -1,39 +1,11 @@
-{% block sw_order_detail_base_general_info_summary_sub_description %}
-    {# Core markup of each version (6.7 and 6.5/6.6 differ), only the payment method label adds the bank #}
+{% block sw_order_detail_base_general_info_summary_sub %}
+    {% parent %}
+
+    {# Own line under core's summary, so core's text stays untouched in every Shopware version #}
     <div
-        v-if="isShopware67"
+        v-if="issuerName"
         class="sw-order-general-info__summary-sub-description"
     >
-        <sw-time-ago
-            :date="order.orderDateTime"
-            :date-time-format="{ month: '2-digit', day: '2-digit' }"
-        />
-        <template v-if="transaction">
-            {{ $tc('sw-order.generalTab.info.summary.with') }}
-            {{ paymentMethodLabel(transaction) }}
-        </template>
-        <template v-if="delivery">
-            {{ $tc('sw-order.generalTab.info.summary.and') }}
-            {{ delivery.shippingMethod.translated.name }}
-        </template>
-    </div>
-    <div
-        v-else
-        class="sw-order-general-info__summary-sub-description"
-    >
-        {{ $tc('sw-order.generalTab.info.summary.on') }}
-        {{ dateFilter(order.orderDateTime, {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-        }) }}
-        {{ $tc('sw-order.generalTab.info.summary.with') }}
-        {{ paymentMethodLabel(order.transactions.last()) }}
-        <template v-if="order.deliveries.last()">
-            {{ $tc('sw-order.generalTab.info.summary.and') }}
-            {{ order.deliveries.last().shippingMethod.translated.name }}
-        </template>
+        {{ $tc('order.issuer') }}: {{ issuerName }}
     </div>
 {% endblock %}

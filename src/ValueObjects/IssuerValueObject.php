@@ -34,6 +34,25 @@ class IssuerValueObject
         return new self((string) ($data[self::ID] ?? ''), $issuerId, $name);
     }
 
+    /**
+     * Build the banks from a list of getConfig options or stored banks, skipping everything that is not a bank.
+     *
+     * @param array<mixed> $items
+     * @return self[]
+     */
+    public static function fromArrays(array $items): array
+    {
+        $issuers = [];
+        foreach ($items as $item) {
+            $issuer = is_array($item) || is_object($item) ? self::fromArray((array) $item) : null;
+            if ($issuer !== null) {
+                $issuers[] = $issuer;
+            }
+        }
+
+        return $issuers;
+    }
+
     public function getId(): string
     {
         return $this->id;

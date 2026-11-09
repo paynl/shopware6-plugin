@@ -1,7 +1,5 @@
-const { Component, Context } = Shopware;
+const { Component } = Shopware;
 import template from './sw-order-general-info.html.twig';
-import formatPaymentMethodLabel from '../../util/payment-method-label.util';
-import VersionCompare from '../../util/version-compare.util';
 
 Component.override('sw-order-general-info', {
     template,
@@ -9,10 +7,6 @@ Component.override('sw-order-general-info', {
     inject: ['PaynlPaymentService'],
 
     computed: {
-        isShopware67() {
-            return new VersionCompare().isGreaterOrEqual(Context.app.config.version, '6.7');
-        },
-
         issuerName() {
             const customFields = this.order.customFields || {};
 
@@ -21,10 +15,6 @@ Component.override('sw-order-general-info', {
     },
 
     methods: {
-        paymentMethodLabel(transaction) {
-            return formatPaymentMethodLabel(transaction.paymentMethod.translated.distinguishableName, this.issuerName);
-        },
-
         onLeaveModalConfirm(docIds, sendMail = true) {
             this.showModal = false;
 
