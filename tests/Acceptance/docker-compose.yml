@@ -1,0 +1,18 @@
+services:
+  shopware:
+    image: dockware/shopware:${SHOPWARE_VERSION:-6.7.10.0}
+    ports:
+      - "${SHOPWARE_PORT:-8080}:80"
+    volumes:
+      - ../..:/var/www/html/custom/plugins/PaynlPaymentShopware6
+      # SDK install writes vendor/ inside the container. Keep it off the host checkout.
+      - plugin_vendor:/var/www/html/custom/plugins/PaynlPaymentShopware6/vendor
+    environment:
+      APP_ENV: prod
+      PHP_VERSION: "8.3"
+      XDEBUG_ENABLED: "0"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  plugin_vendor:
