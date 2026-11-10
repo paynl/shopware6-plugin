@@ -210,9 +210,25 @@ function asBool(value: unknown): boolean {
     return value === true || value === 1 || value === '1';
 }
 
+/** Turns refund flags on without opening the plugin config screen, which shows saved credentials. */
+export async function enablePayRefunds(adminApi: AdminApiContext, salesChannelId: string): Promise<void> {
+    const response = await adminApi.post(systemConfigPath(salesChannelId), {
+        data: {
+            'PaynlPaymentShopware6.config.allowRefunds': true,
+            'PaynlPaymentShopware6.config.allowShopwareNativeRefund': true,
+        },
+    });
+    expect(response.ok(), `Could not enable PAY. refunds: ${response.status()} ${await response.text()}`).toBeTruthy();
+
+    const cache = await adminApi.delete('./_action/cache');
+    expect(cache.ok(), `Could not clear the shop cache: ${cache.status()} ${await cache.text()}`).toBeTruthy();
+}
+
 async function readPayPluginConfig(adminApi: AdminApiContext, salesChannelId: string): Promise<PayPluginConfig> {
     const response = await adminApi.get(systemConfigPath(salesChannelId, 'PaynlPaymentShopware6.config'));
-    expect(response.ok(), `Could not read PAY. config: ${response.status()} ${await response.text()}`).toBeTruthy();
+    if (!response.ok()) {
+        expect(response.ok(), `Could not read PAY. config: ${response.status()} ${await response.text()}`).toBeTruthy();
+    }
     const payload = (await response.json()) as Record<string, unknown>;
     return {
         testMode: asBool(payload['PaynlPaymentShopware6.config.testMode']),

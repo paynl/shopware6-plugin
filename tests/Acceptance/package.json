@@ -6,8 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
+    "test": "bash scripts/run-playwright.sh",
+    "test:headed": "bash scripts/run-playwright.sh --headed",
     "report": "playwright show-report --port 9324",
     "env:up": "bash scripts/e2e-env.sh up",
     "env:down": "bash scripts/e2e-env.sh down",

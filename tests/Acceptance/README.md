@@ -23,7 +23,7 @@ Each run starts Shopware with `APP_ENV=prod` (no Symfony profiler) and sets a **
 2. Open **Actions → Playwright PAY. checkout → Run workflow**.
 3. Choose the plugin branch, tag, or SHA to test. Leave the Shopware version empty to run `6.6.10.25` and `6.7.10.0`. Set one version to run only that version. A local `env:up` still defaults to `6.7.10.0`.
 4. Each run creates a fresh Shopware container, installs that revision, and tears the shop down afterwards.
-5. The HTML report, failure screenshots, traces, videos, and Shopware logs are uploaded as the `playwright-pay-checkout-<shopware-version>` artifact, including when the tests fail. The upload runs only after secret redaction succeeds. A failed redaction skips the upload.
+5. The HTML report, failure screenshots, traces, and Shopware logs are uploaded as the `playwright-pay-checkout-<shopware-version>` artifact, including when the tests fail. Video is not recorded. The upload runs only after secret redaction succeeds. A failed redaction skips the upload.
 
 The shop is published on a public HTTPS URL for the duration of the run so PAY. can send payment notifications to `/PaynlPayment/notify`.
 
@@ -35,12 +35,14 @@ Requirements: Docker, Node.js 24+, and either [cloudflared](https://developers.c
 cd tests/Acceptance
 cp .env.example .env
 # Fill PAY_TOKEN_CODE, PAY_API_TOKEN, PAY_SERVICE_ID, and PAY_SANDBOX_SECRET (sales-location secret, not the API token).
-npm ci
+npm ci --ignore-scripts
 npx playwright install chromium
 npm run env:up
 npm test
 npm run env:down
 ```
+
+`npm test` and `npm run test:headed` strip PAY. credentials from `playwright-report/`, `test-results/`, and `diagnostics/` after Playwright has written the HTML report. That still runs when a test fails.
 
 `env:up` starts Shopware `6.7.10.0`, opens a public HTTPS tunnel, **installs and activates PaynlPaymentShopware6**, writes PAY. test-mode config, and installs the uniform **Pay by PAY.** method. It also trusts the tunnel proxy headers, turns the storefront HTTP cache on, turns the Pay.Parts credit-card widget on, and sets the shop’s minimum password length to 8.
 

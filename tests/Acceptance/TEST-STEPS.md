@@ -110,17 +110,15 @@ Timeout: 5 minutes. Same authorised checkout as the capture test.
 
 Fixme (`test.fixme`). It does not run. The reason is on the test: PAY. refuses the refund for this API token. Timeout would be 5 minutes. Admin is the suite’s `AdminPage`.
 
-1. Close the Shopware usage-data dialog or the “new Shopware version” notice if one is already on screen. Setup has already declined usage-data consent and turned the update check off, so this does not wait for them to appear.
-2. Open **Extensions → PaynlPaymentShopware6** config (`#/sw/extension/config/PaynlPaymentShopware6`).
-3. Turn on **Allow refunds** and **Allow Shopware native refunds** (English, German, and Dutch labels are accepted). If either was off, click **Save** and wait for a successful `POST /_action/system-config`. Both checkboxes must end up checked. If both were already on, nothing is saved.
-4. In the storefront, place an order and complete the sandbox as **Captured**.
-5. Wait until the Shopware transaction is `paid`, then assert the PAY. transaction `stateId` is `100`.
-6. Open the plugin refund screen `#/paynl/refund/page/view/{orderId}`.
-7. `GET /paynl/get-refund-data` must succeed, with an empty error message and `availableForRefund` greater than 0.
-8. If **Allow shipping refund** is visible, click it.
-9. Click the refund button (`.sw-order-detail__smart-bar-save-button`) once it is enabled.
-10. `POST /paynl/refund` must succeed. The first message must have type `success`. A message containing “forbidden” fails the test (the token cannot refund).
-11. Read `paynl-transactions` again. `stateId` must be one of `-72`, `-81`, or `-82`.
+1. Turn on **Allow refunds** and **Allow Shopware native refunds** for this worker’s sales channel with `POST /_action/system-config` (`allowRefunds` and `allowShopwareNativeRefund` only). The plugin config screen is not opened. Clear the shop cache.
+2. In the storefront, place an order and complete the sandbox as **Captured**.
+3. Wait until the Shopware transaction is `paid`, then assert the PAY. transaction `stateId` is `100`.
+4. Open the plugin refund screen `#/paynl/refund/page/view/{orderId}`.
+5. `GET /paynl/get-refund-data` must succeed, with an empty error message and `availableForRefund` greater than 0.
+6. If **Allow shipping refund** is visible, click it.
+7. Click the refund button (`.sw-order-detail__smart-bar-save-button`) once it is enabled.
+8. `POST /paynl/refund` must succeed. The first message must have type `success`. A message containing “forbidden” fails the test (the token cannot refund).
+9. Read `paynl-transactions` again. `stateId` must be one of `-72`, `-81`, or `-82`.
 
 ---
 

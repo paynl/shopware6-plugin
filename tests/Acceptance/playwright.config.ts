@@ -32,7 +32,6 @@ export default defineConfig({
     // CI runs `e2e-env.sh up` first, which already calls configure_shopware.
     // Local `npm test` still installs the plugin through global-setup.
     globalSetup: isCi ? undefined : './global-setup.ts',
-    globalTeardown: './global-teardown.ts',
     fullyParallel: false,
     forbidOnly: isCi,
     retries: isCi ? 1 : 0,
@@ -58,7 +57,7 @@ export default defineConfig({
         // Keep the failed first attempt when the retry passes, and keep that retry too.
         trace: 'retain-on-failure-and-retries',
         screenshot: 'only-on-failure',
-        video: 'retain-on-failure',
+        video: 'off',
         actionTimeout: 20_000,
         navigationTimeout: 60_000,
     },

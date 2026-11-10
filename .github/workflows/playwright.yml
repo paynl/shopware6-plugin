@@ -51,16 +51,16 @@ jobs:
       SHOPWARE_PORT: '8080'
       SHOPWARE_WAIT_SECONDS: '600'
       SHOPWARE_ADMIN_USERNAME: admin
-      PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
-      PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
-      PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
-      PAY_SANDBOX_SECRET: ${{ secrets.PAY_SANDBOX_SECRET }}
-      NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
       PAY_PAYMENT_METHOD: 'Pay by PAY.'
       PAY_STATUS_TIMEOUT_MS: '120000'
 
     steps:
       - name: Check PAY. secrets
+        env:
+          PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
+          PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
+          PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
+          PAY_SANDBOX_SECRET: ${{ secrets.PAY_SANDBOX_SECRET }}
         run: |
           missing=0
           for key in PAY_TOKEN_CODE PAY_API_TOKEN PAY_SERVICE_ID PAY_SANDBOX_SECRET; do
@@ -85,7 +85,7 @@ jobs:
 
       - name: Install test dependencies
         working-directory: tests/Acceptance
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Playwright Chromium
         working-directory: tests/Acceptance
@@ -100,6 +100,7 @@ jobs:
           # ngrok 3.39.13: SHA256 from the stable archive at dl.equinox.io/ngrok/ngrok-v3/stable/archive
           NGROK_URL: "https://bin.equinox.io/a/h2cqbjsNLj7/ngrok-v3-3.39.13-linux-amd64.tar.gz"
           NGROK_SHA256: "233e0647849913e6404150c1e9c5e4f31c1368aefee330958d038d7afecb8f2e"
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
         run: |
           tmp="$(mktemp -d)"
           if [ -n "${NGROK_AUTHTOKEN}" ]; then
@@ -115,10 +116,20 @@ jobs:
 
       - name: Start Shopware, tunnel, and plugin
         working-directory: tests/Acceptance
+        env:
+          PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
+          PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
+          PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
         run: bash scripts/e2e-env.sh up
 
       - name: Run Playwright tests
         working-directory: tests/Acceptance
+        env:
+          PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
+          PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
+          PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
+          PAY_SANDBOX_SECRET: ${{ secrets.PAY_SANDBOX_SECRET }}
         run: npx playwright test
 
       - name: Collect Shopware diagnostics
@@ -130,6 +141,12 @@ jobs:
         id: redact
         if: always() && !cancelled()
         working-directory: tests/Acceptance
+        env:
+          PAY_TOKEN_CODE: ${{ secrets.PAY_TOKEN_CODE }}
+          PAY_API_TOKEN: ${{ secrets.PAY_API_TOKEN }}
+          PAY_SERVICE_ID: ${{ secrets.PAY_SERVICE_ID }}
+          PAY_SANDBOX_SECRET: ${{ secrets.PAY_SANDBOX_SECRET }}
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
         run: bash scripts/e2e-env.sh redact
 
       - name: Upload report, screenshots, and logs

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Remove PAY. credentials, the Shopware admin password, Bearer tokens,
- * and the admin API refresh token from test artifacts before they are uploaded.
+ * Remove PAY. credentials, the Shopware admin password, the public tunnel URL,
+ * Bearer tokens, and the admin API refresh token from test artifacts before they are uploaded.
  */
 
 const MIN_SECRET_LENGTH = 2;
@@ -16,6 +16,8 @@ const SECRET_KEYS = [
     'PAY_SERVICE_ID',
     'NGROK_AUTHTOKEN',
     'SHOPWARE_ADMIN_PASSWORD',
+    'APP_URL',
+    'ADMIN_API_URL',
 ];
 // Shopware admin OAuth access tokens are JWTs. Traces store them as Authorization headers.
 const BEARER_TOKEN_PATTERN = '/Bearer\s+([A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,})/';
@@ -51,6 +53,28 @@ function needlesFor(string $secret): array
 }
 
 /**
+ * The shop URL is stored with a trailing slash. Traces also keep the origin and the bare host.
+ *
+ * @return list<string>
+ */
+function tunnelNeedles(string $url): array
+{
+    $trimmed = rtrim($url, '/');
+    $found = [];
+    foreach ([...needlesFor($url), ...needlesFor($trimmed)] as $needle) {
+        $found[$needle] = $needle;
+    }
+    $host = parse_url($trimmed, PHP_URL_HOST);
+    if (is_string($host) && $host !== '') {
+        foreach (needlesFor($host) as $needle) {
+            $found[$needle] = $needle;
+        }
+    }
+
+    return array_values($found);
+}
+
+/**
  * @return list<string>
  */
 function collectNeedles(): array
@@ -63,6 +87,11 @@ function collectNeedles(): array
         }
         foreach (needlesFor($raw) as $needle) {
             $found[$needle] = $needle;
+        }
+        if ($key === 'APP_URL' || $key === 'ADMIN_API_URL') {
+            foreach (tunnelNeedles($raw) as $needle) {
+                $found[$needle] = $needle;
+            }
         }
     }
 
@@ -173,7 +202,7 @@ function payloadHasSecret(string $data, array $needles): bool
 
 function isZip(string $path): bool
 {
-    $handle = fopen($path, 'rb');
+    $handle = @fopen($path, 'rb');
     if ($handle === false) {
         return false;
     }
@@ -184,14 +213,35 @@ function isZip(string $path): bool
 }
 
 /**
+ * Gzip, bzip2, xz, zstd, 7z, and nested zips cannot be searched as text.
+ * Screenshots and videos are not in this set.
+ */
+function isCompressedNonMedia(string $name, string $data): bool
+{
+    $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    if (in_array($extension, ['gz', 'gzip', 'tgz', 'bz2', 'xz', '7z', 'zst', 'br', 'lz4', 'lzma', 'zip'], true)) {
+        return true;
+    }
+
+    return str_starts_with($data, "\x1f\x8b")
+        || str_starts_with($data, 'BZh')
+        || str_starts_with($data, "\xFD7zXZ\x00")
+        || str_starts_with($data, "\x28\xB5\x2F\xFD")
+        || str_starts_with($data, "7z\xBC\xAF\x27\x1C")
+        || str_starts_with($data, "PK\x03\x04")
+        || str_starts_with($data, "PK\x05\x06")
+        || str_starts_with($data, "PK\x07\x08");
+}
+
+/**
  * @param list<string> $needles
  * @param list<string> $bearerTokens
  */
-function scrubZip(string $path, array $needles, array $bearerTokens): void
+function scrubZip(string $path, array $needles, array $bearerTokens): bool
 {
     $source = new ZipArchive();
     if ($source->open($path) !== true) {
-        return;
+        return false;
     }
 
     $entries = [];
@@ -199,15 +249,19 @@ function scrubZip(string $path, array $needles, array $bearerTokens): void
     for ($index = 0; $index < $source->numFiles; $index++) {
         $name = $source->getNameIndex($index);
         if (!is_string($name)) {
-            continue;
-        }
-        $payload = $source->getFromIndex($index);
-        if ($payload === false) {
-            continue;
+            $source->close();
+
+            return false;
         }
         if (str_ends_with($name, '/')) {
             $entries[] = [$name, ''];
             continue;
+        }
+        $payload = $source->getFromIndex($index);
+        if (!is_string($payload) || isCompressedNonMedia($name, $payload)) {
+            $source->close();
+
+            return false;
         }
         $scrubbed = scrubBytes($payload, $needles, $bearerTokens);
         if ($scrubbed !== $payload) {
@@ -218,24 +272,47 @@ function scrubZip(string $path, array $needles, array $bearerTokens): void
     $source->close();
 
     if (!$changed) {
-        return;
+        return true;
     }
 
     $temporary = $path . '.redacting';
     $rewritten = new ZipArchive();
     if ($rewritten->open($temporary, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-        fwrite(STDERR, "Could not rewrite zip {$path}\n");
-        exit(1);
+        return false;
     }
     foreach ($entries as [$name, $payload]) {
         if (str_ends_with($name, '/')) {
-            $rewritten->addEmptyDir(rtrim($name, '/'));
+            if (!$rewritten->addEmptyDir(rtrim($name, '/'))) {
+                $rewritten->close();
+                unlink($temporary);
+
+                return false;
+            }
             continue;
         }
-        $rewritten->addFromString($name, $payload);
+        if (!$rewritten->addFromString($name, $payload)) {
+            $rewritten->close();
+            unlink($temporary);
+
+            return false;
+        }
     }
-    $rewritten->close();
-    rename($temporary, $path);
+    if (!$rewritten->close()) {
+        if (is_file($temporary)) {
+            unlink($temporary);
+        }
+
+        return false;
+    }
+    if (!rename($temporary, $path)) {
+        if (is_file($temporary)) {
+            unlink($temporary);
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -245,15 +322,24 @@ function zipHasSecret(string $path, array $needles): bool
 {
     $archive = new ZipArchive();
     if ($archive->open($path) !== true) {
-        $contents = file_get_contents($path);
-
-        return is_string($contents) && payloadHasCredential($contents, $needles);
+        return true;
     }
 
     try {
         for ($index = 0; $index < $archive->numFiles; $index++) {
+            $name = $archive->getNameIndex($index);
+            if (!is_string($name)) {
+                return true;
+            }
+            if (str_ends_with($name, '/')) {
+                continue;
+            }
             $payload = $archive->getFromIndex($index);
-            if (is_string($payload) && payloadHasCredential($payload, $needles)) {
+            if (
+                !is_string($payload)
+                || isCompressedNonMedia($name, $payload)
+                || payloadHasCredential($payload, $needles)
+            ) {
                 return true;
             }
         }
@@ -305,7 +391,9 @@ function withZipBytes(string $bytes, callable $callback): mixed
     if ($path === false) {
         return null;
     }
-    file_put_contents($path, $bytes);
+    if (file_put_contents($path, $bytes) === false) {
+        return null;
+    }
     try {
         return $callback($path);
     } finally {
@@ -391,7 +479,7 @@ function collectBearerTokens(string $root): array
             continue;
         }
 
-        $payload = file_get_contents($path);
+        $payload = @file_get_contents($path);
         if (!is_string($payload)) {
             continue;
         }
@@ -409,16 +497,17 @@ function collectBearerTokens(string $root): array
 /**
  * @param list<string> $needles
  *
- * @return list<string>
+ * @return array{leftovers: list<string>, errors: list<string>}
  */
 function scrubTree(string $root, array $needles): array
 {
     if (!is_dir($root)) {
-        return [];
+        return ['leftovers' => [], 'errors' => []];
     }
 
     $bearerTokens = collectBearerTokens($root);
     $leftovers = [];
+    $errors = [];
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)
     );
@@ -428,33 +517,52 @@ function scrubTree(string $root, array $needles): array
         }
         $path = $file->getPathname();
         if (isZip($path)) {
-            scrubZip($path, $needles, $bearerTokens);
+            if (!scrubZip($path, $needles, $bearerTokens)) {
+                $errors[] = "Could not redact zip {$path}";
+                continue;
+            }
             if (zipHasSecret($path, $needles)) {
                 $leftovers[] = $path;
             }
             continue;
         }
 
-        $original = file_get_contents($path);
+        $original = @file_get_contents($path);
         if (!is_string($original)) {
+            $errors[] = "Could not read {$path}";
+            continue;
+        }
+        if (isCompressedNonMedia($path, $original)) {
+            $errors[] = "Refusing compressed file {$path}";
             continue;
         }
         $scrubbed = scrubEmbeddedReport(scrubBytes($original, $needles, $bearerTokens), $needles, $bearerTokens);
-        if ($scrubbed !== $original) {
-            file_put_contents($path, $scrubbed);
+        if ($scrubbed !== $original && @file_put_contents($path, $scrubbed) === false) {
+            $errors[] = "Could not write {$path}";
+            continue;
         }
-        if (payloadHasCredential($scrubbed, $needles) || embeddedReportHasCredential($scrubbed, $needles)) {
+        $stored = @file_get_contents($path);
+        if (!is_string($stored)) {
+            $errors[] = "Could not read {$path}";
+            continue;
+        }
+        if (payloadHasCredential($stored, $needles) || embeddedReportHasCredential($stored, $needles)) {
             $leftovers[] = $path;
         }
     }
 
-    return $leftovers;
+    return ['leftovers' => $leftovers, 'errors' => $errors];
 }
 
 function selfCheck(): int
 {
     if (!in_array('SHOPWARE_ADMIN_PASSWORD', SECRET_KEYS, true)) {
         fwrite(STDERR, "self-check: SHOPWARE_ADMIN_PASSWORD missing from SECRET_KEYS\n");
+
+        return 1;
+    }
+    if (!in_array('APP_URL', SECRET_KEYS, true) || !in_array('ADMIN_API_URL', SECRET_KEYS, true)) {
+        fwrite(STDERR, "self-check: tunnel URL missing from SECRET_KEYS\n");
 
         return 1;
     }
@@ -481,7 +589,12 @@ function selfCheck(): int
         $savedCode === false ? putenv('PAY_TOKEN_CODE') : putenv('PAY_TOKEN_CODE=' . $savedCode);
         $savedToken === false ? putenv('PAY_API_TOKEN') : putenv('PAY_API_TOKEN=' . $savedToken);
     }
-    $needles = array_values(array_unique([...needlesFor($secret), ...needlesFor($basic)]));
+    $tunnel = 'https://pay-tunnel.trycloudflare.com/';
+    $needles = array_values(array_unique([
+        ...needlesFor($secret),
+        ...needlesFor($basic),
+        ...tunnelNeedles($tunnel),
+    ]));
     usort($needles, static fn (string $left, string $right): int => strlen($right) <=> strlen($left));
 
     $root = sys_get_temp_dir() . '/paynl-redact-' . bin2hex(random_bytes(4));
@@ -499,6 +612,10 @@ function selfCheck(): int
             "Authorization: Bearer \${token}\naaaaaaaab.bbbbbbbb.cccccccc\n"
             . $decoy . "\n"
             . '"refresh_token":"abcd"' . "\n"
+        );
+        file_put_contents(
+            $root . '/tunnel.txt',
+            "GET https://pay-tunnel.trycloudflare.com/checkout host pay-tunnel.trycloudflare.com\n"
         );
         $zipPath = $root . '/trace.zip';
         $archive = new ZipArchive();
@@ -546,7 +663,7 @@ function selfCheck(): int
             return 1;
         }
 
-        if (scrubTree($root, $needles) !== []) {
+        if (scrubTree($root, $needles) !== ['leftovers' => [], 'errors' => []]) {
             fwrite(STDERR, "self-check: expected a clean tree\n");
 
             return 1;
@@ -558,6 +675,11 @@ function selfCheck(): int
         }
         if (str_contains((string) file_get_contents($root . '/note.txt'), $encoded)) {
             fwrite(STDERR, "self-check: encoded secret left in note.txt\n");
+
+            return 1;
+        }
+        if (str_contains((string) file_get_contents($root . '/tunnel.txt'), 'pay-tunnel.trycloudflare.com')) {
+            fwrite(STDERR, "self-check: tunnel URL left in tunnel.txt\n");
 
             return 1;
         }
@@ -640,10 +762,82 @@ function selfCheck(): int
         }
 
         file_put_contents($root . '/leak.bin', "\0" . $secret);
-        $leftovers = scrubTree($root, $needles);
-        $names = array_map(static fn (string $path): string => basename($path), $leftovers);
-        if ($names !== ['leak.bin']) {
+        $leaked = scrubTree($root, $needles);
+        $names = array_map(static fn (string $path): string => basename($path), $leaked['leftovers']);
+        if ($leaked['errors'] !== [] || $names !== ['leak.bin']) {
             fwrite(STDERR, "self-check: expected leak.bin to remain, got " . implode(', ', $names) . "\n");
+
+            return 1;
+        }
+
+        $readonlyDir = $root . '/readonly';
+        mkdir($readonlyDir);
+        $readonlyFile = $readonlyDir . '/secret.txt';
+        file_put_contents($readonlyFile, $secret);
+        chmod($readonlyFile, 0444);
+        $readonly = scrubTree($readonlyDir, $needles);
+        chmod($readonlyFile, 0644);
+        if ($readonly['errors'] === [] || !str_contains((string) file_get_contents($readonlyFile), $secret)) {
+            fwrite(STDERR, "self-check: read-only file was treated as redacted\n");
+
+            return 1;
+        }
+
+        $hiddenDir = $root . '/hidden';
+        mkdir($hiddenDir);
+        $hiddenFile = $hiddenDir . '/secret.txt';
+        file_put_contents($hiddenFile, $secret);
+        chmod($hiddenFile, 0000);
+        $hiddenReadable = @file_get_contents($hiddenFile);
+        if ($hiddenReadable === false) {
+            $hidden = scrubTree($hiddenDir, $needles);
+            chmod($hiddenFile, 0644);
+            if ($hidden['errors'] === []) {
+                fwrite(STDERR, "self-check: unreadable file was skipped\n");
+
+                return 1;
+            }
+        }
+        chmod($hiddenFile, 0644);
+
+        $brokenDir = $root . '/broken-zip';
+        mkdir($brokenDir);
+        $brokenZip = $brokenDir . '/trace.zip';
+        $broken = new ZipArchive();
+        $broken->open($brokenZip, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $broken->addFromString('secret.txt', $secret);
+        $broken->close();
+        $brokenBytes = file_get_contents($brokenZip);
+        if (!is_string($brokenBytes) || strlen($brokenBytes) < 16) {
+            fwrite(STDERR, "self-check: could not build truncated zip\n");
+
+            return 1;
+        }
+        file_put_contents($brokenZip, substr($brokenBytes, 0, 16));
+        $probe = new ZipArchive();
+        if ($probe->open($brokenZip) === true) {
+            $probe->close();
+            fwrite(STDERR, "self-check: truncated zip still opened\n");
+
+            return 1;
+        }
+        if (scrubTree($brokenDir, $needles)['errors'] === []) {
+            fwrite(STDERR, "self-check: truncated zip was accepted\n");
+
+            return 1;
+        }
+
+        $gzipDir = $root . '/gzip';
+        mkdir($gzipDir);
+        $gzip = gzencode($secret);
+        if (!is_string($gzip)) {
+            fwrite(STDERR, "self-check: could not gzip the secret\n");
+
+            return 1;
+        }
+        file_put_contents($gzipDir . '/pay.log.gz', $gzip);
+        if (scrubTree($gzipDir, $needles)['errors'] === []) {
+            fwrite(STDERR, "self-check: gzip file was accepted\n");
 
             return 1;
         }
@@ -674,11 +868,22 @@ if (in_array('--self-check', $argv, true)) {
 
 $needles = collectNeedles();
 $leftovers = [];
+$errors = [];
 foreach (array_slice($argv, 1) as $root) {
     if ($root === '--self-check') {
         continue;
     }
-    array_push($leftovers, ...scrubTree($root, $needles));
+    $result = scrubTree($root, $needles);
+    array_push($leftovers, ...$result['leftovers']);
+    array_push($errors, ...$result['errors']);
+}
+
+if ($errors !== []) {
+    fwrite(STDERR, "Redaction failed:\n");
+    foreach ($errors as $error) {
+        fwrite(STDERR, "  {$error}\n");
+    }
+    exit(1);
 }
 
 if ($leftovers !== []) {

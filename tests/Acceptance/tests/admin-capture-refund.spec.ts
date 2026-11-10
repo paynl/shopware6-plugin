@@ -1,5 +1,4 @@
 import { test, expect, type FixtureTypes } from '@shopware-ag/acceptance-test-suite';
-import type { Locator, Page } from '@playwright/test';
 import { captureAuthorizedOrder, refundOrder, assertPayRefundAccepted } from '../src/admin-order';
 import { dismissAdminPopups } from '../src/admin-popups';
 import {
@@ -11,18 +10,16 @@ import {
 import { completePaySandbox, type SandboxPaymentStatus } from '../src/pay-sandbox';
 import {
     assignPayPaymentMethod,
+    enablePayRefunds,
     expectOrderTransactionHistoryComment,
     latestOrderTransaction,
     readPaynlTransactionState,
     waitForOrderPaymentState,
     waitForPaynlTransactionState,
 } from '../src/shopware-admin';
-import { maskPayConfigCredentialInputs } from '../src/pay-config-page';
 import { step } from '../src/step';
 
 const REFUND_STATUS_CODES = [-72, -81, -82];
-const ALLOW_REFUNDS = /^(allow refunds|erstattungen zulassen|restituties toestaan)$/i;
-const ALLOW_NATIVE_REFUNDS = /^(allow shopware native refunds|shopware native refunds zulassen|shopware native refunds toestaan)$/i;
 const CAPTURE_COMMENT = 'Captured in the PAY. acceptance test';
 const UNKNOWN_PAY_ORDER_ID = '9999999999X99999';
 const REFUND_FIXME = 'PAY. refuses the refund for this API token (forbidden). The token needs the refund right in my.pay.nl. No tracking issue yet.';
@@ -70,45 +67,6 @@ async function placePayOrder(
         expect(orderId || orderNumber, 'Order confirmation did not expose an order id or number').toBeTruthy();
         return { orderId, orderNumber };
     });
-}
-
-async function enableRefundSwitches(page: Page): Promise<void> {
-    await page.goto('./#/sw/extension/config/PaynlPaymentShopware6', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/extension\/config\/PaynlPaymentShopware6/);
-    await dismissAdminPopups(page);
-    await maskPayConfigCredentialInputs(page);
-
-    const allowRefunds = page.getByRole('checkbox', { name: ALLOW_REFUNDS });
-    const nativeRefunds = page.getByRole('checkbox', { name: ALLOW_NATIVE_REFUNDS });
-    await expect(allowRefunds).toBeVisible({ timeout: 60_000 });
-    await expect(nativeRefunds).toBeVisible();
-
-    const allowChanged = await switchOn(allowRefunds);
-    const nativeChanged = await switchOn(nativeRefunds);
-    if (!allowChanged && !nativeChanged) {
-        return;
-    }
-
-    const saved = page.waitForResponse(
-        (response) => response.url().includes('/_action/system-config') && response.request().method() === 'POST',
-        { timeout: 60_000 },
-    );
-    await page.locator('.sw-extension-config__save-action').click();
-    const response = await saved;
-    const body = await response.text();
-    expect(response.ok(), `Could not save plugin config: ${response.status()} ${body}`).toBeTruthy();
-    await expect(allowRefunds).toBeChecked();
-    await expect(nativeRefunds).toBeChecked();
-}
-
-async function switchOn(checkbox: Locator): Promise<boolean> {
-    if (await checkbox.isChecked()) {
-        return false;
-    }
-
-    await checkbox.check({ force: true });
-    await expect(checkbox).toBeChecked();
-    return true;
 }
 
 test.describe('PAY. admin capture and refund', () => {
@@ -248,8 +206,10 @@ test.describe('PAY. admin capture and refund', () => {
         }) => {
             test.setTimeout(300_000);
 
-            await step(AdminPage, 'Close the Shopware consent and update popups', () => dismissAdminPopups(AdminPage));
-            await step(AdminPage, 'Turn on Allow refunds and Allow Shopware native refunds', () => enableRefundSwitches(AdminPage));
+            await step(AdminPage, 'Turn on Allow refunds and Allow Shopware native refunds', () => enablePayRefunds(
+                AdminApiContext,
+                DefaultSalesChannel.salesChannel.id,
+            ));
 
             const placed = await placePayOrder({
                 StorefrontPage,

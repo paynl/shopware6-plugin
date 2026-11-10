@@ -239,9 +239,34 @@ write_github_env() {
     fi
 }
 
+mask_github_secret() {
+    local value="$1"
+    if [[ -n "${value}" && -n "${GITHUB_ENV:-}" ]]; then
+        printf '%s\n' "::add-mask::${value}"
+    fi
+}
+
+set_app_env_prod() {
+    log "Setting Shopware APP_ENV=prod before the public tunnel opens"
+    docker exec -u dockware -i "$(shopware_container)" bash -lc 'set -e
+cd /var/www/html
+if [[ ! -f .env ]]; then
+  echo "Shopware .env is missing" >&2
+  exit 1
+fi
+if grep -q "^APP_ENV=" .env; then
+  sed -i "s|^APP_ENV=.*|APP_ENV=prod|" .env
+else
+  echo "APP_ENV=prod" >> .env
+fi
+php bin/console cache:clear -n
+'
+}
+
 start_tunnel() {
     mkdir -p "${DIAGNOSTICS_DIR}"
     : > "${TUNNEL_LOG}"
+    set_app_env_prod
     local target="http://127.0.0.1:${SHOPWARE_PORT}"
     local public_url=""
 
@@ -279,6 +304,11 @@ print(https[0] if https else "")')"
 
     [[ -n "${public_url}" ]] || fail "Could not determine the public tunnel URL. See ${TUNNEL_LOG}"
     public_url="${public_url%/}/"
+    local public_host="${public_url#*://}"
+    public_host="${public_host%%/*}"
+    mask_github_secret "${public_url}"
+    mask_github_secret "${public_url%/}"
+    mask_github_secret "${public_host}"
     log "Public shop URL: ${public_url}"
     wait_for_public_url "${public_url}"
     # Both hosts must match. Shopware builds administration asset URLs from the API host.
@@ -406,7 +436,7 @@ rotate_admin_password() {
     set_env_value SHOPWARE_ADMIN_PASSWORD "${new_password}"
     # Later steps print the job environment. Mask before GITHUB_ENV, or the password shows there.
     if [[ -n "${GITHUB_ENV:-}" ]]; then
-        echo "::add-mask::${new_password}"
+        mask_github_secret "${new_password}"
     fi
     write_github_env SHOPWARE_ADMIN_PASSWORD "${new_password}"
     export SHOPWARE_ADMIN_PASSWORD="${new_password}"
@@ -552,6 +582,8 @@ cmd_up() {
     start_tunnel
     configure_shopware
     wait_for_public_url "${APP_URL}"
+    mask_github_secret "${APP_URL}"
+    mask_github_secret "${APP_URL%/}"
     log "Environment is ready. APP_URL=${APP_URL}"
 }
 
@@ -580,6 +612,8 @@ cmd_redact() {
             -e PAY_SERVICE_ID="${PAY_SERVICE_ID:-}"
             -e NGROK_AUTHTOKEN="${NGROK_AUTHTOKEN:-}"
             -e SHOPWARE_ADMIN_PASSWORD="${SHOPWARE_ADMIN_PASSWORD:-}"
+            -e APP_URL="${APP_URL:-}"
+            -e ADMIN_API_URL="${ADMIN_API_URL:-}"
             "$(shopware_container)" php)
     fi
 
@@ -600,7 +634,7 @@ Usage: e2e-env.sh <up|down|diagnostics|configure|ensure-plugin|tunnel|redact>
   ensure-plugin Install and activate PaynlPaymentShopware6, build its administration, then PAY. test methods
   tunnel        Start only the public HTTPS tunnel
   diagnostics   Copy Shopware logs for CI artifacts
-  redact        Strip PAY. credentials, the admin password, and Bearer tokens from test artifacts
+  redact        Strip PAY. credentials, the admin password, the tunnel URL, and Bearer tokens from test artifacts
   down          Stop this run's tunnel and delete the Shopware containers
 EOF
 }
