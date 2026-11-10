@@ -1,5 +1,5 @@
-import Plugin from 'src/plugin-system/plugin.class';
-import HttpClient from 'src/service/http-client.service';
+import Plugin from '../plugin-system/plugin.class';
+import HttpClient from '../service/http-client.service';
 
 export default class PaynlFastCheckoutQuantity extends Plugin {
     init() {

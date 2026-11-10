@@ -1,9 +1,9 @@
-import Plugin from 'src/plugin-system/plugin.class';
-import HttpClient from 'src/service/http-client.service';
-import DomAccess from 'src/helper/dom-access.helper';
-import ElementLoadingIndicatorUtil from 'src/utility/loading-indicator/element-loading-indicator.util';
+import Plugin from '../plugin-system/plugin.class';
+import HttpClient from '../service/http-client.service';
+import DomAccess from '../helper/dom-access.helper';
+import ElementLoadingIndicatorUtil from '../utility/loading-indicator/element-loading-indicator.util';
 import PaynlPayPalScriptLoading from './paynl-paypal.script-loading';
-import { loadScript } from '../../node_modules/@paypal/paypal-js';
+import { loadScript } from '@paypal/paypal-js';
 
 export default class PaynlPayPalExpressButton extends Plugin {
     static scriptLoading = new PaynlPayPalScriptLoading();

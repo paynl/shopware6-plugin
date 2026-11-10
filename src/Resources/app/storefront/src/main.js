@@ -6,9 +6,14 @@ import PaynlFastCheckoutButton from './paynl-payment-plugin/paynl-fast-checkout-
 import PaynlFastCheckoutQuantity from "./paynl-payment-plugin/paynl-fast-checkout-quantity.plugin";
 
 const PluginManager = window.PluginManager;
-PluginManager.register('PaynlDatePicker', PaynlDatePickerPlugin, '[data-paynl-date-picker]');
-PluginManager.register('PaynlPaymentPlugin', PaynlPaymentPlugin, '[data-paynl-payment-plugin]');
-PluginManager.register('PaynlKvkCocFieldTogglePlugin', PaynlKvkCocFieldTogglePlugin, '.country-select, .contact-select');
-PluginManager.register('PaynlPayPalExpressButton', PaynlPayPalExpressButton, '[data-paynl-paypal-express-button]');
-PluginManager.register('PaynlFastCheckoutButton', PaynlFastCheckoutButton, '[data-paynl-fast-checkout-button]');
-PluginManager.register('PaynlFastCheckoutQuantity', PaynlFastCheckoutQuantity, '[data-paynl-express-product-button]');
+
+// Shopware 6.5 loads every script in dist/storefront/js, so it runs both copies of this bundle.
+// Register only once, otherwise the PluginManager throws on the second run.
+if (!('PaynlPaymentPlugin' in PluginManager.getPluginList())) {
+    PluginManager.register('PaynlDatePicker', PaynlDatePickerPlugin, '[data-paynl-date-picker]');
+    PluginManager.register('PaynlPaymentPlugin', PaynlPaymentPlugin, '[data-paynl-payment-plugin]');
+    PluginManager.register('PaynlKvkCocFieldTogglePlugin', PaynlKvkCocFieldTogglePlugin, '.country-select, .contact-select');
+    PluginManager.register('PaynlPayPalExpressButton', PaynlPayPalExpressButton, '[data-paynl-paypal-express-button]');
+    PluginManager.register('PaynlFastCheckoutButton', PaynlFastCheckoutButton, '[data-paynl-fast-checkout-button]');
+    PluginManager.register('PaynlFastCheckoutQuantity', PaynlFastCheckoutQuantity, '[data-paynl-express-product-button]');
+}
