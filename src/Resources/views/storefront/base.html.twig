@@ -1,0 +1,11 @@
+{% sw_extends '@Storefront/storefront/base.html.twig' %}
+
+{% block base_body_script %}
+    {{ parent() }}
+
+    {# Rendered once on <body> level, not inside the button, so the mini cart (offcanvas) can't trap or duplicate it. #}
+    {% set idealModalEnabled = config('PaynlPaymentShopware6.config.paymentIdealExpressModalEnabled') %}
+    {% if config('PaynlPaymentShopware6.config.paymentIdealExpressCheckoutEnabled') and (idealModalEnabled is null or idealModalEnabled) %}
+        {% sw_include '@PaynlPaymentShopware6/storefront/component/checkout/ideal-express-modal.html.twig' %}
+    {% endif %}
+{% endblock %}

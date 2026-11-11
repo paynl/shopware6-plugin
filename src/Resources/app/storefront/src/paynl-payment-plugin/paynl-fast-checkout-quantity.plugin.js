@@ -4,30 +4,19 @@ import HttpClient from '../service/http-client.service';
 export default class PaynlFastCheckoutQuantity extends Plugin {
     init() {
         this.client = new HttpClient();
-        
-        const productQuantityInput = document.querySelector('.js-quantity-selector');
-        if (productQuantityInput) {
-            productQuantityInput.addEventListener('change', this.onProductQuantityChange.bind(this));
-        }
 
-        const productQuantitySelect = document.querySelector('.product-detail-quantity-select');
-        if (productQuantitySelect) {
-            productQuantitySelect.addEventListener('change', this.onProductQuantityChange.bind(this));
-        }
+        // Scope to this.el: #btn-fast-checkout is not unique (mini cart / other buy widgets reuse it).
+        const root = this.el.closest('form') || this.el.closest('.product-detail-buy') || document;
 
-        const fastCheckoutLink = document.getElementById('btn-fast-checkout');
-        if (fastCheckoutLink) {
-            fastCheckoutLink.addEventListener('click', this.onProductCheckoutClick.bind(this));
-        }
+        root.querySelectorAll('.js-quantity-selector, .product-detail-quantity-select').forEach((input) => {
+            input.addEventListener('change', this.onProductQuantityChange.bind(this));
+        });
+
+        this.el.addEventListener('click', this.onProductCheckoutClick.bind(this));
     }
 
     onProductQuantityChange(event) {
-        const fastCheckoutLink = document.getElementById('btn-fast-checkout');
-        const newQuantity = event.target.value;
-        
-        if (fastCheckoutLink) {
-            fastCheckoutLink.dataset.quantity = newQuantity;
-        }
+        this.el.dataset.quantity = event.target.value;
     }
 
     onProductCheckoutClick(event) {
