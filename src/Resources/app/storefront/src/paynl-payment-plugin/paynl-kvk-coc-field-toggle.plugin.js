@@ -1,4 +1,4 @@
-import Plugin from 'src/plugin-system/plugin.class';
+import Plugin from '../plugin-system/plugin.class';
 
 const selectedValues = {
     isBusiness: false,
