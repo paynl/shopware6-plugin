@@ -155,6 +155,11 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     onSavePaymentMethod(element) {
+        // Shopware's auto-submit on method change has no submitter; only validate our save button.
+        if (!element.submitter?.classList.contains('paynl-change-payment-method')) {
+            return;
+        }
+
         const data = {};
         const invalid = [];
         // Use the checked method, not `.active`: Shopware's auto-submit fires before onChangeCallback moves `.active`.
