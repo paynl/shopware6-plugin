@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\Notification;
 
+use PayNL\Sdk\Model\Pay\PayStatus;
 use PayNL\Sdk\Util\Exchange;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
@@ -60,6 +61,19 @@ class NotificationFacade
 
             if ($payOrder->isPending()) {
                 return $exchange->setResponse(true, 'Pending payment', true);
+            }
+
+            // Unsigned notify: the SDK read the status from the API, which can still return 95 right after
+            // a capture (e.g. WERO). Answer FALSE so PAY. retries instead of storing the stale authorize state.
+            if (!$exchange->isSignExchange()
+                && $exchange->getPayLoad()->getInternalStateId() === PayStatus::PAID
+                && $payOrder->getStatusCode() === PayStatus::AUTHORIZE
+            ) {
+                $this->logger->info('PAY. notify: paid notify not yet confirmed by API, asking PAY. to retry', [
+                    'paynlOrderId' => $paynlOrderId,
+                ]);
+
+                return $exchange->setResponse(false, 'Paid status not yet confirmed, retry', true);
             }
 
             $notifyResult = $this->processingHelper->processNotify($payOrder->getOrderId(), $payOrder);
