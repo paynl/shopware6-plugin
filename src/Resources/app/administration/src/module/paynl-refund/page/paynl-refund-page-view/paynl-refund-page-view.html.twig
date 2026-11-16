@@ -6,11 +6,11 @@
                 <sw-button
                         v-tooltip="{
                 message: $tc('sw-privileges.tooltip.warning'),
-                disabled: acl.can('order.editor'),
+                disabled: canRefund,
                 showOnDisabledElements: true
             }"
                         class="sw-order-detail__smart-bar-cancel-button"
-                        :disabled="isLoading || !acl.can('order.editor')"
+                        :disabled="isLoading || !canRefund"
                         @click="onCancelRefunding"
                 >
                     {{ $tc('global.default.cancel') }}
@@ -19,12 +19,12 @@
                 <sw-button-process
                         v-tooltip="{
                 message: $tc('sw-privileges.tooltip.warning'),
-                disabled: acl.can('order.editor'),
+                disabled: canRefund,
                 showOnDisabledElements: true
             }"
                         class="sw-order-detail__smart-bar-save-button"
                         variant="primary"
-                        :disabled="isLoading || !acl.can('order.editor')"
+                        :disabled="isLoading || !canRefund || hasRefundDataError"
                         :is-loading="isLoading"
                         @click.prevent="onRefundClick"
                 >
@@ -35,12 +35,15 @@
         <template #content v-if="!isLoading">
             {% block paynl_refund_page__detail %}
                 <sw-card-view v-if="order">
-                    <paynl-refund-products-list :products="products" @change-refund-amount="changeRefundAmount"></paynl-refund-products-list>
+                    <sw-alert v-if="hasRefundDataError" class="paynl-refund-error" :variant="errorAlertVariant" :title="$tc('refund.notifications.danger')">
+                        {{ refundDataError }}
+                    </sw-alert>
+                    <paynl-refund-products-list :products="products" :disabled="hasRefundDataError" @change-refund-amount="changeRefundAmount"></paynl-refund-products-list>
                     <sw-card v-if="order.shippingTotal" :title="$tc('refund.detailBase.shipping')" :isLoading="isLoading" class="sw-order-user-card">
                         <sw-card-section>
                             <sw-container columns="repeat(auto-fit, minmax(250px, 1fr)" gap="0 30px">
                                 {{ $tc('refund.detailBase.shipping') }}: {{ currencyFilter(order.shippingTotal, order.currency.translated.shortName) }}
-                                <sw-checkbox-field v-model:value="withShipping" :label="$tc('refund.detailBase.allowShippingRefund')" @change="updateShippingState" @update:value="updateShippingState"></sw-checkbox-field>
+                                <sw-checkbox-field v-model:value="withShipping" :label="$tc('refund.detailBase.allowShippingRefund')" :disabled="hasRefundDataError" @change="updateShippingState" @update:value="updateShippingState"></sw-checkbox-field>
                             </sw-container>
                         </sw-card-section>
                     </sw-card>
@@ -72,7 +75,7 @@
                                         <dt>{{ $tc('refund.detailBase.amountToRefund') }}</dt>
                                     </dl>
                                     <dd>
-                                        <sw-number-field v-model:value="amountToRefund" :min="0" :max="maxRefundAmount" :value="0"></sw-number-field>
+                                        <sw-number-field v-model:value="amountToRefund" :min="0" :max="maxRefundAmount" :disabled="hasRefundDataError"></sw-number-field>
                                         <small v-if="showHelpText">{{ $tc('refund.detailBase.helpText') }}</small>
                                     </dd>
                                     <dl>
