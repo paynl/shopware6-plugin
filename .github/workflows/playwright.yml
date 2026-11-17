@@ -1,13 +1,6 @@
 name: Playwright PAY. checkout
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/playwright.yml'
-      - 'tests/Acceptance/**'
-      - 'src/**'
-  schedule:
-    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       plugin_ref:
