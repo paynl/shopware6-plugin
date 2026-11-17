@@ -1,3 +1,5 @@
+# 2.1.0
+
 # 2.0.10
 - Pay.-Admin-API-Routen (Rückerstattungen, Statuswechsel, Pay.-Einstellungen) mit Shopware-ACL-Berechtigungen abgesichert; für Rückerstattungen ist nun die Berechtigung „Bestellungen > Rückerstattungen > Bearbeiter“ erforderlich.
 - Shopware-Instanz-ID zu den Pay.-Transaktionsstatistiken (extra3) als Grundlage für das Shopware-Commission-Reporting hinzugefügt.
