@@ -4,7 +4,9 @@ These tests start a temporary Shopware shop, install this plugin revision, take 
 
 ## GitHub Actions
 
-The workflow runs on **pull requests** that touch `src/**`, `tests/Acceptance/**`, or `.github/workflows/playwright.yml`, on a **nightly schedule** (02:00 UTC on `master`), and via **workflow_dispatch**. A pull request that only changes the workflow file runs the suite, so a workflow edit is tested on that pull request. Fork pull requests and Dependabot are skipped: they do not receive repository secrets, and the suite cannot reach PAY. without them. Each ref has its own concurrency group so one branch does not cancel another’s run.
+The workflow **Playwright PAY. checkout** (`.github/workflows/playwright.yml`) runs only when someone starts it manually via **workflow_dispatch**. It does not run on pull requests, pushes, or a schedule. Each ref has its own concurrency group so one branch does not cancel another’s run.
+
+The **Run workflow** button appears on **Actions → Playwright PAY. checkout** only after `workflow_dispatch` is present in that file on the repository **default branch** (`master`). Until then, trigger a run with the GitHub CLI (see below) or merge the workflow change to `master`.
 
 Each run starts Shopware with `APP_ENV=prod` (no Symfony profiler) and sets a **random admin password** before the public HTTPS tunnel opens.
 
@@ -20,8 +22,10 @@ Each run starts Shopware with `APP_ENV=prod` (no Symfony profiler) and sets a **
 
    Use a PAY. **test** sales location, not a live one.
 
-2. Open **Actions → Playwright PAY. checkout → Run workflow**.
-3. Choose the plugin branch, tag, or SHA to test. Leave the Shopware version empty to run `6.6.10.25` and `6.7.10.0`. Set one version to run only that version. A local `env:up` still defaults to `6.7.10.0`.
+2. Open **Actions → Playwright PAY. checkout**, click **Run workflow**, and choose the **branch** that defines the workflow (usually `master`). Optionally set:
+   - **plugin_ref** — branch, tag, or commit SHA to test. Leave empty to use the branch you selected above.
+   - **shopware_version** — Dockware image tag. Leave empty to run both `6.6.10.25` and `6.7.10.0`. Set one value to run only that version.
+3. Without the UI button: `gh workflow run "Playwright PAY. checkout" --ref master` (add `-f plugin_ref=…` and/or `-f shopware_version=…` as needed). A local `env:up` still defaults to `6.7.10.0`.
 4. Each run creates a fresh Shopware container, installs that revision, and tears the shop down afterwards.
 5. The HTML report, failure screenshots, traces, and Shopware logs are uploaded as the `playwright-pay-checkout-<shopware-version>` artifact, including when the tests fail. Video is not recorded. The upload runs only after secret redaction succeeds. A failed redaction skips the upload.
 
