@@ -275,20 +275,35 @@ class Api
 
         $request->setOrder($payNLOrder);
 
-        $request->setStats((new Model\Stats())
-            ->setObject(sprintf(
-                'Shopware v%s | %s | %s',
-                $additionalTransactionInfo->getShopwareVersion(),
-                $additionalTransactionInfo->getPluginVersion(),
-                substr(phpversion(), 0, 3)
-            ))
-        );
+        $request->setStats($this->getOrderStats(
+            $additionalTransactionInfo->getShopwareVersion(),
+            $additionalTransactionInfo->getPluginVersion(),
+            $additionalTransactionInfo->getInstanceId()
+        ));
 
         if ($this->getTransferData($salesChannelId)) {
             $request->setTransferData($this->getTransferData($salesChannelId));
         }
 
         return $request;
+    }
+
+    /** Shared by the regular payment and Express Checkout flows, so PAY. gets the same stats from both. */
+    public function getOrderStats(string $shopwareVersion, string $pluginVersion, ?string $instanceId): Model\Stats
+    {
+        $stats = (new Model\Stats())
+            ->setObject(sprintf(
+                'Shopware v%s | %s | %s',
+                $shopwareVersion,
+                $pluginVersion,
+                substr(phpversion(), 0, 3)
+            ));
+
+        if ($instanceId !== null && $instanceId !== '') {
+            $stats->setExtra3($instanceId);
+        }
+
+        return $stats;
     }
 
     /** @throws PaynlPaymentException */
@@ -310,8 +325,9 @@ class Api
     }
 
     /** @throws InconsistentCriteriaIdsException */
-    private function getOrderProducts(OrderEntity $order, Context $context): Model\Products
+    public function getOrderProducts(OrderEntity $order, Context $context): Model\Products
     {
+        $currency = $order->getCurrency()->getIsoCode();
         $orderLineItems = $order->getLineItems();
         $productsItems = $orderLineItems->filterByProperty('type', 'product');
         $productsIds = [];
@@ -328,51 +344,53 @@ class Api
 
         /** @var OrderLineItemEntity $item */
         foreach ($productsItems as $item) {
-            $vatPercentage = 0;
-            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
-                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
-            }
-
-            $product = new Model\Product();
-            $product->setId((string) $elements[$item->getReferencedId()]->get('autoIncrement'));
-            $product->setDescription($item->getLabel());
-            $product->setType(Model\Product::TYPE_ARTICLE);
-            $product->setAmount($item->getUnitPrice());
-            $product->setCurrency($order->getCurrency()->getIsoCode());
-            $product->setQuantity($item->getPrice()->getQuantity());
-            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
-            $product->setVatPercentage($vatPercentage);
-
-            $products->addProduct($product);
+            $id = (string) $elements[$item->getReferencedId()]->get('autoIncrement');
+            $products->addProduct($this->createProduct($item, $id, Model\Product::TYPE_ARTICLE, $currency));
         }
 
         $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
         /** @var OrderLineItemEntity $item */
         foreach ($surchargeItems as $item) {
-            $vatPercentage = 0;
-            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
-                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
-            }
-
-            $product = new Model\Product();
-            $product->setId('payment');
-            $product->setDescription($item->getLabel());
-            $product->setType(Model\Product::TYPE_PAYMENT);
-            $product->setAmount($item->getUnitPrice());
-            $product->setCurrency($order->getCurrency()->getIsoCode());
-            $product->setQuantity($item->getPrice()->getQuantity());
-            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
-            $product->setVatPercentage($vatPercentage);
-
-            $products->addProduct($product);
+            $products->addProduct($this->createProduct($item, 'payment', Model\Product::TYPE_PAYMENT, $currency));
         }
 
+        $products->addProduct($this->createShippingProduct($order, $currency));
+
+        return $products;
+    }
+
+    private function createProduct(
+        OrderLineItemEntity $item,
+        string $id,
+        string $type,
+        string $currency
+    ): Model\Product {
+        $vatPercentage = 0;
+        if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
+            $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+        }
+
+        $product = new Model\Product();
+        $product->setId($id);
+        $product->setDescription($item->getLabel());
+        $product->setType($type);
+        $product->setAmount($item->getUnitPrice());
+        $product->setCurrency($currency);
+        $product->setQuantity($item->getPrice()->getQuantity());
+        $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
+        $product->setVatPercentage($vatPercentage);
+
+        return $product;
+    }
+
+    private function createShippingProduct(OrderEntity $order, string $currency): Model\Product
+    {
         $product = new Model\Product();
         $product->setId('shipping');
         $product->setDescription('Shipping');
         $product->setType(Model\Product::TYPE_SHIPPING);
         $product->setAmount($order->getShippingTotal());
-        $product->setCurrency($order->getCurrency()->getIsoCode());
+        $product->setCurrency($currency);
         $product->setQuantity(1);
         $product->setVatCode(
             paynl_determine_vat_class_by_percentage(
@@ -381,9 +399,7 @@ class Api
         );
         $product->setVatPercentage($order->getShippingCosts()->getCalculatedTaxes()->getAmount());
 
-        $products->addProduct($product);
-
-        return $products;
+        return $product;
     }
 
     /** @return mixed[] */
