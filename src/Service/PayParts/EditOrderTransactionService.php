@@ -7,7 +7,7 @@ namespace PaynlPayment\Shopware6\Service\PayParts;
 use PaynlPayment\Shopware6\Exceptions\PayPartsLinkException;
 use PaynlPayment\Shopware6\Exceptions\PayPartsOrderException;
 use PaynlPayment\Shopware6\Repository\Order\OrderRepositoryInterface;
-use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\SalesChannel\AbstractSetPaymentOrderRoute;
@@ -27,12 +27,12 @@ class EditOrderTransactionService
 {
     private AbstractSetPaymentOrderRoute $setPaymentOrderRoute;
     private OrderRepositoryInterface $orderRepository;
-    private PaymentMethodRepository $paymentMethodRepository;
+    private PaymentMethodRepositoryInterface $paymentMethodRepository;
 
     public function __construct(
         AbstractSetPaymentOrderRoute $setPaymentOrderRoute,
         OrderRepositoryInterface $orderRepository,
-        PaymentMethodRepository $paymentMethodRepository
+        PaymentMethodRepositoryInterface $paymentMethodRepository
     ) {
         $this->setPaymentOrderRoute = $setPaymentOrderRoute;
         $this->orderRepository = $orderRepository;

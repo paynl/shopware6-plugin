@@ -12,28 +12,35 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEnti
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Routing\RouterInterface;
 
 class TransactionLinker
 {
+    private const LOCK_PREFIX = 'paynl-payparts-link-';
+    private const LOCK_TTL = 30.0;
+
     private OrderTransactionRepositoryInterface $orderTransactionRepository;
     private ProcessingHelper $processingHelper;
     private RouterInterface $router;
     private TransactionLinkValidator $linkValidator;
     private LoggerInterface $logger;
+    private LockFactory $lockFactory;
 
     public function __construct(
         OrderTransactionRepositoryInterface $orderTransactionRepository,
         ProcessingHelper $processingHelper,
         RouterInterface $router,
         TransactionLinkValidator $linkValidator,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        LockFactory $lockFactory
     ) {
         $this->orderTransactionRepository = $orderTransactionRepository;
         $this->processingHelper = $processingHelper;
         $this->router = $router;
         $this->linkValidator = $linkValidator;
         $this->logger = $logger;
+        $this->lockFactory = $lockFactory;
     }
 
     /**
@@ -57,12 +64,6 @@ class TransactionLinker
 
         $this->linkValidator->validateSecurity($orderTransaction, $salesChannelContext);
 
-        $this->linkValidator->validatePaynlTransaction(
-            $paynlTransactionId,
-            $orderTransaction,
-            $salesChannelContext
-        );
-
         $order = $orderTransaction->getOrder();
         if ($order === null) {
             throw PayPartsLinkException::accessDenied();
@@ -70,13 +71,28 @@ class TransactionLinker
 
         $context = $salesChannelContext->getContext();
 
-        if (!$this->linkValidator->isAlreadyLinked($paynlTransactionId, $context)) {
-            $this->processingHelper->storePayTransactionData(
-                $orderTransaction,
+        // Check-then-store must not interleave: two parallel requests could otherwise link one PAY. payment
+        // to two orders. The second request waits here, then sees the stored row and is rejected.
+        $lock = $this->lockFactory->createLock(self::LOCK_PREFIX . $paynlTransactionId, self::LOCK_TTL);
+        $lock->acquire(true);
+
+        try {
+            $this->linkValidator->validatePaynlTransaction(
                 $paynlTransactionId,
-                $context,
-                $this->linkValidator->getStorageWarning($orderTransaction)
+                $orderTransaction,
+                $salesChannelContext
             );
+
+            if (!$this->linkValidator->isAlreadyLinked($paynlTransactionId, $context)) {
+                $this->processingHelper->storePayTransactionData(
+                    $orderTransaction,
+                    $paynlTransactionId,
+                    $context,
+                    $this->linkValidator->getStorageWarning($orderTransaction)
+                );
+            }
+        } finally {
+            $lock->release();
         }
 
         $this->syncTransactionStatus($paynlTransactionId, $order->getId(), $orderTransactionId);

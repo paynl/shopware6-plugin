@@ -6,7 +6,7 @@ namespace PaynlPayment\Shopware6\Service\PayParts;
 
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
-use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Storefront\PayPartsCheckoutData;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -16,14 +16,14 @@ use Symfony\Component\Routing\RouterInterface;
 
 class PayPartsStorefrontDataService
 {
-    private PaymentMethodRepository $paymentMethodRepository;
+    private PaymentMethodRepositoryInterface $paymentMethodRepository;
     private RouterInterface $router;
     private LocaleCodeHelper $localeCodeHelper;
     private SessionService $sessionService;
     private Config $config;
 
     public function __construct(
-        PaymentMethodRepository $paymentMethodRepository,
+        PaymentMethodRepositoryInterface $paymentMethodRepository,
         RouterInterface $router,
         LocaleCodeHelper $localeCodeHelper,
         SessionService $sessionService,

@@ -197,6 +197,13 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
                 (responseText, request) => {
                     const data = this._parseResponse(responseText, request);
                     if (!data?.orderTransactionId) {
+                        // Edit-order: switching to the card method can change the order total (surcharge), and the
+                        // session was made with the old total. The order is already switched, so a reload
+                        // creates a session with the right amount.
+                        if (request.status === 409 && this.options.orderId) {
+                            setTimeout(() => window.location.reload(), 3000);
+                        }
+
                         reject(new Error(request.status === 409
                             ? this._t('cartChanged')
                             : this._t('orderFailed')));
@@ -239,7 +246,13 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
 
                 const data = this._parseResponse(responseText, request);
                 if (!data?.redirectUrl) {
-                    this._redirectToEditOrder();
+                    // The card is already charged: never send the customer to the retry page (double charge).
+                    this._reportIssue('link-failed', {
+                        paynlTransactionId,
+                        orderTransactionId: this._orderTransactionId,
+                        status: request.status,
+                    });
+                    this._showError(this._t('orphanPayment', { reference: paynlTransactionId }));
                     resolve();
                     return;
                 }

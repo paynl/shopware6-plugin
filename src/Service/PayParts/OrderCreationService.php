@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PaynlPayment\Shopware6\Service\PayParts;
 
 use PaynlPayment\Shopware6\Exceptions\PayPartsOrderException;
-use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
+use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepositoryInterface;
 use PaynlPayment\Shopware6\Service\CartServiceInterface;
 use PaynlPayment\Shopware6\Service\OrderService;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Response\OrderCreationResult;
@@ -23,13 +23,13 @@ class OrderCreationService
     private OrderService $orderService;
     private RouterInterface $router;
     private CartServiceInterface $cartService;
-    private PaymentMethodRepository $paymentMethodRepository;
+    private PaymentMethodRepositoryInterface $paymentMethodRepository;
 
     public function __construct(
         OrderService $orderService,
         RouterInterface $router,
         CartServiceInterface $cartService,
-        PaymentMethodRepository $paymentMethodRepository
+        PaymentMethodRepositoryInterface $paymentMethodRepository
     ) {
         $this->orderService = $orderService;
         $this->router = $router;

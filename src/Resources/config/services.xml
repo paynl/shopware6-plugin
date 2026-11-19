@@ -299,6 +299,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Helper\LocaleCodeHelper"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\PayParts\OrderCreationService">
@@ -333,6 +334,7 @@
             <argument type="service" id="router"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinkValidator"/>
             <argument type="service" id="paynl_payments.logger"/>
+            <argument type="service" id="lock.factory"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Checkout\ExpressCheckout\Service\ExpressCheckoutDataService">

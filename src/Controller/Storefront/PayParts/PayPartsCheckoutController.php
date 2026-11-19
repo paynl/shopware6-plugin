@@ -190,7 +190,7 @@ class PayPartsCheckoutController extends StorefrontController
     {
         $body = json_decode($request->getContent(), true);
         $body = is_array($body) ? array_filter($body, 'is_scalar') : []; // only scalars: casting an array to string would error
-        $type = in_array($body['type'] ?? '', ['payment-without-order', 'partial-payment'], true)
+        $type = in_array($body['type'] ?? '', ['payment-without-order', 'partial-payment', 'link-failed'], true)
             ? $body['type']
             : 'unknown';
 
@@ -198,6 +198,8 @@ class PayPartsCheckoutController extends StorefrontController
             'type' => $type,
             'paynlTransactionId' => substr((string) ($body['paynlTransactionId'] ?? ''), 0, 64),
             'orderId' => substr((string) ($body['orderId'] ?? ''), 0, 64),
+            'orderTransactionId' => substr((string) ($body['orderTransactionId'] ?? ''), 0, 64),
+            'status' => is_numeric($body['status'] ?? null) ? (int) $body['status'] : null,
             'amountRemaining' => is_numeric($body['amountRemaining'] ?? null) ? (int) $body['amountRemaining'] : null,
             'customerId' => $context->getCustomer()?->getId(),
         ]);

@@ -83,7 +83,7 @@ class Api
 
     /**
      * @return Model\Method[]
-     * @throws PayException
+     * @throws PaynlPaymentException with PAY.'s error message, so the admin can show the real cause
      */
     public function getPaymentMethods(string $salesChannelId): array
     {
@@ -93,16 +93,7 @@ class Api
             return [];
         }
 
-        try {
-            return $this->getServiceConfig($salesChannelId)->getPaymentMethods();
-        } catch (PaynlPaymentException $exception) {
-            $this->logger->error('Failed to fetch PAY. payment methods', [
-                'salesChannelId' => $salesChannelId,
-                'exception' => $exception,
-            ]);
-
-            return [];
-        }
+        return $this->getServiceConfig($salesChannelId)->getPaymentMethods();
     }
 
     /**

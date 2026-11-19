@@ -8,6 +8,7 @@ use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Exceptions\PayPartsApiException;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
+use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
 use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\CreateSessionRequest;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionAddress;
@@ -17,6 +18,7 @@ use PaynlPayment\Shopware6\ValueObjects\PayParts\Response\CreateSessionResponse;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
@@ -30,19 +32,22 @@ class SessionService
     private Config $config;
     private PaymentUrlBuilder $paymentUrlBuilder;
     private Api $api;
+    private LocaleCodeHelper $localeCodeHelper;
 
     public function __construct(
         PayPartsApiClient $apiClient,
         SessionDataMapper $dataMapper,
         Config $config,
         PaymentUrlBuilder $paymentUrlBuilder,
-        Api $api
+        Api $api,
+        LocaleCodeHelper $localeCodeHelper
     ) {
         $this->apiClient = $apiClient;
         $this->dataMapper = $dataMapper;
         $this->config = $config;
         $this->paymentUrlBuilder = $paymentUrlBuilder;
         $this->api = $api;
+        $this->localeCodeHelper = $localeCodeHelper;
     }
 
     /** @throws PayPartsApiException */
@@ -104,15 +109,20 @@ class SessionService
             exchangeUrl: $this->paymentUrlBuilder->buildExchangeUrl(),
             amount:      new SessionAmount($amountCents, $currency),
             reference:   $order->getOrderNumber(),
-            customer:    $customer ? $this->buildCustomer($customer, $context) : null,
+            // The order's own billing address: the customer may have changed their default since ordering.
+            customer:    $customer ? $this->buildCustomer($customer, $context, $order->getBillingAddress()) : null,
         );
     }
 
-    private function buildCustomer(CustomerEntity $customer, SalesChannelContext $context): SessionCustomer
-    {
-        $billing = $customer->getActiveBillingAddress() ?? $customer->getDefaultBillingAddress();
+    private function buildCustomer(
+        CustomerEntity $customer,
+        SalesChannelContext $context,
+        ?OrderAddressEntity $orderBillingAddress = null
+    ): SessionCustomer {
+        $billing = $orderBillingAddress ?? $customer->getActiveBillingAddress() ?? $customer->getDefaultBillingAddress();
         // Extract the BCP 47 language subtag from "nl-NL", "de-DE", etc.
-        $localeCode = $context->getLanguageInfo()->localeCode ?: 'en-GB';
+        // Not $context->getLanguageInfo(): it doesn't exist on Shopware 6.5.
+        $localeCode = $this->localeCodeHelper->getLocaleCodeFromContext($context->getContext());
         $language   = strtolower(substr($localeCode, 0, 2));
 
         return new SessionCustomer(
@@ -125,7 +135,7 @@ class SessionService
         );
     }
 
-    private function buildAddress(CustomerAddressEntity $address, string $salesChannelId): SessionAddress
+    private function buildAddress(CustomerAddressEntity|OrderAddressEntity $address, string $salesChannelId): SessionAddress
     {
         [$street, $houseNumber] = $this->parseStreetAndHouseNumber($address, $salesChannelId);
 
@@ -141,7 +151,7 @@ class SessionService
     /**
      * @return array{0: string, 1: string}
      */
-    private function parseStreetAndHouseNumber(CustomerAddressEntity $address, string $salesChannelId): array
+    private function parseStreetAndHouseNumber(CustomerAddressEntity|OrderAddressEntity $address, string $salesChannelId): array
     {
         $street = $address->getStreet() ?? '';
         $houseNumber = '';

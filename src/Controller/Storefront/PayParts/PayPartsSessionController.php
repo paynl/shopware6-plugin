@@ -139,7 +139,7 @@ class PayPartsSessionController extends StorefrontController
         return $this->editOrderTransactionService->loadCustomerOrder(
             $orderId,
             $context,
-            (new Criteria())->addAssociation('currency')
+            (new Criteria())->addAssociations(['currency', 'billingAddress.country'])
         );
     }
 }
