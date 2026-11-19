@@ -312,6 +312,8 @@
 $pp-blue: #3b5bdb;
 
 .paynl-payparts-card-wrapper {
+    // The "Payment method" legend floats left; Bootstrap's `legend + *` clear hits the SDK <script> instead of us.
+    clear: left;
     margin-top: 16px;
     margin-bottom: 20px;
     padding: 20px;

@@ -1,12 +1,14 @@
 import Plugin from 'src/plugin-system/plugin.class';
-import DomAccess from 'src/helper/dom-access.helper';
 import HttpClient from 'src/service/http-client.service';
 
-const SUBMIT_BUTTON_SELECTOR  = '#confirmOrderForm button[type=submit]';
 const CARD_COMPONENT_SELECTOR = '#paynl-card-payments';
 const ERROR_CLASS             = 'paynl-payparts-card-error';
 const LOADING_CLASS           = 'is-loading';
 const READY_CLASS             = 'is-ready';
+const CONFIRM_FORM_ID         = 'confirmOrderForm';
+const ORDER_FIELDS            = ['tos', 'revocation', 'customerComment', 'affiliateCode', 'campaignCode'];
+const SDK_POLL_MS             = 100;
+const SDK_WAIT_MS             = 10000;
 
 /**
  * Shopware storefront plugin that mounts the PAY.Parts `card-payments` component.
@@ -15,10 +17,11 @@ const READY_CLASS             = 'is-ready';
  * payment method is available — no runtime payment-method selection is needed.
  *
  * Lifecycle:
- *  1. init()      → hide native submit button, fetch session, init SDK, bind component
- *  2. onSubmit    → create Shopware order via AJAX, call event.resolve()
- *  3. onSuccess   → link PAY.Parts transaction to the order, redirect to finish page
- *  4. onError     → SDK renders its own error; resolve so the customer can retry
+ *  1. init()      → fetch session, init SDK, bind component (the native submit button stays for other methods)
+ *  2. onSubmit    → create the Shopware order first (this empties the cart), then let the SDK pay
+ *  3. onSuccess   → link the PAY. payment to that order, redirect to the finish page
+ *  4. onError     → SDK shows its own error; if the order already exists, go to its edit page,
+ *                   because with an empty cart the confirm page can't retry or switch method
  */
 export default class PaynlPayPartsCardPlugin extends Plugin {
 
@@ -29,34 +32,35 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         createOrderUrl: '',
         /** POST /PaynlPayment/payparts/link-transaction */
         linkTransactionUrl: '',
-        /** ISO 3166-1 alpha-2 country code from the customer's billing address */
+        /** POST /PaynlPayment/payparts/report-issue (log only) */
+        reportIssueUrl: '',
+        /** Billing country for the SDK: NL, BE, DE, or DEFAULT for any other country (SDK limitation) */
         country: 'NL',
         /** BCP 47 language subtag derived from the storefront locale */
         language: 'nl',
-        /** Enable SDK debug output — set true on staging, false on production */
-        debugMode: false,
         /**
          * Edit-order retry mode — populated by the backend when payment is retried
          * on an existing order (empty string on first checkout).
          */
         orderId: '',
-        orderTransactionId: '',
         editOrderUrl: '',
         /** Shopware UUID of the Pay.Parts card payment method resolved for this checkout */
         paymentMethodId: '',
+        /** Translated UI strings (key → text), provided by the Twig template. */
+        snippets: {},
     };
 
     init() {
         this._client             = new HttpClient();
         this._checkout           = null;
+        this._sessionAmount      = {};
+        this._orderRequest       = null;
 
-        // Pre-populate from options when retrying payment on an existing order.
-        // The idempotent guard in _onSubmit will skip create-order automatically.
-        this._orderTransactionId = this.options.orderTransactionId || null;
+        // Set by create-order (on the first Pay press, also in edit-order mode); later presses reuse it.
+        this._orderTransactionId = null;
         this._editOrderUrl       = this.options.editOrderUrl || null;
 
         this.el.classList.add(LOADING_CLASS);
-        this._hideNativeSubmit();
         this._fetchSessionAndMount();
     }
 
@@ -66,18 +70,20 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     _fetchSessionAndMount() {
         // In edit-order mode, send the existing orderId so the session is built
         // from the order instead of the (empty) cart.
-        const body = this.options.orderId
-            ? JSON.stringify({ orderId: this.options.orderId })
-            : null;
+        const body = JSON.stringify(this.options.orderId
+            ? { orderId: this.options.orderId }
+            : { paymentMethodId: this.options.paymentMethodId });
 
         this._client.post(this.options.sessionUrl, body, (responseText, request) => {
-            if (request.status >= 400) {
-                this._showError('Session creation failed. Please reload and try again.');
+            const data = this._parseResponse(responseText, request);
+            if (!data?.sessionToken) {
+                this._showError(this._t('sessionFailed'));
                 return;
             }
 
-            // apiUrl distinguishes beta vs. production — determined server-side
-            const { sessionToken, apiUrl } = JSON.parse(responseText);
+            const { sessionToken, apiUrl, amountCents, currency } = data;
+            // Sent back to create-order so the server can refuse an order whose total no longer matches.
+            this._sessionAmount = { amountCents, currency };
             this._mountComponent(sessionToken, apiUrl).catch((e) => this._showError(e.message));
         });
     }
@@ -91,16 +97,15 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
      * @returns {Promise<void>}
      */
     async _mountComponent(sessionToken, apiUrl) {
-        if (typeof window.PayPartsSDK === 'undefined') {
-            throw new Error('PAY.Parts SDK is not available. Please reload the page.');
-        }
+        await this._waitForSdk();
 
         this._checkout = await window.PayPartsSDK.init({
             sessionToken,
             apiUrl,
             country:   this.options.country,
             language:  this.options.language,
-            debugMode: this.options.debugMode,
+            // Default is 30s; after it the SDK continues without our order. Give order creation more room.
+            onSubmitTimeout: 60000,
         });
 
         this._checkout.events = {
@@ -108,6 +113,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
             onSubmit:          (event) => this._onSubmit(event),
             onSuccess:         (event) => this._onSuccess(event),
             onError:           (event) => this._onError(event),
+            onPartialPaid:     (event) => this._onPartialPaid(event),
             onInfoUpdated:     (event) => this._onInfoUpdated(event),
             onShippingUpdated: (event) => this._onShippingUpdated(event),
         };
@@ -118,6 +124,21 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         // bind() resolving guarantees the component is in the DOM.
         // Stop the spinner here so it always hides even if onReady never fires.
         this._stopLoading();
+    }
+
+    /**
+     * The SDK is a <script type="module"> and may execute after this plugin initialises.
+     * Polls for window.PayPartsSDK instead of failing immediately.
+     *
+     * @returns {Promise<void>}
+     */
+    async _waitForSdk() {
+        for (let waited = 0; typeof window.PayPartsSDK === 'undefined'; waited += SDK_POLL_MS) {
+            if (waited >= SDK_WAIT_MS) {
+                throw new Error(this._t('sdkUnavailable'));
+            }
+            await new Promise((resolve) => setTimeout(resolve, SDK_POLL_MS));
+        }
     }
 
     // ─── PAY.Parts event handlers ─────────────────────────────────────────────
@@ -139,18 +160,55 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
             return;
         }
 
-        this._client.post(
-            this.options.createOrderUrl,
-            JSON.stringify({ paymentMethodId: this.options.paymentMethodId }),
-            (responseText, request) => {
-            if (request.status >= 400) {
-                event.reject(new Error('Order creation failed. Please try again.'));
+        // Repeated presses while the first request is in flight share it, so only one order is created.
+        if (!this._orderRequest) {
+            this._orderRequest = this._createOrder().finally(() => {
+                this._orderRequest = null;
+            });
+        }
+
+        this._clearError();
+        this._orderRequest.then(() => event.resolve(), (error) => {
+            // The SDK shows nothing for a rejected submit, so the customer needs our message.
+            this._showError(error.message);
+            event.reject(error);
+        });
+    }
+
+    /** POST create-order once; stores the order transaction on success. @returns {Promise<void>} */
+    _createOrder() {
+        return new Promise((resolve, reject) => {
+            const form = document.getElementById(CONFIRM_FORM_ID);
+
+            // Same rules as the native "Submit order" button: the browser shows its bubble on e.g. the terms checkbox.
+            if (form && !form.reportValidity()) {
+                reject(new Error(this._t('requiredFields')));
                 return;
             }
-            const {orderTransactionId, editOrderUrl} = JSON.parse(responseText);
-            this._orderTransactionId = orderTransactionId;
-            this._editOrderUrl = editOrderUrl ?? null;
-            event.resolve();
+
+            this._client.post(
+                this.options.createOrderUrl,
+                JSON.stringify({
+                    paymentMethodId: this.options.paymentMethodId,
+                    ...(this.options.orderId ? { orderId: this.options.orderId } : {}),
+                    ...this._sessionAmount,
+                    ...this._collectOrderData(form),
+                }),
+                (responseText, request) => {
+                    const data = this._parseResponse(responseText, request);
+                    if (!data?.orderTransactionId) {
+                        reject(new Error(request.status === 409
+                            ? this._t('cartChanged')
+                            : this._t('orderFailed')));
+                        return;
+                    }
+
+                    const { orderTransactionId, editOrderUrl } = data;
+                    this._orderTransactionId = orderTransactionId;
+                    this._editOrderUrl = editOrderUrl ?? this._editOrderUrl;
+                    resolve();
+                }
+            );
         });
     }
 
@@ -161,6 +219,15 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
      */
     _onSuccess(event) {
         const paynlTransactionId = event.orderId ?? '';
+
+        // The SDK can continue after its own onSubmit timeout, so a payment may exist without an order.
+        if (this._orderTransactionId === null) {
+            event.resolve();
+            this._reportIssue('payment-without-order', { paynlTransactionId });
+            this._showError(this._t('orphanPayment', { reference: paynlTransactionId }));
+            return Promise.resolve();
+        }
+
         const body = JSON.stringify({
             paynlTransactionId,
             orderTransactionId: this._orderTransactionId,
@@ -170,28 +237,46 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
             this._client.post(this.options.linkTransactionUrl, body, (responseText, request) => {
                 event.resolve(); // always resolve so the SDK can clean up
 
-                if (request.status >= 400) {
+                const data = this._parseResponse(responseText, request);
+                if (!data?.redirectUrl) {
                     this._redirectToEditOrder();
                     resolve();
                     return;
                 }
 
-                const { redirectUrl } = JSON.parse(responseText);
-                this._redirectToUrl(redirectUrl);
+                this._redirectToUrl(data.redirectUrl);
                 resolve();
             });
         });
     }
 
     /**
-     * Payment failed — the SDK renders its own error inside #paynl-card-payments,
-     * so no additional UI update is needed here.
-     * Resolving keeps the SDK interactive so the customer can correct and retry.
-     * The idempotent guard in _onSubmit ensures the Shopware order is not re-created
-     * on the next "Pay" attempt.
+     * Payment failed — the SDK renders its own error inside #paynl-card-payments.
+     * If our order already exists, the cart is empty, so the confirm page can no longer switch
+     * payment method: send the customer to the order's edit page (Shopware's standard place to
+     * retry a failed payment with the card widget or any other method). The short delay lets
+     * the SDK error be read first.
      */
     _onError(event) {
         event.resolve();
+
+        if (this._orderTransactionId !== null) {
+            setTimeout(() => this._redirectToEditOrder(), 2000);
+        }
+    }
+
+    /**
+     * Only part of the amount was paid (e.g. a gift card). The order cannot be completed from here,
+     * so tell the customer instead of linking an incomplete payment. Amounts are in minor units.
+     */
+    _onPartialPaid(event) {
+        const remaining = `${((event.amountRemaining ?? 0) / 100).toFixed(2)} ${event.currency ?? ''}`.trim();
+        this._reportIssue('partial-payment', {
+            paynlTransactionId: event.orderId ?? event.transactionId ?? '',
+            amountRemaining: event.amountRemaining,
+        });
+        this._showError(this._t('partialPaid', { remaining }));
+        event.resolve?.();
     }
 
     /** Fired when customer info is updated inside the SDK — no action needed for card-only. */
@@ -202,9 +287,65 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
+    /** Confirm-form fields Shopware needs to create the order (terms, withdrawal, comment, codes). */
+    _collectOrderData(form) {
+        if (!form) {
+            return {};
+        }
+
+        const formData = new FormData(form);
+
+        return ORDER_FIELDS.reduce((data, name) => {
+            const value = formData.get(name);
+            if (typeof value === 'string' && value !== '') {
+                data[name] = value;
+            }
+
+            return data;
+        }, {});
+    }
+
+    /**
+     * JSON body of a successful response, or null. Shopware's HttpClient also calls back on network
+     * errors (status 0, empty body) and after a logout (HTML login page): never let JSON.parse throw
+     * inside a callback, or the waiting promise/SDK event would never settle.
+     */
+    _parseResponse(responseText, request) {
+        if (request.status === 0 || request.status >= 400) {
+            return null;
+        }
+
+        try {
+            const data = JSON.parse(responseText);
+            return data && typeof data === 'object' ? data : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /** Fire-and-forget: lets the server log a payment that needs manual follow-up. */
+    _reportIssue(type, details) {
+        this._client.post(
+            this.options.reportIssueUrl,
+            JSON.stringify({ type, orderId: this.options.orderId, ...details }),
+            () => {}
+        );
+    }
+
+    /** Translated string with %placeholder% replacement; falls back to the key. */
+    _t(key, params = {}) {
+        let text = this.options.snippets[key] ?? key;
+        Object.entries(params).forEach(([name, value]) => {
+            text = text.replace(`%${name}%`, value);
+        });
+
+        return text;
+    }
+
     /** Redirect to the backend-generated edit-order URL when an order exists. */
     _redirectToEditOrder() {
         if (!this._editOrderUrl) {
+            this._showError(this._t('orphanNoUrl'));
             return;
         }
 
@@ -220,20 +361,12 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         try {
             const parsed = new URL(redirectUrl, window.location.origin);
             if (parsed.origin !== window.location.origin) {
-                this._showError('Unexpected redirect. Please contact support.');
+                this._showError(this._t('redirectUnexpected'));
                 return;
             }
             window.location.href = parsed.href;
         } catch (e) {
-            this._showError('Invalid redirect URL. Please contact support.');
-        }
-    }
-
-    /** Hide the native Shopware "Confirm order" button; the SDK provides its own "Pay" button. */
-    _hideNativeSubmit() {
-        const btn = DomAccess.querySelector(document, SUBMIT_BUTTON_SELECTOR, false);
-        if (btn) {
-            btn.style.display = 'none';
+            this._showError(this._t('redirectInvalid'));
         }
     }
 

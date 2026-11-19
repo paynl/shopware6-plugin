@@ -12,9 +12,4 @@ class PayPartsApiException extends Exception
     {
         return new self('PAY.Parts session create failed: ' . $message, $code);
     }
-
-    public static function sessionGetFailed(string $message, int $code = 0): self
-    {
-        return new self('PAY.Parts session get failed: ' . $message, $code);
-    }
 }

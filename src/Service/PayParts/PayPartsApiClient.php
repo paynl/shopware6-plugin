@@ -11,7 +11,6 @@ use PaynlPayment\Shopware6\Exceptions\PayPartsApiException;
 class PayPartsApiClient
 {
     private const ENDPOINT_SESSION_START = 'v1/session/start';
-    private const ENDPOINT_SESSION_GET   = 'v1/session/%s';
 
     private Client $client;
 
@@ -31,14 +30,6 @@ class PayPartsApiClient
     /**
      * @throws PayPartsApiException
      */
-    public function getSession(string $sessionId, string $baseUrl, string $basicToken): array
-    {
-        return $this->request('GET', sprintf(self::ENDPOINT_SESSION_GET, $sessionId), $baseUrl, $basicToken);
-    }
-
-    /**
-     * @throws PayPartsApiException
-     */
     private function request(string $method, string $endpoint, string $baseUrl, string $basicToken, array $payload = []): array
     {
         $options = [
@@ -47,6 +38,9 @@ class PayPartsApiClient
                 'Content-Type'  => 'application/json',
                 'Accept'        => 'application/json',
             ],
+            // Without limits a slow PAY.Parts API would block the PHP worker; on timeout the caller gets a PayPartsApiException.
+            'connect_timeout' => 5,
+            'timeout'         => 15,
         ];
 
         if ($payload !== []) {

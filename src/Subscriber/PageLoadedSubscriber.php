@@ -20,6 +20,7 @@ use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelEntityLoadedEvent;
@@ -32,7 +33,8 @@ use Shopware\Storefront\Page\Account\Profile\AccountProfilePageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Finish\CheckoutFinishPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Register\CheckoutRegisterPageLoadedEvent;
-use Shopware\Storefront\Page\Page;
+use Shopware\Storefront\Page\Account\Order\AccountEditOrderPage;
+use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPage;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PageLoadedSubscriber implements EventSubscriberInterface
@@ -162,11 +164,14 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             );
         }
 
-        $this->addPayPartsCheckoutData(
-            $accountEditOrderPageLoadedEvent->getPage(),
-            $accountEditOrderPageLoadedEvent->getSalesChannelContext(),
-            $accountEditOrderPageLoadedEvent->getPage()->getOrder()
-        );
+        // Shopware draws the payment form for every order; the widget only makes sense while payment can change.
+        if ($accountEditOrderPageLoadedEvent->getPage()->isPaymentChangeable()) {
+            $this->addPayPartsCheckoutData(
+                $accountEditOrderPageLoadedEvent->getPage(),
+                $accountEditOrderPageLoadedEvent->getSalesChannelContext(),
+                $accountEditOrderPageLoadedEvent->getPage()->getOrder()
+            );
+        }
     }
 
     public function onPaymentMethodsLoaded(SalesChannelEntityLoadedEvent $event): void
@@ -254,6 +259,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
 
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('orderId', $order->getId()));
+        $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING)); // latest PAY. attempt
         $criteria->addAssociation('orderTransaction.stateMachineState');
 
         /** @var PaynlTransactionEntity $paynlTransaction */
@@ -262,7 +268,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 $criteria,
                 $event->getSalesChannelContext()->getContext()
             )
-            ->last();
+            ->first();
 
         if ($paynlTransaction instanceof PaynlTransactionEntity) {
             $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
@@ -290,7 +296,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         );
     }
 
-    private function addPayPartsCheckoutData(Page $page, SalesChannelContext $context, ?OrderEntity $order = null): void
+    private function addPayPartsCheckoutData(CheckoutConfirmPage|AccountEditOrderPage $page, SalesChannelContext $context, ?OrderEntity $order = null): void
     {
         $payPartsData = $order !== null
             ? $this->payPartsStorefrontDataService->buildForOrder($order, $context, $page->getPaymentMethods())

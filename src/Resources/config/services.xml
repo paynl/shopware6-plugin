@@ -308,6 +308,12 @@
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\PayParts\EditOrderTransactionService">
+            <argument type="service" id="Shopware\Core\Checkout\Order\SalesChannel\SetPaymentOrderRoute"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
+        </service>
+
         <service id="PaynlPayment\Shopware6\Service\PayParts\PayPartsStorefrontDataService">
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="router"/>

@@ -40,6 +40,9 @@ class TransactionLinker
      * Creates the paynl_transactions record, syncs PAY.nl status to Shopware,
      * then returns the checkout finish URL.
      *
+     * The browser calls this after a successful payment. PAY.'s webhook usually arrives a moment earlier,
+     * finds no record yet, logs "no local Paynl transaction" and gets retried by PAY. That's expected.
+     *
      * @throws PayPartsLinkException only for security / validation failures (403)
      */
     public function link(
@@ -67,7 +70,7 @@ class TransactionLinker
 
         $context = $salesChannelContext->getContext();
 
-        if (!$this->linkValidator->isAlreadyLinked($orderTransaction->getId(), $context)) {
+        if (!$this->linkValidator->isAlreadyLinked($paynlTransactionId, $context)) {
             $this->processingHelper->storePayTransactionData(
                 $orderTransaction,
                 $paynlTransactionId,

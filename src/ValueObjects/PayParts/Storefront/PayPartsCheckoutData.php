@@ -15,13 +15,13 @@ class PayPartsCheckoutData extends Struct
     protected string $sessionUrl         = '';
     protected string $createOrderUrl     = '';
     protected string $linkTransactionUrl = '';
+    protected string $reportIssueUrl     = '';
     protected string $sdkUrl             = '';
     protected string $country            = self::DEFAULT_COUNTRY_ISO;
     protected string $language           = self::DEFAULT_LANGUAGE;
 
     // Edit-order retry fields — empty on first checkout.
     protected string $orderId            = '';
-    protected string $orderTransactionId = '';
     protected string $editOrderUrl       = '';
 
     /**
@@ -36,11 +36,6 @@ class PayPartsCheckoutData extends Struct
     public function isEditOrderMode(): bool
     {
         return $this->orderId !== '';
-    }
-
-    public function getPaymentMethodId(): string
-    {
-        return $this->paymentMethodId;
     }
 
     public function getSdkUrl(): string
@@ -63,13 +58,13 @@ class PayPartsCheckoutData extends Struct
             'sessionUrl'         => $this->sessionUrl,
             'createOrderUrl'     => $this->createOrderUrl,
             'linkTransactionUrl' => $this->linkTransactionUrl,
+            'reportIssueUrl'     => $this->reportIssueUrl,
             'country'            => $this->country,
             'language'           => $this->language,
         ];
 
         if ($this->isEditOrderMode()) {
             $options['orderId']            = $this->orderId;
-            $options['orderTransactionId'] = $this->orderTransactionId;
             $options['editOrderUrl']       = $this->editOrderUrl;
         }
 

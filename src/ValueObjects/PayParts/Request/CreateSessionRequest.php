@@ -13,8 +13,7 @@ class CreateSessionRequest
         private ?string $reference = null,
         private ?string $description = null,
         private ?string $expire = null,
-        private ?SessionCustomer $customer = null,
-        private ?SessionOrder $order = null
+        private ?SessionCustomer $customer = null
     ) {}
 
     public function toArray(): array
@@ -29,7 +28,6 @@ class CreateSessionRequest
         if ($this->description !== null) $data['description'] = $this->description;
         if ($this->expire !== null) $data['expire'] = $this->expire;
         if ($this->customer !== null) $data['customer'] = $this->customer->toArray();
-        if ($this->order !== null) $data['order'] = $this->order->toArray();
 
         return $data;
     }

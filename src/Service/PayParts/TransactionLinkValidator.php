@@ -20,6 +20,8 @@ use Throwable;
 
 class TransactionLinkValidator
 {
+    // Pending/verify are allowed on purpose: right after 3DS the payment can still be processing.
+    // We link it now and the webhook moves the order to its final status later.
     private const LINKABLE_STATUSES = [
         PaynlTransactionStatusesEnum::STATUS_PAID,
         PaynlTransactionStatusesEnum::STATUS_AUTHORIZE,
@@ -98,10 +100,15 @@ class TransactionLinkValidator
         $this->checkPaynlAmount($payOrder->getAmount(), $order);
     }
 
-    public function isAlreadyLinked(string $orderTransactionId, Context $context): bool
+    /**
+     * True when this PAY. transaction is already stored. Checked per PAY. id, not per order transaction:
+     * one order transaction can have several PAY. attempts (e.g. old redirect flow first, then the widget).
+     * Links to a different order transaction are already rejected by checkPaynlIdNotUsedByOtherOrder().
+     */
+    public function isAlreadyLinked(string $paynlTransactionId, Context $context): bool
     {
         $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId));
+        $criteria->addFilter(new EqualsFilter('paynlTransactionId', $paynlTransactionId));
         $criteria->setLimit(1);
 
         return $this->paynlTransactionRepository->search($criteria, $context)->first() !== null;
@@ -155,7 +162,7 @@ class TransactionLinkValidator
     {
         $orderCurrency = $order->getCurrency()?->getIsoCode();
         if ($orderCurrency === null || $orderCurrency === '') {
-            return;
+            return; // currency not loaded: nothing to compare, the amount check below still runs
         }
 
         if (strtoupper($paynlCurrency) !== strtoupper($orderCurrency)) {

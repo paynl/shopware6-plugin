@@ -59,8 +59,9 @@
         <!-- PAY.Parts -->
         <service id="PaynlPayment\Shopware6\Controller\Storefront\PayParts\PayPartsSessionController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\SessionService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\OrderCreationService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\CartService"/>
-            <argument type="service" id="PaynlPayment\Shopware6\Repository\Order\OrderRepository"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\EditOrderTransactionService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="paynl_payments.logger"/>
             <call method="setContainer">
@@ -70,6 +71,7 @@
 
         <service id="PaynlPayment\Shopware6\Controller\Storefront\PayParts\PayPartsCheckoutController" public="true">
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\OrderCreationService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\EditOrderTransactionService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PayParts\TransactionLinker"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="paynl_payments.logger"/>

@@ -9,8 +9,6 @@ use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
 use PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Storefront\PayPartsCheckoutData;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEntity;
-use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -64,6 +62,7 @@ class PayPartsStorefrontDataService
             'sessionUrl'         => $this->router->generate('frontend.PaynlPayment.payparts.session'),
             'createOrderUrl'     => $this->router->generate('frontend.PaynlPayment.payparts.create-order'),
             'linkTransactionUrl' => $this->router->generate('frontend.PaynlPayment.payparts.link-transaction'),
+            'reportIssueUrl'     => $this->router->generate('frontend.PaynlPayment.payparts.report-issue'),
             'sdkUrl'             => $this->sessionService->getSdkUrl(),
             'country'            => $this->getCountryIso($context),
             'language'           => $this->getLanguageCode($context),
@@ -72,10 +71,9 @@ class PayPartsStorefrontDataService
 
     /**
      * Builds PAY.Parts storefront data for the edit-order retry flow (order-based session).
-     * Extends build() with the existing order's ID, open transaction ID and edit-order URL
-     * so the JS plugin can skip order creation and pre-wire the error redirect.
-     *
-     * Returns null when credit card is not available or no open transaction exists on the order.
+     * Adds the order ID and edit-order URL. The open card transaction is prepared by the create-order
+     * endpoint when Pay is pressed (EditOrderTransactionService), so failed/cancelled/other-method
+     * transactions are retryable too. Only called while the order's payment may still be changed.
      */
     public function buildForOrder(
         OrderEntity $order,
@@ -87,15 +85,9 @@ class PayPartsStorefrontDataService
             return null;
         }
 
-        $openTransaction = $this->findOpenTransaction($order);
-        if ($openTransaction === null) {
-            return null;
-        }
-
         $data->assign([
-            'orderId'            => $order->getId(),
-            'orderTransactionId' => $openTransaction->getId(),
-            'editOrderUrl'       => $this->router->generate(
+            'orderId'      => $order->getId(),
+            'editOrderUrl' => $this->router->generate(
                 'frontend.account.edit-order.page',
                 ['orderId' => $order->getId()]
             ),
@@ -106,17 +98,6 @@ class PayPartsStorefrontDataService
 
     // ─── Private helpers ─────────────────────────────────────────────────────
 
-    private function findOpenTransaction(OrderEntity $order): ?OrderTransactionEntity
-    {
-        foreach ($order->getTransactions() ?? [] as $transaction) {
-            if ($transaction->getStateMachineState()?->getTechnicalName() === OrderTransactionStates::STATE_OPEN) {
-                return $transaction;
-            }
-        }
-
-        return null;
-    }
-
     private function getCountryIso(SalesChannelContext $context): string
     {
         $customer = $context->getCustomer();
@@ -126,9 +107,14 @@ class PayPartsStorefrontDataService
 
         $countryIso = $customer->getActiveBillingAddress()?->getCountry()?->getIso();
 
-        return $countryIso !== null && $countryIso !== ''
-            ? strtoupper($countryIso)
-            : PayPartsCheckoutData::DEFAULT_COUNTRY_ISO;
+        if ($countryIso === null || $countryIso === '') {
+            return PayPartsCheckoutData::DEFAULT_COUNTRY_ISO;
+        }
+
+        // The SDK only knows these countries (method ordering); everything else uses its DEFAULT order.
+        $countryIso = strtoupper($countryIso);
+
+        return in_array($countryIso, ['NL', 'BE', 'DE'], true) ? $countryIso : 'DEFAULT';
     }
 
     private function getLanguageCode(SalesChannelContext $context): string

@@ -4,11 +4,23 @@
 {% set payParts = page.extensions[constant('PaynlPayment\\Shopware6\\Enums\\StorefrontSubscriberEnum::PAY_PARTS_CHECKOUT_EXTENSION_ID')] %}
 
 {% block component_payment_form_element %}
+    {% set payPartsOptions = payParts ? payParts.pluginOptions|merge({ snippets: {
+                sessionFailed: 'payParts.sessionFailed'|trans,
+                sdkUnavailable: 'payParts.sdkUnavailable'|trans,
+                orderFailed: 'payParts.orderFailed'|trans,
+                cartChanged: 'payParts.cartChanged'|trans,
+                orphanPayment: 'payParts.orphanPayment'|trans,
+                orphanNoUrl: 'payParts.orphanNoUrl'|trans,
+                redirectUnexpected: 'payParts.redirectUnexpected'|trans,
+                redirectInvalid: 'payParts.redirectInvalid'|trans,
+                partialPaid: 'payParts.partialPaid'|trans,
+                requiredFields: 'payParts.requiredFields'|trans
+            } }) : null %}
     {% if payParts and payParts.enabled %}
         <script type="module" src="{{ payParts.sdkUrl }}"></script>
         <div class="paynl-payparts-card-wrapper is-loading"
              data-paynl-payparts-card="true"
-             data-paynl-payparts-card-options="{{ payParts.pluginOptions|json_encode|escape('html_attr') }}">
+             data-paynl-payparts-card-options="{{ payPartsOptions|json_encode|escape('html_attr') }}">
             <div id="paynl-card-payments"></div>
             <div class="paynl-payparts-card-error alert alert-danger d-none" role="alert"></div>
         </div>

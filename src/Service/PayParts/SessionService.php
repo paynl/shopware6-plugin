@@ -13,11 +13,8 @@ use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\CreateSessionRequest;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionAddress;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionAmount;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionCustomer;
-use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionOrder;
-use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionProduct;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Response\CreateSessionResponse;
 use Shopware\Core\Checkout\Cart\Cart;
-use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -26,8 +23,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 class SessionService
 {
     private const PRODUCTION_URL = 'https://parts.pay.nl';
-    private const BETA_URL       = 'https://zero-parts.pay.nl';
-    private const SDK_URL        = 'https://zero-parts.pay.nl/sdk/payparts-sdk.js';
+    private const SDK_URL        = 'https://parts.pay.nl/sdk/payparts-sdk.js';
 
     private PayPartsApiClient $apiClient;
     private SessionDataMapper $dataMapper;
@@ -67,21 +63,10 @@ class SessionService
         return $this->executeSessionCreate($request, $salesChannelId);
     }
 
-    /** @throws PayPartsApiException */
-    public function getSession(string $sessionId, string $salesChannelId): array
+    // PAY.Parts always runs on production; the plugin's test mode doesn't apply (the config help text says so).
+    public function getApiUrl(): string
     {
-        return $this->apiClient->getSession(
-            $sessionId,
-            $this->getApiUrl($salesChannelId),
-            $this->buildBasicToken($salesChannelId)
-        );
-    }
-
-    public function getApiUrl(string $salesChannelId): string
-    {
-        return $this->config->getTestMode($salesChannelId)
-            ? self::BETA_URL
-            : self::PRODUCTION_URL;
+        return self::PRODUCTION_URL;
     }
 
     public function getSdkUrl(): string
@@ -89,6 +74,10 @@ class SessionService
         return self::SDK_URL;
     }
 
+    /**
+     * No `order` block: PAY. only needs order lines for redirect methods (e.g. iDEAL); card sessions
+     * are charged by `amount`, and the customer data is kept for 3DS/risk checks.
+     */
     private function buildRequestFromCart(Cart $cart, SalesChannelContext $context): CreateSessionRequest
     {
         $amountCents = (int)round($cart->getPrice()->getTotalPrice() * 100);
@@ -100,7 +89,6 @@ class SessionService
             exchangeUrl: $this->paymentUrlBuilder->buildExchangeUrl(),
             amount:      new SessionAmount($amountCents, $currency),
             customer:    $customer ? $this->buildCustomer($customer, $context) : null,
-            order:       $this->buildOrderFromCart($cart),
         );
     }
 
@@ -117,69 +105,6 @@ class SessionService
             amount:      new SessionAmount($amountCents, $currency),
             reference:   $order->getOrderNumber(),
             customer:    $customer ? $this->buildCustomer($customer, $context) : null,
-            order:       $this->buildOrderFromEntity($order),
-        );
-    }
-
-    private function buildOrderFromCart(Cart $cart): SessionOrder
-    {
-        return new SessionOrder(
-            $this->buildProductsFromLineItems($cart->getLineItems()),
-            (int) round(($cart->getShippingCosts()?->getTotalPrice() ?? 0) * 100),
-            (int) round($cart->getPrice()->getCalculatedTaxes()->getAmount() * 100),
-        );
-    }
-
-    private function buildOrderFromEntity(OrderEntity $order): SessionOrder
-    {
-        return new SessionOrder(
-            $this->buildProductsFromLineItems($order->getLineItems() ?? []),
-            (int) round($order->getShippingTotal() * 100),
-            (int) round(($order->getAmountTotal() - $order->getAmountNet()) * 100),
-        );
-    }
-
-    /** @return SessionProduct[] */
-    private function buildProductsFromLineItems(iterable $lineItems): array
-    {
-        $products = [];
-
-        foreach ($lineItems as $lineItem) {
-            if ($lineItem->getType() !== LineItem::PRODUCT_LINE_ITEM_TYPE) {
-                continue;
-            }
-
-            $price = $lineItem->getPrice();
-
-            $products[] = $this->buildSessionProduct(
-                (string) $lineItem->getLabel(),
-                $lineItem->getQuantity(),
-                (string) $lineItem->getReferencedId(),
-                $price?->getUnitPrice() ?? 0.0,
-                $price?->getTotalPrice() ?? 0.0,
-                $price?->getCalculatedTaxes()->first()?->getTaxRate() ?? 0.0,
-            );
-        }
-
-        return $products;
-    }
-
-    /** Single source of truth for converting line-item price fields into a SessionProduct. */
-    private function buildSessionProduct(
-        string $label,
-        int $quantity,
-        string $productId,
-        float $unitPrice,
-        float $totalPrice,
-        float $vatRate
-    ): SessionProduct {
-        return new SessionProduct(
-            description:   $label,
-            quantity:      $quantity,
-            unitPrice:     (int)round($unitPrice * 100),
-            total:         (int)round($totalPrice * 100),
-            productId:     $productId,
-            vatPercentage: $vatRate,
         );
     }
 
@@ -249,7 +174,7 @@ class SessionService
     {
         $rawResponse = $this->apiClient->createSession(
             $request->toArray(),
-            $this->getApiUrl($salesChannelId),
+            $this->getApiUrl(),
             $this->buildBasicToken($salesChannelId)
         );
 

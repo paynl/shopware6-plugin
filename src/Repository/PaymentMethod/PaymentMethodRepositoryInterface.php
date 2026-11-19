@@ -41,9 +41,6 @@ interface PaymentMethodRepositoryInterface
 
     public function getPaymentMethodById(string $paymentMethodId, Context $context): PaymentMethodEntity;
 
-    /** @throws \Exception */
-    public function getActivePayPartsCardMethodId(Context $context): string;
-
     public function findPayPartsCardMethodInCollection(PaymentMethodCollection $methods): ?PaymentMethodEntity;
 
     public function isPayPartsCardPaymentMethod(PaymentMethodEntity $paymentMethod): bool;

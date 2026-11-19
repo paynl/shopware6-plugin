@@ -7,9 +7,11 @@ namespace PaynlPayment\Shopware6\Controller\Storefront\PayParts;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Exceptions\PayPartsLinkException;
 use PaynlPayment\Shopware6\Exceptions\PayPartsOrderException;
+use PaynlPayment\Shopware6\Service\PayParts\EditOrderTransactionService;
 use PaynlPayment\Shopware6\Service\PayParts\OrderCreationService;
 use PaynlPayment\Shopware6\Service\PayParts\TransactionLinker;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\Validation\DataBag\DataBag;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Controller\StorefrontController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,21 +20,24 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 
-#[Route(defaults: ['_routeScope' => ['storefront'], 'auth_required' => true])]
+#[Route(defaults: ['_routeScope' => ['storefront'], '_loginRequired' => true, '_loginRequiredAllowGuest' => true])]
 class PayPartsCheckoutController extends StorefrontController
 {
     private OrderCreationService $orderCreationService;
+    private EditOrderTransactionService $editOrderTransactionService;
     private TransactionLinker $transactionLinker;
     private Config $config;
     private LoggerInterface $logger;
 
     public function __construct(
         OrderCreationService $orderCreationService,
+        EditOrderTransactionService $editOrderTransactionService,
         TransactionLinker $transactionLinker,
         Config $config,
         LoggerInterface $logger
     ) {
         $this->orderCreationService = $orderCreationService;
+        $this->editOrderTransactionService = $editOrderTransactionService;
         $this->transactionLinker = $transactionLinker;
         $this->config = $config;
         $this->logger = $logger;
@@ -59,19 +64,47 @@ class PayPartsCheckoutController extends StorefrontController
         } catch (\JsonException $e) {
             $body = [];
         }
+        $body = is_array($body) ? array_filter($body, 'is_scalar') : []; // only scalars: casting an array to string would error
         $paymentMethodId = trim((string) ($body['paymentMethodId'] ?? '')) ?: null;
+        $amountCents = isset($body['amountCents']) && is_numeric($body['amountCents'])
+            ? (int) $body['amountCents']
+            : null;
+        $currency = trim((string) ($body['currency'] ?? '')) ?: null;
+        $orderId = trim((string) ($body['orderId'] ?? ''));
 
         try {
-            $result = $this->orderCreationService->createFromContext($context, $paymentMethodId);
+            // Edit-order retry: no new order, make sure the existing order has an open card transaction.
+            if ($orderId !== '') {
+                $orderTransactionId = $this->editOrderTransactionService->ensureOpenCardTransaction(
+                    $orderId,
+                    $context,
+                    $paymentMethodId ?? throw PayPartsOrderException::invalidPaymentMethod(),
+                    $amountCents,
+                    $currency
+                );
+
+                return new JsonResponse(['orderId' => $orderId, 'orderTransactionId' => $orderTransactionId]);
+            }
+
+            // Only the confirm-form fields Shopware's order validation and order creation read.
+            $orderData = new DataBag(array_map('strval', array_intersect_key(
+                $body,
+                array_flip(['tos', 'revocation', 'customerComment', 'affiliateCode', 'campaignCode'])
+            )));
+
+            $result = $this->orderCreationService->createFromContext($context, $paymentMethodId, $amountCents, $currency, $orderData);
 
             return new JsonResponse([
                 'orderId' => $result->getOrderId(),
                 'orderTransactionId' => $result->getOrderTransactionId(),
                 'editOrderUrl' => $result->getEditOrderUrl(),
             ]);
+        } catch (PayPartsLinkException $exception) {
+            return new JsonResponse(['error' => 'Order creation failed'], $exception->getStatusCode());
         } catch (PayPartsOrderException $exception) {
             $this->logger->warning('PAY.Parts order creation denied', [
                 'reason' => $exception->getMessage(),
+                'cause' => $exception->getPrevious()?->getMessage(), // Shopware's own reason, e.g. product sold out
                 'statusCode' => $exception->getStatusCode(),
             ]);
 
@@ -98,7 +131,8 @@ class PayPartsCheckoutController extends StorefrontController
     )]
     public function linkTransaction(Request $request, SalesChannelContext $context): JsonResponse
     {
-        $body = json_decode($request->getContent(), true) ?? [];
+        $body = json_decode($request->getContent(), true);
+        $body = is_array($body) ? array_filter($body, 'is_scalar') : []; // only scalars: casting an array to string would error
         $paynlTransactionId = (string)($body['paynlTransactionId'] ?? '');
         $orderTransactionId = (string)($body['orderTransactionId'] ?? '');
 
@@ -139,5 +173,35 @@ class PayPartsCheckoutController extends StorefrontController
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    /**
+     * The browser is the only place that knows about a payment without a matching order, or a partial payment.
+     * This only writes a log entry so support can match the PAY.nl transaction to a customer.
+     */
+    #[Route(
+        path: '/PaynlPayment/payparts/report-issue',
+        name: 'frontend.PaynlPayment.payparts.report-issue',
+        options: ['seo' => false],
+        defaults: ['XmlHttpRequest' => true],
+        methods: ['POST']
+    )]
+    public function reportIssue(Request $request, SalesChannelContext $context): JsonResponse
+    {
+        $body = json_decode($request->getContent(), true);
+        $body = is_array($body) ? array_filter($body, 'is_scalar') : []; // only scalars: casting an array to string would error
+        $type = in_array($body['type'] ?? '', ['payment-without-order', 'partial-payment'], true)
+            ? $body['type']
+            : 'unknown';
+
+        $this->logger->warning('PAY.Parts payment needs manual follow-up', [
+            'type' => $type,
+            'paynlTransactionId' => substr((string) ($body['paynlTransactionId'] ?? ''), 0, 64),
+            'orderId' => substr((string) ($body['orderId'] ?? ''), 0, 64),
+            'amountRemaining' => is_numeric($body['amountRemaining'] ?? null) ? (int) $body['amountRemaining'] : null,
+            'customerId' => $context->getCustomer()?->getId(),
+        ]);
+
+        return new JsonResponse(['logged' => true]);
     }
 }

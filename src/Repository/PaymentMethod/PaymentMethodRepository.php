@@ -141,18 +141,6 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
         throw new Exception('Payment Method PayPal Express not found in system');
     }
 
-    /** @throws Exception */
-    public function getActivePayPartsCardMethodId(Context $context): string
-    {
-        $paymentMethod = $this->findPayPartsCardMethodInActiveMethods($context);
-
-        if ($paymentMethod === null) {
-            throw new Exception('Payment Method Credit Card not found in system');
-        }
-
-        return (string) $paymentMethod->get('id');
-    }
-
     public function findPayPartsCardMethodInCollection(PaymentMethodCollection $methods): ?PaymentMethodEntity
     {
         foreach (PaynlPaymentMethodsIdsEnum::getPayPartsCardPaymentIds() as $preferredPaynlId) {
@@ -172,25 +160,6 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
         $paynlId = isset($customFields['paynlId']) ? (int) $customFields['paynlId'] : 0;
 
         return PaynlPaymentMethodsIdsEnum::isPayPartsCardPayment($paynlId);
-    }
-
-    private function findPayPartsCardMethodInActiveMethods(Context $context): ?PaymentMethodEntity
-    {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('handlerIdentifier', PaynlPaymentHandler::class));
-        $criteria->addFilter(new EqualsFilter('active', true));
-
-        $paymentMethods = $this->paymentMethodRepository->search($criteria, $context)->getElements();
-
-        foreach (PaynlPaymentMethodsIdsEnum::getPayPartsCardPaymentIds() as $preferredPaynlId) {
-            foreach ($paymentMethods as $paymentMethod) {
-                if ($this->matchesPaynlId($paymentMethod, $preferredPaynlId)) {
-                    return $paymentMethod;
-                }
-            }
-        }
-
-        return null;
     }
 
     private function matchesPaynlId(PaymentMethodEntity $paymentMethod, int $paynlId): bool

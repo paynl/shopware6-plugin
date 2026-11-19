@@ -26,7 +26,8 @@ class PaynlPaymentMethodsIdsEnum
 
     /**
      * Preference order when resolving which Shopware payment method to use for Pay.Parts.
-     * Grouped first, then combined Visa/Mastercard, then individual brands.
+     * Grouped first, then individual brands.
+     * VISA_MASTERCARD (706) is left out: PAY. docs state it cannot be processed via PAY.Parts.
      *
      * @return int[]
      */
@@ -34,7 +35,6 @@ class PaynlPaymentMethodsIdsEnum
     {
         return [
             self::CREDIT_CARD_PAYMENT,
-            self::VISA_MASTERCARD,
             self::VISA,
             self::MASTERCARD,
             self::POSTEPAY,
