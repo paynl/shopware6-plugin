@@ -1,4 +1,10 @@
 # 2.1.0
+- Added a bank list for Metjebank in the checkout, shown as a dropdown or as radio buttons with bank logos (new "Bank selection" settings); the selected bank is validated, sent to Pay. when the payment starts, saved on the order and shown in the admin order summary.
+- The plugin now ships one prebuilt storefront script for Shopware 6.5, 6.6 and 6.7; the version-specific scripts are no longer copied when the plugin is installed or updated.
+- Pay later fields (date of birth, phone number) are now only checked when the Pay. save button is clicked.
+- Fixed order status changes failing because Pay.'s "authorize" transition clashed with Shopware's own "authorize" action (#464).
+- Unsigned "paid" notifications are now retried while the Pay. API still reports the payment as authorized, so the order is no longer left in the wrong state.
+- Added payment method logos for Billink Factoring, Billie, CashbackXL Pay. and SAS EuroBonus Checkout.
 
 # 2.0.10
 - Secured the Pay. admin API routes (refunds, status transitions, Pay. settings) with Shopware ACL privileges; refunding now requires the "Orders > Refunds > Editor" privilege.
