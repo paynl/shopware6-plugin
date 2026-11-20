@@ -32,6 +32,11 @@ export default class PaynlFastCheckoutQuantity extends Plugin {
         event.preventDefault();
         event.stopPropagation();
 
+        // The button is an <a>, "disabled" does not stop a double click: don't start a second payment
+        if (button.classList.contains('is-loading')) {
+            return;
+        }
+
         const formData = new FormData();
         formData.append('productId', productId);
         formData.append('quantity', quantity);

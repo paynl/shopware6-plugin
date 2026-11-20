@@ -21,6 +21,8 @@ await build({
     bundle: true,
     minify: true,
     target: 'es2020',
+    // Shopware 6.5 joins scripts with only a newline: a leading ; keeps the IIFE from being called on the previous script
+    banner: { js: ';' },
     define: { 'process.env.NODE_ENV': '"production"' },
     logLevel: 'info',
 });
