@@ -23,7 +23,7 @@
             {% else %}
                 <strong>{{ payment.translated.name }}</strong>
             {% endif %}
-            {% if not paymentMethodInvalid and payment.customFields.bankList.selected %}
+            {% if not paymentMethodInvalid and payment.id is same as(selectedPaymentMethodId) and payment.customFields.bankList.selected %}
                 <span id="paymentMethodBankName">({{ payment.customFields.bankList.selected.name }})</span>
             {% endif %}
 
