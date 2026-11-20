@@ -29,6 +29,7 @@
             "invalidAmount": "Het terugbetalingsbedrag moet groter zijn dan nul.",
             "refundExceedsAvailable": "Het terugbetalingsbedrag overschrijdt het beschikbare bedrag.",
             "refundDataFailed": "Terugbetalingsgegevens konden niet worden opgehaald.",
+            "refundFailed": "De terugbetaling kon niet worden verwerkt.",
             "shouldNotBeBlank": "Dit veld mag niet leeg zijn.",
             "invalidSalesChannel": "Ongeldig of onbekend verkoopkanaal.",
             "invalidCredentials": "API-gegevens zijn onvolledig of ongeldig.",

@@ -2,7 +2,7 @@
     {% parent %}
 
     <sw-tabs-item v-if="isPAYPayment"
-                  :disabled="isPAYTransactionRefundAllowed"
+                  :disabled="isPAYTransactionRefundDisabled"
                   :route="{ name: 'paynl.refund.page.view', params: { id: $route.params.id } }"
                   :title="$tc('order-list-override.refund')">
         {{ $tc('order-list-override.refund') }}

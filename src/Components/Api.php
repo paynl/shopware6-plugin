@@ -15,6 +15,7 @@ use PayNL\Sdk\Model\Request\OrderVoidRequest;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
 use PayNL\Sdk\Model\Request\TerminalsBrowseRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
+use PayNL\Sdk\Model\Response\ServiceGetConfigResponse;
 use PayNL\Sdk\Model\Response\TransactionRefundResponse;
 use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
@@ -32,11 +33,15 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 class Api
 {
+    private const SERVICE_SECRET_CACHE_TTL = 3600;
+
     const PAYMENT_METHOD_ID = 'id';
     const PAYMENT_METHOD_NAME = 'name';
     const PAYMENT_METHOD_VISIBLE_NAME = 'visibleName';
@@ -51,6 +56,10 @@ class Api
     private TranslatorInterface $translator;
     private RequestStack $requestStack;
     private LoggerInterface $logger;
+    private CacheInterface $cache;
+
+    /** @var array<string, ServiceGetConfigResponse> */
+    private array $serviceConfigBySalesChannel = [];
 
     public function __construct(
         Config $config,
@@ -59,7 +68,8 @@ class Api
         ProductRepositoryInterface $productRepository,
         TranslatorInterface $translator,
         RequestStack $requestStack,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CacheInterface $cache
     ) {
         $this->config = $config;
         $this->customerHelper = $customerHelper;
@@ -68,30 +78,94 @@ class Api
         $this->translator = $translator;
         $this->requestStack = $requestStack;
         $this->logger = $logger;
+        $this->cache = $cache;
     }
 
     /**
      * @return Model\Method[]
-     * @throws PayException
+     * @throws PaynlPaymentException with PAY.'s error message, so the admin can show the real cause
      */
     public function getPaymentMethods(string $salesChannelId): array
     {
-        if (empty($this->config->getTokenCode($salesChannelId))
-            || empty($this->config->getApiToken($salesChannelId))
-            || empty($this->config->getServiceId($salesChannelId))) {
-
+        if (!$this->hasStoredCredentials($salesChannelId)) {
             $this->logger->warning('PAY. credentials are missing.');
 
             return [];
         }
 
-        $config = $this->getConfig($salesChannelId);
+        return $this->getServiceConfig($salesChannelId)->getPaymentMethods();
+    }
 
-        $serviceConfig = (new ServiceGetConfigRequest($this->config->getServiceId($salesChannelId)))
-            ->setConfig($config)
-            ->start();
+    /**
+     * Fetches the PAY.nl service location config (GET /v2/services/config).
+     * Memoized per request to avoid duplicate API calls within the same lifecycle.
+     *
+     * @throws PaynlPaymentException
+     */
+    public function getServiceConfig(string $salesChannelId): ServiceGetConfigResponse
+    {
+        if (isset($this->serviceConfigBySalesChannel[$salesChannelId])) {
+            return $this->serviceConfigBySalesChannel[$salesChannelId];
+        }
 
-        return $serviceConfig->getPaymentMethods();
+        if (!$this->hasStoredCredentials($salesChannelId)) {
+            throw new PaynlPaymentException('PAY. credentials are missing');
+        }
+
+        try {
+            $response = $this->fetchServiceConfig(
+                $this->config->getServiceId($salesChannelId),
+                $this->getConfig($salesChannelId)
+            );
+        } catch (PayException $exception) {
+            $this->logger->error('Failed to fetch PAY. service config', [
+                'salesChannelId' => $salesChannelId,
+                'exception' => $exception,
+            ]);
+
+            throw new PaynlPaymentException(
+                'Failed to fetch PAY. service config: ' . $exception->getMessage(),
+                0,
+                $exception
+            );
+        }
+
+        return $this->serviceConfigBySalesChannel[$salesChannelId] = $response;
+    }
+
+    /**
+     * Returns the service location secret used for PAY.Parts Basic auth (SL-code:secret).
+     * Cached across requests; invalidated when stored credentials change.
+     *
+     * @throws PaynlPaymentException
+     */
+    public function getServiceSecret(string $salesChannelId): string
+    {
+        try {
+            return $this->cache->get(
+                $this->buildServiceSecretCacheKey($salesChannelId),
+                function (ItemInterface $item) use ($salesChannelId): string {
+                    $item->expiresAfter(self::SERVICE_SECRET_CACHE_TTL);
+
+                    $secret = trim($this->getServiceConfig($salesChannelId)->getSecret());
+                    if ($secret === '') {
+                        throw new PaynlPaymentException('PAY. service secret is empty');
+                    }
+
+                    return $secret;
+                }
+            );
+        } catch (Throwable $exception) {
+            if ($exception instanceof PaynlPaymentException) {
+                throw $exception;
+            }
+
+            throw new PaynlPaymentException(
+                'Failed to fetch PAY. service secret: ' . $exception->getMessage(),
+                0,
+                $exception
+            );
+        }
     }
 
     /**
@@ -192,20 +266,35 @@ class Api
 
         $request->setOrder($payNLOrder);
 
-        $request->setStats((new Model\Stats())
-            ->setObject(sprintf(
-                'Shopware v%s | %s | %s',
-                $additionalTransactionInfo->getShopwareVersion(),
-                $additionalTransactionInfo->getPluginVersion(),
-                substr(phpversion(), 0, 3)
-            ))
-        );
+        $request->setStats($this->getOrderStats(
+            $additionalTransactionInfo->getShopwareVersion(),
+            $additionalTransactionInfo->getPluginVersion(),
+            $additionalTransactionInfo->getInstanceId()
+        ));
 
         if ($this->getTransferData($salesChannelId)) {
             $request->setTransferData($this->getTransferData($salesChannelId));
         }
 
         return $request;
+    }
+
+    /** Shared by the regular payment and Express Checkout flows, so PAY. gets the same stats from both. */
+    public function getOrderStats(string $shopwareVersion, string $pluginVersion, ?string $instanceId): Model\Stats
+    {
+        $stats = (new Model\Stats())
+            ->setObject(sprintf(
+                'Shopware v%s | %s | %s',
+                $shopwareVersion,
+                $pluginVersion,
+                substr(phpversion(), 0, 3)
+            ));
+
+        if ($instanceId !== null && $instanceId !== '') {
+            $stats->setExtra3($instanceId);
+        }
+
+        return $stats;
     }
 
     /** @throws PaynlPaymentException */
@@ -227,8 +316,9 @@ class Api
     }
 
     /** @throws InconsistentCriteriaIdsException */
-    private function getOrderProducts(OrderEntity $order, Context $context): Model\Products
+    public function getOrderProducts(OrderEntity $order, Context $context): Model\Products
     {
+        $currency = $order->getCurrency()->getIsoCode();
         $orderLineItems = $order->getLineItems();
         $productsItems = $orderLineItems->filterByProperty('type', 'product');
         $productsIds = [];
@@ -245,51 +335,53 @@ class Api
 
         /** @var OrderLineItemEntity $item */
         foreach ($productsItems as $item) {
-            $vatPercentage = 0;
-            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
-                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
-            }
-
-            $product = new Model\Product();
-            $product->setId((string) $elements[$item->getReferencedId()]->get('autoIncrement'));
-            $product->setDescription($item->getLabel());
-            $product->setType(Model\Product::TYPE_ARTICLE);
-            $product->setAmount($item->getUnitPrice());
-            $product->setCurrency($order->getCurrency()->getIsoCode());
-            $product->setQuantity($item->getPrice()->getQuantity());
-            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
-            $product->setVatPercentage($vatPercentage);
-
-            $products->addProduct($product);
+            $id = (string) $elements[$item->getReferencedId()]->get('autoIncrement');
+            $products->addProduct($this->createProduct($item, $id, Model\Product::TYPE_ARTICLE, $currency));
         }
 
         $surchargeItems = $orderLineItems->filterByProperty('type', 'payment_surcharge');
         /** @var OrderLineItemEntity $item */
         foreach ($surchargeItems as $item) {
-            $vatPercentage = 0;
-            if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
-                $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
-            }
-
-            $product = new Model\Product();
-            $product->setId('payment');
-            $product->setDescription($item->getLabel());
-            $product->setType(Model\Product::TYPE_PAYMENT);
-            $product->setAmount($item->getUnitPrice());
-            $product->setCurrency($order->getCurrency()->getIsoCode());
-            $product->setQuantity($item->getPrice()->getQuantity());
-            $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
-            $product->setVatPercentage($vatPercentage);
-
-            $products->addProduct($product);
+            $products->addProduct($this->createProduct($item, 'payment', Model\Product::TYPE_PAYMENT, $currency));
         }
 
+        $products->addProduct($this->createShippingProduct($order, $currency));
+
+        return $products;
+    }
+
+    private function createProduct(
+        OrderLineItemEntity $item,
+        string $id,
+        string $type,
+        string $currency
+    ): Model\Product {
+        $vatPercentage = 0;
+        if ($item->getPrice()->getCalculatedTaxes()->first() !== null) {
+            $vatPercentage = $item->getPrice()->getCalculatedTaxes()->first()->getTaxRate();
+        }
+
+        $product = new Model\Product();
+        $product->setId($id);
+        $product->setDescription($item->getLabel());
+        $product->setType($type);
+        $product->setAmount($item->getUnitPrice());
+        $product->setCurrency($currency);
+        $product->setQuantity($item->getPrice()->getQuantity());
+        $product->setVatCode(paynl_determine_vat_class_by_percentage($vatPercentage));
+        $product->setVatPercentage($vatPercentage);
+
+        return $product;
+    }
+
+    private function createShippingProduct(OrderEntity $order, string $currency): Model\Product
+    {
         $product = new Model\Product();
         $product->setId('shipping');
         $product->setDescription('Shipping');
         $product->setType(Model\Product::TYPE_SHIPPING);
         $product->setAmount($order->getShippingTotal());
-        $product->setCurrency($order->getCurrency()->getIsoCode());
+        $product->setCurrency($currency);
         $product->setQuantity(1);
         $product->setVatCode(
             paynl_determine_vat_class_by_percentage(
@@ -298,9 +390,7 @@ class Api
         );
         $product->setVatPercentage($order->getShippingCosts()->getCalculatedTaxes()->getAmount());
 
-        $products->addProduct($product);
-
-        return $products;
+        return $product;
     }
 
     /** @return mixed[] */
@@ -465,9 +555,7 @@ class Api
             $sdkConfig->setUsername($tokenCode);
             $sdkConfig->setPassword($apiToken);
 
-            $serviceConfig = (new ServiceGetConfigRequest($serviceId))
-                ->setConfig($sdkConfig)
-                ->start();
+            $serviceConfig = $this->fetchServiceConfig($serviceId, $sdkConfig);
 
             return !empty($serviceConfig->getPaymentMethods());
         } catch (Exception $exception) {
@@ -506,5 +594,32 @@ class Api
                 'name' => $terminal->getName(),
             ];
         }, $terminalResponse->getTerminals());
+    }
+
+    private function hasStoredCredentials(string $salesChannelId): bool
+    {
+        return $this->config->getTokenCode($salesChannelId) !== ''
+            && $this->config->getApiToken($salesChannelId) !== ''
+            && $this->config->getServiceId($salesChannelId) !== '';
+    }
+
+    /**
+     * @throws PayException
+     */
+    private function fetchServiceConfig(string $serviceId, PayNLConfig $sdkConfig): ServiceGetConfigResponse
+    {
+        return (new ServiceGetConfigRequest($serviceId))
+            ->setConfig($sdkConfig)
+            ->start();
+    }
+
+    private function buildServiceSecretCacheKey(string $salesChannelId): string
+    {
+        return 'paynl.service_secret.' . hash('sha256', implode('|', [
+            $salesChannelId,
+            $this->config->getTokenCode($salesChannelId),
+            $this->config->getApiToken($salesChannelId),
+            $this->config->getServiceId($salesChannelId),
+        ]));
     }
 }

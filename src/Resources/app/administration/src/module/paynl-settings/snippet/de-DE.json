@@ -32,7 +32,8 @@
             "missingFields": "Erforderliche Felder fehlen.",
             "invalidAmount": "Der Erstattungsbetrag muss größer als null sein.",
             "refundExceedsAvailable": "Der Erstattungsbetrag übersteigt den verfügbaren Betrag.",
-            "refundDataFailed": "Erstattungsdaten konnten nicht abgerufen werden."
+            "refundDataFailed": "Erstattungsdaten konnten nicht abgerufen werden.",
+            "refundFailed": "Die Erstattung konnte nicht verarbeitet werden."
         },
         "messages": {
             "paymentMethodsSuccessfullyInstalled": "Zahlungsmethoden wurden erfolgreich hinzugefügt.",

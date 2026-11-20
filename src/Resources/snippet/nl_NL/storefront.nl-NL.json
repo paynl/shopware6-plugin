@@ -42,5 +42,17 @@
     "coc": {
         "label": "KVK-nummer",
         "placeholder": "Voer KVK-nummer in"
+    },
+    "payParts": {
+        "sessionFailed": "Sessie aanmaken mislukt. Laad de pagina opnieuw en probeer het nogmaals.",
+        "sdkUnavailable": "PAY.Parts SDK is niet beschikbaar. Laad de pagina opnieuw.",
+        "orderFailed": "Bestelling aanmaken mislukt. Probeer het opnieuw.",
+        "cartChanged": "Uw winkelwagen is gewijzigd. Laad de pagina opnieuw en probeer het nogmaals.",
+        "orphanPayment": "Uw betaling is ontvangen, maar de bestelling kon niet worden afgerond. Neem contact op met de winkel en vermeld referentie %reference%.",
+        "orphanNoUrl": "Uw betaling is ontvangen, maar de bestelling kon niet worden afgerond. Neem contact op met de winkel.",
+        "redirectUnexpected": "Onverwachte doorverwijzing. Neem contact op met de support.",
+        "redirectInvalid": "Ongeldige doorverwijs-URL. Neem contact op met de support.",
+        "requiredFields": "Vul de verplichte velden van de bestelling in (bijv. accepteer de algemene voorwaarden).",
+        "partialPaid": "Uw betaling is slechts gedeeltelijk voltooid (%remaining% resterend). Neem contact op met de winkel."
     }
 }

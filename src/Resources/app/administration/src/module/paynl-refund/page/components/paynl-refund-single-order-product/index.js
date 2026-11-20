@@ -11,6 +11,11 @@ Component.register('paynl-refund-single-order-product', {
             type: Object,
             required: true,
             default: null
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 
