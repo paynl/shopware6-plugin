@@ -69,6 +69,11 @@ export default class PaynlFastCheckoutButton extends Plugin {
             return;
         }
 
+        // The button is an <a>, "disabled" does not stop a double click: don't start a second payment
+        if (button.classList.contains('is-loading')) {
+            return;
+        }
+
         button.classList.add('is-loading');
         button.setAttribute('disabled', 'disabled');
 
