@@ -75,6 +75,109 @@
     text-align: center;
 }
 
+/* Bank list (Metjebank): Shopware look by default, tiles when "Use styles by PAY." is on */
+.paynl-bank-list {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.paynl-bank-list-select .form-group {
+    margin-bottom: 0;
+}
+
+.paynl-bank-option-label {
+    display: inline-flex;
+    align-items: center;
+}
+
+.paynl-bank-option-logo {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-right: 0.5rem;
+    object-fit: contain;
+}
+
+.paynl-bank-option-name {
+    overflow-wrap: break-word;
+}
+
+.paynl-payment-methods-custom-styles .paynl-payment-method-extra .paynl-bank-list {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.5rem;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option {
+    position: relative;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* The radio stays in the DOM (keyboard and screen readers), the whole tile is the click target */
+.paynl-payment-methods-custom-styles .paynl-bank-option .paynl-bank-option-input {
+    position: absolute;
+    float: none;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--bs-border-color, #bcc1c7);
+    border-radius: 0.375rem;
+    background-color: var(--bs-body-bg, #fff);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-label:hover {
+    border-color: var(--bs-primary, #0b539b);
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-input:checked + .paynl-bank-option-label {
+    border-color: var(--bs-primary, #0b539b);
+    box-shadow: 0 0 0 1px var(--bs-primary, #0b539b);
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-input:focus-visible + .paynl-bank-option-label {
+    outline: 2px solid var(--bs-primary, #0b539b);
+    outline-offset: 2px;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 0 0.375rem;
+    border-radius: 0.25rem;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-name {
+    min-width: 0;
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+.paynl-payment-methods-custom-styles .paynl-bank-option-input:checked + .paynl-bank-option-label .paynl-bank-option-name {
+    font-weight: 600;
+}
+
 .paynl-ideal-modal {
     width: 100%;
     max-width: 700px;

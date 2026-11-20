@@ -173,6 +173,8 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="paynl_payments.logger"/>
             <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodTerminalService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\OrderService"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\ProcessingHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\PluginHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
@@ -202,6 +204,7 @@
             <argument type="service" id="PaynlPayment\Shopware6\Components\Api"/>
             <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
             <argument type="service" id="cache.object"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Service\Order\OrderStateService" class="PaynlPayment\Shopware6\Service\Order\OrderStateService">
@@ -299,6 +302,10 @@
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
         </service>
 
+        <service id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService">
+            <argument type="service" id="PaynlPayment\Shopware6\Components\Config"/>
+        </service>
+
         <service id="paynl.app_system.guzzle" class="GuzzleHttp\Client">
         </service>
 
@@ -338,10 +345,10 @@
         <!--Subscribers-->
         <service id="PaynlPayment\Shopware6\Subscriber\PaymentMethodIssuerSubscriber" public="true">
             <tag name="kernel.event_subscriber"/>
-            <argument type="service" id="request_stack"/>
             <argument type="service" id="PaynlPayment\Shopware6\Repository\PaymentMethod\PaymentMethodRepository"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\CustomerHelper"/>
             <argument type="service" id="PaynlPayment\Shopware6\Helper\RequestDataBagHelper"/>
+            <argument type="service" id="PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodIssuerService"/>
         </service>
 
         <service id="PaynlPayment\Shopware6\Subscriber\PageLoadedSubscriber" public="true">
