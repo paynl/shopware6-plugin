@@ -1,7 +1,7 @@
-import Plugin from 'src/plugin-system/plugin.class';
-import IMask from '../../node_modules/imask/dist/imask';
-import DomAccess from 'src/helper/dom-access.helper';
-import ButtonLoadingIndicator from 'src/utility/loading-indicator/button-loading-indicator.util';
+import Plugin from '../plugin-system/plugin.class';
+import IMask from 'imask';
+import DomAccess from '../helper/dom-access.helper';
+import ButtonLoadingIndicator from '../utility/loading-indicator/button-loading-indicator.util';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -155,9 +155,16 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     onSavePaymentMethod(element) {
+        // Shopware's auto-submit on method change has no submitter; only validate our save button.
+        if (!element.submitter?.classList.contains('paynl-change-payment-method')) {
+            return;
+        }
+
         const data = {};
         const invalid = [];
-        const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
+        // Use the checked method, not `.active`: Shopware's auto-submit fires before onChangeCallback moves `.active`.
+        const checkedMethod = element.currentTarget.querySelector('input[name="paymentMethodId"]:checked');
+        const currentPaymentMethod = checkedMethod?.closest('.payment-method')?.querySelector('.paynl-payment-method-extra');
 
         // Early return if no PayNL method is active
         if (!currentPaymentMethod) {

@@ -9,8 +9,6 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 // phpcs:enable
 
 use Doctrine\DBAL\Connection;
-use Exception;
-use PaynlPayment\Shopware6\Compatibility\DependencyLoader;
 use PaynlPayment\Shopware6\Components\Api;
 use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Components\ConfigReader\ConfigReader;
@@ -96,20 +94,11 @@ class PaynlPaymentShopware6 extends Plugin
         $this->getInstallHelper()->deactivatePaymentMethods($deactivateContext->getContext());
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @throws Exception
-     */
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
 
         $this->container = $container;
-
-        # load the dependencies that are compatible
-        # with our current shopware version
-        $loader = new DependencyLoader($this->container);
-        $loader->prepareStorefrontBuild();
     }
 
     private function getConfig(): Config

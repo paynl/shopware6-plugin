@@ -90,7 +90,7 @@
     visibility: hidden;
     opacity: 0;
     transition: all 0.2s ease, transform 0.2s ease;
-    z-index: 1000;
+    z-index: 1060; /* above Bootstrap offcanvas (1045) */
     box-sizing: border-box;
 }
 
@@ -220,7 +220,7 @@
 .paynl-ideal-modal-backdrop.visible {
     visibility: visible;
     opacity: 1;
-    z-index: 100;
+    z-index: 1055;
 }
 
 #btn-fast-checkout {
