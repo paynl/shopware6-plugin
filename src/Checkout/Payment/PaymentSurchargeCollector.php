@@ -13,6 +13,7 @@ use Shopware\Core\Checkout\Cart\LineItem\CartDataCollection;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Cart\Price\AbsolutePriceCalculator;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
+use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\Checkout\Cart\CartDataCollectorInterface;
 use Shopware\Core\Checkout\Cart\LineItemFactoryHandler\LineItemFactoryInterface;
@@ -95,16 +96,15 @@ class PaymentSurchargeCollector implements CartDataCollectorInterface, CartProce
         $hasPaymentMethodSurcharge = $toCalculate->getLineItems()
                 ->filterType(PaymentMethodSurchargeService::LINE_ITEM_TYPE)
                 ->count() > 0;
-        $hasPaymentMethod = $toCalculate->has($paymentMethod->getId());
 
         if (!$surcharge || $skipPromotion || !$isActivePluginSurcharge || !$hasLineItems
-            || $hasPaymentMethodSurcharge || $hasPaymentMethod
+            || $hasPaymentMethodSurcharge
         ) {
             return;
         }
 
         $surchargeLineItem = $this->createSurchargeLineItem(
-            $salesChannelContext->getPaymentMethod(),
+            $paymentMethod,
             $salesChannelContext
         );
 
@@ -138,7 +138,8 @@ class PaymentSurchargeCollector implements CartDataCollectorInterface, CartProce
         }
 
         $lineItem = $this->lineItemFactory->create([
-            'id' => $paymentMethod->getId(),
+            // Not the payment method id (shoppers choose line-item ids); stable for Shopware's cart hash.
+            'id' => Uuid::fromStringToHex('paynl-surcharge-' . $paymentMethod->getId()),
             'type' => PaymentMethodSurchargeService::LINE_ITEM_TYPE,
             'label' => $paymentMethod->getTranslation('name') ?: 'Payment Surcharge',
             'stackable' => true,
