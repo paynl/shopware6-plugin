@@ -149,7 +149,8 @@ class IdealExpress
         array $customerWebhookData,
         SalesChannelContext $context
     ): ?CustomerEntity {
-        if (empty($customerWebhookData)) {
+        // Only the express guest takes the wallet data; a registered account keeps its email and addresses.
+        if (empty($customerWebhookData) || !$customer->getGuest()) {
             return $customer;
         }
 

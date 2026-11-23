@@ -143,6 +143,11 @@ class PayPalExpress
         OrderDetailResponse $orderDetailResponse,
         SalesChannelContext $context
     ): ?CustomerEntity {
+        // Only the express guest takes the wallet data; a registered account keeps its email and addresses.
+        if (!$customer->getGuest()) {
+            return $customer;
+        }
+
         $salutationId = $this->expressCheckoutUtil->getSalutationId($context->getContext());
         $addressData = $this->getAddressData($orderDetailResponse, $context, $salutationId);
         $payer = $orderDetailResponse->getPayer();
