@@ -1,3 +1,5 @@
+# 2.2.0
+
 # 2.1.0
 - Added a bank list for Metjebank in the checkout, shown as a dropdown or as radio buttons with bank logos (new "Bank selection" settings); the selected bank is validated, sent to Pay. when the payment starts, saved on the order and shown in the admin order summary.
 - The plugin now ships one prebuilt storefront script for Shopware 6.5, 6.6 and 6.7; the version-specific scripts are no longer copied when the plugin is installed or updated.

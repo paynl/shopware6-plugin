@@ -1,3 +1,5 @@
+# 2.2.0
+
 # 2.1.0
 - Bankauswahl für Metjebank im Checkout hinzugefügt, wahlweise als Dropdown oder als Radiobuttons mit Banklogos (neue Einstellungen „Bankauswahl“); die gewählte Bank wird geprüft, beim Zahlungsstart an Pay. übermittelt, an der Bestellung gespeichert und in der Bestellübersicht im Admin angezeigt.
 - Das Plugin liefert nun ein vorgefertigtes Storefront-Skript für Shopware 6.5, 6.6 und 6.7; versionsspezifische Skripte werden bei Installation oder Update nicht mehr kopiert.
