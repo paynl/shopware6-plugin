@@ -30,10 +30,10 @@ class PayPartsStorefrontDataService
         Config $config
     ) {
         $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->router                  = $router;
-        $this->localeCodeHelper        = $localeCodeHelper;
-        $this->sessionService          = $sessionService;
-        $this->config                  = $config;
+        $this->router = $router;
+        $this->localeCodeHelper = $localeCodeHelper;
+        $this->sessionService = $sessionService;
+        $this->config = $config;
     }
 
     /**
@@ -58,14 +58,14 @@ class PayPartsStorefrontDataService
         }
 
         return (new PayPartsCheckoutData())->assign([
-            'paymentMethodId'    => $creditCardMethod->getId(),
-            'sessionUrl'         => $this->router->generate('frontend.PaynlPayment.payparts.session'),
-            'createOrderUrl'     => $this->router->generate('frontend.PaynlPayment.payparts.create-order'),
+            'paymentMethodId' => $creditCardMethod->getId(),
+            'sessionUrl' => $this->router->generate('frontend.PaynlPayment.payparts.session'),
+            'createOrderUrl' => $this->router->generate('frontend.PaynlPayment.payparts.create-order'),
             'linkTransactionUrl' => $this->router->generate('frontend.PaynlPayment.payparts.link-transaction'),
-            'reportIssueUrl'     => $this->router->generate('frontend.PaynlPayment.payparts.report-issue'),
-            'sdkUrl'             => $this->sessionService->getSdkUrl(),
-            'country'            => $this->getCountryIso($context),
-            'language'           => $this->getLanguageCode($context),
+            'reportIssueUrl' => $this->router->generate('frontend.PaynlPayment.payparts.report-issue'),
+            'sdkUrl' => $this->sessionService->getSdkUrl(),
+            'country' => $this->getCountryIso($context),
+            'language' => $this->getLanguageCode($context),
         ]);
     }
 
@@ -86,7 +86,7 @@ class PayPartsStorefrontDataService
         }
 
         $data->assign([
-            'orderId'      => $order->getId(),
+            'orderId' => $order->getId(),
             'editOrderUrl' => $this->router->generate(
                 'frontend.account.edit-order.page',
                 ['orderId' => $order->getId()]

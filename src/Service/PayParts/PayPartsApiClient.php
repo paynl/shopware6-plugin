@@ -35,12 +35,12 @@ class PayPartsApiClient
         $options = [
             'headers' => [
                 'Authorization' => 'Basic ' . $basicToken,
-                'Content-Type'  => 'application/json',
-                'Accept'        => 'application/json',
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
             ],
             // Without limits a slow PAY.Parts API would block the PHP worker; on timeout the caller gets a PayPartsApiException.
             'connect_timeout' => 5,
-            'timeout'         => 15,
+            'timeout' => 15,
         ];
 
         if ($payload !== []) {

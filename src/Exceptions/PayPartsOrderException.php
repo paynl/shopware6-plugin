@@ -11,7 +11,7 @@ class PayPartsOrderException extends Exception
 {
     public const HTTP_NOT_FOUND = 404;
     // 409 is reserved for "cart total changed": the storefront shows "Your cart has changed" only for 409.
-    public const HTTP_CONFLICT  = 409;
+    public const HTTP_CONFLICT = 409;
     public const HTTP_UNPROCESSABLE = 422;
     public const HTTP_INTERNAL_SERVER_ERROR = 500;
 

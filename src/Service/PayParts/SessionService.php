@@ -25,7 +25,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 class SessionService
 {
     private const PRODUCTION_URL = 'https://parts.pay.nl';
-    private const SDK_URL        = 'https://parts.pay.nl/sdk/payparts-sdk.js';
+    private const SDK_URL = 'https://parts.pay.nl/sdk/payparts-sdk.js';
 
     private PayPartsApiClient $apiClient;
     private SessionDataMapper $dataMapper;
@@ -54,7 +54,7 @@ class SessionService
     public function createFromCart(Cart $cart, SalesChannelContext $context): CreateSessionResponse
     {
         $salesChannelId = $context->getSalesChannel()->getId();
-        $request        = $this->buildRequestFromCart($cart, $context);
+        $request = $this->buildRequestFromCart($cart, $context);
 
         return $this->executeSessionCreate($request, $salesChannelId);
     }
@@ -63,7 +63,7 @@ class SessionService
     public function createFromOrder(OrderEntity $order, SalesChannelContext $context): CreateSessionResponse
     {
         $salesChannelId = $context->getSalesChannel()->getId();
-        $request        = $this->buildRequestFromOrder($order, $context);
+        $request = $this->buildRequestFromOrder($order, $context);
 
         return $this->executeSessionCreate($request, $salesChannelId);
     }
@@ -86,14 +86,14 @@ class SessionService
     private function buildRequestFromCart(Cart $cart, SalesChannelContext $context): CreateSessionRequest
     {
         $amountCents = (int)round($cart->getPrice()->getTotalPrice() * 100);
-        $currency    = $context->getCurrency()->getIsoCode();
-        $customer    = $context->getCustomer();
+        $currency = $context->getCurrency()->getIsoCode();
+        $customer = $context->getCustomer();
 
         return new CreateSessionRequest(
-            returnUrl:   $this->paymentUrlBuilder->buildReturnUrl(''),
+            returnUrl: $this->paymentUrlBuilder->buildReturnUrl(''),
             exchangeUrl: $this->paymentUrlBuilder->buildExchangeUrl(),
-            amount:      new SessionAmount($amountCents, $currency),
-            customer:    $customer ? $this->buildCustomer($customer, $context) : null,
+            amount: new SessionAmount($amountCents, $currency),
+            customer: $customer ? $this->buildCustomer($customer, $context) : null,
         );
     }
 
@@ -101,16 +101,16 @@ class SessionService
     {
         $amountCents = (int)round($order->getAmountTotal() * 100);
         // Order currency takes precedence; fall back to context when not yet associated.
-        $currency    = $order->getCurrency()?->getIsoCode() ?? $context->getCurrency()->getIsoCode();
-        $customer    = $context->getCustomer();
+        $currency = $order->getCurrency()?->getIsoCode() ?? $context->getCurrency()->getIsoCode();
+        $customer = $context->getCustomer();
 
         return new CreateSessionRequest(
-            returnUrl:   $this->paymentUrlBuilder->buildReturnUrl(''),
+            returnUrl: $this->paymentUrlBuilder->buildReturnUrl(''),
             exchangeUrl: $this->paymentUrlBuilder->buildExchangeUrl(),
-            amount:      new SessionAmount($amountCents, $currency),
-            reference:   $order->getOrderNumber(),
+            amount: new SessionAmount($amountCents, $currency),
+            reference: $order->getOrderNumber(),
             // The order's own billing address: the customer may have changed their default since ordering.
-            customer:    $customer ? $this->buildCustomer($customer, $context, $order->getBillingAddress()) : null,
+            customer: $customer ? $this->buildCustomer($customer, $context, $order->getBillingAddress()) : null,
         );
     }
 
@@ -123,15 +123,15 @@ class SessionService
         // Extract the BCP 47 language subtag from "nl-NL", "de-DE", etc.
         // Not $context->getLanguageInfo(): it doesn't exist on Shopware 6.5.
         $localeCode = $this->localeCodeHelper->getLocaleCodeFromContext($context->getContext());
-        $language   = strtolower(substr($localeCode, 0, 2));
+        $language = strtolower(substr($localeCode, 0, 2));
 
         return new SessionCustomer(
-            locale:    $language,
+            locale: $language,
             firstName: $customer->getFirstName(),
-            lastName:  $customer->getLastName(),
-            email:     $customer->getEmail(),
-            phone:     $billing?->getPhoneNumber(),
-            address:   $billing ? $this->buildAddress($billing, $context->getSalesChannelId()) : null,
+            lastName: $customer->getLastName(),
+            email: $customer->getEmail(),
+            phone: $billing?->getPhoneNumber(),
+            address: $billing ? $this->buildAddress($billing, $context->getSalesChannelId()) : null,
         );
     }
 
@@ -140,11 +140,11 @@ class SessionService
         [$street, $houseNumber] = $this->parseStreetAndHouseNumber($address, $salesChannelId);
 
         return new SessionAddress(
-            street:      $street,
+            street: $street,
             houseNumber: $houseNumber,
-            postalCode:  $address->getZipcode() ?? '',
-            city:        $address->getCity() ?? '',
-            country:     $address->getCountry()?->getIso() ?? '',
+            postalCode: $address->getZipcode() ?? '',
+            city: $address->getCity() ?? '',
+            country: $address->getCountry()?->getIso() ?? '',
         );
     }
 

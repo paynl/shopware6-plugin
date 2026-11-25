@@ -61,7 +61,7 @@ class EditOrderTransactionService
             throw PayPartsOrderException::invalidPaymentMethod();
         }
 
-        $order  = $this->loadOrder($orderId, $context);
+        $order = $this->loadOrder($orderId, $context);
         $latest = $order->getTransactions()?->first();
 
         if ($latest === null
@@ -77,7 +77,7 @@ class EditOrderTransactionService
                 throw PayPartsOrderException::paymentChangeFailed($exception);
             }
 
-            $order  = $this->loadOrder($orderId, $context);
+            $order = $this->loadOrder($orderId, $context);
             $latest = $order->getTransactions()?->first();
         }
 

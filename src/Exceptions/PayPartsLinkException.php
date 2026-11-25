@@ -9,7 +9,7 @@ use Exception;
 class PayPartsLinkException extends Exception
 {
     public const HTTP_FORBIDDEN = 403;
-    public const HTTP_CONFLICT  = 409;
+    public const HTTP_CONFLICT = 409;
 
     private int $statusCode;
 

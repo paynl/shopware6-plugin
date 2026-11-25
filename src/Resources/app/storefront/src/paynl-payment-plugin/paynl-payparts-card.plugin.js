@@ -2,13 +2,13 @@ import Plugin from '../plugin-system/plugin.class';
 import HttpClient from '../service/http-client.service';
 
 const CARD_COMPONENT_SELECTOR = '#paynl-card-payments';
-const ERROR_CLASS             = 'paynl-payparts-card-error';
-const LOADING_CLASS           = 'is-loading';
-const READY_CLASS             = 'is-ready';
-const CONFIRM_FORM_ID         = 'confirmOrderForm';
-const ORDER_FIELDS            = ['tos', 'revocation', 'customerComment', 'affiliateCode', 'campaignCode'];
-const SDK_POLL_MS             = 100;
-const SDK_WAIT_MS             = 10000;
+const ERROR_CLASS = 'paynl-payparts-card-error';
+const LOADING_CLASS = 'is-loading';
+const READY_CLASS = 'is-ready';
+const CONFIRM_FORM_ID = 'confirmOrderForm';
+const ORDER_FIELDS = ['tos', 'revocation', 'customerComment', 'affiliateCode', 'campaignCode'];
+const SDK_POLL_MS = 100;
+const SDK_WAIT_MS = 10000;
 
 /**
  * Shopware storefront plugin that mounts the PAY.Parts `card-payments` component.
@@ -51,14 +51,14 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     };
 
     init() {
-        this._client             = new HttpClient();
-        this._checkout           = null;
-        this._sessionAmount      = {};
-        this._orderRequest       = null;
+        this._client = new HttpClient();
+        this._checkout = null;
+        this._sessionAmount = {};
+        this._orderRequest = null;
 
         // Set by create-order (on the first Pay press, also in edit-order mode); later presses reuse it.
         this._orderTransactionId = null;
-        this._editOrderUrl       = this.options.editOrderUrl || null;
+        this._editOrderUrl = this.options.editOrderUrl || null;
 
         this.el.classList.add(LOADING_CLASS);
         this._fetchSessionAndMount();
@@ -102,19 +102,19 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         this._checkout = await window.PayPartsSDK.init({
             sessionToken,
             apiUrl,
-            country:   this.options.country,
-            language:  this.options.language,
+            country: this.options.country,
+            language: this.options.language,
             // Default is 30s; after it the SDK continues without our order. Give order creation more room.
             onSubmitTimeout: 60000,
         });
 
         this._checkout.events = {
-            onReady:           (event) => this._onReady(event),
-            onSubmit:          (event) => this._onSubmit(event),
-            onSuccess:         (event) => this._onSuccess(event),
-            onError:           (event) => this._onError(event),
-            onPartialPaid:     (event) => this._onPartialPaid(event),
-            onInfoUpdated:     (event) => this._onInfoUpdated(event),
+            onReady: (event) => this._onReady(event),
+            onSubmit: (event) => this._onSubmit(event),
+            onSuccess: (event) => this._onSuccess(event),
+            onError: (event) => this._onError(event),
+            onPartialPaid: (event) => this._onPartialPaid(event),
+            onInfoUpdated: (event) => this._onInfoUpdated(event),
             onShippingUpdated: (event) => this._onShippingUpdated(event),
         };
 

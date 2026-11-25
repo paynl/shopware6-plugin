@@ -143,7 +143,7 @@ class OrderCreationService
 
         /** @var OrderTransactionCollection $transactions */
         $transactions = $order->getTransactions();
-        $transaction  = $transactions->first();
+        $transaction = $transactions->first();
 
         if ($transaction === null) {
             throw PayPartsOrderException::transactionNotFound($order->getId());

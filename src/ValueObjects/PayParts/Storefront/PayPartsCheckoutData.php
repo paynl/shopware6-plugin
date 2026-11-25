@@ -9,20 +9,20 @@ use Shopware\Core\Framework\Struct\Struct;
 class PayPartsCheckoutData extends Struct
 {
     public const DEFAULT_COUNTRY_ISO = 'NL';
-    public const DEFAULT_LANGUAGE    = 'nl';
+    public const DEFAULT_LANGUAGE = 'nl';
 
-    protected string $paymentMethodId    = '';
-    protected string $sessionUrl         = '';
-    protected string $createOrderUrl     = '';
+    protected string $paymentMethodId = '';
+    protected string $sessionUrl = '';
+    protected string $createOrderUrl = '';
     protected string $linkTransactionUrl = '';
-    protected string $reportIssueUrl     = '';
-    protected string $sdkUrl             = '';
-    protected string $country            = self::DEFAULT_COUNTRY_ISO;
-    protected string $language           = self::DEFAULT_LANGUAGE;
+    protected string $reportIssueUrl = '';
+    protected string $sdkUrl = '';
+    protected string $country = self::DEFAULT_COUNTRY_ISO;
+    protected string $language = self::DEFAULT_LANGUAGE;
 
     // Edit-order retry fields — empty on first checkout.
-    protected string $orderId            = '';
-    protected string $editOrderUrl       = '';
+    protected string $orderId = '';
+    protected string $editOrderUrl = '';
 
     /**
      * True when PAY.Parts checkout data was built for an available credit card method.
@@ -54,18 +54,18 @@ class PayPartsCheckoutData extends Struct
     public function getPluginOptions(): array
     {
         $options = [
-            'paymentMethodId'    => $this->paymentMethodId,
-            'sessionUrl'         => $this->sessionUrl,
-            'createOrderUrl'     => $this->createOrderUrl,
+            'paymentMethodId' => $this->paymentMethodId,
+            'sessionUrl' => $this->sessionUrl,
+            'createOrderUrl' => $this->createOrderUrl,
             'linkTransactionUrl' => $this->linkTransactionUrl,
-            'reportIssueUrl'     => $this->reportIssueUrl,
-            'country'            => $this->country,
-            'language'           => $this->language,
+            'reportIssueUrl' => $this->reportIssueUrl,
+            'country' => $this->country,
+            'language' => $this->language,
         ];
 
         if ($this->isEditOrderMode()) {
-            $options['orderId']            = $this->orderId;
-            $options['editOrderUrl']       = $this->editOrderUrl;
+            $options['orderId'] = $this->orderId;
+            $options['editOrderUrl'] = $this->editOrderUrl;
         }
 
         return $options;

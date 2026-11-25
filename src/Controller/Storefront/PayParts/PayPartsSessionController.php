@@ -41,12 +41,12 @@ class PayPartsSessionController extends StorefrontController
         Config $config,
         LoggerInterface $logger
     ) {
-        $this->sessionService  = $sessionService;
+        $this->sessionService = $sessionService;
         $this->orderCreationService = $orderCreationService;
-        $this->cartService     = $cartService;
+        $this->cartService = $cartService;
         $this->editOrderTransactionService = $editOrderTransactionService;
-        $this->config          = $config;
-        $this->logger          = $logger;
+        $this->config = $config;
+        $this->logger = $logger;
     }
 
     #[Route(
@@ -58,8 +58,8 @@ class PayPartsSessionController extends StorefrontController
     )]
     public function createSession(Request $request, SalesChannelContext $context): JsonResponse
     {
-        $body    = json_decode($request->getContent(), true);
-        $body    = is_array($body) ? array_filter($body, 'is_scalar') : []; // only scalars: casting an array to string would error
+        $body = json_decode($request->getContent(), true);
+        $body = is_array($body) ? array_filter($body, 'is_scalar') : []; // only scalars: casting an array to string would error
         $orderId = trim((string)($body['orderId'] ?? ''));
         $paymentMethodId = trim((string)($body['paymentMethodId'] ?? '')) ?: null;
         $amountData = [];
@@ -75,28 +75,28 @@ class PayPartsSessionController extends StorefrontController
             }
 
             if ($orderId !== '') {
-                $order      = $this->loadOrderForCustomer($orderId, $context);
-                $response   = $this->sessionService->createFromOrder($order, $context);
+                $order = $this->loadOrderForCustomer($orderId, $context);
+                $response = $this->sessionService->createFromOrder($order, $context);
                 $amountData = [
                     'amountCents' => (int) round($order->getAmountTotal() * 100),
-                    'currency'    => $order->getCurrency()?->getIsoCode() ?? $context->getCurrency()->getIsoCode(),
+                    'currency' => $order->getCurrency()?->getIsoCode() ?? $context->getCurrency()->getIsoCode(),
                 ];
             } else {
                 // Calculate the cart for the card method so surcharges match the order created later,
                 // without changing the customer's selected method (the native submit button must keep working).
-                $context  = $this->orderCreationService->withCardMethod($context, $paymentMethodId);
-                $cart     = $this->cartService->getCalculatedMainCart($context);
+                $context = $this->orderCreationService->withCardMethod($context, $paymentMethodId);
+                $cart = $this->cartService->getCalculatedMainCart($context);
                 $response = $this->sessionService->createFromCart($cart, $context);
                 $amountData = [
                     'amountCents' => (int) round($cart->getPrice()->getTotalPrice() * 100),
-                    'currency'    => $context->getCurrency()->getIsoCode(),
+                    'currency' => $context->getCurrency()->getIsoCode(),
                 ];
             }
 
             return new JsonResponse(array_merge([
                 'sessionToken' => $response->getSessionToken(),
-                'sessionId'    => $response->getSessionId(),
-                'apiUrl'       => $this->sessionService->getApiUrl(),
+                'sessionId' => $response->getSessionId(),
+                'apiUrl' => $this->sessionService->getApiUrl(),
             ], $amountData));
         } catch (PayPartsOrderException $exception) {
             $this->logger->warning('PAY.Parts session denied', ['reason' => $exception->getMessage()]);
@@ -107,7 +107,7 @@ class PayPartsSessionController extends StorefrontController
             );
         } catch (PayPartsLinkException $exception) {
             $this->logger->warning('PAY.Parts session access denied', [
-                'reason'  => $exception->getMessage(),
+                'reason' => $exception->getMessage(),
                 'orderId' => $orderId,
             ]);
 
