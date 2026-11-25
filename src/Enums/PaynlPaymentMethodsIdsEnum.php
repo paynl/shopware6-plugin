@@ -11,43 +11,17 @@ class PaynlPaymentMethodsIdsEnum
     const PAYPAL_PAYMENT = 138;
     const METJEBANK_PAYMENT = 5358;
 
-    // Ungrouped card networks (Pay.Parts)
-    const VISA = 3141;
-    const MASTERCARD = 3138;
-    const VISA_MASTERCARD = 706;
-    const POSTEPAY = 708;
-    const CARTE_BANCAIRE = 2268;
-    const CARTE_BLEUE = 710;
-    const CARTE_BLEUE_VPAY = 711;   // Carte Bleue V PAY variant
-    const MAESTRO = 712;            // Maestro (card not present)
-    const MAESTRO_CARD_PRESENT = 715; // Maestro (card present)
-    const AMEX = 1705;
-    const DANKORT = 1939;
-    const NEXI = 1945;
-
     /**
-     * Preference order when resolving which Shopware payment method to use for Pay.Parts.
-     * Grouped first, then individual brands.
-     * VISA_MASTERCARD (706) is left out: PAY. docs state it cannot be processed via PAY.Parts.
+     * Payment methods the PAY.Parts card widget may be booked under. Only the grouped credit card:
+     * the widget accepts every card brand, so tying it to a single brand method (e.g. Visa) would
+     * record an Amex payment as Visa, with Visa's surcharge. Shops with only brand methods keep
+     * the normal redirect flow.
      *
      * @return int[]
      */
     public static function getPayPartsCardPaymentIds(): array
     {
-        return [
-            self::CREDIT_CARD_PAYMENT,
-            self::VISA,
-            self::MASTERCARD,
-            self::POSTEPAY,
-            self::CARTE_BANCAIRE,
-            self::CARTE_BLEUE,
-            self::CARTE_BLEUE_VPAY,
-            self::MAESTRO,
-            self::MAESTRO_CARD_PRESENT,
-            self::AMEX,
-            self::DANKORT,
-            self::NEXI,
-        ];
+        return [self::CREDIT_CARD_PAYMENT];
     }
 
     public static function isPayPartsCardPayment(int $paynlId): bool

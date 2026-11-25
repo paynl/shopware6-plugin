@@ -100,6 +100,8 @@ class PayPartsCheckoutController extends StorefrontController
                 'editOrderUrl' => $result->getEditOrderUrl(),
             ]);
         } catch (PayPartsLinkException $exception) {
+            $this->logger->warning('PAY.Parts order creation access denied', ['orderId' => $orderId]);
+
             return new JsonResponse(['error' => 'Order creation failed'], $exception->getStatusCode());
         } catch (PayPartsOrderException $exception) {
             $this->logger->warning('PAY.Parts order creation denied', [
@@ -136,7 +138,8 @@ class PayPartsCheckoutController extends StorefrontController
         $paynlTransactionId = (string)($body['paynlTransactionId'] ?? '');
         $orderTransactionId = (string)($body['orderTransactionId'] ?? '');
 
-        if ($paynlTransactionId === '' || $orderTransactionId === '') {
+        // PAY. order ids look like "47529675044X44d4"; anything else never reaches the lock or the PAY. API.
+        if (!preg_match('/^[A-Za-z0-9]{1,64}$/', $paynlTransactionId) || $orderTransactionId === '') {
             return new JsonResponse(
                 ['error' => 'Missing required parameters'],
                 Response::HTTP_BAD_REQUEST

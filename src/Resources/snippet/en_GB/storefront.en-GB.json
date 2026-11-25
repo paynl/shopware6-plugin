@@ -47,6 +47,7 @@
         "sessionFailed": "Session creation failed. Please reload and try again.",
         "sdkUnavailable": "PAY.Parts SDK is not available. Please reload the page.",
         "orderFailed": "Order creation failed. Please try again.",
+        "orderChanged": "The order amount has changed. The page will reload, please try again.",
         "cartChanged": "Your cart has changed. Please reload the page and try again.",
         "orphanPayment": "Your payment was received, but the order could not be completed. Please contact the shop and mention reference %reference%.",
         "orphanNoUrl": "Your payment was received, but the order could not be completed. Please contact the shop.",

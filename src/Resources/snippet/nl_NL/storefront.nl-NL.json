@@ -47,6 +47,7 @@
         "sessionFailed": "Sessie aanmaken mislukt. Laad de pagina opnieuw en probeer het nogmaals.",
         "sdkUnavailable": "PAY.Parts SDK is niet beschikbaar. Laad de pagina opnieuw.",
         "orderFailed": "Bestelling aanmaken mislukt. Probeer het opnieuw.",
+        "orderChanged": "Het bedrag van de bestelling is gewijzigd. De pagina wordt opnieuw geladen, probeer het daarna nogmaals.",
         "cartChanged": "Uw winkelwagen is gewijzigd. Laad de pagina opnieuw en probeer het nogmaals.",
         "orphanPayment": "Uw betaling is ontvangen, maar de bestelling kon niet worden afgerond. Neem contact op met de winkel en vermeld referentie %reference%.",
         "orphanNoUrl": "Uw betaling is ontvangen, maar de bestelling kon niet worden afgerond. Neem contact op met de winkel.",

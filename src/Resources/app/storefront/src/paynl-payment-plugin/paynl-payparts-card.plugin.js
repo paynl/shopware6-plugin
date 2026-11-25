@@ -204,9 +204,9 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
                             setTimeout(() => window.location.reload(), 3000);
                         }
 
-                        reject(new Error(request.status === 409
-                            ? this._t('cartChanged')
-                            : this._t('orderFailed')));
+                        reject(new Error(request.status !== 409
+                            ? this._t('orderFailed')
+                            : this._t(this.options.orderId ? 'orderChanged' : 'cartChanged')));
                         return;
                     }
 
