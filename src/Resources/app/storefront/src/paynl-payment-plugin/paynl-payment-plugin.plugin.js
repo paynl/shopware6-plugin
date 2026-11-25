@@ -1,7 +1,7 @@
-import Plugin from 'src/plugin-system/plugin.class';
-import IMask from '../../node_modules/imask/dist/imask';
-import DomAccess from 'src/helper/dom-access.helper';
-import ButtonLoadingIndicator from 'src/utility/loading-indicator/button-loading-indicator.util';
+import Plugin from '../plugin-system/plugin.class';
+import IMask from 'imask';
+import DomAccess from '../helper/dom-access.helper';
+import ButtonLoadingIndicator from '../utility/loading-indicator/button-loading-indicator.util';
 
 export default class PaynlPaymentPlugin extends Plugin {
     init() {
@@ -16,6 +16,7 @@ export default class PaynlPaymentPlugin extends Plugin {
         if (trigger) {
             this.initDateOfBirthMask();
             this.initPayLaterEvents();
+            this.initBankLogos();
 
             const form = trigger.parentNode;
             form.addEventListener('submit', this.onSavePaymentMethod.bind(this));
@@ -141,6 +142,18 @@ export default class PaynlPaymentPlugin extends Plugin {
         });
     }
 
+    initBankLogos() {
+        // A bank PAY. adds later may not have a bundled logo yet: keep only its name
+        document.querySelectorAll('.paynl-bank-option-logo').forEach((logo) => {
+            if (logo.complete && logo.naturalWidth === 0) {
+                logo.remove();
+                return;
+            }
+
+            logo.addEventListener('error', () => logo.remove(), { once: true });
+        });
+    }
+
     initPayLaterEvents() {
         const paynlPhone = document.querySelectorAll('.paynl-phone');
         const paynlDateOfBirth = document.querySelectorAll('.paynl-dob');
@@ -155,9 +168,16 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     onSavePaymentMethod(element) {
+        // Shopware's auto-submit on method change has no submitter; only validate our save button.
+        if (!element.submitter?.classList.contains('paynl-change-payment-method')) {
+            return;
+        }
+
         const data = {};
         const invalid = [];
-        const currentPaymentMethod = document.querySelector('.paynl-payment-method-extra.active');
+        // Use the checked method, not `.active`: Shopware's auto-submit fires before onChangeCallback moves `.active`.
+        const checkedMethod = element.currentTarget.querySelector('input[name="paymentMethodId"]:checked');
+        const currentPaymentMethod = checkedMethod?.closest('.payment-method')?.querySelector('.paynl-payment-method-extra');
 
         // Early return if no PayNL method is active
         if (!currentPaymentMethod) {
@@ -207,8 +227,9 @@ export default class PaynlPaymentPlugin extends Plugin {
     }
 
     onChangeCallback(event) {
-        // check if event is triggered by payment method change
-        if (event.target.className.indexOf('payment-method-input') !== -1) {
+        // check if event is triggered by payment method change (a bank pick shares the class to auto-submit the form)
+        if (event.target.className.indexOf('payment-method-input') !== -1
+            && !event.target.classList.contains('paynl-bank-input')) {
             // hide previous extra data block
             const prevExtraDataBlock = event.currentTarget.querySelector('.paynl-payment-method-extra.active');
             if (prevExtraDataBlock) {

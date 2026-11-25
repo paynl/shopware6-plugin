@@ -1,3 +1,11 @@
+# 2.1.0
+- Bankauswahl für Metjebank im Checkout hinzugefügt, wahlweise als Dropdown oder als Radiobuttons mit Banklogos (neue Einstellungen „Bankauswahl“); die gewählte Bank wird geprüft, beim Zahlungsstart an Pay. übermittelt, an der Bestellung gespeichert und in der Bestellübersicht im Admin angezeigt.
+- Das Plugin liefert nun ein vorgefertigtes Storefront-Skript für Shopware 6.5, 6.6 und 6.7; versionsspezifische Skripte werden bei Installation oder Update nicht mehr kopiert.
+- Felder für Rechnungskauf (Geburtsdatum, Telefonnummer) werden nur noch beim Klick auf den Pay.-Speichern-Button geprüft.
+- Behoben: Statuswechsel von Bestellungen schlugen fehl, weil die Pay.-Transition „authorize“ mit der Shopware-Aktion „authorize“ kollidierte (#464).
+- Nicht signierte „bezahlt“-Benachrichtigungen werden nun erneut versucht, solange die Pay.-API die Zahlung noch als autorisiert meldet, damit die Bestellung nicht im falschen Status bleibt.
+- Zahlungsmethoden-Logos für Billink Factoring, Billie, CashbackXL Pay. und SAS EuroBonus Checkout hinzugefügt.
+
 # 2.0.10
 - Pay.-Admin-API-Routen (Rückerstattungen, Statuswechsel, Pay.-Einstellungen) mit Shopware-ACL-Berechtigungen abgesichert; für Rückerstattungen ist nun die Berechtigung „Bestellungen > Rückerstattungen > Bearbeiter“ erforderlich.
 - Shopware-Instanz-ID zu den Pay.-Transaktionsstatistiken (extra3) als Grundlage für das Shopware-Commission-Reporting hinzugefügt.
