@@ -44,7 +44,7 @@ class TransactionLinkValidator
     }
 
     /**
-     * Hard security checks — failures must block linking entirely.
+     * Hard security checks. A failure stops the linking.
      *
      * @throws PayPartsLinkException
      */
@@ -115,7 +115,7 @@ class TransactionLinkValidator
     }
 
     /**
-     * Soft business-rule warnings — stored in paynl_transactions.exception, never block storage.
+     * Soft business-rule warnings. They go to paynl_transactions.exception and never stop the storage.
      */
     public function getStorageWarning(OrderTransactionEntity $orderTransaction): ?Throwable
     {

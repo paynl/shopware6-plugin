@@ -96,7 +96,7 @@ class PayPartsStorefrontDataService
         return $data;
     }
 
-    // ─── Private helpers ─────────────────────────────────────────────────────
+    // Private helpers
 
     private function getCountryIso(SalesChannelContext $context): string
     {

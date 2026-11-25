@@ -20,7 +20,7 @@ class PayPartsCheckoutData extends Struct
     protected string $country = self::DEFAULT_COUNTRY_ISO;
     protected string $language = self::DEFAULT_LANGUAGE;
 
-    // Edit-order retry fields — empty on first checkout.
+    // Edit-order retry fields: empty on first checkout.
     protected string $orderId = '';
     protected string $editOrderUrl = '';
 

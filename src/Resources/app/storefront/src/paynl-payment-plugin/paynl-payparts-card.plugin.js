@@ -14,13 +14,13 @@ const SDK_WAIT_MS = 10000;
  * Shopware storefront plugin that mounts the PAY.Parts `card-payments` component.
  *
  * The Twig template renders this element when Pay.Parts is enabled and a card
- * payment method is available — no runtime payment-method selection is needed.
+ * payment method is available: no runtime payment-method selection is needed.
  *
  * Lifecycle:
- *  1. init()      → fetch session, init SDK, bind component (the native submit button stays for other methods)
- *  2. onSubmit    → create the Shopware order first (this empties the cart), then let the SDK pay
- *  3. onSuccess   → link the PAY. payment to that order, redirect to the finish page
- *  4. onError     → SDK shows its own error; if the order already exists, go to its edit page,
+ *  1. init(): fetch session, init SDK, bind component (the native submit button stays for other methods)
+ *  2. onSubmit: create the Shopware order first (this empties the cart), then let the SDK pay
+ *  3. onSuccess: link the PAY. payment to that order, redirect to the finish page
+ *  4. onError: SDK shows its own error; if the order already exists, go to its edit page,
  *                   because with an empty cart the confirm page can't retry or switch method
  */
 export default class PaynlPayPartsCardPlugin extends Plugin {
@@ -39,14 +39,14 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         /** BCP 47 language subtag derived from the storefront locale */
         language: 'nl',
         /**
-         * Edit-order retry mode — populated by the backend when payment is retried
+         * Edit-order retry mode: populated by the backend when payment is retried
          * on an existing order (empty string on first checkout).
          */
         orderId: '',
         editOrderUrl: '',
         /** Shopware UUID of the Pay.Parts card payment method resolved for this checkout */
         paymentMethodId: '',
-        /** Translated UI strings (key → text), provided by the Twig template. */
+        /** Translated UI strings (key and text), provided by the Twig template. */
         snippets: {},
     };
 
@@ -64,7 +64,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         this._fetchSessionAndMount();
     }
 
-    // ─── Bootstrap ───────────────────────────────────────────────────────────
+    // Bootstrap
 
     /** POST to the backend to create a PAY.Parts session, then mount the SDK. */
     _fetchSessionAndMount() {
@@ -89,7 +89,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     }
 
     /**
-     * Initialises the PAY.Parts SDK, registers event handlers, then binds
+     * Initialises the PAY.Parts SDK, registers the event handlers and binds
      * the `card-payments` component to its dedicated DOM node.
      *
      * @param {string} sessionToken
@@ -141,9 +141,9 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         }
     }
 
-    // ─── PAY.Parts event handlers ─────────────────────────────────────────────
+    // PAY.Parts event handlers
 
-    /** SDK is ready — clear any previous error and ensure loading state is gone. */
+    /** SDK is ready: clear any previous error and ensure loading state is gone. */
     _onReady() {
         this._clearError();
         this._stopLoading();
@@ -152,7 +152,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     /**
      * User pressed "Pay" inside the SDK component.
      * Create the Shopware order first; resolve so PAY.Parts can continue with 3DS/auth.
-     * Guard makes this idempotent — a retry uses the already-created order.
+     * A guard makes this safe to repeat: a retry uses the order that already exists.
      */
     _onSubmit(event) {
         if (this._orderTransactionId !== null) {
@@ -264,7 +264,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
     }
 
     /**
-     * Payment failed — the SDK renders its own error inside #paynl-card-payments.
+     * Payment failed: the SDK renders its own error inside #paynl-card-payments.
      * If our order already exists, the cart is empty, so the confirm page can no longer switch
      * payment method: send the customer to the order's edit page (Shopware's standard place to
      * retry a failed payment with the card widget or any other method). The short delay lets
@@ -292,13 +292,13 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         event.resolve?.();
     }
 
-    /** Fired when customer info is updated inside the SDK — no action needed for card-only. */
+    /** Fired when customer info is updated inside the SDK: no action needed for card-only. */
     _onInfoUpdated() {}
 
-    /** Fired when shipping is changed inside the SDK — no action needed for card-only. */
+    /** Fired when shipping is changed inside the SDK: no action needed for card-only. */
     _onShippingUpdated() {}
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // Helpers
 
     /** Confirm-form fields Shopware needs to create the order (terms, withdrawal, comment, codes). */
     _collectOrderData(form) {
@@ -383,7 +383,7 @@ export default class PaynlPayPartsCardPlugin extends Plugin {
         }
     }
 
-    /** Remove the loading spinner and fade the card form in. Idempotent — safe to call multiple times. */
+    /** Remove the loading spinner and fade the card form in. Idempotent: safe to call multiple times. */
     _stopLoading() {
         this.el.classList.remove(LOADING_CLASS);
 

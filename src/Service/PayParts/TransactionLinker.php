@@ -106,7 +106,7 @@ class TransactionLinker
 
     /**
      * Sync PAY.nl status to paynl_transactions and the Shopware order state.
-     * Failures are logged but never thrown — payment already succeeded at this point.
+     * We log failures and never throw, because the payment already succeeded.
      */
     private function syncTransactionStatus(
         string $paynlTransactionId,

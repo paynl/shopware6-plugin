@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Throwable;
 
 /**
- * Edit-order retry: when the customer presses Pay, guarantees the order has an OPEN transaction with a
+ * Edit-order retry: when the customer presses Pay, make sure the order has an open transaction with a
  * PAY.Parts card method, so the PAY.nl payment is always linked to a matching transaction.
  */
 class EditOrderTransactionService

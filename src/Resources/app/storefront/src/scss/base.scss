@@ -410,7 +410,7 @@
     }
 }
 
-// ─── PAY.Parts card-payments component ───────────────────────────────────────
+// PAY.Parts card-payments component
 // $pp-blue matches the SDK's "Pay" button colour.
 $pp-blue: #3b5bdb;
 
@@ -471,7 +471,7 @@ $pp-blue: #3b5bdb;
     font-size: 0.875rem;
 }
 
-// ─── PAY.Parts SDK internal elements ─────────────────────────────────────────
+// PAY.Parts SDK internal elements
 // The SDK renders regular DOM so these classes are directly targetable.
 // All rules are scoped to our wrapper to prevent bleed.
 
@@ -572,7 +572,7 @@ $pp-blue: #3b5bdb;
     to { transform: rotate(360deg); }
 }
 
-// ─── Responsive ──────────────────────────────────────────────────────────────
+// Responsive
 
 @media (max-width: 576px) {
     .paynl-payparts-card-wrapper {
