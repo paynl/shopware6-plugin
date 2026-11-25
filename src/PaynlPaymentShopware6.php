@@ -42,6 +42,7 @@ use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
@@ -149,6 +150,8 @@ class PaynlPaymentShopware6 extends Plugin
         $translator = $this->container->get('translator');
         /** @var RequestStack $requestStack */
         $requestStack = $this->container->get('request_stack');
+        /** @var CacheInterface $cache */
+        $cache = $this->container->get('cache.app');
 
         return new Api(
             $this->getConfig(),
@@ -157,7 +160,8 @@ class PaynlPaymentShopware6 extends Plugin
             new ProductRepository($productRepository),
             $translator,
             $requestStack,
-            $this->getLogger()
+            $this->getLogger(),
+            $cache
         );
     }
 

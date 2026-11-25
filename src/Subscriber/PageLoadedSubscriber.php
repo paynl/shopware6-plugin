@@ -8,16 +8,19 @@ use PaynlPayment\Shopware6\Entity\PaynlTransactionEntity;
 use PaynlPayment\Shopware6\Enums\PaynlTransactionStatusesEnum;
 use PaynlPayment\Shopware6\Enums\StorefrontSubscriberEnum;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
+use PaynlPayment\Shopware6\Service\PayParts\PayPartsStorefrontDataService;
 use PaynlPayment\Shopware6\Service\PaymentMethod\PaymentMethodSurchargeService;
 use PaynlPayment\Shopware6\ValueObjects\CustomPageDataValueObject;
 use Shopware\Core\Checkout\Cart\AbstractCartPersister;
 use Shopware\Core\Checkout\Cart\Exception\CartTokenNotFoundException;
 use Shopware\Core\Checkout\Cart\LineItem\LineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelEntityLoadedEvent;
@@ -30,6 +33,8 @@ use Shopware\Storefront\Page\Account\Profile\AccountProfilePageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Finish\CheckoutFinishPageLoadedEvent;
 use Shopware\Storefront\Page\Checkout\Register\CheckoutRegisterPageLoadedEvent;
+use Shopware\Storefront\Page\Account\Order\AccountEditOrderPage;
+use Shopware\Storefront\Page\Checkout\Confirm\CheckoutConfirmPage;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class PageLoadedSubscriber implements EventSubscriberInterface
@@ -39,6 +44,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
     protected SystemConfigService $systemConfigService;
     protected AbstractCartPersister $cartPersister;
     protected PaynlTransactionsRepositoryInterface $paynlTransactionRepository;
+    protected PayPartsStorefrontDataService $payPartsStorefrontDataService;
 
     private string $shopwareVersion;
 
@@ -48,6 +54,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         SystemConfigService $systemConfigService,
         AbstractCartPersister $cartPersister,
         PaynlTransactionsRepositoryInterface $paynlTransactionRepository,
+        PayPartsStorefrontDataService $payPartsStorefrontDataService,
         string $shopwareVersion
     ) {
         $this->config = $config;
@@ -55,6 +62,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
         $this->systemConfigService = $systemConfigService;
         $this->cartPersister = $cartPersister;
         $this->paynlTransactionRepository = $paynlTransactionRepository;
+        $this->payPartsStorefrontDataService = $payPartsStorefrontDataService;
         $this->shopwareVersion = $shopwareVersion;
     }
 
@@ -104,6 +112,11 @@ class PageLoadedSubscriber implements EventSubscriberInterface
 
             $checkoutConfirmPageLoadedEvent->getPage()->setPaymentMethods($paymentMethods);
         }
+
+        $this->addPayPartsCheckoutData(
+            $checkoutConfirmPageLoadedEvent->getPage(),
+            $checkoutConfirmPageLoadedEvent->getSalesChannelContext()
+        );
     }
 
     public function onAccountPaymentMethodPageLoaded(AccountPaymentMethodPageLoadedEvent $event)
@@ -148,6 +161,15 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 $order->getPrice()->getTotalPrice(),
                 $order->getLineItems()->filterByType(PaymentMethodSurchargeService::LINE_ITEM_TYPE)->count() > 0,
                 $salesChannelContext
+            );
+        }
+
+        // Shopware draws the payment form for every order; the widget only makes sense while payment can change.
+        if ($accountEditOrderPageLoadedEvent->getPage()->isPaymentChangeable()) {
+            $this->addPayPartsCheckoutData(
+                $accountEditOrderPageLoadedEvent->getPage(),
+                $accountEditOrderPageLoadedEvent->getSalesChannelContext(),
+                $accountEditOrderPageLoadedEvent->getPage()->getOrder()
             );
         }
     }
@@ -237,6 +259,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
 
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('orderId', $order->getId()));
+        $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING)); // latest PAY. attempt
         $criteria->addAssociation('orderTransaction.stateMachineState');
 
         /** @var PaynlTransactionEntity $paynlTransaction */
@@ -245,7 +268,7 @@ class PageLoadedSubscriber implements EventSubscriberInterface
                 $criteria,
                 $event->getSalesChannelContext()->getContext()
             )
-            ->last();
+            ->first();
 
         if ($paynlTransaction instanceof PaynlTransactionEntity) {
             $orderTransactionStatus = $paynlTransaction->getOrderTransaction()->getStateMachineState()->getTechnicalName();
@@ -271,6 +294,19 @@ class PageLoadedSubscriber implements EventSubscriberInterface
             StorefrontSubscriberEnum::PAY_NL_DATA_EXTENSION_ID,
             new CustomPageDataValueObject($configs, $this->shopwareVersion)
         );
+    }
+
+    private function addPayPartsCheckoutData(CheckoutConfirmPage|AccountEditOrderPage $page, SalesChannelContext $context, ?OrderEntity $order = null): void
+    {
+        $payPartsData = $order !== null
+            ? $this->payPartsStorefrontDataService->buildForOrder($order, $context, $page->getPaymentMethods())
+            : $this->payPartsStorefrontDataService->build($context, $page->getPaymentMethods());
+
+        if ($payPartsData === null || !$payPartsData->isEnabled()) {
+            return;
+        }
+
+        $page->addExtension(StorefrontSubscriberEnum::PAY_PARTS_CHECKOUT_EXTENSION_ID, $payPartsData);
     }
 
     /** @param LineItemCollection|OrderLineItemCollection $lineItems */

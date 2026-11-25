@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace PaynlPayment\Shopware6\Service\Notification;
 
+use Exception;
+use PayNL\Sdk\Model\Pay\PayOrder;
 use PayNL\Sdk\Model\Pay\PayStatus;
+use PayNL\Sdk\Model\Request\TransactionStatusRequest;
 use PayNL\Sdk\Util\Exchange;
 use PaynlPayment\Shopware6\Components\Api;
+use PaynlPayment\Shopware6\Components\Config;
 use PaynlPayment\Shopware6\Helper\ProcessingHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,6 +21,7 @@ class NotificationFacade
     public function __construct(
         private ProcessingHelper $processingHelper,
         private Api $api,
+        private Config $config,
         private LoggerInterface $logger,
     ) {
     }
@@ -56,8 +61,14 @@ class NotificationFacade
 
         $sdkConfig = $this->api->getConfig($salesChannelId);
 
+        // PAY.Parts webhooks are signed with the sales location key (SL-...), which the SDK can't verify:
+        // it only accepts the API token code. We check those ourselves and take the status from the API.
+        $salesLocationSigned = str_starts_with((string) $request->headers->get('signature-keyid'), 'SL-');
+
         try {
-            $payOrder = $exchange->process($sdkConfig);
+            $payOrder = $salesLocationSigned
+                ? $this->processSalesLocationSigned($exchange, $paynlOrderId, $salesChannelId)
+                : $exchange->process($sdkConfig);
 
             if ($payOrder->isPending()) {
                 return $exchange->setResponse(true, 'Pending payment', true);
@@ -65,7 +76,7 @@ class NotificationFacade
 
             // Unsigned notify: the SDK read the status from the API, which can still return 95 right after
             // a capture (e.g. WERO). Answer FALSE so PAY. retries instead of storing the stale authorize state.
-            if (!$exchange->isSignExchange()
+            if ((!$exchange->isSignExchange() || $salesLocationSigned)
                 && $exchange->getPayLoad()->getInternalStateId() === PayStatus::PAID
                 && $payOrder->getStatusCode() === PayStatus::AUTHORIZE
             ) {
@@ -89,6 +100,23 @@ class NotificationFacade
         }
 
         return $exchange->setResponse($responseResult, $responseMessage, true);
+    }
+
+    /** @throws Exception when the signature does not match the sales location's code and secret */
+    private function processSalesLocationSigned(Exchange $exchange, string $paynlOrderId, string $salesChannelId): PayOrder
+    {
+        $serviceId = trim($this->config->getServiceId($salesChannelId));
+        if ($serviceId === '' || !$exchange->checkSignExchange($serviceId, $this->api->getServiceSecret($salesChannelId))) {
+            throw new Exception('Signing request failed');
+        }
+
+        // Same choice as the SDK (Exchange::process): refunds need the refund-aware transaction status,
+        // otherwise a refunded order could be set back to paid.
+        if (stripos($exchange->getAction(), 'refund') !== false) {
+            return (new TransactionStatusRequest($paynlOrderId))->setConfig($this->api->getConfig($salesChannelId))->start();
+        }
+
+        return $this->api->getOrderStatus($paynlOrderId, $salesChannelId);
     }
 
     private function buildPayloadFromRequest(Request $request): array

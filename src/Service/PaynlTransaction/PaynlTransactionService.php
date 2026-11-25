@@ -7,6 +7,7 @@ use PaynlPayment\Shopware6\Exceptions\PaynlTransactionException;
 use PaynlPayment\Shopware6\Repository\PaynlTransactions\PaynlTransactionsRepositoryInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 
 class PaynlTransactionService
@@ -26,6 +27,8 @@ class PaynlTransactionService
             ->search(
                 (new Criteria())
                     ->addFilter(new EqualsFilter('orderId', $orderId))
+                    // An order can have several PAY. attempts (e.g. a cancelled one, then a paid one): use the latest.
+                    ->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING))
                     ->addAssociation('order')
                     ->addAssociation('orderTransaction.order'),
                 $context

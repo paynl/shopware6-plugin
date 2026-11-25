@@ -42,5 +42,18 @@
     "coc": {
         "label": "KVK/COC Number",
         "placeholder": "Enter your COC number"
+    },
+    "payParts": {
+        "sessionFailed": "Session creation failed. Please reload and try again.",
+        "sdkUnavailable": "PAY.Parts SDK is not available. Please reload the page.",
+        "orderFailed": "Order creation failed. Please try again.",
+        "orderChanged": "The order amount has changed. The page will reload, please try again.",
+        "cartChanged": "Your cart has changed. Please reload the page and try again.",
+        "orphanPayment": "Your payment was received, but the order could not be completed. Please contact the shop and mention reference %reference%.",
+        "orphanNoUrl": "Your payment was received, but the order could not be completed. Please contact the shop.",
+        "redirectUnexpected": "Unexpected redirect. Please contact support.",
+        "redirectInvalid": "Invalid redirect URL. Please contact support.",
+        "requiredFields": "Please complete the required fields of the order (e.g. accept the terms and conditions).",
+        "partialPaid": "Your payment was only partially completed (%remaining% remaining). Please contact the shop."
     }
 }

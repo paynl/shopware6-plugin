@@ -10,6 +10,7 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStat
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineTransition\StateMachineTransitionActions;
@@ -72,6 +73,8 @@ class StatusTransitionController extends AbstractController
                 ->search(
                     (new Criteria())
                         ->addFilter(new EqualsFilter('orderTransactionId', $orderTransactionId))
+                        // Several PAY. attempts can belong to one transaction: act on the latest one.
+                        ->addSorting(new FieldSorting('createdAt', FieldSorting::DESCENDING))
                         ->addAssociation('order')
                         ->addAssociation('orderTransaction.stateMachineState'),
                     $context

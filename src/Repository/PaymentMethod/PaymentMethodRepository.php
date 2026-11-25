@@ -12,6 +12,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Exception\EntityNotFoundExcepti
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodDefinition;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Exception;
@@ -138,5 +139,34 @@ class PaymentMethodRepository implements PaymentMethodRepositoryInterface
         }
 
         throw new Exception('Payment Method PayPal Express not found in system');
+    }
+
+    public function findPayPartsCardMethodInCollection(PaymentMethodCollection $methods): ?PaymentMethodEntity
+    {
+        foreach (PaynlPaymentMethodsIdsEnum::getPayPartsCardPaymentIds() as $preferredPaynlId) {
+            foreach ($methods as $paymentMethod) {
+                if ($this->matchesPaynlId($paymentMethod, $preferredPaynlId)) {
+                    return $paymentMethod;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public function isPayPartsCardPaymentMethod(PaymentMethodEntity $paymentMethod): bool
+    {
+        $customFields = $paymentMethod->getTranslation('customFields') ?? $paymentMethod->getCustomFields() ?? [];
+        $paynlId = isset($customFields['paynlId']) ? (int) $customFields['paynlId'] : 0;
+
+        return PaynlPaymentMethodsIdsEnum::isPayPartsCardPayment($paynlId);
+    }
+
+    private function matchesPaynlId(PaymentMethodEntity $paymentMethod, int $paynlId): bool
+    {
+        $customFields = $paymentMethod->getTranslation('customFields') ?? $paymentMethod->getCustomFields() ?? [];
+        $methodPaynlId = $customFields['paynlId'] ?? null;
+
+        return $methodPaynlId !== null && (int) $methodPaynlId === $paynlId;
     }
 }

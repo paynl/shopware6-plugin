@@ -43,5 +43,18 @@
     "coc": {
         "label": "IHK-Nummer",
         "placeholder": "IHK-Nummer eingeben"
+    },
+    "payParts": {
+        "sessionFailed": "Sitzung konnte nicht erstellt werden. Bitte laden Sie die Seite neu und versuchen Sie es erneut.",
+        "sdkUnavailable": "PAY.Parts SDK ist nicht verfügbar. Bitte laden Sie die Seite neu.",
+        "orderFailed": "Bestellung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+        "orderChanged": "Der Bestellbetrag hat sich geändert. Die Seite wird neu geladen, bitte versuchen Sie es erneut.",
+        "cartChanged": "Ihr Warenkorb hat sich geändert. Bitte laden Sie die Seite neu und versuchen Sie es erneut.",
+        "orphanPayment": "Ihre Zahlung wurde empfangen, aber die Bestellung konnte nicht abgeschlossen werden. Bitte kontaktieren Sie den Shop und nennen Sie die Referenz %reference%.",
+        "orphanNoUrl": "Ihre Zahlung wurde empfangen, aber die Bestellung konnte nicht abgeschlossen werden. Bitte kontaktieren Sie den Shop.",
+        "redirectUnexpected": "Unerwartete Weiterleitung. Bitte kontaktieren Sie den Support.",
+        "redirectInvalid": "Ungültige Weiterleitungs-URL. Bitte kontaktieren Sie den Support.",
+        "requiredFields": "Bitte füllen Sie die Pflichtfelder der Bestellung aus (z. B. AGB akzeptieren).",
+        "partialPaid": "Ihre Zahlung wurde nur teilweise abgeschlossen (%remaining% offen). Bitte kontaktieren Sie den Shop."
     }
 }
