@@ -11,12 +11,10 @@ use PaynlPayment\Shopware6\Exceptions\PaynlPaymentException;
 use PaynlPayment\Shopware6\Helper\LocaleCodeHelper;
 use PaynlPayment\Shopware6\Service\Router\PaymentUrlBuilder;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\CreateSessionRequest;
-use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionAddress;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionAmount;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Request\SessionCustomer;
 use PaynlPayment\Shopware6\ValueObjects\PayParts\Response\CreateSessionResponse;
 use Shopware\Core\Checkout\Cart\Cart;
-use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
@@ -120,63 +118,17 @@ class SessionService
         ?OrderAddressEntity $orderBillingAddress = null
     ): SessionCustomer {
         $billing = $orderBillingAddress ?? $customer->getActiveBillingAddress() ?? $customer->getDefaultBillingAddress();
-        // Extract the BCP 47 language subtag from "nl-NL", "de-DE", etc.
+        // PAY.Parts expects "nl_NL"; Shopware gives "nl-NL".
         // Not $context->getLanguageInfo(): it doesn't exist on Shopware 6.5.
-        $localeCode = $this->localeCodeHelper->getLocaleCodeFromContext($context->getContext());
-        $language = strtolower(substr($localeCode, 0, 2));
+        $locale = str_replace('-', '_', $this->localeCodeHelper->getLocaleCodeFromContext($context->getContext()));
 
         return new SessionCustomer(
-            locale: $language,
+            locale: $locale,
             firstName: $customer->getFirstName(),
             lastName: $customer->getLastName(),
             email: $customer->getEmail(),
             phone: $billing?->getPhoneNumber(),
-            address: $billing ? $this->buildAddress($billing, $context->getSalesChannelId()) : null,
         );
-    }
-
-    private function buildAddress(CustomerAddressEntity|OrderAddressEntity $address, string $salesChannelId): SessionAddress
-    {
-        [$street, $houseNumber] = $this->parseStreetAndHouseNumber($address, $salesChannelId);
-
-        return new SessionAddress(
-            street: $street,
-            houseNumber: $houseNumber,
-            postalCode: $address->getZipcode() ?? '',
-            city: $address->getCity() ?? '',
-            country: $address->getCountry()?->getIso() ?? '',
-        );
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function parseStreetAndHouseNumber(CustomerAddressEntity|OrderAddressEntity $address, string $salesChannelId): array
-    {
-        $street = $address->getStreet() ?? '';
-        $houseNumber = '';
-        $houseNumberExtension = '';
-
-        if (!$this->config->getUseAdditionalAddressFields($salesChannelId)) {
-            $parsed = paynl_split_address($street);
-            $street = $parsed['street'] ?? '';
-            $houseNumber = $parsed['number'] ?? '';
-
-            $houseNumberParts = explode(' ', (string) $houseNumber);
-            if (count($houseNumberParts) > 1) {
-                $houseNumber = array_shift($houseNumberParts);
-                $houseNumberExtension = implode(' ', $houseNumberParts);
-            }
-        } else {
-            $houseNumber = $address->getAdditionalAddressLine1() ?? '';
-            $houseNumberExtension = $address->getAdditionalAddressLine2() ?? '';
-        }
-
-        if ($houseNumberExtension !== '') {
-            $houseNumber = trim($houseNumber . ' ' . $houseNumberExtension);
-        }
-
-        return [$street, $houseNumber];
     }
 
     /** @throws PayPartsApiException */

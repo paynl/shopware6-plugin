@@ -11,8 +11,7 @@ class SessionCustomer
         private ?string $firstName = null,
         private ?string $lastName = null,
         private ?string $email = null,
-        private ?string $phone = null,
-        private ?SessionAddress $address = null
+        private ?string $phone = null
     ) {}
 
     public function toArray(): array
@@ -23,7 +22,6 @@ class SessionCustomer
         if ($this->lastName !== null) $data['lastName'] = $this->lastName;
         if ($this->email !== null) $data['email'] = $this->email;
         if ($this->phone !== null) $data['phone'] = $this->phone;
-        if ($this->address !== null) $data['address'] = $this->address->toArray();
 
         return $data;
     }
