@@ -9,6 +9,7 @@ class PaynlPaymentMethodsIdsEnum
     /** Grouped credit card (PG_2) */
     const CREDIT_CARD_PAYMENT = 11;
     const PAYPAL_PAYMENT = 138;
+    const METJEBANK_PAYMENT = 5358;
 
     // Ungrouped card networks (Pay.Parts)
     const VISA = 3141;

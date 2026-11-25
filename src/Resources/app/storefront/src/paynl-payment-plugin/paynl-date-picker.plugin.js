@@ -1,6 +1,6 @@
-import Plugin from 'src/plugin-system/plugin.class';
+import Plugin from '../plugin-system/plugin.class';
 import flatpickr from 'flatpickr';
-import DomAccess from 'src/helper/dom-access.helper';
+import DomAccess from '../helper/dom-access.helper';
 
 /**
  * Controls the date picker component

@@ -25,7 +25,7 @@
         "order": "Order: "
     },
     "payment": {
-        "selectIssuer": "Select Issuer",
+        "selectIssuer": "Select your bank",
         "idealExpressCheckout": {
             "buttonTitle": "Fast Checkout",
             "paymentError": "The payment with IDEAL Express Checkout failed.",

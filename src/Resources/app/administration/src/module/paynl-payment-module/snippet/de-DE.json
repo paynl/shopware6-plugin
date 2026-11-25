@@ -8,6 +8,7 @@
         }
     },
     "order": {
+        "issuer": "Bank",
         "transaction": {
             "paid": "Bezahlt (Erfassung)",
             "cancelled": "Annulliert (Leere)"
